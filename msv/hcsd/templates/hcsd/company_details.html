@@ -1,0 +1,824 @@
+{% extends "hcsd/base.html" %}
+{% block title %}{{ company.name }} Details{% endblock %}
+{% block content %}
+<style>
+  .company-detail-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 22px 16px 40px;
+  }
+
+  .detail-card {
+    background: #fbf9f5;
+    border: 2px solid #2a2a2a;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    font-family: "Cairo", "Noto Kufi Arabic", "Tahoma", sans-serif;
+  }
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .detail-header h1 {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  .back-link {
+    border: 1px solid #1f5a4b;
+    color: #1f5a4b;
+    padding: 8px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 13px;
+  }
+
+  .edit-request-btn {
+    border: 1px solid #1f5a4b;
+    color: #fff;
+    background: #1f5a4b;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .extension-request-btn {
+    border: 1px solid #c88a2d;
+    color: #fff;
+    background: #c88a2d;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .permit-statuses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .permit-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    border: 1px solid transparent;
+    text-decoration: none;
+    color: inherit;
+    background: #f4f4f4;
+  }
+
+  .permit-pill.is-valid {
+    background: #e3f4ec;
+    color: #1f5a4b;
+    border-color: #a9d6c1;
+    font-weight: 600;
+  }
+
+  .permit-pill.is-missing {
+    background: #fff1dd;
+    color: #8a4a00;
+    border-color: #f0c28b;
+  }
+
+  .section {
+    border: 1px solid #2a2a2a;
+    padding: 14px;
+    margin-top: 16px;
+  }
+
+  .section-title {
+    font-weight: 700;
+    font-size: 14px;
+    display: inline-block;
+    padding: 4px 10px;
+    background: #e2ede9;
+    border: 1px solid #2a2a2a;
+    margin-bottom: 12px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px 16px;
+  }
+
+  .info-item {
+    display: grid;
+    gap: 4px;
+    font-size: 14px;
+  }
+
+  .info-item .label {
+    font-size: 12px;
+    color: #555;
+  }
+
+  .info-item .value {
+    color: #1b1b1b;
+    font-weight: 600;
+  }
+
+  .company-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px 18px;
+  }
+
+  .company-field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .company-field label {
+    font-size: 13px;
+    color: #555;
+  }
+
+  .company-field input,
+  .company-field select {
+    border: 1px solid #2a2a2a;
+    padding: 8px 10px;
+    font-size: 14px;
+    background: #fff;
+  }
+
+  .checks {
+    display: grid;
+    gap: 8px;
+  }
+
+  .check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .actions {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .actions button {
+    border: none;
+    padding: 10px 16px;
+    background: #1f5a4b;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .actions a {
+    padding: 10px 16px;
+    border-radius: 4px;
+    background: #494949;
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .error-box {
+    border: 1px solid #a33;
+    background: #fff4f4;
+    color: #8a1f1f;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+
+  .edit-panel[hidden] {
+    display: none;
+  }
+
+  .extension-panel[hidden] {
+    display: none;
+  }
+
+  .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+  }
+
+  .detail-table th,
+  .detail-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: right;
+  }
+
+  .detail-table thead {
+    background: #f4f4f4;
+  }
+
+  .permit-link {
+    background: #1f5a4b;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 13px;
+  }
+
+  .muted {
+    color: #666;
+    font-size: 13px;
+  }
+
+  .timeline {
+    --timeline-date-col: 90px;
+    --timeline-track-col: 22px;
+    --timeline-gap: 12px;
+    display: grid;
+    gap: var(--timeline-gap);
+    margin-top: 10px;
+  }
+
+  .timeline-item {
+    display: grid;
+    grid-template-columns: var(--timeline-date-col) var(--timeline-track-col) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .timeline-date {
+    font-size: 12px;
+    color: #222;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .timeline-track {
+    position: relative;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+
+  .timeline-track::before {
+    content: "";
+    position: absolute;
+    top: calc(-1 * var(--timeline-gap) / 2);
+    bottom: calc(-1 * var(--timeline-gap) / 2);
+    width: 2px;
+    background: repeating-linear-gradient(
+      to bottom,
+      #1f5a4b 0,
+      #1f5a4b 6px,
+      transparent 6px,
+      transparent 12px
+    );
+  }
+
+  .timeline-item:first-child .timeline-track::before {
+    top: 0;
+  }
+
+  .timeline-item:last-child .timeline-track::before {
+    bottom: 0;
+  }
+
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #f25c2a;
+    box-shadow: 0 0 0 6px rgba(242, 92, 42, 0.12);
+    position: relative;
+    z-index: 1;
+  }
+
+  .timeline-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 14px;
+    position: relative;
+    text-align: right;
+  }
+
+  .timeline-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .timeline-meta {
+    font-size: 12px;
+    color: #666;
+  }
+
+  .timeline-notes {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #333;
+  }
+
+  @media (max-width: 720px) {
+    .timeline-item {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .timeline-date {
+      text-align: right;
+    }
+
+    .timeline-track {
+      display: none;
+    }
+  }
+
+  @media (max-width: 980px) {
+    .detail-card {
+      padding: 20px;
+    }
+  }
+</style>
+
+<section class="company-detail-page" lang="ar" dir="rtl">
+  <div class="detail-card">
+    <div class="detail-header">
+      <h1>بيانات الشركة</h1>
+      <div class="detail-actions">
+        <a class="back-link" href="{% url 'company_list' %}">العودة إلى قائمة الشركات</a>
+        {% if can_edit_company %}
+          <button type="button" class="edit-request-btn" data-request-edit>طلب تعديل</button>
+        {% endif %}
+        {% if can_request_extension %}
+          <button type="button" class="extension-request-btn" data-request-extension>طلب مهلة</button>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="section extension-panel" data-extension-panel {% if not extension_error %}hidden{% endif %}>
+      <div class="section-title">تقديم طلب مهلة</div>
+      {% if extension_error %}
+        <div class="error-box">{{ extension_error }}</div>
+      {% endif %}
+      {% if can_request_extension %}
+        <form method="POST" enctype="multipart/form-data" class="upload-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="request_extension">
+          <label>نوع المهلة</label>
+          <input type="text" name="extension_type" placeholder="مثال: تجديد تصريح المركبة / النشاط / التخلص / المؤهل العلمي" required>
+          <label>المستند المرفق (PDF أو صورة)</label>
+          <input type="file" name="extension_document" accept=".pdf,image/*" required>
+          <button type="submit">حفظ طلب المهلة</button>
+        </form>
+      {% else %}
+        <p class="muted">تقديم المهلة متاح لموظفي الإدخال أو الإدارة فقط.</p>
+      {% endif %}
+    </div>
+
+      <div class="section">
+        <div class="section-title">معلومات الشركة</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">الاسم التجاري</span>
+            <span class="value">{{ company.name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">رقم الرخصة التجارية</span>
+            <span class="value">{{ company.number }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">تاريخ انتهاء الرخصة التجارية</span>
+            <span class="value">{{ company.trade_license_exp|default:"-" }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">أنشطة الرخصة</span>
+            <span class="value">{{ company.business_activity_display|default:"-" }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">نوع المكافحة المعتمد</span>
+            <span class="value">
+              {% if company.pest_control_type == "termite_control" %}
+                مكافحة النمل الأبيض + مكافحة آفات الصحة العامة
+              {% elif company.pest_control_type == "public_health_pest_control" %}
+                مكافحة آفات الصحة العامة
+              {% elif company.pest_control_type == "grain_pests" %}
+                مكافحة آفات الحبوب
+              {% else %}
+                -
+              {% endif %}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="label">عنوان الشركة</span>
+            <span class="value">{{ company.address }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">رقم الهاتف الأرضي</span>
+            <span class="value">{{ company.landline|default:"-" }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">رقم هاتف المالك</span>
+            <span class="value">{{ company.owner_phone|default:"-" }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">البريد الإلكتروني</span>
+            <span class="value">{{ company.email|default:"-" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">المهندس المسؤول</div>
+        {% if company.enginer %}
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">الاسم</span>
+              <span class="value">{{ company.enginer.name }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">البريد الإلكتروني</span>
+              <span class="value">{{ company.enginer.email }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">رقم الهاتف</span>
+              <span class="value">{{ company.enginer.phone }}</span>
+            </div>
+          </div>
+        {% else %}
+          <p class="muted">لا يوجد مهندس مرتبط.</p>
+        {% endif %}
+      </div>
+
+      <div class="section edit-panel" data-edit-panel {% if not error %}hidden{% endif %}>
+        <div class="section-title">تعديل بيانات الشركة</div>
+        {% if error %}
+          <div class="error-box">{{ error }}</div>
+        {% endif %}
+        {% if can_edit_company %}
+          <form method="POST" data-edit-form>
+            {% csrf_token %}
+            <div class="company-grid">
+              <div class="company-field">
+                <label>الاسم التجاري</label>
+                <input type="text" name="name" value="{{ form_data.name|default:'' }}" required disabled data-editable>
+              </div>
+              <div class="company-field">
+                <label>رقم الرخصة التجارية</label>
+                <input type="text" name="number" value="{{ form_data.number|default:'' }}" required disabled data-editable>
+              </div>
+              <div class="company-field">
+                <label>تاريخ انتهاء الرخصة التجارية</label>
+                <input type="date" name="trade_license_exp" value="{{ form_data.trade_license_exp|default:'' }}" disabled data-editable>
+              </div>
+              <div class="company-field">
+                <label>عنوان الشركة</label>
+                <input type="text" name="address" value="{{ form_data.address|default:'' }}" required disabled data-editable>
+              </div>
+              <div class="company-field">
+                <label>رقم الهاتف الأرضي</label>
+                <input type="text" name="landline" value="{{ form_data.landline|default:'' }}" disabled data-editable>
+              </div>
+              <div class="company-field">
+                <label>رقم هاتف المالك</label>
+                <input type="text" name="owner_phone" value="{{ form_data.owner_phone|default:'' }}" disabled data-editable>
+              </div>
+              <div class="company-field">
+                <label>البريد الإلكتروني</label>
+                <input type="email" name="email" value="{{ form_data.email|default:'' }}" disabled data-editable>
+              </div>
+            </div>
+
+            <div class="section" style="margin-top: 16px;">
+              <div class="section-title">أنشطة الرخصة</div>
+              <div class="checks">
+                {% for value, label in business_activity_choices %}
+                  <label class="check">
+                    <input type="checkbox" name="business_activity" value="{{ value }}"
+                      {% if selected_business_activities and value in selected_business_activities %}checked{% endif %} disabled data-editable>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="section" style="margin-top: 16px;">
+              <div class="section-title">التصنيف والمهندس</div>
+              <div class="company-grid">
+                <div class="company-field">
+                  <label>نوع المكافحة</label>
+                  <select name="pest_control_type" required disabled data-editable>
+                    <option value="">اختيار نوع المكافحة</option>
+                    <option value="public_health_pest_control" {% if selected_pest_control_type == "public_health_pest_control" %}selected{% endif %}>مكافحة آفات الصحة العامة</option>
+                    <option value="termite_control" {% if selected_pest_control_type == "termite_control" %}selected{% endif %}>مكافحة النمل الأبيض</option>
+                    <option value="grain_pests" {% if selected_pest_control_type == "grain_pests" %}selected{% endif %}>مكافحة آفات الحبوب</option>
+                  </select>
+                </div>
+                <div class="company-field">
+                  <label>المهندس</label>
+                  <select name="enginer" required disabled data-editable>
+                    <option value="">اختيار مهندس</option>
+                    {% for engineer in engineers %}
+                      <option
+                        value="{{ engineer.id }}"
+                        data-public="{{ engineer.has_public_health_cert|yesno:'1,0' }}"
+                        data-termite="{{ engineer.has_termite_cert|yesno:'1,0' }}"
+                        {% if form_data.enginer_id == engineer.id|stringformat:"s" %}selected{% endif %}
+                      >
+                        {{ engineer.name }}
+                        {% if engineer.has_public_health_cert %}
+                          {% if engineer.has_termite_cert %}(معتمد نمل أبيض){% else %}(معتمد صحة عامة){% endif %}
+                        {% else %}
+                          (غير مكتمل الشهادات)
+                        {% endif %}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <small class="muted">لا يظهر للاختيار إلا المهندس الذي أكمل الشهادات المطلوبة.</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button type="submit" data-save-button disabled>حفظ التعديلات</button>
+              <a href="{% url 'company_detail' company.id %}">إلغاء</a>
+            </div>
+          </form>
+        {% else %}
+          <p class="muted">التعديل متاح للإدارة فقط.</p>
+        {% endif %}
+      </div>
+
+    <div class="section">
+      <div class="section-title">التصاريح المرتبطة</div>
+      <div class="permit-statuses">
+        {% for permit in permit_statuses %}
+          {% if permit.is_valid %}
+            <a class="permit-pill is-valid" href="{% url 'pirmet_detail' permit.permit_id %}">
+              {{ permit.label }} · ساري
+            </a>
+          {% else %}
+            <a class="permit-pill is-missing" href="{% url permit.form_view %}?company_id={{ company.id }}">
+              {{ permit.label }} · ناقص
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% if company.pirmetclearance_set.all %}
+        <table class="detail-table">
+          <thead>
+            <tr>
+              <th>نوع التصريح</th>
+              <th>تاريخ الإنشاء</th>
+              <th>تاريخ الانتهاء</th>
+              <th>رقم الدفع</th>
+              <th>التفاصيل</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for clearance in company.pirmetclearance_set.all %}
+              <tr>
+                <td>
+                  {% if clearance.permit_type == "pest_control" %}
+                    تصريح مزاولة نشاط مكافحة آفات الصحة العامة
+                  {% elif clearance.permit_type == "pesticide_transport" %}
+                    تصريح نقل مبيدات آفات الصحة العامة
+                  {% elif clearance.permit_type == "waste_disposal" %}
+                    تصريح التخلص من النفايات
+                  {% else %}
+                    {{ clearance.permit_type }}
+                  {% endif %}
+                </td>
+                <td>{{ clearance.dateOfCreation }}</td>
+                <td>{{ clearance.dateOfExpiry }}</td>
+                <td>{{ clearance.PaymentNumber|default:"-" }}</td>
+                <td><a class="permit-link" href="{% url 'pirmet_detail' clearance.id %}">عرض</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted">لا توجد تصاريح مرتبطة بهذه الشركة.</p>
+      {% endif %}
+    </div>
+
+    <div class="section">
+      <div class="section-title">سجل الشركة</div>
+      {% if logs %}
+        <div class="timeline">
+          {% for log in logs %}
+            <div class="timeline-item">
+              <div class="timeline-date">{{ log.created_at|date:"d M, Y" }}</div>
+              <div class="timeline-track">
+                <span class="timeline-dot"></span>
+              </div>
+              <div class="timeline-card">
+                <div class="timeline-title">
+                  {% if log.action == "created" %}
+                    تم إنشاء سجل الشركة
+                  {% elif log.action == "updated" %}
+                    تم تعديل بيانات الشركة
+                  {% elif log.action == "engineer_changed" %}
+                    تم تغيير المهندس المسؤول
+                  {% elif log.action == "extension_requested" %}
+                    تم طلب مهلة
+                  {% else %}
+                    {{ log.action }}
+                  {% endif %}
+                </div>
+                <div class="timeline-meta">
+                  {{ log.created_at|date:"H:i" }}
+                  {% if log.changed_by %}
+                    · بواسطة {{ log.changed_by.username }}
+                  {% else %}
+                    · بواسطة النظام
+                  {% endif %}
+                </div>
+                {% if log.notes %}
+                  <div class="timeline-notes">{{ log.notes }}</div>
+                {% endif %}
+                {% if log.attachment %}
+                  <div class="timeline-notes">
+                    <a href="{{ log.attachment.url }}" target="_blank" rel="noopener">فتح المستند المرفق</a>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="muted">لا توجد تحديثات مسجلة بعد.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+<script>
+  (function () {
+    const form = document.querySelector('[data-edit-form]');
+    const requestBtn = document.querySelector('[data-request-edit]');
+    const editPanel = document.querySelector('[data-edit-panel]');
+    const extensionBtn = document.querySelector('[data-request-extension]');
+    const extensionPanel = document.querySelector('[data-extension-panel]');
+    const saveBtn = document.querySelector('[data-save-button]');
+    const editables = form ? Array.from(form.querySelectorAll('[data-editable]')) : [];
+
+    const typeSelect = document.querySelector('select[name="pest_control_type"]');
+    const engSelect = document.querySelector('select[name="enginer"]');
+    const options = engSelect ? Array.from(engSelect.options).filter((opt) => opt.value) : [];
+    const typeOptions = typeSelect ? Array.from(typeSelect.options).filter((opt) => opt.value) : [];
+
+    let editMode = false;
+
+    const setEditMode = (enabled) => {
+      editMode = enabled;
+      editables.forEach((el) => {
+        el.disabled = !enabled;
+      });
+      if (saveBtn) {
+        saveBtn.disabled = !enabled;
+      }
+      if (toggleBtn) {
+        toggleBtn.disabled = enabled;
+      }
+    };
+
+    const applyFilter = () => {
+      if (!typeSelect || !engSelect) {
+        return;
+      }
+      const type = typeSelect.value;
+      options.forEach((opt) => {
+        const hasPublic = opt.dataset.public === '1';
+        const hasTermite = opt.dataset.termite === '1';
+        const allow = type === 'termite_control' ? hasTermite : hasPublic;
+        opt.disabled = !allow;
+        if (editMode && !allow && opt.selected) {
+          engSelect.value = '';
+        }
+      });
+    };
+
+    const filterTypesByEngineer = () => {
+      if (!typeSelect || !engSelect) {
+        return;
+      }
+      const selected = engSelect.options[engSelect.selectedIndex];
+      if (!selected || !selected.value) {
+        typeOptions.forEach((opt) => {
+          opt.disabled = false;
+        });
+        return;
+      }
+      const hasPublic = selected.dataset.public === '1';
+      const hasTermite = selected.dataset.termite === '1';
+      typeOptions.forEach((opt) => {
+        if (opt.value === 'termite_control') {
+          opt.disabled = !hasTermite;
+        } else {
+          opt.disabled = !hasPublic;
+        }
+      });
+      if (editMode && typeSelect.value && typeSelect.options[typeSelect.selectedIndex].disabled) {
+        typeSelect.value = '';
+      }
+      if (editMode && !typeSelect.value) {
+        if (hasTermite) {
+          typeSelect.value = 'termite_control';
+        } else if (hasPublic) {
+          typeSelect.value = 'public_health_pest_control';
+        }
+      }
+    };
+
+    const openEditPanel = () => {
+      if (editPanel) {
+        editPanel.hidden = false;
+      }
+      setEditMode(true);
+      filterTypesByEngineer();
+      applyFilter();
+      const firstEditable = editables.find((el) => !el.disabled);
+      if (firstEditable) {
+        firstEditable.focus();
+      }
+    };
+
+    const openExtensionPanel = () => {
+      if (extensionPanel) {
+        extensionPanel.hidden = false;
+        const input = extensionPanel.querySelector('input[name="extension_type"]');
+        if (input) {
+          input.focus();
+        }
+      }
+    };
+
+    if (requestBtn) {
+      requestBtn.addEventListener('click', () => {
+        openEditPanel();
+      });
+    }
+
+    if (extensionBtn) {
+      extensionBtn.addEventListener('click', () => {
+        openExtensionPanel();
+      });
+    }
+
+    if (typeSelect) {
+      typeSelect.addEventListener('change', () => {
+        filterTypesByEngineer();
+        applyFilter();
+      });
+    }
+    if (engSelect) {
+      engSelect.addEventListener('change', () => {
+        filterTypesByEngineer();
+        applyFilter();
+      });
+    }
+
+    if (form) {
+      form.addEventListener('submit', (event) => {
+        if (!editMode) {
+          event.preventDefault();
+          return;
+        }
+        const ok = window.confirm('هل ترغب بحفظ التغييرات؟');
+        if (!ok) {
+          event.preventDefault();
+        }
+      });
+    }
+
+    if (editPanel && !editPanel.hidden) {
+      openEditPanel();
+    } else {
+      setEditMode(false);
+      filterTypesByEngineer();
+      applyFilter();
+    }
+    if (extensionPanel && !extensionPanel.hidden) {
+      openExtensionPanel();
+    }
+  })();
+</script>
+{% endblock %}

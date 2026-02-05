@@ -1,0 +1,238 @@
+{% extends "hcsd/base.html" %}
+{% block title %}Clearance List{% endblock %}
+{% block content %}
+<style>
+  .clearance-page {
+    padding: 16px 0 40px;
+  }
+
+  .clearance-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .clearance-title {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 14px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+
+  .card h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+  }
+
+  .hint {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .clearance-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .clearance-table th,
+  .clearance-table td {
+    border: 1px solid var(--line);
+    padding: 10px;
+    text-align: right;
+    vertical-align: top;
+  }
+
+  .clearance-table th {
+    background: #f1ece4;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .action-link {
+    background: var(--accent);
+    color: #fff;
+    padding: 6px 10px;
+    text-decoration: none;
+    border-radius: 8px;
+    display: inline-block;
+    font-size: 13px;
+  }
+</style>
+
+<section class="clearance-page" lang="ar" dir="rtl">
+    <div class="clearance-header">
+        <h1 class="clearance-title">قائمة الطلبات</h1>
+        <a href="{% url 'company_list' %}" class="btn">العودة إلى الشركات</a>
+    </div>
+
+    {% if form_errors %}
+        <div style="border: 1px solid #dc3545; color: #dc3545; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+            <strong>Please fix the following:</strong>
+            <ul style="margin: 8px 0 0 18px;">
+                {% for error in form_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <h2>إنشاء طلب تصريح</h2>
+        {% if can_create_pirmet %}
+            <div style="display: grid; gap: 10px;">
+                <a href="{% url 'pest_control_permit' %}" class="btn primary">
+                    تصريح مزاولة نشاط مكافحة آفات الصحة العامة
+                </a>
+                <a href="{% url 'pesticide_transport_permit' %}" class="btn primary">
+                    تصريح نقل مبيدات آفات الصحة العامة
+                </a>
+                <a href="{% url 'waste_disposal_permit' %}" class="btn primary">
+                    تصريح التخلص من النفايات
+                </a>
+            </div>
+        {% else %}
+            <p><em>Only Data Entry or Administration accounts can create permits.</em></p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>All Permits/Clearances</h2>
+
+        {% if clearances %}
+            <table class="clearance-table">
+                <thead>
+                    <tr>
+                        <th>الشركة</th>
+                        <th>نوع التصريح</th>
+                        <th>تاريخ الإنشاء</th>
+                        <th>تاريخ الانتهاء</th>
+                        <th>الحالة</th>
+                        <th>مرجع دفع التفتيش</th>
+                        <th>مرجع دفع التصريح</th>
+                        <th>المستندات</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for clearance in clearances %}
+                        <tr>
+                            <td>{{ clearance.company.name }}</td>
+                            <td>
+                                {% if clearance.permit_type == "pest_control" %}
+                                    تصريح مزاولة نشاط مكافحة آفات الصحة العامة
+                                {% elif clearance.permit_type == "pesticide_transport" %}
+                                    تصريح نقل مبيدات آفات الصحة العامة
+                                {% elif clearance.permit_type == "waste_disposal" %}
+                                    تصريح التخلص من النفايات
+                                {% else %}
+                                    {{ clearance.permit_type }}
+                                {% endif %}
+                            </td>
+                            <td>{{ clearance.dateOfCreation }}</td>
+                            <td>{{ clearance.dateOfExpiry }}</td>
+                            <td>
+                                {% if clearance.status == 'order_received' %}
+                                    تم استلام الطلب
+                                {% elif clearance.status == 'inspection_payment_pending' %}
+                                    تم إرسال رابط دفع التفتيش وبانتظار الدفع
+                                {% elif clearance.status == 'review_pending' %}
+                                    بانتظار مراجعة المفتش
+                                {% elif clearance.status == 'approved' %}
+                                    تم الاعتماد من المفتش{% if clearance.inspector_name %} {{ clearance.inspector_name }}{% endif %}
+                                {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}
+                                    نواقص بحاجة للاستكمال
+                                {% elif clearance.status == 'payment_pending' %}
+                                    بانتظار دفع التصريح
+                                {% elif clearance.status == 'payment_completed' %}
+                                    تم استلام الدفع
+                                {% elif clearance.status == 'issued' %}
+                                    تم إصدار التصريح
+                                {% elif clearance.status == 'inspection_pending' %}
+                                    تفتيش قيد الانتظار
+                                {% elif clearance.status == 'inspection_completed' %}
+                                    تم التفتيش
+                                {% elif clearance.status == 'disposal_approved' %}
+                                    تمت الموافقة على الإتلاف
+                                {% elif clearance.status == 'disposal_rejected' %}
+                                    تم رفض الإتلاف
+                                {% else %}
+                                    {{ clearance.get_status_display }}
+                                {% endif %}
+                                {% if clearance.unapprovedReason %}
+                                    {% if clearance.status == 'needs_completion' or clearance.status == 'rejected' %}
+                                        <div class="hint" style="color: #a00;">{{ clearance.unapprovedReason }}</div>
+                                    {% endif %}
+                                {% endif %}
+                                {% if clearance.inspection_payment_link %}
+                                    <div class="hint" style="margin-top: 4px;">
+                                        <a href="{{ clearance.inspection_payment_link }}" target="_blank" rel="noopener">رابط دفع التفتيش</a>
+                                    </div>
+                                {% endif %}
+                                {% if clearance.payment_link %}
+                                    <div class="hint" style="margin-top: 4px;">
+                                        <a href="{{ clearance.payment_link }}" target="_blank" rel="noopener">رابط دفع التصريح</a>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>{{ clearance.inspection_payment_reference|default:"-" }}</td>
+                            <td>{{ clearance.PaymentNumber|default:"-" }}</td>
+                            <td>
+                                {% if clearance.request_documents_bundle %}
+                                    <a href="{{ clearance.request_documents_bundle.url }}">ملف المستندات الموحد</a><br>
+                                {% endif %}
+                                {% if clearance.documents.all %}
+                                    {% for doc in clearance.documents.all %}
+                                        <a href="{{ doc.file.url }}">{{ doc.file.name|cut:"pirmet_documents/" }}</a><br>
+                                    {% endfor %}
+                                {% else %}
+                                    {% if not clearance.request_documents_bundle %}-{% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="margin-bottom: 8px;">
+                                    <a href="{% url 'pirmet_detail' clearance.id %}" class="action-link">
+                                        عرض التفاصيل
+                                    </a>
+                                </div>
+                                <em>تحديث الطلب يتم من داخل صفحة التفاصيل حسب المرحلة.</em>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="hint">لا توجد طلبات حالياً.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

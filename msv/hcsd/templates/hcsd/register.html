@@ -1,0 +1,12 @@
+{% extends "hcsd/base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+    <h1>Create Account</h1>
+    <p><em>New accounts are created as Data Entry. An administrator can change roles later.</em></p>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Register</button>
+    </form>
+{% endblock %}

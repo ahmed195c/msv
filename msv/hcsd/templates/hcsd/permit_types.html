@@ -1,0 +1,89 @@
+{% extends "hcsd/base.html" %}
+{% block title %}تصاريح البلدية{% endblock %}
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+
+  .permit-types {
+    font-family: "Cairo", "Noto Kufi Arabic", "Tahoma", sans-serif;
+    background:
+      radial-gradient(circle at 10% 10%, rgba(31, 90, 75, 0.08), transparent 45%),
+      radial-gradient(circle at 90% 20%, rgba(176, 132, 46, 0.08), transparent 40%),
+      linear-gradient(180deg, #f2efe7, #f8f6f1);
+    padding: 32px 16px 40px;
+  }
+
+  .permit-types__wrap {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .permit-types__title {
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .permit-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .permit-card {
+    background: #fff;
+    border: 2px solid #2a2a2a;
+    padding: 16px;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
+    display: grid;
+    gap: 12px;
+  }
+
+  .permit-card h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .permit-card p {
+    margin: 0;
+    color: #5e5e5e;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .permit-card a {
+    display: inline-block;
+    text-decoration: none;
+    background: #1f5a4b;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 3px;
+    font-size: 14px;
+  }
+</style>
+
+<section class="permit-types" lang="ar" dir="rtl">
+  <div class="permit-types__wrap">
+    <div class="permit-types__title">اختيار نوع التصريح</div>
+    <div class="permit-grid">
+      <div class="permit-card">
+        <h3>تصريح مزاولة نشاط مكافحة آفات الصحة العامة</h3>
+        <p>طلب تصريح لشركات مكافحة آفات الصحة العامة مع بيانات المهندس والأنشطة.</p>
+        <a href="{% url 'pest_control_permit' %}">بدء الطلب</a>
+      </div>
+      <div class="permit-card">
+        <h3>تصريح نقل مبيدات آفات الصحة العامة</h3>
+        <p>طلب تصريح نقل المبيدات مع بيانات المركبة ورقم التواصل.</p>
+        <a href="{% url 'pesticide_transport_permit' %}">بدء الطلب</a>
+      </div>
+      <div class="permit-card">
+        <h3>تصريح التخلص من النفايات</h3>
+        <p>طلب تصريح التخلص من النفايات مع بيانات التصنيف والكمية الشهرية.</p>
+        <a href="{% url 'waste_disposal_permit' %}">بدء الطلب</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
