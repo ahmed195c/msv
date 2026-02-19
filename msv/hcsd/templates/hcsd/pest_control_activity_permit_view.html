@@ -1,0 +1,150 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}عرض تصريح النشاط{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
+  <link rel="stylesheet" href="{% static 'hcsd/printer.css' %}" media="print">
+{% endblock %}
+{% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+  <div class="permit-card">
+    <div class="action-bar no-print">
+      <a class="back-link" href="{% url 'company_detail' pirmet.company.id %}">العودة إلى الشركة</a>
+    </div>
+
+    <header class="permit-header">
+      <div class="municipality">
+        <div class="logo-box">شعار البلدية</div>
+        <div class="municipality-text">
+          <div class="title">بلدية مدينة الشارقة</div>
+          <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+          <div class="sub">قسم رقابة وتنظيم النفايات</div>
+        </div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="label">رقم التصريح</span>
+          <span class="value">{{ pirmet.permit_no|default:"-" }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">تاريخ الإصدار</span>
+          <span class="value">{{ pirmet.issue_date|default:"-" }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">تاريخ الانتهاء</span>
+          <span class="value">{{ pirmet.dateOfExpiry|default:"-" }}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="permit-title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</div>
+
+    <section class="permit-section">
+      <div class="section-title">بيانات الشركة</div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="label">اسم الشركة</span>
+          <span class="value">{{ pirmet.company.name|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">رقم الرخصة التجارية</span>
+          <span class="value">{{ pirmet.company.number|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">عنوان الشركة</span>
+          <span class="value">{{ pirmet.company.address|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">البريد الإلكتروني</span>
+          <span class="value">{{ pirmet.company.email|default:"-" }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">بيانات المهندس</div>
+      <div class="detail-grid">
+        {% if pirmet.company.enginer %}
+          <div class="detail-item">
+            <span class="label">اسم المهندس</span>
+            <span class="value">{{ pirmet.company.enginer.name }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">رقم الهاتف المتحرك</span>
+            <span class="value">{{ pirmet.company.enginer.phone }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">البريد الإلكتروني</span>
+            <span class="value">{{ pirmet.company.enginer.email }}</span>
+          </div>
+        {% else %}
+          <div class="detail-item">
+            <span class="label">بيانات المهندس</span>
+            <span class="value">-</span>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">الأنشطة المصرح بها</div>
+      <ul class="activity-list">
+        {% if allowed_activities %}
+          {% for item in allowed_activities %}
+            <li>
+              {% if item == "public_health_pest_control" %}
+                مكافحة آفات الصحة العامة
+              {% elif item == "flying_insects" %}
+                مكافحة الحشرات الطائرة
+              {% elif item == "rodents" %}
+                مكافحة القوارض
+              {% elif item == "termite_control" %}
+                مكافحة النمل الأبيض
+              {% elif item == "grain_pests" %}
+                مكافحة آفات الحبوب
+              {% else %}
+                {{ item }}
+              {% endif %}
+            </li>
+          {% endfor %}
+        {% else %}
+          <li>لا توجد بيانات.</li>
+        {% endif %}
+        {% if pirmet.allowed_other %}
+          <li>أخرى: {{ pirmet.allowed_other }}</li>
+        {% endif %}
+      </ul>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">الأنشطة غير المصرح بها</div>
+      <ul class="activity-list">
+        {% if restricted_activities %}
+          {% for item in restricted_activities %}
+            <li>
+              {% if item == "public_health_pest_control" %}
+                مكافحة آفات الصحة العامة
+              {% elif item == "flying_insects" %}
+                مكافحة الحشرات الطائرة
+              {% elif item == "rodents" %}
+                مكافحة القوارض
+              {% elif item == "termite_control" %}
+                مكافحة النمل الأبيض
+              {% elif item == "grain_pests" %}
+                مكافحة آفات الحبوب
+              {% else %}
+                {{ item }}
+              {% endif %}
+            </li>
+          {% endfor %}
+        {% else %}
+          <li>لا توجد بيانات.</li>
+        {% endif %}
+        {% if pirmet.restricted_other %}
+          <li>أخرى: {{ pirmet.restricted_other }}</li>
+        {% endif %}
+      </ul>
+    </section>
+  </div>
+</section>
+{% endblock %}

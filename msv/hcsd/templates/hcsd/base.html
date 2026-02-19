@@ -1,197 +1,12 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}MSV{% endblock %}</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Cairo:wght@400;600;700&display=swap');
-
-        :root {
-            --bg: #f7f4ee;
-            --paper: #fffdf8;
-            --ink: #1f1b16;
-            --muted: #6e665c;
-            --line: #d9d1c4;
-            --accent: #1f5a4b;
-            --accent-soft: #e2ede9;
-            --accent-warm: #c88a2d;
-            --shadow: 0 16px 30px rgba(0, 0, 0, 0.08);
-            --radius: 14px;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: "IBM Plex Sans Arabic", "Cairo", "Tahoma", sans-serif;
-            color: var(--ink);
-            background:
-                radial-gradient(1000px 700px at 90% -200px, #e6efe9 0, transparent 60%),
-                radial-gradient(800px 600px at -200px 120px, #f3e7cf 0, transparent 55%),
-                var(--bg);
-        }
-
-        a {
-            color: var(--accent);
-        }
-
-        main {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 24px 16px 56px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--paper);
-        }
-
-        th,
-        td {
-            border: 1px solid var(--line);
-            padding: 10px;
-            text-align: right;
-            vertical-align: top;
-        }
-
-        th {
-            background: #f1ece4;
-            color: var(--muted);
-            font-weight: 600;
-        }
-
-        input,
-        select,
-        textarea,
-        button {
-            font-family: inherit;
-        }
-
-        input,
-        select,
-        textarea {
-            border: 1px solid var(--line);
-            padding: 8px 10px;
-            border-radius: 8px;
-            background: #fff;
-        }
-
-        button {
-            border: none;
-            padding: 8px 14px;
-            border-radius: 10px;
-            background: var(--accent);
-            color: #fff;
-            cursor: pointer;
-        }
-
-        .navbar {
-            font-family: inherit;
-            background: var(--paper);
-            color: var(--ink);
-            padding: 12px 18px;
-            border-bottom: 1px solid var(--line);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .nav-brand {
-            color: var(--ink);
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 16px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            border: 1px solid var(--line);
-            background: #fff;
-        }
-
-        .nav-links,
-        .nav-auth {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .nav-links a,
-        .nav-auth a,
-        .nav-auth button {
-            color: var(--ink);
-            text-decoration: none;
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: #f3eee4;
-            border: 1px solid transparent;
-            font-size: 14px;
-            transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-            cursor: pointer;
-            line-height: 1.2;
-        }
-
-        .nav-links a:hover,
-        .nav-auth a:hover,
-        .nav-auth button:hover {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-            transform: translateY(-1px);
-        }
-
-        .nav-user {
-            color: var(--ink);
-            background: var(--accent-soft);
-            padding: 6px 12px;
-            border-radius: 999px;
-            font-size: 13px;
-        }
-
-        .nav-ghost {
-            background: transparent;
-            border: 1px solid var(--line);
-        }
-
-        .nav-ghost:hover {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #fff;
-        }
-
-        .page-card {
-            background: var(--paper);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 16px;
-            box-shadow: var(--shadow);
-        }
-
-        .card-title {
-            margin: 0 0 12px;
-            font-size: 18px;
-        }
-
-        @media print {
-            .navbar {
-                display: none !important;
-            }
-        }
-
-        @media (max-width: 720px) {
-            .navbar {
-                justify-content: center;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'hcsd/base.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar" lang="ar" dir="rtl">
@@ -199,13 +14,14 @@
         <div class="nav-links">
             <a href="{% url 'company_list' %}">الشركات</a>
             <a href="{% url 'enginer_list' %}">المهندسين</a>
-            <a href="{% url 'permit_types' %}">التصاريح</a>
-            <a href="{% url 'clearance_list' %}">متابعة التصاريح</a>
+            <a href="{% url 'pest_control_permit' %}">تصريح النشاط</a>
+            <a href="{% url 'clearance_list' %}">متابعة الطلبات</a>
+            <a href="{% url 'printer' %}">Printer</a>
         </div>
         <div class="nav-auth">
             {% if user.is_authenticated %}
                 <span class="nav-user">مرحباً، {{ user.username }}</span>
-                <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
                     {% csrf_token %}
                     <button type="submit" class="nav-ghost">تسجيل الخروج</button>
                 </form>
@@ -216,7 +32,7 @@
         </div>
     </nav>
     {% if show_latest %}
-        <section class="page-card" style="margin: 16px;">
+        <section class="page-card latest-permits">
             <h2 class="card-title">Permits Under Process</h2>
             {% if latest_pirmet %}
                 <table>
@@ -234,15 +50,7 @@
                             <tr>
                                 <td>{{ pirmet.company.name }}</td>
                                 <td>
-                                    {% if pirmet.permit_type == "pest_control" %}
-                                        Public Health Pest Control Permit
-                                    {% elif pirmet.permit_type == "pesticide_transport" %}
-                                        Public Health Pesticide Transport Permit
-                                    {% elif pirmet.permit_type == "waste_disposal" %}
-                                        Waste Disposal Permit
-                                    {% else %}
-                                        {{ pirmet.permit_type }}
-                                    {% endif %}
+                                    تصريح مزاولة نشاط مكافحة آفات الصحة العامة
                                 </td>
                                 <td>{{ pirmet.dateOfCreation }}</td>
                                 <td>
@@ -253,7 +61,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'pirmet_detail' pirmet.id %}">View details</a>
+                                    <a href="{% url 'pest_control_permit_detail' pirmet.id %}">View details</a>
                                 </td>
                             </tr>
                         {% endfor %}

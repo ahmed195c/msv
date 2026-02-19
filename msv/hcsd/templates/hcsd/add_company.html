@@ -47,11 +47,17 @@
   }
 
   .company-field input,
-  .company-field select {
+  .company-field select,
+  .company-field textarea {
     border: 1px solid #2a2a2a;
     padding: 8px 10px;
     font-size: 14px;
     background: #fff;
+  }
+
+  .company-field textarea {
+    min-height: 90px;
+    resize: vertical;
   }
 
   .muted {
@@ -119,6 +125,26 @@
     padding: 10px 12px;
     margin-top: 8px;
   }
+
+  @media (max-width: 680px) {
+    .company-form-page {
+      padding: 16px 12px 32px;
+    }
+
+    .company-card {
+      padding: 18px 16px;
+    }
+
+    .actions {
+      flex-direction: column;
+    }
+
+    .actions button,
+    .actions a {
+      width: 100%;
+      text-align: center;
+    }
+  }
 </style>
 
 <section class="company-form-page" lang="ar" dir="rtl">
@@ -171,22 +197,11 @@
 
       <div class="company-section">
         <div class="section-title">أنشطة الرخصة</div>
-        <div class="checks">
-          <label class="check">
-            <input type="checkbox" name="business_activity" value="pest_control"
-              {% if selected_business_activities and "pest_control" in selected_business_activities %}checked{% endif %}>
-            نشاط مكافحة
-          </label>
-          <label class="check">
-            <input type="checkbox" name="business_activity" value="buy_sell"
-              {% if selected_business_activities and "buy_sell" in selected_business_activities %}checked{% endif %}>
-            نشاط بيع وشراء
-          </label>
-          <label class="check">
-            <input type="checkbox" name="business_activity" value="cleaning"
-              {% if selected_business_activities and "cleaning" in selected_business_activities %}checked{% endif %}>
-            نشاط نظافة
-          </label>
+        <div class="company-grid">
+          <div class="company-field">
+            <label for="business_activity">تفاصيل الأنشطة</label>
+            <textarea id="business_activity" name="business_activity" rows="3">{{ form_data.business_activity|default:'' }}</textarea>
+          </div>
         </div>
       </div>
 

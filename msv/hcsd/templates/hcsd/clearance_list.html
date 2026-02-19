@@ -87,6 +87,31 @@
     display: inline-block;
     font-size: 13px;
   }
+
+  @media (max-width: 720px) {
+    .clearance-page {
+      padding: 12px 0 32px;
+    }
+
+    .clearance-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .btn {
+      width: 100%;
+    }
+
+    .card {
+      padding: 14px;
+    }
+
+    .clearance-table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 </style>
 
 <section class="clearance-page" lang="ar" dir="rtl">
@@ -107,17 +132,11 @@
     {% endif %}
 
     <div class="card">
-        <h2>إنشاء طلب تصريح</h2>
+        <h2>إنشاء طلب تصريح النشاط</h2>
         {% if can_create_pirmet %}
             <div style="display: grid; gap: 10px;">
                 <a href="{% url 'pest_control_permit' %}" class="btn primary">
                     تصريح مزاولة نشاط مكافحة آفات الصحة العامة
-                </a>
-                <a href="{% url 'pesticide_transport_permit' %}" class="btn primary">
-                    تصريح نقل مبيدات آفات الصحة العامة
-                </a>
-                <a href="{% url 'waste_disposal_permit' %}" class="btn primary">
-                    تصريح التخلص من النفايات
                 </a>
             </div>
         {% else %}
@@ -126,7 +145,7 @@
     </div>
 
     <div class="card">
-        <h2>All Permits/Clearances</h2>
+        <h2>طلبات تصريح النشاط</h2>
 
         {% if clearances %}
             <table class="clearance-table">
@@ -147,17 +166,7 @@
                     {% for clearance in clearances %}
                         <tr>
                             <td>{{ clearance.company.name }}</td>
-                            <td>
-                                {% if clearance.permit_type == "pest_control" %}
-                                    تصريح مزاولة نشاط مكافحة آفات الصحة العامة
-                                {% elif clearance.permit_type == "pesticide_transport" %}
-                                    تصريح نقل مبيدات آفات الصحة العامة
-                                {% elif clearance.permit_type == "waste_disposal" %}
-                                    تصريح التخلص من النفايات
-                                {% else %}
-                                    {{ clearance.permit_type }}
-                                {% endif %}
-                            </td>
+                            <td>تصريح مزاولة نشاط مكافحة آفات الصحة العامة</td>
                             <td>{{ clearance.dateOfCreation }}</td>
                             <td>{{ clearance.dateOfExpiry }}</td>
                             <td>
@@ -178,9 +187,19 @@
                                 {% elif clearance.status == 'issued' %}
                                     تم إصدار التصريح
                                 {% elif clearance.status == 'inspection_pending' %}
-                                    تفتيش قيد الانتظار
+                                    {% if clearance.inspection_receiver_name %}
+                                        تم استلام الطلب للتفتيش من المفتش {{ clearance.inspection_receiver_name }}
+                                    {% else %}
+                                        تفتيش قيد الانتظار
+                                    {% endif %}
                                 {% elif clearance.status == 'inspection_completed' %}
-                                    تم التفتيش
+                                    {% if clearance.inspection_report_decision == 'approved' %}
+                                        تم التفتيش - معتمد
+                                    {% elif clearance.inspection_report_decision == 'rejected' %}
+                                        تم التفتيش - غير معتمد
+                                    {% else %}
+                                        تم التفتيش
+                                    {% endif %}
                                 {% elif clearance.status == 'disposal_approved' %}
                                     تمت الموافقة على الإتلاف
                                 {% elif clearance.status == 'disposal_rejected' %}
@@ -220,7 +239,7 @@
                             </td>
                             <td>
                                 <div style="margin-bottom: 8px;">
-                                    <a href="{% url 'pirmet_detail' clearance.id %}" class="action-link">
+                                    <a href="{% url 'pest_control_permit_detail' clearance.id %}" class="action-link">
                                         عرض التفاصيل
                                     </a>
                                 </div>

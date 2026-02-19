@@ -1,0 +1,315 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}متابعة طلب تصريح النشاط{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
+{% endblock %}
+{% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+  <div class="permit-card">
+    <div class="action-bar no-print">
+      <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
+      {% if pirmet.status == "issued" or pirmet.status == "payment_completed" %}
+        <a class="print-button" href="{% url 'pest_control_permit_view' pirmet.id %}">عرض التصريح</a>
+      {% endif %}
+    </div>
+
+    <header class="permit-header">
+      <div class="municipality">
+        <div class="logo-box">شعار البلدية</div>
+        <div class="municipality-text">
+          <div class="title">بلدية مدينة الشارقة</div>
+          <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+          <div class="sub">قسم رقابة وتنظيم النفايات</div>
+        </div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="label">رقم التصريح</span>
+          <span class="value">{{ pirmet.permit_no|default:"-" }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">نوع التصريح</span>
+          <span class="value">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">الحالة الحالية</span>
+          <span class="status-badge">
+            {% if pirmet.status == "order_received" %}
+              إدخال رقم امر الدفع الموحد - التفتيش
+            {% elif pirmet.status == "inspection_payment_pending" %}
+              إدخال إيصال دفع التفتيش
+            {% elif pirmet.status == "review_pending" %}
+              بانتظار مراجعة المفتش
+            {% elif pirmet.status == "needs_completion" %}
+              نواقص بحاجة للاستكمال
+            {% elif pirmet.status == "approved" %}
+              تم الاعتماد من المفتش
+            {% elif pirmet.status == "payment_pending" %}
+              بانتظار دفع التصريح
+            {% elif pirmet.status == "payment_completed" %}
+              تم استلام الدفع
+            {% elif pirmet.status == "inspection_pending" %}
+              {% if inspection_receiver_name %}
+                تم استلام الطلب للتفتيش من المفتش {{ inspection_receiver_name }}
+              {% else %}
+                بانتظار استلام الطلب للتفتيش
+              {% endif %}
+            {% elif pirmet.status == "inspection_completed" %}
+              {% if inspection_report_decision == "approved" %}
+                تم إنهاء التفتيش - معتمد
+              {% elif inspection_report_decision == "rejected" %}
+                تم إنهاء التفتيش - غير معتمد
+              {% else %}
+                تم إنهاء التفتيش
+              {% endif %}
+            {% elif pirmet.status == "issued" %}
+              تم إصدار التصريح
+            {% else %}
+              {{ pirmet.get_status_display }}
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </header>
+
+    {% if review_errors %}
+      <div class="alert">
+        <div>تعذر حفظ التحديث:</div>
+        <ul class="alert-list">
+          {% for error in review_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <section class="permit-section">
+      <div class="section-title">بيانات التصريح</div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="label">تاريخ إنشاء الطلب</span>
+          <span class="value">{{ pirmet.dateOfCreation|date:"Y-m-d" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">تاريخ إخراج التصريح</span>
+          <span class="value">{{ pirmet.issue_date|date:"Y-m-d"|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">تاريخ انتهاء التصريح</span>
+          <span class="value">{{ pirmet.dateOfExpiry|date:"Y-m-d"|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">تاريخ الدفع</span>
+          <span class="value">{{ pirmet.payment_date|date:"Y-m-d"|default:"-" }}</span>
+        </div>
+      </div>
+      <div class="payment-pairs">
+        <div class="payment-box">
+          <div class="payment-box-title">دفع التفتيش</div>
+          <div class="detail-item">
+            <span class="label">رقم امر الدفع الموحد - التفتيش</span>
+            <span class="value">{{ pirmet.inspection_payment_reference|default:"-" }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">إيصال دفع التفتيش</span>
+            <span class="value">
+              {% if pirmet.inspection_payment_receipt %}
+                <a href="{{ pirmet.inspection_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
+              {% else %}
+                -
+              {% endif %}
+            </span>
+          </div>
+        </div>
+        <div class="payment-box">
+          <div class="payment-box-title">دفع تصريح المزاولة</div>
+          <div class="detail-item">
+            <span class="label">رقم امر الدفع الموحد - تصريح مزاولة النشاط</span>
+            <span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">إيصال دفع تصريح المزاولة</span>
+            <span class="value">
+              {% if pirmet.payment_receipt %}
+                <a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإثبات</a>
+              {% else %}
+                -
+              {% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {% if inspection_report_decision %}
+      <section class="permit-section">
+        <div class="section-title">تقرير التفتيش</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">النتيجة</span>
+            <span class="value">
+              {% if inspection_report_decision == "approved" %}
+                معتمد
+              {% else %}
+                غير معتمد
+              {% endif %}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">المفتش</span>
+            <span class="value">{{ inspection_report_by|default:"-" }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">الملاحظات</span>
+            <span class="value">{{ inspection_report_notes|default:"-" }}</span>
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    {% if inspection_report_photos %}
+      <section class="permit-section">
+        <div class="section-title">صور تقرير التفتيش</div>
+        <div class="inspection-photos">
+          {% for photo in inspection_report_photos %}
+            <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
+              <img src="{{ photo.file.url }}" alt="صورة تقرير التفتيش {{ forloop.counter }}">
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status == "order_received" %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال رقم امر الدفع الموحد - التفتيش</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="send_inspection_payment_link">
+          <label for="inspection_payment_reference">رقم امر الدفع الموحد - التفتيش</label>
+          <input
+            id="inspection_payment_reference"
+            name="inspection_payment_reference"
+            type="text"
+            value="{{ pirmet.inspection_payment_reference|default:'' }}"
+            required
+          >
+          <button type="submit">حفظ رقم الامر</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status == "inspection_payment_pending" %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال إيصال دفع التفتيش</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="inspection_payment">
+          <label for="inspection_payment_receipt">إيصال الدفع (PDF أو صورة)</label>
+          <input
+            id="inspection_payment_receipt"
+            name="inspection_payment_receipt"
+            type="file"
+            accept=".pdf,image/*"
+            required
+          >
+          <button type="submit">حفظ الإيصال</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status == "inspection_completed" and inspection_report_decision == "approved" %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال رقم امر الدفع الموحد - تصريح مزاولة النشاط</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="send_payment_link">
+          <label for="payment_number">رقم امر الدفع الموحد - تصريح مزاولة النشاط</label>
+          <input
+            id="payment_number"
+            name="payment_number"
+            type="text"
+            value="{{ pirmet.PaymentNumber|default:'' }}"
+            required
+          >
+          <button type="submit">حفظ رقم الامر</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status == "payment_pending" %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال إثبات دفع التصريح</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="payment">
+          <label for="payment_receipt_camera">التقاط صورة مباشرة (الكاميرا)</label>
+          <input
+            id="payment_receipt_camera"
+            name="payment_receipt_camera"
+            type="file"
+            accept="image/*"
+            capture="environment"
+          >
+          <label for="payment_receipt">إرفاق الإثبات (PDF أو صورة)</label>
+          <input
+            id="payment_receipt"
+            name="payment_receipt"
+            type="file"
+            accept=".pdf,image/*"
+          >
+          <button type="submit">حفظ إثبات الدفع</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_review_pirmet and pirmet.status == "inspection_pending" and not inspection_receiver_name %}
+      <section class="permit-section no-print">
+        <div class="section-title">استلام الطلب للتفتيش</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="receive_for_inspection">
+          <label for="inspector_id">المفتش</label>
+          <select id="inspector_id" name="inspector_id" required>
+            <option value="">-- اختيار المفتش --</option>
+            {% for inspector_user in inspector_users %}
+              <option value="{{ inspector_user.id }}" {% if request.user.id == inspector_user.id %}selected{% endif %}>
+                {{ inspector_user.get_full_name|default:inspector_user.username }}
+              </option>
+            {% endfor %}
+          </select>
+          <button type="submit">استلام الطلب للتفتيش</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_submit_inspection_report %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال تقرير التفتيش</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="submit_inspection_report">
+          <label for="inspection_decision">نتيجة التقرير</label>
+          <select id="inspection_decision" name="inspection_decision" required>
+            <option value="">-- اختيار --</option>
+            <option value="approved">معتمد</option>
+            <option value="rejected">غير معتمد</option>
+          </select>
+          <label for="inspection_report_notes">ملاحظات التفتيش</label>
+          <textarea id="inspection_report_notes" name="inspection_report_notes" rows="4"></textarea>
+          <label for="inspection_report_photos">صور من التفتيش (اختياري)</label>
+          <input
+            id="inspection_report_photos"
+            name="inspection_report_photos"
+            type="file"
+            accept="image/*"
+            multiple
+          >
+          <button type="submit">حفظ تقرير التفتيش</button>
+        </form>
+      </section>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,352 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}تصريح مزاولة نشاط مكافحة آفات الصحة العامة{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pest_control_activity_permit.css' %}">
+{% endblock %}
+{% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+  <form class="permit-card" method="post" enctype="multipart/form-data" autocomplete="off">
+    {% csrf_token %}
+    <header class="permit-header">
+      <div class="municipality">
+        <div class="logo-box">شعار البلدية</div>
+        <div class="municipality-text">
+          <div class="title">بلدية مدينة الشارقة</div>
+          <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+          <div class="sub">قسم رقابة وتنظيم النفايات</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="permit-title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</div>
+
+    {% if form_errors %}
+      <div class="alert">
+        <strong>يرجى تصحيح التالي:</strong>
+        <ul class="alert-list">
+          {% for error in form_errors %}
+            <li>
+              {% if error == "company_select_invalid" %}
+                يرجى اختيار شركة مسجلة صحيحة.
+              {% elif error == "company_name_required" %}
+                يرجى إدخال الاسم التجاري.
+              {% elif error == "trade_license_no_required" %}
+                يرجى إدخال رقم الرخصة التجارية.
+              {% elif error == "company_address_required" %}
+                يرجى إدخال عنوان الشركة.
+              {% elif error == "trade_license_exp_required" %}
+                يرجى إدخال تاريخ انتهاء الرخصة التجارية.
+              {% elif error == "trade_license_exp_invalid" %}
+                تاريخ انتهاء الرخصة التجارية غير صالح.
+              {% elif error == "trade_license_expired" %}
+                الرخصة التجارية منتهية، يرجى تجديدها أولاً.
+              {% elif error == "request_email_required" %}
+                يرجى إدخال البريد الإلكتروني الذي وصل منه الطلب.
+              {% elif error == "engineer_required" %}
+                يرجى إدخال بيانات المهندس كاملة.
+              {% elif error == "company_engineer_missing" %}
+                الشركة المختارة لا تحتوي على مهندس مسجل.
+              {% elif error == "engineer_not_registered" %}
+                يرجى تسجيل المهندس وإرفاق الشهادات أولاً.
+              {% elif error == "engineer_cert_required" %}
+                لا يمكن اختيار مهندس بدون شهادة نجاح الصحة العامة.
+              {% elif error == "documents_required" %}
+                يرجى إرفاق مستند واحد على الأقل.
+              {% elif error == "documents_invalid" %}
+                الملفات المسموحة هي PDF أو صور فقط: {{ invalid_docs|join:", " }}
+              {% else %}
+                {{ error }}
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <section class="permit-section">
+      <div class="section-title">بيانات الشركة</div>
+      <div class="permit-grid">
+        <div class="field">
+          <label for="company_id">اختيار الشركة المسجلة</label>
+          <select id="company_id" name="company_id">
+            <option value="">-- اختيار --</option>
+            {% for company in companies %}
+              <option value="{{ company.id }}"
+                data-name="{{ company.name }}"
+                data-number="{{ company.number }}"
+                data-trade-exp="{{ company.trade_license_exp|date:'Y-m-d' }}"
+                data-address="{{ company.address }}"
+                data-landline="{{ company.landline|default_if_none:'' }}"
+                data-owner-phone="{{ company.owner_phone|default_if_none:'' }}"
+                data-email="{{ company.email|default_if_none:'' }}"
+                data-engineer-public="{% if company.enginer and company.enginer.public_health_cert %}1{% else %}0{% endif %}"
+                data-engineer-termite="{% if company.enginer and company.enginer.termite_cert %}1{% else %}0{% endif %}"
+                data-engineer-name="{% if company.enginer %}{{ company.enginer.name }}{% endif %}"
+                data-engineer-email="{% if company.enginer %}{{ company.enginer.email }}{% endif %}"
+                data-engineer-phone="{% if company.enginer %}{{ company.enginer.phone }}{% endif %}"
+                data-business="{{ company.business_activity|default_if_none:'' }}"
+                {% if company.id == selected_company_id %}selected{% endif %}>
+                {{ company.name }} - {{ company.number }}
+              </option>
+            {% endfor %}
+          </select>
+          <div class="hint">عند اختيار شركة يتم تعبئة البيانات تلقائياً، ويمكن تعديلها من صفحة الشركة.</div>
+        </div>
+        <div class="field">
+          <label for="company_name">الاسم التجاري</label>
+          <input type="text" id="company_name" name="company_name" value="{{ form_data.company_name|default:'' }}" data-company-field>
+        </div>
+        <div class="field">
+          <label for="trade_license_no">رقم الرخصة التجارية</label>
+          <input type="text" id="trade_license_no" name="trade_license_no" value="{{ form_data.trade_license_no|default:'' }}" data-company-field>
+        </div>
+        <div class="field">
+          <label for="trade_license_exp">تاريخ انتهاء الرخصة التجارية</label>
+          <input type="date" id="trade_license_exp" name="trade_license_exp" value="{{ form_data.trade_license_exp|default:'' }}" data-company-field>
+        </div>
+        <div class="field">
+          <label for="business_activity">أنشطة الرخصة</label>
+          <textarea id="business_activity" name="business_activity" rows="3" data-company-field>{{ form_data.business_activity|default:'' }}</textarea>
+          <div class="hint">اكتب الأنشطة كما هي بالرخصة التجارية.</div>
+        </div>
+        <div class="field">
+          <label for="company_address">عنوان الشركة</label>
+          <input type="text" id="company_address" name="company_address" value="{{ form_data.company_address|default:'' }}" data-company-field>
+        </div>
+        <div class="field">
+          <label for="landline">رقم الهاتف الأرضي</label>
+          <input type="tel" id="landline" name="landline" value="{{ form_data.landline|default:'' }}" data-company-field>
+        </div>
+        <div class="field">
+          <label for="owner_phone">رقم هاتف المالك</label>
+          <input type="tel" id="owner_phone" name="owner_phone" value="{{ form_data.owner_phone|default:'' }}" data-company-field>
+        </div>
+        <div class="field">
+          <label for="company_email">البريد الإلكتروني</label>
+          <input type="email" id="company_email" name="company_email" value="{{ form_data.company_email|default:'' }}" data-company-field>
+        </div>
+        <div class="field">
+          <label for="request_email">بريد مقدم الطلب</label>
+          <input type="email" id="request_email" name="request_email" value="{{ form_data.request_email|default:'' }}" required>
+        </div>
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">بيانات التصريح</div>
+      <div class="permit-grid">
+        <div class="field">
+          <label for="expiry_date">تاريخ انتهاء التصريح</label>
+          <input type="date" id="expiry_date" name="expiry_date" value="{{ form_data.expiry_date|default:'' }}" readonly>
+          <div class="hint">يُحتسب تلقائياً بعد سنة من انتهاء الرخصة التجارية.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">بيانات المهندس</div>
+      <div class="permit-grid">
+        <div class="field">
+          <label for="engineer_name">اسم المهندس</label>
+          <input type="text" id="engineer_name" name="engineer_name" value="{{ form_data.engineer_name|default:'' }}" data-company-field>
+        </div>
+        <div class="field">
+          <label for="engineer_phone">رقم الهاتف المتحرك</label>
+          <input type="tel" id="engineer_phone" name="engineer_phone" value="{{ form_data.engineer_phone|default:'' }}" data-company-field>
+        </div>
+        <div class="field">
+          <label for="engineer_email">البريد الإلكتروني للمهندس</label>
+          <input type="email" id="engineer_email" name="engineer_email" value="{{ form_data.engineer_email|default:'' }}" data-company-field>
+        </div>
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">بيانات الأنشطة</div>
+      <div class="hint">يتم تحديد الأنشطة تلقائياً حسب شهادات المهندس المعتمد.</div>
+      <div class="activities-grid">
+        <div class="activities-col">
+          <h4>الأنشطة المصرح بها</h4>
+          <label class="check">
+            <input type="checkbox" name="allowed_activities" value="public_health_pest_control" disabled
+              {% if selected_allowed_activities and "public_health_pest_control" in selected_allowed_activities %}checked{% endif %}>
+            مكافحة آفات الصحة العامة
+          </label>
+          <label class="check">
+            <input type="checkbox" name="allowed_activities" value="termite_control" disabled
+              {% if selected_allowed_activities and "termite_control" in selected_allowed_activities %}checked{% endif %}>
+            مكافحة النمل الأبيض
+          </label>
+          <label class="check">
+            <input type="checkbox" name="allowed_activities" value="grain_pests" disabled
+              {% if selected_allowed_activities and "grain_pests" in selected_allowed_activities %}checked{% endif %}>
+            مكافحة آفات الحبوب
+          </label>
+          <label class="check">
+            <span>أخرى</span>
+            <input type="text" name="allowed_other" value="{{ form_data.allowed_other|default:'' }}" disabled>
+          </label>
+        </div>
+        <div class="activities-col">
+          <h4>الأنشطة غير المصرح بها</h4>
+          <label class="check">
+            <input type="checkbox" name="restricted_activities" value="public_health_pest_control" disabled
+              {% if selected_restricted_activities and "public_health_pest_control" in selected_restricted_activities %}checked{% endif %}>
+            مكافحة آفات الصحة العامة
+          </label>
+          <label class="check">
+            <input type="checkbox" name="restricted_activities" value="termite_control" disabled
+              {% if selected_restricted_activities and "termite_control" in selected_restricted_activities %}checked{% endif %}>
+            مكافحة النمل الأبيض
+          </label>
+          <label class="check">
+            <input type="checkbox" name="restricted_activities" value="grain_pests" disabled
+              {% if selected_restricted_activities and "grain_pests" in selected_restricted_activities %}checked{% endif %}>
+            مكافحة آفات الحبوب
+          </label>
+          <label class="check">
+            <span>أخرى</span>
+            <input type="text" name="restricted_other" value="{{ form_data.restricted_other|default:'' }}" disabled>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">المستندات المطلوبة</div>
+      <div class="field">
+        <label for="documents">إرفاق المستندات (PDF أو صور)</label>
+        <input id="documents" type="file" name="documents" multiple required>
+      </div>
+    </section>
+
+    <div class="permit-actions">
+      <button type="submit">إرسال الطلب</button>
+      <a class="secondary" href="{% url 'clearance_list' %}">العودة للطلبات</a>
+    </div>
+  </form>
+</section>
+<script>
+  (function () {
+    const companySelect = document.getElementById('company_id');
+    if (!companySelect) {
+      return;
+    }
+
+    const fields = {
+      company_name: document.getElementById('company_name'),
+      trade_license_no: document.getElementById('trade_license_no'),
+      trade_license_exp: document.getElementById('trade_license_exp'),
+      company_address: document.getElementById('company_address'),
+      landline: document.getElementById('landline'),
+      owner_phone: document.getElementById('owner_phone'),
+      company_email: document.getElementById('company_email'),
+      engineer_name: document.getElementById('engineer_name'),
+      engineer_phone: document.getElementById('engineer_phone'),
+      engineer_email: document.getElementById('engineer_email'),
+      expiry_date: document.getElementById('expiry_date'),
+    };
+
+    const businessActivityField = document.getElementById('business_activity');
+    const allowedChecks = Array.from(
+      document.querySelectorAll('input[name="allowed_activities"]')
+    );
+    const restrictedChecks = Array.from(
+      document.querySelectorAll('input[name="restricted_activities"]')
+    );
+    const lockFields = Array.from(document.querySelectorAll('[data-company-field]'));
+
+    const pad = (value) => String(value).padStart(2, '0');
+    const daysInMonth = (year, month) => new Date(year, month, 0).getDate();
+    const addYear = (value) => {
+      if (!value) {
+        return '';
+      }
+      const parts = value.split('-');
+      if (parts.length !== 3) {
+        return '';
+      }
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+      if ([year, month, day].some((part) => Number.isNaN(part))) {
+        return '';
+      }
+      const nextYear = year + 1;
+      const maxDay = daysInMonth(nextYear, month);
+      const safeDay = Math.min(day, maxDay);
+      return `${nextYear}-${pad(month)}-${pad(safeDay)}`;
+    };
+
+    const updateExpiry = () => {
+      if (!fields.trade_license_exp || !fields.expiry_date) {
+        return;
+      }
+      fields.expiry_date.value = addYear(fields.trade_license_exp.value);
+    };
+
+    const setActivityChecks = (hasPublic, hasTermite) => {
+      const allowed = new Set();
+      if (hasPublic) {
+        allowed.add('public_health_pest_control');
+        allowed.add('grain_pests');
+      }
+      if (hasTermite) {
+        allowed.add('termite_control');
+      }
+      allowedChecks.forEach((checkbox) => {
+        checkbox.checked = allowed.has(checkbox.value);
+      });
+      if (!allowed.size) {
+        restrictedChecks.forEach((checkbox) => {
+          checkbox.checked = false;
+        });
+        return;
+      }
+      restrictedChecks.forEach((checkbox) => {
+        checkbox.checked = !allowed.has(checkbox.value);
+      });
+    };
+
+    const setLocked = (locked) => {
+      lockFields.forEach((field) => {
+        field.disabled = locked;
+      });
+    };
+
+    const applyCompany = () => {
+      const option = companySelect.options[companySelect.selectedIndex];
+      const hasCompany = option && option.value;
+      setLocked(!!hasCompany);
+      if (!hasCompany) {
+        setActivityChecks(false, false);
+        updateExpiry();
+        return;
+      }
+      if (fields.company_name) fields.company_name.value = option.dataset.name || '';
+      if (fields.trade_license_no) fields.trade_license_no.value = option.dataset.number || '';
+      if (fields.trade_license_exp) fields.trade_license_exp.value = option.dataset.tradeExp || '';
+      if (fields.company_address) fields.company_address.value = option.dataset.address || '';
+      if (fields.landline) fields.landline.value = option.dataset.landline || '';
+      if (fields.owner_phone) fields.owner_phone.value = option.dataset.ownerPhone || '';
+      if (fields.company_email) fields.company_email.value = option.dataset.email || '';
+      if (fields.engineer_name) fields.engineer_name.value = option.dataset.engineerName || '';
+      if (fields.engineer_email) fields.engineer_email.value = option.dataset.engineerEmail || '';
+      if (fields.engineer_phone) fields.engineer_phone.value = option.dataset.engineerPhone || '';
+      if (businessActivityField) businessActivityField.value = option.dataset.business || '';
+      const hasPublic = option.dataset.engineerPublic === '1';
+      const hasTermite = option.dataset.engineerTermite === '1';
+      setActivityChecks(hasPublic, hasTermite);
+      updateExpiry();
+    };
+
+    if (fields.trade_license_exp) {
+      fields.trade_license_exp.addEventListener('change', updateExpiry);
+      fields.trade_license_exp.addEventListener('blur', updateExpiry);
+    }
+    companySelect.addEventListener('change', applyCompany);
+    applyCompany();
+  })();
+</script>
+{% endblock %}

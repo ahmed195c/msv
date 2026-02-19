@@ -119,6 +119,47 @@
     display: inline-block;
   }
 
+  @media (max-width: 720px) {
+    .company-page {
+      padding: 16px 12px 32px;
+    }
+
+    .company-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .company-actions {
+      width: 100%;
+    }
+
+    .company-actions a {
+      width: 100%;
+      text-align: center;
+      display: block;
+    }
+
+    .filters {
+      grid-template-columns: 1fr;
+      row-gap: 12px;
+    }
+
+    .filters input,
+    .filters select {
+      margin: 0;
+    }
+
+    .filters button,
+    .filters a {
+      width: 100%;
+    }
+
+    .company-table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 </style>
 
 <section class="company-page" lang="ar" dir="rtl">
@@ -189,9 +230,23 @@
             <td>{{ row.company.number }}</td>
             <td>
               <div class="tags">
-                {% for label in row.activity_labels %}
-                  <span class="tag">{{ label }}</span>
-                {% endfor %}
+                {% if row.activity_keys %}
+                  {% for key in row.activity_keys %}
+                    <span class="tag">
+                      {% if key == "public_health_pest_control" %}
+                        مكافحة آفات الصحة العامة
+                      {% elif key == "termite_control" %}
+                        مكافحة النمل الأبيض
+                      {% elif key == "grain_pests" %}
+                        مكافحة آفات الحبوب
+                      {% else %}
+                        {{ key }}
+                      {% endif %}
+                    </span>
+                  {% endfor %}
+                {% else %}
+                  <span class="tag">-</span>
+                {% endif %}
               </div>
             </td>
             <td>

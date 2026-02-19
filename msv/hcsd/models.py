@@ -1,5 +1,3 @@
-import datetime
-
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -16,7 +14,7 @@ class Company(models.Model):
     number = models.CharField(max_length=50)
     address = models.CharField(max_length=255)
     trade_license_exp = models.DateField(null=True, blank=True)
-    business_activity = models.CharField(max_length=150, null=True, blank=True)
+    business_activity = models.TextField(null=True, blank=True)
     landline = models.CharField(max_length=30, null=True, blank=True)
     owner_phone = models.CharField(max_length=30, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
@@ -99,7 +97,7 @@ class PirmetClearance(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     dateOfCreation = models.DateField(auto_now_add=True)
     dateOfExpiry = models.DateField(null=True, blank=True)
-    permit_no = models.CharField(max_length=50, null=True, blank=True, unique=True)
+    permit_no = models.CharField(max_length=50, null=True, blank=True, unique=True, editable=False)
     issue_date = models.DateField(null=True, blank=True)
     allowed_activities = models.TextField(null=True, blank=True)
     restricted_activities = models.TextField(null=True, blank=True)
@@ -136,14 +134,13 @@ class PirmetClearance(models.Model):
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='order_received')
     
     def _generate_permit_no(self):
-        year = self.dateOfCreation.year if self.dateOfCreation else datetime.date.today().year
-        return f"PRM-{year}-{self.pk:06d}"
+        return str(self.pk)
 
     def save(self, *args, **kwargs):
-        is_new = self.pk is None
         super().save(*args, **kwargs)
-        if is_new and not self.permit_no:
-            self.permit_no = self._generate_permit_no()
+        desired_no = self._generate_permit_no()
+        if self.permit_no != desired_no:
+            self.permit_no = desired_no
             super().save(update_fields=['permit_no'])
 
     def __str__(self):
@@ -197,12 +194,22 @@ class WasteDisposalPermit(models.Model):
 class InspectorReview(models.Model):
     pirmet = models.OneToOneField(PirmetClearance, on_delete=models.CASCADE)
     inspector = models.ForeignKey(Enginer, on_delete=models.SET_NULL, null=True)
+    inspector_user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='inspector_reviews',
+    )
     reviewDate = models.DateTimeField(auto_now_add=True)
     isApproved = models.BooleanField(default=False)
     comments = models.TextField(blank=True)
     
     def __str__(self):
-        return f"{self.pirmet.company.name} - {'Approved' if self.isApproved else 'Pending'}"
+        return (
+            f"{self.pirmet.company.name} - "
+            f"{'Approved' if self.isApproved else 'Pending'}"
+        )
 
 
 class DisposalProcess(models.Model):

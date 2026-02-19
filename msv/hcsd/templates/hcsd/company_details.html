@@ -154,11 +154,17 @@
   }
 
   .company-field input,
-  .company-field select {
+  .company-field select,
+  .company-field textarea {
     border: 1px solid #2a2a2a;
     padding: 8px 10px;
     font-size: 14px;
     background: #fff;
+  }
+
+  .company-field textarea {
+    min-height: 90px;
+    resize: vertical;
   }
 
   .checks {
@@ -244,6 +250,11 @@
   .muted {
     color: #666;
     font-size: 13px;
+  }
+
+  .edit-panel.is-active {
+    border-color: #1f5a4b;
+    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.14);
   }
 
   .timeline {
@@ -357,6 +368,47 @@
       padding: 20px;
     }
   }
+
+  @media (max-width: 680px) {
+    .detail-card {
+      padding: 18px 16px;
+    }
+
+    .detail-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .detail-actions {
+      width: 100%;
+    }
+
+    .detail-actions a,
+    .detail-actions button {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .actions {
+      flex-direction: column;
+    }
+
+    .actions button,
+    .actions a {
+      width: 100%;
+      text-align: center;
+    }
+
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .detail-table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 </style>
 
 <section class="company-detail-page" lang="ar" dir="rtl">
@@ -396,6 +448,9 @@
 
       <div class="section">
         <div class="section-title">معلومات الشركة</div>
+        {% if can_edit_company %}
+          <p class="muted">هذا القسم للعرض فقط. للتعديل اضغط "طلب تعديل" وسيتم نقلك مباشرة إلى نموذج التعديل.</p>
+        {% endif %}
         <div class="info-grid">
           <div class="info-item">
             <span class="label">الاسم التجاري</span>
@@ -509,14 +564,11 @@
 
             <div class="section" style="margin-top: 16px;">
               <div class="section-title">أنشطة الرخصة</div>
-              <div class="checks">
-                {% for value, label in business_activity_choices %}
-                  <label class="check">
-                    <input type="checkbox" name="business_activity" value="{{ value }}"
-                      {% if selected_business_activities and value in selected_business_activities %}checked{% endif %} disabled data-editable>
-                    {{ label }}
-                  </label>
-                {% endfor %}
+              <div class="company-grid">
+                <div class="company-field">
+                  <label for="business_activity">تفاصيل الأنشطة</label>
+                  <textarea id="business_activity" name="business_activity" rows="3" disabled data-editable>{{ form_data.business_activity|default:'' }}</textarea>
+                </div>
               </div>
             </div>
 
@@ -570,19 +622,22 @@
     <div class="section">
       <div class="section-title">التصاريح المرتبطة</div>
       <div class="permit-statuses">
-        {% for permit in permit_statuses %}
-          {% if permit.is_valid %}
-            <a class="permit-pill is-valid" href="{% url 'pirmet_detail' permit.permit_id %}">
-              {{ permit.label }} · ساري
-            </a>
-          {% else %}
-            <a class="permit-pill is-missing" href="{% url permit.form_view %}?company_id={{ company.id }}">
-              {{ permit.label }} · ناقص
+        {% if latest_permit %}
+          {% if latest_permit.status == "issued" or latest_permit.status == "payment_completed" %}
+            <a class="permit-pill is-valid" href="{% url 'pest_control_permit_view' latest_permit.id %}">
+              تصريح النشاط · عرض التصريح
             </a>
           {% endif %}
-        {% endfor %}
+          <a class="permit-pill {% if latest_permit.status == "issued" or latest_permit.status == "payment_completed" %}is-valid{% else %}is-missing{% endif %}" href="{% url 'pest_control_permit_detail' latest_permit.id %}">
+            تصريح النشاط · متابعة الطلب
+          </a>
+        {% else %}
+          <a class="permit-pill is-missing" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">
+            تصريح النشاط · طلب جديد
+          </a>
+        {% endif %}
       </div>
-      {% if company.pirmetclearance_set.all %}
+      {% if company_permits %}
         <table class="detail-table">
           <thead>
             <tr>
@@ -594,23 +649,19 @@
             </tr>
           </thead>
           <tbody>
-            {% for clearance in company.pirmetclearance_set.all %}
+            {% for clearance in company_permits %}
               <tr>
-                <td>
-                  {% if clearance.permit_type == "pest_control" %}
-                    تصريح مزاولة نشاط مكافحة آفات الصحة العامة
-                  {% elif clearance.permit_type == "pesticide_transport" %}
-                    تصريح نقل مبيدات آفات الصحة العامة
-                  {% elif clearance.permit_type == "waste_disposal" %}
-                    تصريح التخلص من النفايات
-                  {% else %}
-                    {{ clearance.permit_type }}
-                  {% endif %}
-                </td>
+                <td>تصريح مزاولة نشاط مكافحة آفات الصحة العامة</td>
                 <td>{{ clearance.dateOfCreation }}</td>
                 <td>{{ clearance.dateOfExpiry }}</td>
                 <td>{{ clearance.PaymentNumber|default:"-" }}</td>
-                <td><a class="permit-link" href="{% url 'pirmet_detail' clearance.id %}">عرض</a></td>
+                <td>
+                  {% if clearance.status == "issued" or clearance.status == "payment_completed" %}
+                    <a class="permit-link" href="{% url 'pest_control_permit_view' clearance.id %}">عرض التصريح</a>
+                  {% else %}
+                    <a class="permit-link" href="{% url 'pest_control_permit_detail' clearance.id %}">متابعة الطلب</a>
+                  {% endif %}
+                </td>
               </tr>
             {% endfor %}
           </tbody>
@@ -695,8 +746,8 @@
       if (saveBtn) {
         saveBtn.disabled = !enabled;
       }
-      if (toggleBtn) {
-        toggleBtn.disabled = enabled;
+      if (requestBtn) {
+        requestBtn.disabled = enabled;
       }
     };
 
@@ -751,6 +802,8 @@
     const openEditPanel = () => {
       if (editPanel) {
         editPanel.hidden = false;
+        editPanel.classList.add('is-active');
+        editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       setEditMode(true);
       filterTypesByEngineer();
@@ -810,6 +863,7 @@
     }
 
     if (editPanel && !editPanel.hidden) {
+      editPanel.classList.add('is-active');
       openEditPanel();
     } else {
       setEditMode(false);

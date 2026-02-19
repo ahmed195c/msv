@@ -1,0 +1,81 @@
+.main{
+    width: 270mm;
+    height: 50mm;
+    margin: auto;
+    box-sizing: border-box;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+}
+.header{ 
+    margin-top: 200px;
+    border: 1px solid black; 
+    display:flex;
+    align-items: center;
+    justify-content: center;
+background-color: rgb(165, 199, 152);}
+
+.printer-h1{
+    font-size: 24px;
+    padding: 0px;
+    margin: 5px;
+}
+
+.table-wrap {
+    margin-top: 16px;
+    width: 100%;
+}
+
+.printer-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    direction: rtl;
+}
+
+.printer-table th,
+.printer-table td {
+    
+    border: 1px solid #000;
+    padding: 10px;
+}
+
+.table-main-header {
+    width: 100%;
+    font-size: 18px;
+    text-align: center !important;
+    background-color: #e8f0e4;
+    direction: ltr;
+}
+
+.table-main-header p {
+    display: inline-block;
+    margin: 0 12px;
+}
+
+.colone{
+    font-size
+    width: 17.5%;
+    text-align: right;
+    background-color: rgb(165, 199, 152);
+}
+
+.coltow{
+    width: 65%;
+    text-align: center;
+    background-color: rgb(221, 238, 214);
+}
+
+.colthree{
+    width: 17.5%;
+    text-align: left;
+    background-color: rgb(184, 224, 168);
+}
+
+.frame {
+    position: absolute;
+    top: 0;
+    left: auto;
+    z-index: -9;
+    width: 500mm;
+}

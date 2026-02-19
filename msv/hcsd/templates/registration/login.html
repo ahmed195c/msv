@@ -1,16 +1,16 @@
 {% extends "hcsd/base.html" %}
 {% block title %}Login{% endblock %}
 {% block content %}
-    <h1>Login</h1>
+    <h1>تسجيل الدخول</h1>
 
     {% if form.errors %}
-        <p style="color: red;">Please check your username and password.</p>
+        <p style="color: red;">فشل تسجيل الدخول. تأكد من اسم المستخدم وكلمة المرور.</p>
     {% endif %}
 
     <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}
         <input type="hidden" name="next" value="{{ next }}">
-        <button type="submit">Login</button>
+        <button type="submit">دخول</button>
     </form>
 {% endblock %}

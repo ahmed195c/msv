@@ -1,0 +1,504 @@
+Watching for file changes with StatReloader
+[09/Feb/2026 09:58:36] "GET / HTTP/1.1" 200 1179
+[09/Feb/2026 09:58:37] "GET /static/hcsd/base.css HTTP/1.1" 200 3482
+Not Found: /favicon.ico
+[09/Feb/2026 09:58:37] "GET /favicon.ico HTTP/1.1" 404 6480
+[09/Feb/2026 09:58:41] "GET /enginers/ HTTP/1.1" 302 0
+[09/Feb/2026 09:58:42] "GET /login/?next=/enginers/ HTTP/1.1" 200 1652
+[09/Feb/2026 09:58:43] "GET /companies/ HTTP/1.1" 302 0
+[09/Feb/2026 09:58:44] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[09/Feb/2026 09:58:46] "GET / HTTP/1.1" 200 1179
+[09/Feb/2026 10:03:17] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 04:49:38] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 04:49:39] "GET /static/hcsd/base.css HTTP/1.1" 200 4106
+Not Found: /favicon.ico
+[10/Feb/2026 04:49:39] "GET /favicon.ico HTTP/1.1" 404 6472
+[10/Feb/2026 04:49:43] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 04:49:44] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 04:49:54] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 04:50:15] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 04:50:15] "GET /static/hcsd/base.css HTTP/1.1" 200 4106
+Not Found: /favicon.ico
+[10/Feb/2026 04:50:17] "GET /favicon.ico HTTP/1.1" 404 6472
+[10/Feb/2026 04:50:29] "GET /login/ HTTP/1.1" 200 1642
+[10/Feb/2026 04:50:30] "GET /register/ HTTP/1.1" 200 2596
+[10/Feb/2026 05:01:17] "POST /register/ HTTP/1.1" 302 0
+[10/Feb/2026 05:01:18] "GET / HTTP/1.1" 200 1423
+[10/Feb/2026 05:01:18] "GET /static/hcsd/base.css HTTP/1.1" 304 0
+[10/Feb/2026 05:01:27] "GET /companies/ HTTP/1.1" 200 5795
+[10/Feb/2026 05:08:29] "GET /enginers/ HTTP/1.1" 200 4003
+[10/Feb/2026 05:08:30] "GET /static/hcsd/base.css HTTP/1.1" 304 0
+[10/Feb/2026 05:11:35] "GET /enginers/ HTTP/1.1" 302 0
+[10/Feb/2026 05:11:36] "GET /login/?next=/enginers/ HTTP/1.1" 200 1652
+[10/Feb/2026 05:11:36] "GET /static/hcsd/base.css HTTP/1.1" 304 0
+[10/Feb/2026 05:11:38] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 05:11:39] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 07:39:27] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:42:48] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:42:48] "GET /static/hcsd/base.css HTTP/1.1" 200 4106
+Not Found: /favicon.ico
+[10/Feb/2026 07:42:48] "GET /favicon.ico HTTP/1.1" 404 6444
+[10/Feb/2026 07:42:52] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 07:42:52] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 07:43:04] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 07:43:04] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 07:43:08] "POST /login/?next=/companies/ HTTP/1.1" 200 1891
+[10/Feb/2026 07:43:17] "POST /login/?next=/companies/ HTTP/1.1" 200 1891
+[10/Feb/2026 07:43:24] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:44:16] "GET /permits/pest-control/ HTTP/1.1" 302 0
+[10/Feb/2026 07:44:16] "GET /login/?next=/permits/pest-control/ HTTP/1.1" 200 1664
+[10/Feb/2026 07:44:18] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 07:44:18] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 07:44:21] "GET /register/ HTTP/1.1" 200 2596
+[10/Feb/2026 07:44:32] "POST /register/ HTTP/1.1" 200 2953
+[10/Feb/2026 07:44:43] "POST /register/ HTTP/1.1" 200 2866
+[10/Feb/2026 07:44:54] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 07:44:54] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 07:44:56] "GET /login/ HTTP/1.1" 200 1642
+[10/Feb/2026 07:45:00] "POST /login/ HTTP/1.1" 200 1881
+[10/Feb/2026 07:45:07] "POST /login/ HTTP/1.1" 200 1881
+[10/Feb/2026 07:47:37] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:47:56] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:48:32] "POST /login/ HTTP/1.1" 200 1880
+[10/Feb/2026 07:49:02] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:49:03] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:49:09] "POST /login/ HTTP/1.1" 302 0
+[10/Feb/2026 07:49:09] "GET / HTTP/1.1" 200 1424
+[10/Feb/2026 07:49:11] "GET /companies/ HTTP/1.1" 200 5751
+[10/Feb/2026 07:49:16] "GET /enginers/ HTTP/1.1" 200 5191
+[10/Feb/2026 07:49:24] "GET /permits/pest-control/ HTTP/1.1" 200 13667
+[10/Feb/2026 07:49:24] "GET /static/hcsd/pest_control_activity_permit.css HTTP/1.1" 200 4587
+[10/Feb/2026 07:50:22] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:50:27] "GET /companies/ HTTP/1.1" 200 5751
+[10/Feb/2026 07:50:30] "GET /add_company/ HTTP/1.1" 200 9161
+[10/Feb/2026 07:52:14] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:52:15] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:52:26] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:52:31] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:52:37] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:52:42] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:52:47] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:56:45] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:57:36] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:57:37] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:57:43] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:57:48] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:57:52] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:57:57] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:58:02] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:58:07] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:58:48] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:58:54] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 07:58:55] "GET /static/hcsd/base.css HTTP/1.1" 200 4106
+Not Found: /favicon.ico
+[10/Feb/2026 07:58:57] "GET /favicon.ico HTTP/1.1" 404 6477
+[10/Feb/2026 07:59:00] "GET /login/ HTTP/1.1" 200 1642
+[10/Feb/2026 07:59:09] "POST /login/ HTTP/1.1" 302 0
+[10/Feb/2026 07:59:10] "GET / HTTP/1.1" 200 1424
+[10/Feb/2026 07:59:17] "GET /clearances/ HTTP/1.1" 200 3921
+[10/Feb/2026 07:59:19] "GET /permits/pest-control/ HTTP/1.1" 200 13667
+[10/Feb/2026 07:59:20] "GET /static/hcsd/pest_control_activity_permit.css HTTP/1.1" 200 4587
+[10/Feb/2026 07:59:33] "GET /enginers/ HTTP/1.1" 200 5191
+[10/Feb/2026 07:59:35] "GET /companies/ HTTP/1.1" 200 5751
+[10/Feb/2026 08:00:51] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 08:00:52] "GET /static/hcsd/base.css HTTP/1.1" 200 4106
+Not Found: /favicon.ico
+[10/Feb/2026 08:00:52] "GET /favicon.ico HTTP/1.1" 404 6477
+[10/Feb/2026 08:01:02] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 08:01:03] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 08:01:32] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 08:01:33] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 08:01:48] "POST /login/?next=/companies/ HTTP/1.1" 200 1891
+[10/Feb/2026 08:02:08] "POST /login/?next=/companies/ HTTP/1.1" 200 1891
+[10/Feb/2026 08:02:15] "GET /register/ HTTP/1.1" 200 2596
+[10/Feb/2026 08:02:31] "POST /register/ HTTP/1.1" 200 2953
+[10/Feb/2026 08:02:37] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 08:02:38] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 08:02:47] "POST /login/?next=/companies/ HTTP/1.1" 302 0
+[10/Feb/2026 08:02:48] "POST /login/?next=/companies/ HTTP/1.1" 302 0
+[10/Feb/2026 08:02:49] "GET /companies/ HTTP/1.1" 200 5751
+[10/Feb/2026 08:03:30] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 08:03:31] "GET /static/hcsd/base.css HTTP/1.1" 200 4106
+[10/Feb/2026 08:03:58] "GET /login/?next=/companies/ HTTP/1.1" 200 1898
+[10/Feb/2026 08:16:20] "GET /add_company/ HTTP/1.1" 200 9161
+[10/Feb/2026 08:16:21] "GET /static/hcsd/base.css HTTP/1.1" 304 0
+[10/Feb/2026 08:16:23] "GET /enginers/ HTTP/1.1" 200 5191
+[10/Feb/2026 08:17:44] "POST /enginers/ HTTP/1.1" 302 0
+[10/Feb/2026 08:17:44] "GET /enginers/ HTTP/1.1" 200 6064
+[10/Feb/2026 08:18:11] "GET /add_company/ HTTP/1.1" 200 9494
+[10/Feb/2026 08:18:23] "POST /add_company/ HTTP/1.1" 302 0
+[10/Feb/2026 08:18:23] "GET /company_detail/1/ HTTP/1.1" 200 22629
+[10/Feb/2026 08:18:36] "GET /permits/pest-control/?company_id=1 HTTP/1.1" 200 14841
+[10/Feb/2026 08:18:36] "GET /static/hcsd/pest_control_activity_permit.css HTTP/1.1" 304 0
+[10/Feb/2026 08:19:51] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 08:19:55] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 08:19:55] "GET /companies/ HTTP/1.1" 200 6908
+[10/Feb/2026 08:19:55] "GET /static/hcsd/base.css HTTP/1.1" 200 4106
+[10/Feb/2026 08:19:57] "GET /enginers/ HTTP/1.1" 200 6064
+[10/Feb/2026 08:19:58] "GET /permits/pest-control/ HTTP/1.1" 200 14541
+[10/Feb/2026 08:19:59] "GET /clearances/ HTTP/1.1" 200 3921
+[10/Feb/2026 08:20:03] "GET /companies/ HTTP/1.1" 200 6908
+[10/Feb/2026 08:20:55] "GET / HTTP/1.1" 200 1424
+[10/Feb/2026 08:20:56] "GET /static/hcsd/base.css HTTP/1.1" 304 0
+[10/Feb/2026 08:21:34] "GET / HTTP/1.1" 200 1179
+Not Found: /favicon.ico
+[10/Feb/2026 08:21:35] "GET /favicon.ico HTTP/1.1" 404 6477
+[10/Feb/2026 08:21:45] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 08:21:46] "GET /static/hcsd/base.css HTTP/1.1" 200 4106
+Not Found: /favicon.ico
+[10/Feb/2026 08:21:48] "GET /favicon.ico HTTP/1.1" 404 6477
+[10/Feb/2026 08:22:01] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 08:22:02] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 08:22:02] "GET /enginers/ HTTP/1.1" 302 0
+[10/Feb/2026 08:22:03] "GET /login/?next=/enginers/ HTTP/1.1" 200 1652
+[10/Feb/2026 08:22:04] "GET /permits/pest-control/ HTTP/1.1" 302 0
+[10/Feb/2026 08:22:05] "GET /login/?next=/permits/pest-control/ HTTP/1.1" 200 1664
+[10/Feb/2026 08:22:06] "GET /clearances/ HTTP/1.1" 302 0
+[10/Feb/2026 08:22:06] "GET /login/?next=/clearances/ HTTP/1.1" 200 1654
+[10/Feb/2026 08:22:10] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 08:22:11] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 08:22:14] "GET /companies/ HTTP/1.1" 302 0
+[10/Feb/2026 08:22:15] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 08:22:25] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[10/Feb/2026 08:22:27] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 08:26:40] "GET / HTTP/1.1" 200 1179
+[10/Feb/2026 08:26:45] "GET /login/ HTTP/1.1" 200 1642
+[10/Feb/2026 08:27:03] "POST /login/ HTTP/1.1" 302 0
+[10/Feb/2026 08:27:06] "GET / HTTP/1.1" 200 1424
+[10/Feb/2026 08:27:15] "GET /companies/ HTTP/1.1" 200 6908
+[10/Feb/2026 08:27:21] "GET /companies/ HTTP/1.1" 200 6908
+[10/Feb/2026 08:27:35] "GET / HTTP/1.1" 200 1424
+[10/Feb/2026 08:27:38] "GET /enginers/ HTTP/1.1" 200 6064
+[10/Feb/2026 08:27:42] "GET /companies/ HTTP/1.1" 200 6908
+[10/Feb/2026 08:27:49] "GET /companies/ HTTP/1.1" 200 6908
+[10/Feb/2026 08:28:12] "GET /clearances/ HTTP/1.1" 200 3921
+[10/Feb/2026 08:28:15] "GET /companies/ HTTP/1.1" 200 6908
+[10/Feb/2026 08:29:18] "GET /clearances/ HTTP/1.1" 200 3921
+[11/Feb/2026 08:28:18] "GET /permits/pest-control/?company_id=1 HTTP/1.1" 200 14841
+[11/Feb/2026 08:28:18] "GET /static/hcsd/base.css HTTP/1.1" 304 0
+[11/Feb/2026 08:28:18] "GET /static/hcsd/pest_control_activity_permit.css HTTP/1.1" 304 0
+[11/Feb/2026 08:28:26] "GET /clearances/ HTTP/1.1" 200 3921
+[11/Feb/2026 08:28:28] "GET /companies/ HTTP/1.1" 200 6908
+[11/Feb/2026 08:28:31] "GET /company_detail/1/ HTTP/1.1" 200 22629
+[11/Feb/2026 08:28:33] "GET /permits/pest-control/?company_id=1 HTTP/1.1" 200 14841
+[11/Feb/2026 08:29:18] "POST /permits/pest-control/?company_id=1 HTTP/1.1" 200 15194
+[11/Feb/2026 08:29:34] "GET /companies/ HTTP/1.1" 200 6908
+[11/Feb/2026 08:29:38] "GET /company_detail/1/ HTTP/1.1" 200 22629
+[11/Feb/2026 08:29:59] "GET /company_detail/1/ HTTP/1.1" 200 22629
+[11/Feb/2026 08:30:59] "GET / HTTP/1.1" 200 1179
+[11/Feb/2026 08:31:43] "GET / HTTP/1.1" 200 1179
+[11/Feb/2026 08:31:54] "GET /companies/ HTTP/1.1" 302 0
+[11/Feb/2026 08:31:54] "GET /login/?next=/companies/ HTTP/1.1" 200 1653
+[11/Feb/2026 08:33:58] "GET /company_detail/1/ HTTP/1.1" 200 22629
+[11/Feb/2026 08:34:04] "GET /enginers/ HTTP/1.1" 200 6064
+[11/Feb/2026 08:34:04] "GET /companies/ HTTP/1.1" 200 6908
+[11/Feb/2026 08:34:06] "GET /company_detail/1/ HTTP/1.1" 200 22629
+[11/Feb/2026 08:36:24] "GET /company_detail/1/ HTTP/1.1" 200 22629
+[11/Feb/2026 08:36:34] "GET /admin HTTP/1.1" 301 0
+[11/Feb/2026 08:36:34] "GET /admin/ HTTP/1.1" 200 11643
+[11/Feb/2026 08:36:34] "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 3538
+[11/Feb/2026 08:36:34] "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+[11/Feb/2026 08:36:34] "GET /static/admin/css/base.css HTTP/1.1" 200 23100
+[11/Feb/2026 08:36:34] "GET /static/admin/js/theme.js HTTP/1.1" 200 1653
+[11/Feb/2026 08:36:34] "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+[11/Feb/2026 08:36:34] "GET /static/admin/css/responsive.css HTTP/1.1" 200 16194
+[11/Feb/2026 08:36:34] "GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+[11/Feb/2026 08:36:34] "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 593
+[11/Feb/2026 08:36:34] "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 978
+[11/Feb/2026 08:37:15] "GET /admin/auth/user/ HTTP/1.1" 200 16662
+[11/Feb/2026 08:37:16] "GET /static/admin/css/changelists.css HTTP/1.1" 200 7501
+[11/Feb/2026 08:37:16] "GET /static/admin/js/jquery.init.js HTTP/1.1" 200 347
+[11/Feb/2026 08:37:16] "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 200 285314
+[11/Feb/2026 08:37:16] "GET /static/admin/js/actions.js HTTP/1.1" 200 8076
+[11/Feb/2026 08:37:16] "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 200 9777
+[11/Feb/2026 08:37:16] "GET /static/admin/js/core.js HTTP/1.1" 200 6208
+[11/Feb/2026 08:37:16] "GET /static/admin/js/urlify.js HTTP/1.1" 200 7887
+[11/Feb/2026 08:37:16] "GET /static/admin/js/prepopulate.js HTTP/1.1" 200 1531
+[11/Feb/2026 08:37:16] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[11/Feb/2026 08:37:16] "GET /static/admin/js/filters.js HTTP/1.1" 200 978
+[11/Feb/2026 08:37:16] "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 200 325171
+[11/Feb/2026 08:37:16] "GET /static/admin/img/search.svg HTTP/1.1" 200 607
+[11/Feb/2026 08:37:16] "GET /static/admin/img/icon-yes.svg HTTP/1.1" 200 558
+[11/Feb/2026 08:37:16] "GET /static/admin/img/icon-no.svg HTTP/1.1" 200 645
+[11/Feb/2026 08:37:16] "GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 200 928
+[11/Feb/2026 08:37:16] "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 200 1761
+[11/Feb/2026 08:37:16] "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 200 593
+[11/Feb/2026 08:37:19] "GET /admin/auth/user/2/change/ HTTP/1.1" 200 30687
+[11/Feb/2026 08:37:20] "GET /static/admin/js/calendar.js HTTP/1.1" 200 9159
+[11/Feb/2026 08:37:20] "GET /static/admin/css/forms.css HTTP/1.1" 200 8844
+[11/Feb/2026 08:37:20] "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 200 19698
+[11/Feb/2026 08:37:20] "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 200 16428
+[11/Feb/2026 08:37:20] "GET /static/admin/js/SelectBox.js HTTP/1.1" 200 4530
+[11/Feb/2026 08:37:20] "GET /static/admin/js/change_form.js HTTP/1.1" 200 606
+[11/Feb/2026 08:37:20] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[11/Feb/2026 08:37:20] "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 200 586
+[11/Feb/2026 08:37:20] "GET /static/admin/css/widgets.css HTTP/1.1" 200 11811
+[11/Feb/2026 08:37:20] "GET /static/admin/img/selector-icons.svg HTTP/1.1" 200 2387
+[11/Feb/2026 08:37:20] "GET /static/admin/img/icon-calendar.svg HTTP/1.1" 200 1112
+[11/Feb/2026 08:37:20] "GET /static/admin/img/icon-clock.svg HTTP/1.1" 200 805
+[11/Feb/2026 08:37:21] "GET /admin/auth/user/ HTTP/1.1" 200 16662
+[11/Feb/2026 08:37:23] "GET /admin/auth/user/2/change/ HTTP/1.1" 200 30687
+[11/Feb/2026 08:37:55] "POST /admin/auth/user/2/change/ HTTP/1.1" 302 0
+[11/Feb/2026 08:37:55] "GET /admin/auth/user/ HTTP/1.1" 200 16856
+[11/Feb/2026 08:37:55] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[11/Feb/2026 08:37:55] "GET /static/admin/img/icon-yes-dark.svg HTTP/1.1" 200 558
+[11/Feb/2026 08:45:58] "GET /company_detail/1/ HTTP/1.1" 200 22629
+[11/Feb/2026 08:47:32] "GET / HTTP/1.1" 200 1179
+[11/Feb/2026 08:47:33] "GET / HTTP/1.1" 200 1179
+[11/Feb/2026 08:48:24] "GET /company_detail/1/ HTTP/1.1" 200 22631
+[11/Feb/2026 08:48:31] "GET /companies/ HTTP/1.1" 200 6908
+[11/Feb/2026 08:48:33] "GET /company_detail/1/ HTTP/1.1" 200 22631
+[11/Feb/2026 08:52:40] "GET /company_detail/1/ HTTP/1.1" 200 25404
+[11/Feb/2026 08:52:45] "GET /permits/pest-control/ HTTP/1.1" 200 14541
+[11/Feb/2026 08:52:47] "GET /companies/ HTTP/1.1" 200 6908
+[11/Feb/2026 08:52:48] "GET /company_detail/1/ HTTP/1.1" 200 25404
+[11/Feb/2026 08:53:30] "POST /company_detail/1/ HTTP/1.1" 302 0
+[11/Feb/2026 08:53:30] "GET /company_detail/1/ HTTP/1.1" 200 26172
+[11/Feb/2026 08:53:33] "GET /permits/pest-control/?company_id=1 HTTP/1.1" 200 14841
+[11/Feb/2026 08:54:08] "POST /permits/pest-control/?company_id=1 HTTP/1.1" 302 0
+[11/Feb/2026 08:54:08] "GET /permits/pest-control/1/ HTTP/1.1" 200 12041
+[11/Feb/2026 08:54:08] "GET /static/hcsd/pirmet_detail.css HTTP/1.1" 200 5563
+[11/Feb/2026 09:20:55] "GET /permits/pest-control/1/ HTTP/1.1" 200 12041
+[11/Feb/2026 09:21:25] "GET /permits/pest-control/1/ HTTP/1.1" 200 12063
+[11/Feb/2026 09:27:30] "GET /permits/pest-control/1/ HTTP/1.1" 200 12041
+Internal Server Error: /permits/pest-control/1/
+Traceback (most recent call last):
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/msv/hcsd/views.py", line 1100, in pest_control_permit_detail
+    return render(
+           ^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/backends/django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/engine.py", line 186, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/loaders/cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/loaders/base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/base.py", line 157, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/base.py", line 199, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/base.py", line 585, in parse
+    raise self.error(token, e)
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/base.py", line 583, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 307, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/base.py", line 585, in parse
+    raise self.error(token, e)
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/base.py", line 583, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 235, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/base.py", line 590, in parse
+    self.unclosed_block_tag(parse_until)
+  File "/home/a/Desktop/msv/venv/lib/python3.12/site-packages/django/template/base.py", line 657, in unclosed_block_tag
+    raise self.error(token, msg)
+django.template.exceptions.TemplateSyntaxError: Template: /home/a/Desktop/msv/msv/hcsd/templates/hcsd/pest_control_activity_permit_detail.html, Unclosed tag on line 7: 'block'. Looking for one of: endblock.
+[11/Feb/2026 09:28:03] "GET /permits/pest-control/1/ HTTP/1.1" 500 194181
+[11/Feb/2026 09:28:18] "GET /permits/pest-control/1/ HTTP/1.1" 200 2636
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 09, 2026 - 09:49:06
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+[11/Feb/2026 09:34:51] "GET /permits/pest-control/1/ HTTP/1.1" 200 5243
+[11/Feb/2026 09:35:15] "POST /permits/pest-control/1/ HTTP/1.1" 302 0
+[11/Feb/2026 09:35:15] "GET /permits/pest-control/1/ HTTP/1.1" 200 5280
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 11, 2026 - 09:33:18
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 11, 2026 - 09:38:03
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 11, 2026 - 09:38:18
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 12, 2026 - 08:13:21
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 12, 2026 - 08:17:34
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 12, 2026 - 08:32:49
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 12, 2026 - 08:36:50
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 12, 2026 - 08:37:35
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/models.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 12, 2026 - 08:38:08
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 12, 2026 - 09:09:30
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+
+You have 1 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): hcsd.
+Run 'python manage.py migrate' to apply them.
+February 12, 2026 - 09:10:20
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 12, 2026 - 09:49:13
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/a/Desktop/msv/msv/hcsd/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 12, 2026 - 09:56:21
+Django version 6.0, using settings 'msv.settings'
+Starting development server at http://0.0.0.0:8001/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
