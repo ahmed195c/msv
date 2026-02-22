@@ -1,16 +1,180 @@
 {% extends "hcsd/base.html" %}
 {% block title %}Login{% endblock %}
 {% block content %}
-    <h1>تسجيل الدخول</h1>
+<style>
+  .auth-shell {
+    min-height: calc(100vh - 140px);
+    display: grid;
+    place-items: center;
+    padding: 20px 0 40px;
+  }
 
-    {% if form.errors %}
-        <p style="color: red;">فشل تسجيل الدخول. تأكد من اسم المستخدم وكلمة المرور.</p>
-    {% endif %}
+  .auth-card {
+    width: min(100%, 520px);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
 
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="hidden" name="next" value="{{ next }}">
-        <button type="submit">دخول</button>
+  .auth-hero {
+    padding: 18px 18px 14px;
+    background:
+      linear-gradient(160deg, rgba(31, 90, 75, 0.10), rgba(200, 138, 45, 0.08)),
+      #fff;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .auth-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .auth-subtitle {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .auth-body {
+    padding: 16px 18px 18px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .auth-alert {
+    border: 1px solid #d7a4a4;
+    background: #fff4f4;
+    color: #8b2323;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .auth-field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .auth-field label {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .auth-field input {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    padding: 11px 12px;
+    font-size: 14px;
+  }
+
+  .auth-field .errorlist {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: #a32525;
+    font-size: 12px;
+  }
+
+  .auth-submit {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .auth-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-top: 1px dashed #ddd4c8;
+    padding-top: 12px;
+    font-size: 13px;
+  }
+
+  .auth-footer a {
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  @media (max-width: 640px) {
+    .auth-shell {
+      padding: 12px 0 28px;
+      min-height: auto;
+    }
+
+    .auth-card {
+      border-radius: 14px;
+    }
+
+    .auth-hero,
+    .auth-body {
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+
+    .auth-title {
+      font-size: 21px;
+    }
+
+    .auth-footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>
+
+<section class="auth-shell" lang="ar" dir="rtl">
+  <div class="auth-card">
+    <div class="auth-hero">
+      <h1 class="auth-title">تسجيل الدخول</h1>
+      <p class="auth-subtitle">ادخل الرقم الإداري وكلمة المرور للوصول إلى نظام التصاريح.</p>
+    </div>
+
+    <form method="POST" class="auth-body" novalidate>
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="auth-alert">فشل تسجيل الدخول. تأكد من الرقم الإداري وكلمة المرور.</div>
+      {% endif %}
+
+      {% if form.non_field_errors %}
+        <div class="auth-alert">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="auth-field">
+        <label for="{{ form.username.id_for_label }}">الرقم الإداري</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+      </div>
+
+      <div class="auth-field">
+        <label for="{{ form.password.id_for_label }}">كلمة المرور</label>
+        {{ form.password }}
+        {{ form.password.errors }}
+      </div>
+
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="auth-submit">دخول</button>
+
+      <div class="auth-footer" style="border-top:none; padding-top:0;">
+        <a href="{% url 'password_reset' %}">نسيت كلمة المرور؟</a>
+      </div>
+
+      <div class="auth-footer">
+        <span>ليس لديك حساب؟</span>
+        <a href="{% url 'register' %}">إنشاء حساب جديد</a>
+      </div>
     </form>
+  </div>
+</section>
 {% endblock %}

@@ -64,6 +64,10 @@
     border-collapse: collapse;
   }
 
+  .clearance-table-wrap {
+    display: none;
+  }
+
   .clearance-table th,
   .clearance-table td {
     border: 1px solid var(--line);
@@ -81,11 +85,121 @@
   .action-link {
     background: var(--accent);
     color: #fff;
-    padding: 6px 10px;
+    padding: 10px 14px;
     text-decoration: none;
-    border-radius: 8px;
-    display: inline-block;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 800;
+    min-height: 42px;
+  }
+
+  .clearance-cards {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+
+  .clearance-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #fff 0%, #fcfaf6 100%);
+    padding: 14px;
+    display: grid;
+    gap: 10px;
+    box-shadow: 0 10px 24px rgba(20, 44, 36, 0.06);
+  }
+
+  .clearance-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #e7ddcf;
+    padding-bottom: 8px;
+  }
+
+  .clearance-card-company {
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+
+  .clearance-card-status {
     font-size: 13px;
+    font-weight: 800;
+    border-radius: 999px;
+    padding: 6px 12px;
+    white-space: nowrap;
+    line-height: 1.2;
+    border: 1px solid transparent;
+  }
+
+  .status-order-received { background: #eaf3ff; color: #0f4f98; border-color: #cfe2ff; }
+  .status-inspection-payment-pending { background: #fff6e2; color: #8a5a00; border-color: #f1dc9a; }
+  .status-review-pending { background: #f5ecff; color: #5d2c8a; border-color: #dfc9fb; }
+  .status-approved { background: #e8f7ee; color: #17653d; border-color: #bfe5cc; }
+  .status-needs-completion { background: #fff0f0; color: #9a2626; border-color: #f0c2c2; }
+  .status-payment-pending { background: #fff5e7; color: #8b4f00; border-color: #efcf9f; }
+  .status-payment-completed { background: #e7f8ef; color: #156a42; border-color: #b8e4cb; }
+  .status-issued { background: #e6fbf5; color: #0c6d56; border-color: #b5eadc; }
+  .status-inspection-pending { background: #eef2ff; color: #2f4aa0; border-color: #cfd8ff; }
+  .status-inspection-completed { background: #edf6f6; color: #1f6161; border-color: #cae2e2; }
+  .status-fallback { background: #f3eee5; color: var(--muted); border-color: #e2d8c8; }
+  .status-disposal-approved { background: #e8f7ee; color: #17653d; border-color: #bfe5cc; }
+  .status-disposal-rejected { background: #fff0f0; color: #9a2626; border-color: #f0c2c2; }
+
+  .clearance-card-created {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .clearance-card-grid {
+    display: grid;
+    gap: 6px;
+  }
+
+  .clearance-card-row {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 5px;
+    align-items: start;
+    padding: 4px 0;
+    border: 0;
+    border-bottom: 1px dashed #e9dfd1;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .clearance-card-row:last-child {
+    border-bottom: 0;
+  }
+
+  .clearance-card-label {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .clearance-card-value {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.45;
+    word-break: break-word;
+    color: var(--ink);
+  }
+
+  .clearance-card-actions {
+    display: grid;
+    gap: 8px;
+    border-top: 1px dashed #ddd4c8;
+    padding-top: 12px;
+    justify-items: center;
   }
 
   @media (max-width: 720px) {
@@ -110,6 +224,21 @@
       display: block;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .clearance-cards {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .clearance-card-row {
+      grid-template-columns: 1fr;
+      gap: 3px;
+    }
+    .action-link {
+      width: 100%;
+      text-align: center;
     }
   }
 </style>
@@ -148,7 +277,8 @@
         <h2>طلبات تصريح النشاط</h2>
 
         {% if clearances %}
-            <table class="clearance-table">
+            <div class="clearance-table-wrap">
+            <table class="clearance-table no-mobile-cards">
                 <thead>
                     <tr>
                         <th>الشركة</th>
@@ -249,6 +379,153 @@
                     {% endfor %}
                 </tbody>
             </table>
+            </div>
+
+            <div class="clearance-cards">
+                {% for clearance in clearances %}
+                    <article class="clearance-card">
+                        <div class="clearance-card-head">
+                            <div class="clearance-card-company">{{ clearance.company.name }}</div>
+                            <div class="clearance-card-status
+                              {% if clearance.status == 'order_received' %}status-order-received
+                              {% elif clearance.status == 'inspection_payment_pending' %}status-inspection-payment-pending
+                              {% elif clearance.status == 'review_pending' %}status-review-pending
+                              {% elif clearance.status == 'approved' %}status-approved
+                              {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}status-needs-completion
+                              {% elif clearance.status == 'payment_pending' %}status-payment-pending
+                              {% elif clearance.status == 'payment_completed' %}status-payment-completed
+                              {% elif clearance.status == 'issued' %}status-issued
+                              {% elif clearance.status == 'inspection_pending' %}status-inspection-pending
+                              {% elif clearance.status == 'inspection_completed' %}status-inspection-completed
+                              {% elif clearance.status == 'disposal_approved' %}status-disposal-approved
+                              {% elif clearance.status == 'disposal_rejected' %}status-disposal-rejected
+                              {% else %}status-fallback{% endif %}">
+                                {% if clearance.status == 'order_received' %}
+                                    تم استلام الطلب
+                                {% elif clearance.status == 'inspection_payment_pending' %}
+                                    بانتظار دفع التفتيش
+                                {% elif clearance.status == 'review_pending' %}
+                                    بانتظار المراجعة
+                                {% elif clearance.status == 'approved' %}
+                                    معتمد
+                                {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}
+                                    نواقص
+                                {% elif clearance.status == 'payment_pending' %}
+                                    بانتظار دفع التصريح
+                                {% elif clearance.status == 'payment_completed' %}
+                                    تم استلام الدفع
+                                {% elif clearance.status == 'issued' %}
+                                    تم الإصدار
+                                {% elif clearance.status == 'inspection_pending' %}
+                                    بانتظار التفتيش
+                                {% elif clearance.status == 'inspection_completed' %}
+                                    تم التفتيش
+                                {% elif clearance.status == 'disposal_approved' %}
+                                    إتلاف معتمد
+                                {% elif clearance.status == 'disposal_rejected' %}
+                                    إتلاف مرفوض
+                                {% else %}
+                                    {{ clearance.get_status_display }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="clearance-card-created">تاريخ الإنشاء: {{ clearance.dateOfCreation }}</div>
+
+                        <div class="clearance-card-grid">
+                            <div class="clearance-card-row">
+                                <div class="clearance-card-label">نوع التصريح</div>
+                                <div class="clearance-card-value">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</div>
+                            </div>
+                            <div class="clearance-card-row">
+                                <div class="clearance-card-label">تاريخ الانتهاء</div>
+                                <div class="clearance-card-value">{{ clearance.dateOfExpiry }}</div>
+                            </div>
+                            <div class="clearance-card-row">
+                                <div class="clearance-card-label">تفاصيل الحالة</div>
+                                <div class="clearance-card-value">
+                                    {% if clearance.status == 'order_received' %}
+                                        تم استلام الطلب
+                                    {% elif clearance.status == 'inspection_payment_pending' %}
+                                        تم إرسال رابط دفع التفتيش وبانتظار الدفع
+                                    {% elif clearance.status == 'review_pending' %}
+                                        بانتظار مراجعة المفتش
+                                    {% elif clearance.status == 'approved' %}
+                                        تم الاعتماد من المفتش{% if clearance.inspector_name %} {{ clearance.inspector_name }}{% endif %}
+                                    {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}
+                                        نواقص بحاجة للاستكمال
+                                    {% elif clearance.status == 'payment_pending' %}
+                                        بانتظار دفع التصريح
+                                    {% elif clearance.status == 'payment_completed' %}
+                                        تم استلام الدفع
+                                    {% elif clearance.status == 'issued' %}
+                                        تم إصدار التصريح
+                                    {% elif clearance.status == 'inspection_pending' %}
+                                        {% if clearance.inspection_receiver_name %}
+                                            تم استلام الطلب للتفتيش من المفتش {{ clearance.inspection_receiver_name }}
+                                        {% else %}
+                                            تفتيش قيد الانتظار
+                                        {% endif %}
+                                    {% elif clearance.status == 'inspection_completed' %}
+                                        {% if clearance.inspection_report_decision == 'approved' %}
+                                            تم التفتيش - معتمد
+                                        {% elif clearance.inspection_report_decision == 'rejected' %}
+                                            تم التفتيش - غير معتمد
+                                        {% else %}
+                                            تم التفتيش
+                                        {% endif %}
+                                    {% elif clearance.status == 'disposal_approved' %}
+                                        تمت الموافقة على الإتلاف
+                                    {% elif clearance.status == 'disposal_rejected' %}
+                                        تم رفض الإتلاف
+                                    {% else %}
+                                        {{ clearance.get_status_display }}
+                                    {% endif %}
+                                    {% if clearance.unapprovedReason and clearance.status == 'needs_completion' or clearance.unapprovedReason and clearance.status == 'rejected' %}
+                                        <div class="hint" style="color: #a00; margin-top: 4px;">{{ clearance.unapprovedReason }}</div>
+                                    {% endif %}
+                                    {% if clearance.inspection_payment_link %}
+                                        <div class="hint" style="margin-top: 4px;">
+                                            <a href="{{ clearance.inspection_payment_link }}" target="_blank" rel="noopener">رابط دفع التفتيش</a>
+                                        </div>
+                                    {% endif %}
+                                    {% if clearance.payment_link %}
+                                        <div class="hint" style="margin-top: 4px;">
+                                            <a href="{{ clearance.payment_link }}" target="_blank" rel="noopener">رابط دفع التصريح</a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="clearance-card-row">
+                                <div class="clearance-card-label">مرجع دفع التفتيش</div>
+                                <div class="clearance-card-value">{{ clearance.inspection_payment_reference|default:"-" }}</div>
+                            </div>
+                            <div class="clearance-card-row">
+                                <div class="clearance-card-label">مرجع دفع التصريح</div>
+                                <div class="clearance-card-value">{{ clearance.PaymentNumber|default:"-" }}</div>
+                            </div>
+                            <div class="clearance-card-row">
+                                <div class="clearance-card-label">المستندات</div>
+                                <div class="clearance-card-value">
+                                    {% if clearance.request_documents_bundle %}
+                                        <a href="{{ clearance.request_documents_bundle.url }}">ملف المستندات الموحد</a><br>
+                                    {% endif %}
+                                    {% if clearance.documents.all %}
+                                        {% for doc in clearance.documents.all %}
+                                            <a href="{{ doc.file.url }}">{{ doc.file.name|cut:"pirmet_documents/" }}</a><br>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% if not clearance.request_documents_bundle %}-{% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="clearance-card-actions">
+                            <a href="{% url 'pest_control_permit_detail' clearance.id %}" class="action-link">عرض التفاصيل</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
         {% else %}
             <p class="hint">لا توجد طلبات حالياً.</p>
         {% endif %}

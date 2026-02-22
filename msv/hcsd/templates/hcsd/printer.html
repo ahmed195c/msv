@@ -1,82 +1,199 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="{% static 'hcsd/printer.css' %}">
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>طباعة تصريح مزاولة نشاط</title>
+  <link rel="stylesheet" href="{% static 'hcsd/printer.css' %}">
 </head>
 <body>
-    <div class="main">    
-        <div class="header">
-            <h1 class="printer-h1"> تصريح مزاولة نشاط مكافحة افات الصحة العامة  </h1>
-        </div>
-        <div class="table-wrap">
-            <table class="printer-table">
-                <colgroup>
-                    <col style="width: 17.5%;">
-                    <col style="width: 65%;">
-                    <col style="width: 17.5%;">
-                </colgroup>
-                <tr>
-                    <th class="table-main-header" colspan="3">  <p> Public Health Pest Control Company </p> <p>شركة مكافحة افات الصحة العامة  </p></th>
-                </tr>
-                <tr>
-                    <td class="colone">الاسم التجاري </td>
-                    <td class="coltow">  مؤسسة رويال لمكافحة الحشرات </td>
-                    <td class="colthree">company name </td>
-                </tr>
-                <tr>
-                    <td class="colone"> رقم الرخصة </td>
-                    <td class="coltow">  123456789 </td>
-                    <td class="colthree">license number </td>
-                </tr>
-                <tr>
-                    <td class="colone">  تاريخ انتهاء التصريح</td>
-                    <td class="coltow">  2025-12-31 </td>
-                    <td class="colthree">expiry date </td>
-                </tr>
-                <tr>
-                    <td class="colone">الموقع </td>
-                    <td class="coltow">  الشارقة - بوطينة - خلف شارع الشرق - محل رقم 1</td>
-                    <td class="colthree">Adress </td>
-                </tr>
-                <tr>
-                    <td class="colone">الاسم التجاري </td>
-                    <td class="coltow">  مؤسسة رويال لمكافحة الحشرات </td>
-                    <td class="colthree">company name </td>
-                </tr>
-                 <tr>
-                    <td class="colone">الاسم التجاري </td>
-                    <td class="coltow">  مؤسسة رويال لمكافحة الحشرات </td>
-                    <td class="colthree">company name </td>
-                </tr>
-                 <tr>
-                    <td class="colone">الاسم التجاري </td>
-                    <td class="coltow">  مؤسسة رويال لمكافحة الحشرات </td>
-                    <td class="colthree">company name </td>
-                </tr>
-                 <tr>
-                    <td class="colone">الاسم التجاري </td>
-                    <td class="coltow">  مؤسسة رويال لمكافحة الحشرات </td>
-                    <td class="colthree">company name </td>
-                </tr>
-                 <tr>
-                    <td class="colone">الاسم التجاري </td>
-                    <td class="coltow">  مؤسسة رويال لمكافحة الحشرات </td>
-                    <td class="colthree">company name </td>
-                </tr>
-                 <tr>
-                    <td class="colone">الاسم التجاري </td>
-                    <td class="coltow">  مؤسسة رويال لمكافحة الحشرات </td>
-                    <td class="colthree">company name </td>
-                </tr>
-            </table>
-        </div>
-        <img class="frame" src="{% static 'hcsd/gg.jpeg' %}" alt="dfsdfsd">
-    </div>
+  <div class="print-toolbar no-print">
+    <button onclick="window.print()">طباعة</button>
+  </div>
 
+  <main class="sheet">
+    <header class="doc-header">
+      <h1>تصريح مزاولة نشاط مكافحة آفات الصحة العامة</h1>
+      <div class="doc-subtitle">Public Health Pest Control Activity Permit</div>
+    </header>
 
+    {% if permit %}
+      <section class="block">
+        <table class="permit-table">
+          <colgroup>
+            <col class="label-ar">
+            <col class="value-col">
+            <col class="label-en">
+          </colgroup>
+          <thead>
+            <tr>
+              <th colspan="3">
+                <div class="section-main-title">بيانات الشركة</div>
+                <div class="section-main-subtitle">
+                  Public Health Pest Control Company: {{ permit.company.name|default:"-" }}
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>الاسم التجاري</td>
+              <td>{{ permit.company.name|default:"-" }}</td>
+              <td>Company Name</td>
+            </tr>
+            <tr>
+              <td>رقم الرخصة التجارية</td>
+              <td>{{ permit.company.number|default:"-" }}</td>
+              <td>Trade License No.</td>
+            </tr>
+            <tr>
+              <td>تاريخ انتهاء الرخصة</td>
+              <td>{{ permit.company.trade_license_exp|date:"d/m/Y"|default:"-" }}</td>
+              <td>Trade License Exp.</td>
+            </tr>
+            <tr>
+              <td>الموقع</td>
+              <td>{{ permit.company.address|default:"-" }}</td>
+              <td>Address</td>
+            </tr>
+            <tr>
+              <td>رقم الهاتف الأرضي</td>
+              <td>{{ permit.company.landline|default:"-" }}</td>
+              <td>Tel. Numbers</td>
+            </tr>
+            <tr>
+              <td>رقم هاتف المالك</td>
+              <td>{{ permit.company.owner_phone|default:"-" }}</td>
+              <td>Contact Numbers</td>
+            </tr>
+            <tr>
+              <td>البريد الإلكتروني</td>
+              <td>{{ permit.company.email|default:permit.request_email|default:"-" }}</td>
+              <td>Email</td>
+            </tr>
+            <tr>
+              <td>تاريخ إصدار التصريح</td>
+              <td>{{ permit.issue_date|date:"d/m/Y"|default:"-" }}</td>
+              <td>Issue Date</td>
+            </tr>
+            <tr>
+              <td>تاريخ انتهاء التصريح</td>
+              <td>{{ permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}</td>
+              <td>Expiry Date</td>
+            </tr>
+            <tr>
+              <td>رقم إيصال الدفع</td>
+              <td>{{ permit.PaymentNumber|default:"-" }}</td>
+              <td>Receipt Voucher</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="block">
+        <table class="permit-table two-col">
+          <thead>
+            <tr>
+              <th colspan="2">
+                <div class="section-main-title">بيانات المهندس</div>
+                <div class="section-main-subtitle">Engineer Details</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="half-head">
+                <div>اسم المهندس</div>
+                <small>Engineer Name</small>
+              </td>
+              <td class="half-head">
+                <div>رقم الهاتف المتحرك</div>
+                <small>Contact Numbers</small>
+              </td>
+            </tr>
+            <tr>
+              <td>{{ permit.company.enginer.name|default:"-" }}</td>
+              <td>{{ permit.company.enginer.phone|default:"-" }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="block">
+        <table class="permit-table two-col">
+          <thead>
+            <tr>
+              <th colspan="2">
+                <div class="section-main-title">بيانات الأنشطة</div>
+                <div class="section-main-subtitle">Details Of Activities</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="half-head">
+                <div>الأنشطة المصرح بها</div>
+                <small>Allowance Activity</small>
+              </td>
+              <td class="half-head">
+                <div>الأنشطة غير المصرح بها</div>
+                <small>Restricted Activity</small>
+              </td>
+            </tr>
+            <tr>
+              <td class="activities-cell">
+                {% if allowed_activities %}
+                  <ul>
+                    {% for item in allowed_activities %}
+                      <li>
+                        {% if item == "public_health_pest_control" %}
+                          مكافحة آفات الصحة العامة
+                        {% elif item == "termite_control" %}
+                          مكافحة النمل الأبيض
+                        {% elif item == "grain_pests" %}
+                          مكافحة آفات الحبوب
+                        {% else %}
+                          {{ item }}
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td class="activities-cell">
+                {% if restricted_activities %}
+                  <ul>
+                    {% for item in restricted_activities %}
+                      <li>
+                        {% if item == "public_health_pest_control" %}
+                          مكافحة آفات الصحة العامة
+                        {% elif item == "termite_control" %}
+                          مكافحة النمل الأبيض
+                        {% elif item == "grain_pests" %}
+                          مكافحة آفات الحبوب
+                        {% else %}
+                          {{ item }}
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    {% else %}
+      <section class="empty-state">
+        <h2>لا توجد بيانات تصريح للطباعة</h2>
+        <p>قم بإنشاء تصريح أولًا ثم ارجع لهذه الصفحة.</p>
+      </section>
+    {% endif %}
+  </main>
 </body>
 </html>

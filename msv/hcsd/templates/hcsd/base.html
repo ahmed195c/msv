@@ -10,17 +10,20 @@
 </head>
 <body>
     <nav class="navbar" lang="ar" dir="rtl">
-        <a class="nav-brand" href="{% url 'home' %}">نظام التصاريح</a>
+        <a class="nav-brand" href="{% url 'home' %}">
+            <img class="nav-brand-logo" src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+            <span>نظام التصاريح</span>
+        </a>
         <div class="nav-links">
             <a href="{% url 'company_list' %}">الشركات</a>
             <a href="{% url 'enginer_list' %}">المهندسين</a>
-            <a href="{% url 'pest_control_permit' %}">تصريح النشاط</a>
+            <a href="{% url 'permit_types' %}">التصاريح</a>
             <a href="{% url 'clearance_list' %}">متابعة الطلبات</a>
-            <a href="{% url 'printer' %}">Printer</a>
+            {% comment %} <a href="{% url 'printer' %}">Printer</a> {% endcomment %}
         </div>
         <div class="nav-auth">
             {% if user.is_authenticated %}
-                <span class="nav-user">مرحباً، {{ user.username }}</span>
+                <span class="nav-user">مرحباً، {{ user.get_full_name|default:user.username }}</span>
                 <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
                     {% csrf_token %}
                     <button type="submit" class="nav-ghost">تسجيل الخروج</button>
@@ -35,7 +38,8 @@
         <section class="page-card latest-permits">
             <h2 class="card-title">Permits Under Process</h2>
             {% if latest_pirmet %}
-                <table>
+                <div class="latest-table-wrap">
+                <table class="latest-table">
                     <thead>
                         <tr>
                             <th>Company</th>
@@ -67,6 +71,37 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
+
+                <div class="latest-permit-cards" lang="ar" dir="rtl">
+                    {% for pirmet in latest_pirmet %}
+                        <article class="permit-mini-card">
+                            <div class="permit-mini-row">
+                                <span class="permit-mini-label">الشركة</span>
+                                <span class="permit-mini-value">{{ pirmet.company.name }}</span>
+                            </div>
+                            <div class="permit-mini-row">
+                                <span class="permit-mini-label">نوع التصريح</span>
+                                <span class="permit-mini-value">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</span>
+                            </div>
+                            <div class="permit-mini-row">
+                                <span class="permit-mini-label">تاريخ الإنشاء</span>
+                                <span class="permit-mini-value">{{ pirmet.dateOfCreation }}</span>
+                            </div>
+                            <div class="permit-mini-row">
+                                <span class="permit-mini-label">الحالة</span>
+                                <span class="permit-mini-value">
+                                    {% if pirmet.status == "needs_completion" or pirmet.status == "rejected" %}
+                                        نواقص بحاجة للاستكمال
+                                    {% else %}
+                                        {{ pirmet.get_status_display }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <a class="permit-mini-link" href="{% url 'pest_control_permit_detail' pirmet.id %}">عرض التفاصيل</a>
+                        </article>
+                    {% endfor %}
+                </div>
             {% else %}
                 <p>No permits under process right now.</p>
             {% endif %}
@@ -76,6 +111,38 @@
         {% block content %}
         {% endblock %}
     </main>
+    <script>
+        (function () {
+            function prepareResponsiveTables() {
+                document.querySelectorAll("table").forEach(function (table) {
+                    if (table.classList.contains("no-mobile-cards")) {
+                        return;
+                    }
 
+                    table.classList.add("mobile-card-table");
+
+                    var headers = Array.from(table.querySelectorAll("thead th")).map(function (th) {
+                        return (th.innerText || th.textContent || "").trim();
+                    });
+
+                    table.querySelectorAll("tbody tr").forEach(function (row) {
+                        Array.from(row.children).forEach(function (cell, index) {
+                            if (!cell.matches("td")) {
+                                return;
+                            }
+                            var label = headers[index] || ("Field " + (index + 1));
+                            cell.setAttribute("data-label", label);
+                        });
+                    });
+                });
+            }
+
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", prepareResponsiveTables);
+            } else {
+                prepareResponsiveTables();
+            }
+        })();
+    </script>
 </body>
 </html>

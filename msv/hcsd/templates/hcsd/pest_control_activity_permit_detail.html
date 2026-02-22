@@ -3,20 +3,160 @@
 {% block title %}متابعة طلب تصريح النشاط{% endblock %}
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
+  <style>
+    .upload-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .upload-card {
+      border: 1px solid var(--line, #d8cfbf);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fff, #fbf8f2);
+      padding: 12px;
+      box-shadow: 0 8px 20px rgba(30, 70, 52, 0.06);
+    }
+
+    .upload-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: #1f5b46;
+    }
+
+    .upload-card-note {
+      color: var(--muted, #6a746d);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .upload-dropzone {
+      display: grid;
+      gap: 8px;
+      place-items: center;
+      min-height: 120px;
+      border: 2px dashed #b9ccb8;
+      border-radius: 12px;
+      background: #f8fbf7;
+      cursor: pointer;
+      text-align: center;
+      padding: 14px;
+      transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+    }
+
+    .upload-dropzone:hover {
+      border-color: #2b6b55;
+      background: #f2f8f4;
+    }
+
+    .upload-dropzone.is-dragover {
+      border-color: #1e6c4f;
+      background: #edf6ef;
+      transform: translateY(-1px);
+    }
+
+    .upload-dropzone-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(34, 104, 76, 0.08);
+      color: #22684c;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .upload-dropzone-title {
+      font-weight: 700;
+      color: #21352d;
+    }
+
+    .upload-dropzone-sub {
+      color: var(--muted, #6a746d);
+      font-size: 12px;
+    }
+
+    .upload-hidden-input {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    .upload-file-chip {
+      margin-top: 8px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid #d6e3d5;
+      background: #f4faf5;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .upload-file-chip.is-visible {
+      display: flex;
+    }
+
+    .upload-file-chip-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #24483d;
+      font-weight: 600;
+    }
+
+    .upload-file-chip-size {
+      color: var(--muted, #6a746d);
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .upload-grid-two {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 720px) {
+      .upload-grid-two {
+        grid-template-columns: 1fr;
+      }
+      .upload-dropzone {
+        min-height: 104px;
+      }
+    }
+  </style>
 {% endblock %}
 {% block content %}
 <section class="permit-page" lang="ar" dir="rtl">
   <div class="permit-card">
     <div class="action-bar no-print">
       <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
-      {% if pirmet.status == "issued" or pirmet.status == "payment_completed" %}
-        <a class="print-button" href="{% url 'pest_control_permit_view' pirmet.id %}">عرض التصريح</a>
+      {% if pirmet.payment_receipt %}
+        {% if pirmet.status == "issued" or pirmet.status == "payment_completed" %}
+          <a class="print-button" href="{% url 'pest_control_permit_view' pirmet.id %}">عرض التصريح</a>
+          <a class="print-button" href="{% url 'printer_permit' pirmet.id %}" target="_blank" rel="noopener">طباعة التصريح</a>
+        {% endif %}
       {% endif %}
     </div>
 
     <header class="permit-header">
       <div class="municipality">
-        <div class="logo-box">شعار البلدية</div>
+        <div class="logo-box">
+          <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+        </div>
         <div class="municipality-text">
           <div class="title">بلدية مدينة الشارقة</div>
           <div class="sub">إدارة الرقابة والسلامة الصحية</div>
@@ -90,6 +230,10 @@
         <div class="detail-item">
           <span class="label">تاريخ إنشاء الطلب</span>
           <span class="value">{{ pirmet.dateOfCreation|date:"Y-m-d" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">البريد الإلكتروني لمُرسل الطلب</span>
+          <span class="value">{{ pirmet.request_email|default:pirmet.company.email|default:"-" }}</span>
         </div>
         <div class="detail-item">
           <span class="label">تاريخ إخراج التصريح</span>
@@ -206,14 +350,31 @@
         <form method="post" enctype="multipart/form-data" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="inspection_payment">
-          <label for="inspection_payment_receipt">إيصال الدفع (PDF أو صورة)</label>
-          <input
-            id="inspection_payment_receipt"
-            name="inspection_payment_receipt"
-            type="file"
-            accept=".pdf,image/*"
-            required
-          >
+          <div class="upload-stack">
+            <div class="upload-card">
+              <div class="upload-card-head">
+                <span>إيصال دفع التفتيش</span>
+                <span class="upload-card-note">PDF أو صورة</span>
+              </div>
+              <label class="upload-dropzone js-dropzone" for="inspection_payment_receipt">
+                <span class="upload-dropzone-icon">⇪</span>
+                <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
+                <span class="upload-dropzone-sub">يدعم PDF / JPG / PNG</span>
+              </label>
+              <input
+                id="inspection_payment_receipt"
+                name="inspection_payment_receipt"
+                type="file"
+                accept=".pdf,image/*"
+                required
+                class="upload-hidden-input js-file-input"
+              >
+              <div class="upload-file-chip js-file-chip" aria-live="polite">
+                <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
+                <span class="upload-file-chip-size js-file-size"></span>
+              </div>
+            </div>
+          </div>
           <button type="submit">حفظ الإيصال</button>
         </form>
       </section>
@@ -244,21 +405,54 @@
         <form method="post" enctype="multipart/form-data" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="payment">
-          <label for="payment_receipt_camera">التقاط صورة مباشرة (الكاميرا)</label>
-          <input
-            id="payment_receipt_camera"
-            name="payment_receipt_camera"
-            type="file"
-            accept="image/*"
-            capture="environment"
-          >
-          <label for="payment_receipt">إرفاق الإثبات (PDF أو صورة)</label>
-          <input
-            id="payment_receipt"
-            name="payment_receipt"
-            type="file"
-            accept=".pdf,image/*"
-          >
+          <div class="upload-grid-two">
+            <div class="upload-card">
+              <div class="upload-card-head">
+                <span>التقاط صورة مباشرة</span>
+                <span class="upload-card-note">كاميرا الجهاز</span>
+              </div>
+              <label class="upload-dropzone js-dropzone" for="payment_receipt_camera">
+                <span class="upload-dropzone-icon">CAM</span>
+                <span class="upload-dropzone-title">اضغط لالتقاط صورة الإيصال</span>
+                <span class="upload-dropzone-sub">صورة مباشرة من الكاميرا</span>
+              </label>
+              <input
+                id="payment_receipt_camera"
+                name="payment_receipt_camera"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                class="upload-hidden-input js-file-input"
+              >
+              <div class="upload-file-chip js-file-chip" aria-live="polite">
+                <span class="upload-file-chip-name js-file-name">لم يتم اختيار صورة</span>
+                <span class="upload-file-chip-size js-file-size"></span>
+              </div>
+            </div>
+
+            <div class="upload-card">
+              <div class="upload-card-head">
+                <span>إرفاق إثبات الدفع</span>
+                <span class="upload-card-note">PDF أو صورة</span>
+              </div>
+              <label class="upload-dropzone js-dropzone" for="payment_receipt">
+                <span class="upload-dropzone-icon">⇪</span>
+                <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
+                <span class="upload-dropzone-sub">يمكنك رفع صورة أو PDF</span>
+              </label>
+              <input
+                id="payment_receipt"
+                name="payment_receipt"
+                type="file"
+                accept=".pdf,image/*"
+                class="upload-hidden-input js-file-input"
+              >
+              <div class="upload-file-chip js-file-chip" aria-live="polite">
+                <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
+                <span class="upload-file-chip-size js-file-size"></span>
+              </div>
+            </div>
+          </div>
           <button type="submit">حفظ إثبات الدفع</button>
         </form>
       </section>
@@ -312,4 +506,69 @@
     {% endif %}
   </div>
 </section>
+<script>
+  (function () {
+    function formatSize(bytes) {
+      if (!bytes && bytes !== 0) return '';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function attachUploadCard(input) {
+      var card = input.closest('.upload-card');
+      if (!card) return;
+      var dropzone = card.querySelector('.js-dropzone');
+      var chip = card.querySelector('.js-file-chip');
+      var nameEl = card.querySelector('.js-file-name');
+      var sizeEl = card.querySelector('.js-file-size');
+      if (!dropzone || !chip || !nameEl || !sizeEl) return;
+
+      function updateChip(file) {
+        if (!file) {
+          chip.classList.remove('is-visible');
+          return;
+        }
+        nameEl.textContent = file.name || 'ملف مرفق';
+        sizeEl.textContent = formatSize(file.size || 0);
+        chip.classList.add('is-visible');
+      }
+
+      input.addEventListener('change', function () {
+        updateChip(input.files && input.files[0] ? input.files[0] : null);
+      });
+
+      ['dragenter', 'dragover'].forEach(function (evt) {
+        dropzone.addEventListener(evt, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add('is-dragover');
+        });
+      });
+
+      ['dragleave', 'dragend', 'drop'].forEach(function (evt) {
+        dropzone.addEventListener(evt, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (evt !== 'drop') {
+            dropzone.classList.remove('is-dragover');
+          }
+        });
+      });
+
+      dropzone.addEventListener('drop', function (e) {
+        dropzone.classList.remove('is-dragover');
+        var files = e.dataTransfer && e.dataTransfer.files;
+        if (!files || !files.length) return;
+
+        var dt = new DataTransfer();
+        dt.items.add(files[0]);
+        input.files = dt.files;
+        updateChip(files[0]);
+      });
+    }
+
+    document.querySelectorAll('.js-file-input').forEach(attachUploadCard);
+  })();
+</script>
 {% endblock %}

@@ -3,7 +3,6 @@ import os
 
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, User
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -18,6 +17,7 @@ from .models import (
     PirmetClearance,
     PirmetDocument,
 )
+from .forms import StaffRegistrationForm
 
 ALLOWED_DOC_EXTENSIONS = {'.pdf', '.png', '.jpg', '.jpeg'}
 PEST_ACTIVITY_ORDER = [
@@ -65,12 +65,7 @@ def _activities_for_enginer(enginer):
         return []
     activities = []
     if enginer.public_health_cert:
-        activities.extend(
-            [
-                'public_health_pest_control',
-                'grain_pests',
-            ]
-        )
+        activities.append('public_health_pest_control')
     if enginer.termite_cert and 'termite_control' not in activities:
         activities.append('termite_control')
     return activities
@@ -364,7 +359,7 @@ def add_company(request):
         if not error and enginer:
             if pest_control_type == 'termite_control' and not enginer.termite_cert:
                 error = 'المهندس المختار لا يملك شهادة النمل الأبيض.'
-            elif pest_control_type != 'termite_control' and not enginer.public_health_cert:
+            elif pest_control_type == 'public_health_pest_control' and not enginer.public_health_cert:
                 error = 'المهندس المختار لا يملك شهادة صحة عامة.'
 
         if not error:
@@ -488,7 +483,7 @@ def company_detail(request, id):
                 if not error and enginer:
                     if pest_control_type == 'termite_control' and not enginer.termite_cert:
                         error = 'المهندس المختار لا يملك شهادة النمل الأبيض.'
-                    elif pest_control_type != 'termite_control' and not enginer.public_health_cert:
+                    elif pest_control_type == 'public_health_pest_control' and not enginer.public_health_cert:
                         error = 'المهندس المختار لا يملك شهادة صحة عامة.'
 
                 if not error:
@@ -542,20 +537,39 @@ def company_detail(request, id):
 @login_required
 def enginer_list(request):
     engineers = Enginer.objects.all().order_by('name')
+    return render(
+        request,
+        'hcsd/enginer_list.html',
+        {
+            'engineers': engineers,
+            'can_add_enginer': _can_data_entry(request.user),
+        },
+    )
+
+
+@login_required
+def enginer_add(request):
     error = ''
     form_data = {}
+
     if request.method == 'POST':
         if not _can_data_entry(request.user):
             error = 'ليس لديك صلاحية لإضافة مهندسين.'
         else:
             name = (request.POST.get('name') or '').strip()
+            national_or_unified_number = (request.POST.get('national_or_unified_number') or '').strip()
             email = (request.POST.get('email') or '').strip()
             phone = (request.POST.get('phone') or '').strip()
             public_health_cert = request.FILES.get('public_health_cert')
             termite_cert = request.FILES.get('termite_cert')
 
-            form_data = {'name': name, 'email': email, 'phone': phone}
-            if not name or not email or not phone:
+            form_data = {
+                'name': name,
+                'national_or_unified_number': national_or_unified_number,
+                'email': email,
+                'phone': phone,
+            }
+            if not name or not national_or_unified_number or not email or not phone:
                 error = 'يرجى إدخال بيانات المهندس كاملة.'
             elif not public_health_cert:
                 error = 'يرجى إرفاق شهادة الصحة العامة.'
@@ -563,6 +577,7 @@ def enginer_list(request):
             if not error:
                 enginer = Enginer.objects.create(
                     name=name,
+                    national_or_unified_number=national_or_unified_number,
                     email=email,
                     phone=phone,
                     public_health_cert=public_health_cert,
@@ -572,28 +587,30 @@ def enginer_list(request):
                     enginer=enginer,
                     action='created',
                     notes='Engineer created.',
+                    changed_by=request.user,
                 )
                 EnginerStatusLog.objects.create(
                     enginer=enginer,
                     action='public_health_cert_uploaded',
                     notes='Public health certificate uploaded.',
+                    changed_by=request.user,
                 )
                 if termite_cert:
                     EnginerStatusLog.objects.create(
                         enginer=enginer,
                         action='termite_cert_uploaded',
                         notes='Termite certificate uploaded.',
+                        changed_by=request.user,
                     )
                 return redirect('enginer_list')
 
     return render(
         request,
-        'hcsd/enginer_list.html',
+        'hcsd/enginer_add.html',
         {
-            'engineers': engineers,
-            'can_add_enginer': _can_data_entry(request.user),
             'error': error,
             'form_data': form_data,
+            'can_add_enginer': _can_data_entry(request.user),
         },
     )
 
@@ -610,19 +627,25 @@ def enginer_detail(request, id):
             public_health_cert = request.FILES.get('public_health_cert')
             termite_cert = request.FILES.get('termite_cert')
             if public_health_cert:
+                previous_public_health_cert = enginer.public_health_cert.name if enginer.public_health_cert else None
                 enginer.public_health_cert = public_health_cert
                 EnginerStatusLog.objects.create(
                     enginer=enginer,
                     action='public_health_cert_uploaded',
                     notes='Public health certificate updated.',
+                    changed_by=request.user,
+                    archived_file=previous_public_health_cert or None,
                 )
                 updated = True
             if termite_cert:
+                previous_termite_cert = enginer.termite_cert.name if enginer.termite_cert else None
                 enginer.termite_cert = termite_cert
                 EnginerStatusLog.objects.create(
                     enginer=enginer,
                     action='termite_cert_uploaded',
                     notes='Termite certificate updated.',
+                    changed_by=request.user,
+                    archived_file=previous_termite_cert or None,
                 )
                 updated = True
             if updated:
@@ -630,7 +653,8 @@ def enginer_detail(request, id):
                 return redirect('enginer_detail', id=enginer.id)
             error = 'يرجى إرفاق ملف واحد على الأقل.'
 
-    logs = enginer.status_logs.all().order_by('-created_at')
+    logs = enginer.status_logs.select_related('changed_by').all().order_by('-created_at')
+    archived_logs = [log for log in logs if getattr(log, 'archived_file', None)]
     return render(
         request,
         'hcsd/enginer_detail.html',
@@ -639,6 +663,7 @@ def enginer_detail(request, id):
             'can_update_enginer': _can_data_entry(request.user),
             'error': error,
             'logs': logs,
+            'archived_logs': archived_logs,
         },
     )
 
@@ -761,64 +786,24 @@ def pest_control_permit(request):
 
         form_data.update(
             {
+                'company_name': (request.POST.get('company_name') or '').strip(),
+                'trade_license_no': (request.POST.get('trade_license_no') or '').strip(),
+                'trade_license_exp': (request.POST.get('trade_license_exp') or '').strip(),
+                'company_address': (request.POST.get('company_address') or '').strip(),
+                'landline': (request.POST.get('landline') or '').strip(),
+                'owner_phone': (request.POST.get('owner_phone') or '').strip(),
+                'company_email': (request.POST.get('company_email') or '').strip(),
+                'business_activity': (request.POST.get('business_activity') or '').strip(),
                 'request_email': (request.POST.get('request_email') or '').strip(),
+                'engineer_name': (request.POST.get('engineer_name') or '').strip(),
+                'engineer_email': (request.POST.get('engineer_email') or '').strip(),
+                'engineer_phone': (request.POST.get('engineer_phone') or '').strip(),
                 'allowed_other': (request.POST.get('allowed_other') or '').strip(),
                 'restricted_other': (request.POST.get('restricted_other') or '').strip(),
             }
         )
 
-        business_activity_text = ''
-        if company:
-            business_activity_text = company.business_activity or ''
-            form_data.update(
-                {
-                    'company_name': company.name,
-                    'trade_license_no': company.number,
-                    'trade_license_exp': (
-                        company.trade_license_exp.isoformat()
-                        if company.trade_license_exp
-                        else ''
-                    ),
-                    'company_address': company.address,
-                    'landline': company.landline or '',
-                    'owner_phone': company.owner_phone or '',
-                    'company_email': company.email or '',
-                    'business_activity': business_activity_text,
-                }
-            )
-            if company.enginer:
-                form_data.update(
-                    {
-                        'engineer_name': company.enginer.name,
-                        'engineer_email': company.enginer.email,
-                        'engineer_phone': company.enginer.phone,
-                    }
-                )
-            else:
-                form_data.update(
-                    {
-                        'engineer_name': '',
-                        'engineer_email': '',
-                        'engineer_phone': '',
-                    }
-                )
-        else:
-            business_activity_text = (request.POST.get('business_activity') or '').strip()
-            form_data.update(
-                {
-                    'company_name': (request.POST.get('company_name') or '').strip(),
-                    'trade_license_no': (request.POST.get('trade_license_no') or '').strip(),
-                    'trade_license_exp': (request.POST.get('trade_license_exp') or '').strip(),
-                    'company_address': (request.POST.get('company_address') or '').strip(),
-                    'landline': (request.POST.get('landline') or '').strip(),
-                    'owner_phone': (request.POST.get('owner_phone') or '').strip(),
-                    'company_email': (request.POST.get('company_email') or '').strip(),
-                    'business_activity': business_activity_text,
-                    'engineer_name': (request.POST.get('engineer_name') or '').strip(),
-                    'engineer_email': (request.POST.get('engineer_email') or '').strip(),
-                    'engineer_phone': (request.POST.get('engineer_phone') or '').strip(),
-                }
-            )
+        business_activity_text = form_data['business_activity']
 
         if not company:
             if not form_data['company_name']:
@@ -828,17 +813,11 @@ def pest_control_permit(request):
             if not form_data['company_address']:
                 form_errors.append('company_address_required')
 
-        trade_license_exp = None
-        if company:
-            trade_license_exp = company.trade_license_exp
-            if not trade_license_exp:
-                form_errors.append('trade_license_exp_required')
-        else:
-            trade_license_exp = _parse_date(form_data['trade_license_exp'])
-            if form_data['trade_license_exp'] and not trade_license_exp:
-                form_errors.append('trade_license_exp_invalid')
-            elif not form_data['trade_license_exp']:
-                form_errors.append('trade_license_exp_required')
+        trade_license_exp = _parse_date(form_data['trade_license_exp'])
+        if form_data['trade_license_exp'] and not trade_license_exp:
+            form_errors.append('trade_license_exp_invalid')
+        elif not form_data['trade_license_exp']:
+            form_errors.append('trade_license_exp_required')
 
         if trade_license_exp and trade_license_exp < datetime.date.today():
             form_errors.append('trade_license_expired')
@@ -854,8 +833,21 @@ def pest_control_permit(request):
             enginer = company.enginer
             if not enginer:
                 form_errors.append('company_engineer_missing')
-            elif not enginer.public_health_cert:
-                form_errors.append('engineer_cert_required')
+            else:
+                changed_fields = []
+                if form_data['engineer_name'] and enginer.name != form_data['engineer_name']:
+                    enginer.name = form_data['engineer_name']
+                    changed_fields.append('name')
+                if form_data['engineer_email'] and enginer.email != form_data['engineer_email']:
+                    enginer.email = form_data['engineer_email']
+                    changed_fields.append('email')
+                if form_data['engineer_phone'] and enginer.phone != form_data['engineer_phone']:
+                    enginer.phone = form_data['engineer_phone']
+                    changed_fields.append('phone')
+                if changed_fields:
+                    enginer.save(update_fields=changed_fields)
+                if not enginer.public_health_cert:
+                    form_errors.append('engineer_cert_required')
         else:
             if form_data['engineer_name'] or form_data['engineer_email'] or form_data['engineer_phone']:
                 if not (form_data['engineer_name'] and form_data['engineer_email'] and form_data['engineer_phone']):
@@ -911,6 +903,30 @@ def pest_control_permit(request):
             elif enginer and not company.enginer:
                 company.enginer = enginer
                 company.save(update_fields=['enginer'])
+            elif company:
+                company_changed_fields = []
+                company_updates = {
+                    'name': form_data['company_name'],
+                    'number': form_data['trade_license_no'],
+                    'trade_license_exp': trade_license_exp,
+                    'address': form_data['company_address'],
+                    'landline': form_data['landline'] or None,
+                    'owner_phone': form_data['owner_phone'] or None,
+                    'email': form_data['company_email'] or None,
+                    'business_activity': business_activity_text or None,
+                }
+                for field, value in company_updates.items():
+                    if getattr(company, field) != value:
+                        setattr(company, field, value)
+                        company_changed_fields.append(field)
+                if company_changed_fields:
+                    company.save(update_fields=company_changed_fields)
+                    _log_company_change(
+                        company,
+                        'updated',
+                        request.user,
+                        notes='Company data updated from permit request form.',
+                    )
 
             permit = PirmetClearance.objects.create(
                 company=company,
@@ -1530,7 +1546,7 @@ def pest_control_permit_view(request, id):
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = StaffRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
             data_entry_group = Group.objects.filter(
@@ -1543,10 +1559,33 @@ def register(request):
             login(request, user)
             return redirect('home')
     else:
-        form = UserCreationForm()
+        form = StaffRegistrationForm()
 
     return render(request, 'hcsd/register.html', {'form': form})
 
 
-def printer(request):
-    return render(request, 'hcsd/printer.html')
+def printer(request, permit_id=None):
+    requested_id = permit_id or _parse_int(request.GET.get('permit_id'))
+    permits_qs = PirmetClearance.objects.select_related('company', 'company__enginer').filter(
+        permit_type='pest_control',
+        status__in=['payment_completed', 'issued'],
+    )
+
+    if requested_id:
+        permit = get_object_or_404(permits_qs, id=requested_id)
+        if not permit.payment_receipt:
+            return redirect('pest_control_permit_detail', id=permit.id)
+    else:
+        permit = permits_qs.exclude(payment_receipt='').exclude(
+            payment_receipt__isnull=True
+        ).order_by('-issue_date', '-dateOfCreation').first()
+
+    return render(
+        request,
+        'hcsd/printer.html',
+        {
+            'permit': permit,
+            'allowed_activities': _split_activities(permit.allowed_activities) if permit else [],
+            'restricted_activities': _split_activities(permit.restricted_activities) if permit else [],
+        },
+    )

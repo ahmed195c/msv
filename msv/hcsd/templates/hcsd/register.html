@@ -1,12 +1,417 @@
 {% extends "hcsd/base.html" %}
 {% block title %}Register{% endblock %}
 {% block content %}
-    <h1>Create Account</h1>
-    <p><em>New accounts are created as Data Entry. An administrator can change roles later.</em></p>
+<style>
+  .signup-stage {
+    min-height: calc(100vh - 140px);
+    padding: 16px 0 36px;
+    display: grid;
+    align-items: center;
+  }
 
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Register</button>
-    </form>
+  .signup-frame {
+    position: relative;
+    max-width: 1040px;
+    margin: 0 auto;
+    border-radius: 18px;
+    padding: 28px;
+    background:
+      radial-gradient(240px 240px at 8% 10%, rgba(200, 138, 45, 0.20), transparent 70%),
+      radial-gradient(320px 320px at 90% 88%, rgba(31, 90, 75, 0.16), transparent 72%),
+      radial-gradient(220px 220px at 80% 12%, rgba(226, 237, 233, 0.22), transparent 70%),
+      linear-gradient(135deg, #f2ede3 0%, #eadfcb 38%, #dfeae4 70%, #d6e4de 100%);
+    box-shadow: 0 26px 56px rgba(31, 90, 75, 0.14);
+    overflow: hidden;
+  }
+
+  .signup-frame::before,
+  .signup-frame::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    border: 28px solid rgba(200, 138, 45, 0.12);
+    pointer-events: none;
+  }
+
+  .signup-frame::before {
+    width: 340px;
+    height: 340px;
+    top: -170px;
+    left: 120px;
+  }
+
+  .signup-frame::after {
+    width: 380px;
+    height: 380px;
+    right: -140px;
+    bottom: -180px;
+  }
+
+  .signup-panel {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1.05fr 1.35fr;
+    min-height: 560px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .signup-side {
+    padding: 30px 28px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+    background:
+      radial-gradient(150px 150px at 78% 16%, rgba(255, 255, 255, 0.13), transparent 65%),
+      radial-gradient(110px 110px at 20% 82%, rgba(200, 138, 45, 0.22), transparent 70%),
+      linear-gradient(165deg, rgba(47, 103, 89, 0.90) 0%, rgba(31, 90, 75, 0.95) 55%, rgba(28, 77, 65, 0.96) 100%);
+    position: relative;
+  }
+
+  .signup-side::before,
+  .signup-side::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .signup-side::before {
+    width: 180px;
+    height: 180px;
+    top: -30px;
+    right: -20px;
+  }
+
+  .signup-side::after {
+    width: 120px;
+    height: 120px;
+    bottom: 18px;
+    left: 20px;
+  }
+
+  .signup-brand {
+    font-size: 12px;
+    opacity: 0.92;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .signup-welcome {
+    margin: 0;
+    font-size: 34px;
+    line-height: 1.15;
+    font-weight: 700;
+  }
+
+  .signup-side p {
+    margin: 0;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 14px;
+    max-width: 28ch;
+  }
+
+  .side-actions {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .side-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(2px);
+  }
+
+  .side-link.primary {
+    color: var(--accent);
+    background: #fff;
+    border-color: #fff;
+  }
+
+  .signup-form-wrap {
+    padding: 24px 26px 18px;
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    background: rgba(255, 255, 255, 0.96);
+  }
+
+  .signup-form-top {
+    border-bottom: 1px solid #ece2d9;
+    padding-bottom: 12px;
+  }
+
+  .signup-form-title {
+    margin: 0;
+    font-size: 30px;
+    line-height: 1.15;
+    color: #171717;
+  }
+
+  .signup-form-sub {
+    margin: 8px 0 0;
+    color: #666055;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .signup-alert {
+    border: 1px solid #efc2c2;
+    background: #fff4f4;
+    color: #8f2323;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .signup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .signup-field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .signup-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .signup-field label {
+    font-size: 12px;
+    color: #5f5950;
+    font-weight: 700;
+  }
+
+  .signup-field input {
+    width: 100%;
+    border: 1px solid #e4d9cf;
+    background: #fbf9f6;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #171717;
+  }
+
+  .signup-field input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.14);
+    background: #fff;
+  }
+
+  .signup-field .errorlist {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: #a32727;
+    font-size: 12px;
+  }
+
+  .signup-field .helptext {
+    color: #7a746b;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .signup-submit {
+    margin-top: 4px;
+    width: 100%;
+    min-height: 42px;
+    border-radius: 10px;
+    font-weight: 700;
+    border: none;
+    color: #fff;
+    background: linear-gradient(90deg, #2c6b5a 0%, #1f5a4b 55%, #1a4e40 100%);
+    box-shadow: 0 8px 18px rgba(31, 90, 75, 0.22);
+  }
+
+  .signup-footnote {
+    margin-top: 2px;
+    color: #6d665d;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .signup-links {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid #ece2d9;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    color: #726c62;
+    font-size: 11px;
+  }
+
+  .signup-links a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  @media (max-width: 900px) {
+    .signup-panel {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+
+    .signup-side {
+      padding: 24px 18px;
+    }
+
+    .signup-side p {
+      max-width: none;
+    }
+
+    .signup-form-wrap {
+      padding: 18px 16px 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .signup-stage {
+      min-height: auto;
+      padding: 10px 0 24px;
+    }
+
+    .signup-frame {
+      padding: 10px;
+      border-radius: 14px;
+    }
+
+    .signup-panel {
+      border-radius: 14px;
+    }
+
+    .signup-welcome {
+      font-size: 26px;
+    }
+
+    .signup-form-title {
+      font-size: 24px;
+    }
+
+    .signup-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .side-actions {
+      width: 100%;
+    }
+
+    .side-link {
+      flex: 1 1 100%;
+    }
+
+    .signup-links {
+      justify-content: center;
+      font-size: 10px;
+    }
+  }
+</style>
+
+<section class="signup-stage" lang="ar" dir="rtl">
+  <div class="signup-frame">
+    <div class="signup-panel">
+      <aside class="signup-side">
+        <div class="signup-brand">MSV Permit System</div>
+        <h1 class="signup-welcome">مرحبًا<br>أنشئ حسابك</h1>
+        <p>
+          للوصول إلى نظام التصاريح، أنشئ حسابًا باستخدام الاسم والرقم الإداري والبريد الإلكتروني.
+        </p>
+        <div class="side-actions">
+          <a class="side-link primary" href="{% url 'login' %}">تسجيل الدخول</a>
+          <a class="side-link" href="{% url 'home' %}">الصفحة الرئيسية</a>
+        </div>
+      </aside>
+
+      <div class="signup-form-wrap">
+        <div class="signup-form-top">
+          <h2 class="signup-form-title">Create Account</h2>
+          <p class="signup-form-sub">
+            أدخل بيانات الموظف لإنشاء الحساب. سيتم تعيين الصلاحية الافتراضية كـ Data Entry.
+          </p>
+        </div>
+
+        <form method="POST" novalidate>
+          {% csrf_token %}
+
+          {% if form.errors %}
+            <div class="signup-alert">تعذر إنشاء الحساب. تأكد من صحة البيانات المدخلة.</div>
+          {% endif %}
+          {% if form.non_field_errors %}
+            <div class="signup-alert" style="margin-top: 8px;">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="signup-grid" style="margin-top: 12px;">
+            <div class="signup-field full">
+              <label for="{{ form.full_name.id_for_label }}">الاسم</label>
+              {{ form.full_name }}
+              {{ form.full_name.errors }}
+            </div>
+
+            <div class="signup-field">
+              <label for="{{ form.admin_number.id_for_label }}">الرقم الإداري</label>
+              {{ form.admin_number }}
+              {{ form.admin_number.errors }}
+            </div>
+
+            <div class="signup-field">
+              <label for="{{ form.email.id_for_label }}">الإيميل</label>
+              {{ form.email }}
+              {{ form.email.errors }}
+            </div>
+
+            <div class="signup-field full">
+              <label for="{{ form.password.id_for_label }}">كلمة السر</label>
+              {{ form.password }}
+              {{ form.password.errors }}
+              {% if form.password.help_text %}
+                <div class="helptext">{{ form.password.help_text }}</div>
+              {% endif %}
+            </div>
+
+            <div class="signup-field full">
+              <label for="{{ form.password_confirm.id_for_label }}">تأكيد كلمة السر</label>
+              {{ form.password_confirm }}
+              {{ form.password_confirm.errors }}
+            </div>
+          </div>
+
+          <button type="submit" class="signup-submit">إنشاء الحساب</button>
+          <div class="signup-footnote">
+            باستخدام هذا النموذج أنت تنشئ حساب دخول باسم المستخدم = الرقم الإداري.
+          </div>
+        </form>
+
+        <div class="signup-links" dir="ltr">
+          <a href="#">Select Language</a>
+          <a href="#">Help</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms & Conditions</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}

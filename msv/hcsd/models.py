@@ -55,6 +55,7 @@ class Company(models.Model):
     
 class Enginer(models.Model):
     name = models.CharField(max_length=100)
+    national_or_unified_number = models.CharField(max_length=50, null=True, blank=True)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
     public_health_cert = models.FileField(
@@ -252,6 +253,10 @@ class EnginerStatusLog(models.Model):
     )
     action = models.CharField(max_length=40, choices=ACTION_CHOICES)
     notes = models.TextField(blank=True)
+    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    archived_file = models.FileField(
+        upload_to='engineer_certificates/archive/', null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

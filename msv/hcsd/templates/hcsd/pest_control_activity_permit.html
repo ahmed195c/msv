@@ -10,7 +10,9 @@
     {% csrf_token %}
     <header class="permit-header">
       <div class="municipality">
-        <div class="logo-box">شعار البلدية</div>
+        <div class="logo-box">
+          <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+        </div>
         <div class="municipality-text">
           <div class="title">بلدية مدينة الشارقة</div>
           <div class="sub">إدارة الرقابة والسلامة الصحية</div>
@@ -91,7 +93,7 @@
               </option>
             {% endfor %}
           </select>
-          <div class="hint">عند اختيار شركة يتم تعبئة البيانات تلقائياً، ويمكن تعديلها من صفحة الشركة.</div>
+          <div class="hint">عند اختيار شركة يتم تعبئة البيانات تلقائياً، ويمكن تعديلها هنا قبل إرسال الطلب.</div>
         </div>
         <div class="field">
           <label for="company_name">الاسم التجاري</label>
@@ -255,7 +257,6 @@
     const restrictedChecks = Array.from(
       document.querySelectorAll('input[name="restricted_activities"]')
     );
-    const lockFields = Array.from(document.querySelectorAll('[data-company-field]'));
 
     const pad = (value) => String(value).padStart(2, '0');
     const daysInMonth = (year, month) => new Date(year, month, 0).getDate();
@@ -309,16 +310,9 @@
       });
     };
 
-    const setLocked = (locked) => {
-      lockFields.forEach((field) => {
-        field.disabled = locked;
-      });
-    };
-
     const applyCompany = () => {
       const option = companySelect.options[companySelect.selectedIndex];
       const hasCompany = option && option.value;
-      setLocked(!!hasCompany);
       if (!hasCompany) {
         setActivityChecks(false, false);
         updateExpiry();

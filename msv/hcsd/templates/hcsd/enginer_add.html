@@ -1,0 +1,575 @@
+{% extends "hcsd/base.html" %}
+{% block title %}تسجيل مهندس جديد{% endblock %}
+{% block content %}
+<style>
+  .eng-add-page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 18px 16px 38px;
+    font-family: "Cairo", "Noto Kufi Arabic", "Tahoma", sans-serif;
+  }
+
+  .eng-add-shell {
+    background:
+      radial-gradient(220px 180px at 12% 8%, rgba(31, 90, 75, 0.08), transparent 70%),
+      radial-gradient(200px 160px at 88% 16%, rgba(200, 138, 45, 0.10), transparent 70%),
+      linear-gradient(180deg, #fffdf8 0%, #f6f2ea 100%);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .eng-add-grid {
+    display: grid;
+    grid-template-columns: 0.95fr 1.25fr;
+    min-height: 520px;
+  }
+
+  .eng-add-side {
+    background:
+      radial-gradient(160px 120px at 80% 12%, rgba(255,255,255,.10), transparent 70%),
+      radial-gradient(110px 110px at 20% 84%, rgba(200,138,45,.20), transparent 72%),
+      linear-gradient(165deg, #2f6f5d 0%, #1f5a4b 60%, #19493d 100%);
+    color: #fff;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .eng-add-side h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.2;
+  }
+
+  .eng-add-side p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.7;
+    color: rgba(255,255,255,.93);
+  }
+
+  .eng-side-link {
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.5);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+    background: rgba(255,255,255,.08);
+  }
+
+  .eng-add-main {
+    background: rgba(255,255,255,.94);
+    padding: 20px 18px;
+    display: grid;
+    align-content: start;
+    gap: 12px;
+  }
+
+  .eng-add-head {
+    border-bottom: 1px solid #e8dfd4;
+    padding-bottom: 10px;
+  }
+
+  .eng-add-head h2 {
+    margin: 0;
+    font-size: 24px;
+  }
+
+  .eng-add-head p {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .eng-error {
+    border: 1px solid #d9b0b0;
+    background: #fff4f4;
+    color: #8a1f1f;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .eng-form {
+    display: grid;
+    gap: 12px;
+  }
+
+  .eng-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .eng-field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .eng-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .eng-field label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .eng-field input {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .eng-field input:focus {
+    outline: none;
+    border-color: rgba(31, 90, 75, 0.55);
+    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.10);
+  }
+
+  .upload-box {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fff 0%, #fbf8f2 100%);
+    overflow: hidden;
+  }
+
+  .upload-box-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #ebe2d6;
+    background: rgba(255,255,255,.8);
+  }
+
+  .upload-box-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .upload-box-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .upload-box-body {
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .upload-native {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    padding: 0;
+    margin: -1px;
+  }
+
+  .upload-drop {
+    display: grid;
+    place-items: center;
+    min-height: 122px;
+    border: 1.5px dashed rgba(31, 90, 75, 0.25);
+    border-radius: 12px;
+    background:
+      radial-gradient(160px 80px at 85% 15%, rgba(31, 90, 75, 0.03), transparent 70%),
+      radial-gradient(120px 70px at 12% 88%, rgba(200, 138, 45, 0.06), transparent 75%),
+      #fff;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, transform .12s ease;
+    text-align: center;
+    padding: 12px;
+  }
+
+  .upload-drop:hover {
+    border-color: rgba(31, 90, 75, 0.45);
+    transform: translateY(-1px);
+  }
+
+  .upload-drop.drag-over {
+    border-color: rgba(31, 90, 75, 0.65);
+    background: linear-gradient(180deg, #f3faf7 0%, #edf6f2 100%);
+    box-shadow: inset 0 0 0 2px rgba(31, 90, 75, 0.06);
+  }
+
+  .upload-drop:focus-visible {
+    outline: none;
+    border-color: rgba(31, 90, 75, 0.55);
+    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.10);
+  }
+
+  .upload-drop-inner {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    color: var(--muted);
+  }
+
+  .upload-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, #eef5f1 0%, #e2ede9 100%);
+    color: var(--accent);
+    border: 1px solid #c9dbd3;
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .upload-text {
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .upload-subtext {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .upload-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .upload-file-pill {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+    border: 1px solid #d2e0da;
+    background: #edf5f1;
+    color: #214d42;
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .upload-file-pill.show {
+    display: inline-flex;
+  }
+
+  .upload-file-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .upload-actions {
+    display: flex;
+    gap: 8px;
+    margin-inline-start: auto;
+  }
+
+  .upload-btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    border-radius: 999px;
+    min-height: 32px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .upload-btn.primary {
+    border-color: transparent;
+    color: #fff;
+    background: linear-gradient(180deg, #2b6c5a 0%, #1f5a4b 100%);
+  }
+
+  .upload-btn.muted {
+    color: var(--muted);
+    background: #f4f0e8;
+  }
+
+  .eng-help {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .eng-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .eng-actions button {
+    min-height: 42px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+  }
+
+  .eng-actions .secondary-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+  }
+
+  @media (max-width: 780px) {
+    .eng-add-grid {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+
+    .eng-add-side {
+      padding: 18px 16px;
+    }
+
+    .eng-add-main {
+      padding: 16px 14px;
+    }
+
+    .eng-form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .eng-actions {
+      align-items: stretch;
+    }
+
+    .eng-actions button,
+    .eng-actions .secondary-link {
+      width: 100%;
+      text-align: center;
+    }
+
+    .upload-footer {
+      align-items: stretch;
+    }
+
+    .upload-actions {
+      width: 100%;
+      margin-inline-start: 0;
+    }
+
+    .upload-btn {
+      flex: 1 1 0;
+    }
+  }
+</style>
+
+<section class="eng-add-page" lang="ar" dir="rtl">
+  <div class="eng-add-shell">
+    <div class="eng-add-grid">
+      <aside class="eng-add-side">
+        <h1>تسجيل مهندس جديد</h1>
+        <p>أدخل بيانات المهندس وارفع شهادة الصحة العامة بشكل إلزامي، ويمكن إضافة شهادة النمل الأبيض بشكل اختياري.</p>
+        <p>بعد الحفظ سيظهر المهندس مباشرة في قائمة المهندسين ويمكن استخدامه في طلبات التصاريح.</p>
+        <a class="eng-side-link" href="{% url 'enginer_list' %}">العودة لقائمة المهندسين</a>
+      </aside>
+
+      <div class="eng-add-main">
+        <div class="eng-add-head">
+          <h2>Engineer Registration</h2>
+          <p>نموذج إضافة مهندس جديد للنظام</p>
+        </div>
+
+        {% if not can_add_enginer %}
+          <div class="eng-error">Only Data Entry or Administration accounts can add engineers.</div>
+        {% endif %}
+
+        {% if error %}
+          <div class="eng-error">{{ error }}</div>
+        {% endif %}
+
+        {% if can_add_enginer %}
+          <form method="POST" enctype="multipart/form-data" class="eng-form">
+            {% csrf_token %}
+            <div class="eng-form-grid">
+              <div class="eng-field full">
+                <label>اسم المهندس</label>
+                <input type="text" name="name" value="{{ form_data.name|default:'' }}" required>
+              </div>
+              <div class="eng-field">
+                <label>رقم الهوية / الرقم الموحد</label>
+                <input type="text" name="national_or_unified_number" value="{{ form_data.national_or_unified_number|default:'' }}" required>
+              </div>
+              <div class="eng-field">
+                <label>البريد الإلكتروني</label>
+                <input type="email" name="email" value="{{ form_data.email|default:'' }}" required>
+              </div>
+              <div class="eng-field">
+                <label>رقم الهاتف</label>
+                <input type="text" name="phone" value="{{ form_data.phone|default:'' }}" required>
+              </div>
+              <div class="eng-field full">
+                <label>شهادة الصحة العامة (PDF أو صورة)</label>
+                <div class="upload-box">
+                  <div class="upload-box-head">
+                    <span class="upload-box-title">رفع شهادة الصحة العامة</span>
+                    <span class="upload-box-tag">إلزامي</span>
+                  </div>
+                  <div class="upload-box-body">
+                    <input id="public_health_cert" class="upload-native" type="file" name="public_health_cert" required>
+                    <label class="upload-drop" for="public_health_cert" tabindex="0" data-upload-drop="public_health_cert">
+                      <span class="upload-drop-inner">
+                        <span class="upload-icon">↑</span>
+                        <span class="upload-text">اضغط لاختيار الملف</span>
+                        <span class="upload-subtext">PDF أو صورة</span>
+                      </span>
+                    </label>
+                    <div class="upload-footer">
+                      <div class="upload-file-pill" data-file-pill="public_health_cert">
+                        <span>📄</span>
+                        <span class="upload-file-name" data-file-name="public_health_cert">لا يوجد ملف</span>
+                      </div>
+                      <div class="upload-actions">
+                        <label class="upload-btn" for="public_health_cert">اختيار ملف</label>
+                        <span class="upload-btn muted">التالي</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="eng-help">هذا الحقل مطلوب، ويدعم PDF أو الصور.</div>
+              </div>
+              <div class="eng-field full">
+                <label>شهادة النمل الأبيض (اختياري)</label>
+                <div class="upload-box">
+                  <div class="upload-box-head">
+                    <span class="upload-box-title">رفع شهادة النمل الأبيض</span>
+                    <span class="upload-box-tag">اختياري</span>
+                  </div>
+                  <div class="upload-box-body">
+                    <input id="termite_cert" class="upload-native" type="file" name="termite_cert">
+                    <label class="upload-drop" for="termite_cert" tabindex="0" data-upload-drop="termite_cert">
+                      <span class="upload-drop-inner">
+                        <span class="upload-icon">↑</span>
+                        <span class="upload-text">اضغط لاختيار الملف</span>
+                        <span class="upload-subtext">PDF أو صورة</span>
+                      </span>
+                    </label>
+                    <div class="upload-footer">
+                      <div class="upload-file-pill" data-file-pill="termite_cert">
+                        <span>📄</span>
+                        <span class="upload-file-name" data-file-name="termite_cert">لا يوجد ملف</span>
+                      </div>
+                      <div class="upload-actions">
+                        <label class="upload-btn" for="termite_cert">اختيار ملف</label>
+                        <span class="upload-btn muted">اختياري</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="eng-help">اختياري، ويمكن رفعه لاحقًا من صفحة تفاصيل المهندس.</div>
+              </div>
+            </div>
+            <div class="eng-actions">
+              <button type="submit">حفظ المهندس</button>
+              <a class="secondary-link" href="{% url 'enginer_list' %}">إلغاء والعودة للقائمة</a>
+            </div>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  (function () {
+    ["public_health_cert", "termite_cert"].forEach(function (id) {
+      var input = document.getElementById(id);
+      if (!input) return;
+      var nameEl = document.querySelector('[data-file-name="' + id + '"]');
+      var pillEl = document.querySelector('[data-file-pill="' + id + '"]');
+      var dropEl = document.querySelector('label[for="' + id + '"].upload-drop');
+
+      function refresh() {
+        var hasFile = input.files && input.files.length > 0;
+        if (hasFile) {
+          if (nameEl) nameEl.textContent = input.files[0].name;
+          if (pillEl) pillEl.classList.add("show");
+          if (dropEl) {
+            dropEl.style.borderColor = "rgba(31, 90, 75, 0.45)";
+            dropEl.style.background = "#f7fbf9";
+          }
+        } else {
+          if (nameEl) nameEl.textContent = "لا يوجد ملف";
+          if (pillEl) pillEl.classList.remove("show");
+          if (dropEl) {
+            dropEl.style.borderColor = "";
+            dropEl.style.background = "";
+          }
+        }
+      }
+
+      input.addEventListener("change", refresh);
+
+      if (dropEl) {
+        ["dragenter", "dragover"].forEach(function (evtName) {
+          dropEl.addEventListener(evtName, function (evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            dropEl.classList.add("drag-over");
+          });
+        });
+
+        ["dragleave", "dragend", "drop"].forEach(function (evtName) {
+          dropEl.addEventListener(evtName, function (evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            if (evtName !== "drop") {
+              dropEl.classList.remove("drag-over");
+            }
+          });
+        });
+
+        dropEl.addEventListener("drop", function (evt) {
+          var files = evt.dataTransfer && evt.dataTransfer.files;
+          dropEl.classList.remove("drag-over");
+          if (!files || !files.length) return;
+
+          try {
+            var dt = new DataTransfer();
+            dt.items.add(files[0]);
+            input.files = dt.files;
+          } catch (e) {
+            return;
+          }
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+      }
+
+      refresh();
+    });
+  })();
+</script>
+{% endblock %}

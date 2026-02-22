@@ -1,12 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
 
 :root {
-  --ink: #1b1b1b;
-  --muted: #5e5e5e;
-  --line: #2a2a2a;
-  --paper: #fbf9f5;
+  --ink: #1d1b18;
+  --muted: #6a6257;
+  --line: #d8d0c2;
+  --paper: #fffdf9;
   --accent: #1f5a4b;
+  --accent-2: #2b6c5a;
   --accent-soft: #e2ede9;
+  --shadow: 0 18px 34px rgba(21, 37, 30, 0.08);
 }
 
 .permit-page {
@@ -22,8 +24,9 @@
   max-width: 980px;
   margin: 0 auto;
   background: var(--paper);
-  border: 2px solid var(--line);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
   padding: 26px 24px 30px;
   color: var(--ink);
 }
@@ -47,7 +50,8 @@
 .logo-box {
   width: 76px;
   height: 76px;
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,7 +87,8 @@
   font-weight: 700;
   font-size: 20px;
   padding: 10px 12px;
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: 12px;
   background: var(--accent-soft);
   letter-spacing: 0.4px;
 }
@@ -92,6 +97,16 @@
   margin-top: 18px;
   border: 1px solid var(--line);
   padding: 14px;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.logo-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+  display: block;
 }
 
 .section-title {
@@ -100,8 +115,9 @@
   margin-bottom: 12px;
   display: inline-block;
   padding: 4px 10px;
-  background: #fff;
+  background: linear-gradient(180deg, #fff 0%, #fbf7ef 100%);
   border: 1px solid var(--line);
+  border-radius: 999px;
 }
 
 .permit-grid {
@@ -124,9 +140,10 @@
 .field textarea,
 .field select {
   border: 1px solid var(--line);
-  padding: 8px 10px;
+  padding: 9px 11px;
   font-size: 14px;
   background: #fff;
+  border-radius: 10px;
 }
 
 .field input[type="date"],
@@ -177,8 +194,9 @@
   padding: 10px 20px;
   font-size: 15px;
   cursor: pointer;
-  background: var(--accent);
+  background: linear-gradient(180deg, var(--accent-2) 0%, var(--accent) 100%);
   color: #fff;
+  border-radius: 10px;
 }
 
 .permit-actions a {
@@ -192,7 +210,7 @@
 }
 
 .permit-actions .secondary {
-  background: #494949;
+  background: #4d4a46;
 }
 
 .alert {
