@@ -1,0 +1,141 @@
+{% extends "hcsd/base.html" %}
+{% block title %}متابعة المهل{% endblock %}
+{% block content %}
+<style>
+  .ext-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 16px 32px;
+  }
+  .ext-card {
+    background: #fbf9f5;
+    border: 1px solid #e1dacb;
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 8px 18px rgba(24, 35, 28, 0.04);
+  }
+  .ext-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .ext-head h1 { margin: 0; font-size: 22px; }
+  .ext-note { color: #666; font-size: 13px; }
+  .ext-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .ext-table th, .ext-table td {
+    border: 1px solid #ece6d9;
+    padding: 10px;
+    text-align: right;
+    vertical-align: top;
+  }
+  .ext-table thead th {
+    background: #f4f0e7;
+    white-space: nowrap;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid transparent;
+  }
+  .b-expired { background: #ffe7e7; color: #8a2222; border-color: #f0b8b8; }
+  .b-soon { background: #fff4d6; color: #7a5a00; border-color: #ead08b; }
+  .b-active { background: #e8f6ed; color: #1f6c46; border-color: #b9dfc6; }
+  .b-unknown { background: #efefef; color: #555; border-color: #ddd; }
+  .link-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: #1f5a4b;
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+    font-weight: 700;
+  }
+  @media (max-width: 800px) {
+    .ext-table { display: block; overflow-x: auto; }
+  }
+</style>
+
+<section class="ext-page" lang="ar" dir="rtl">
+  <div class="ext-card">
+    <div class="ext-head">
+      <div>
+        <h1>متابعة المهل</h1>
+        <div class="ext-note">مرتبة حسب الأقرب انتهاءً أولًا.</div>
+      </div>
+    </div>
+
+    {% if extension_rows %}
+      <table class="ext-table">
+        <thead>
+          <tr>
+            <th>الشركة</th>
+            <th>نوع المهلة</th>
+            <th>بداية المهلة</th>
+            <th>نهاية المهلة</th>
+            <th>الحالة</th>
+            <th>المتبقي</th>
+            <th>المرفق</th>
+            <th>التفاصيل</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in extension_rows %}
+            <tr>
+              <td>{{ row.company.name }}</td>
+              <td>{{ row.log.notes|default:"-" }}</td>
+              <td>{{ row.start_date|date:"d/m/Y"|default:"-" }}</td>
+              <td>{{ row.end_date|date:"d/m/Y"|default:"-" }}</td>
+              <td>
+                {% if row.days_left is None %}
+                  <span class="badge b-unknown">غير محدد</span>
+                {% elif row.days_left < 0 %}
+                  <span class="badge b-expired">منتهية</span>
+                {% elif row.days_left <= 7 %}
+                  <span class="badge b-soon">قريبة الانتهاء</span>
+                {% else %}
+                  <span class="badge b-active">سارية</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if row.days_left is None %}
+                  -
+                {% elif row.days_left < 0 %}
+                  منذ {{ row.days_overdue }} يوم
+                {% else %}
+                  {{ row.days_left }} يوم
+                {% endif %}
+              </td>
+              <td>
+                {% if row.log.attachment %}
+                  <a href="{{ row.log.attachment.url }}" target="_blank" rel="noopener">فتح</a>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td><a class="link-btn" href="{% url 'company_detail' row.company.id %}">عرض الشركة</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>لا توجد مهل مسجلة حاليًا.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

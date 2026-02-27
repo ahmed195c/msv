@@ -191,6 +191,20 @@ body {
 }
 
 @media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible !important;
+  }
+
+  .print-area {
+    position: absolute;
+    inset: 0;
+  }
+
   html,
   body {
     background: #fff;

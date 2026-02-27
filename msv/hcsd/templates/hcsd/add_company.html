@@ -118,6 +118,15 @@
     font-size: 14px;
   }
 
+  .notice {
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    border: 1px solid #c9b46b;
+    background: #fff8dc;
+    color: #5f4b00;
+    font-size: 13px;
+  }
+
   .error-box {
     border: 1px solid #a33;
     background: #fff4f4;
@@ -207,6 +216,9 @@
 
       <div class="company-section">
         <div class="section-title">التصنيف والمهندس</div>
+        <div class="notice">
+          يمكن إنشاء شركة جديدة بدون مهندس حالياً. سيتم استكمال المهندس لاحقاً بعد التفتيش الأولي للشركة.
+        </div>
         <div class="company-grid">
           <div class="company-field">
             <label>نوع المكافحة</label>
@@ -218,9 +230,9 @@
             </select>
           </div>
           <div class="company-field">
-            <label>المهندس</label>
-            <select name="enginer" required>
-              <option value="">اختيار مهندس</option>
+            <label>المهندس (اختياري للشركات الجديدة)</label>
+            <select name="enginer">
+              <option value="">بدون مهندس حالياً</option>
               {% for engineer in engineers %}
                 <option
                   value="{{ engineer.id }}"
@@ -237,7 +249,7 @@
                 </option>
               {% endfor %}
             </select>
-            <small class="muted">لا يظهر للاختيار إلا المهندس الذي أكمل الشهادات المطلوبة.</small>
+            <small class="muted">يمكن تركه فارغاً للشركة الجديدة. عند اختيار مهندس، يتم التحقق من الشهادات حسب نوع المكافحة.</small>
           </div>
         </div>
       </div>

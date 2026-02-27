@@ -88,6 +88,7 @@ class PirmetClearance(models.Model):
         ('issued', 'Issued'),
         ('inspection_pending', 'Inspection Pending'),
         ('inspection_completed', 'Inspection Completed'),
+        ('cancelled_admin', 'Cancelled Administratively'),
         ('disposal_approved', 'Disposal Approved'),
         ('disposal_rejected', 'Disposal Rejected'),
     ]
@@ -282,6 +283,8 @@ class CompanyChangeLog(models.Model):
     attachment = models.FileField(
         upload_to='company_extension_requests/', null=True, blank=True
     )
+    extension_start_date = models.DateField(null=True, blank=True)
+    extension_end_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

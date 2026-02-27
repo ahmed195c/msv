@@ -66,6 +66,18 @@
       </div>
     {% endif %}
 
+    {% if trade_license_notice %}
+      <div class="alert">
+        {{ trade_license_notice }}
+      </div>
+    {% endif %}
+
+    {% if engineer_notice %}
+      <div class="alert">
+        {{ engineer_notice }}
+      </div>
+    {% endif %}
+
     <section class="permit-section">
       <div class="section-title">بيانات الشركة</div>
       <div class="permit-grid">

@@ -4,6 +4,41 @@
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
   <style>
+    .admin-inline-edit .js-edit-input,
+    .admin-inline-edit .js-save-actions {
+      display: none;
+    }
+
+    .admin-inline-edit.is-editing .js-edit-input,
+    .admin-inline-edit.is-editing .js-save-actions {
+      display: block;
+    }
+
+    .admin-inline-edit.is-editing .js-edit-input.inline {
+      display: inline-block;
+    }
+
+    .admin-inline-edit.is-editing .js-read-value {
+      display: none;
+    }
+
+    .admin-edit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .admin-edit-toggle {
+      border: none;
+      background: #1f5a4b;
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
     .upload-stack {
       display: grid;
       gap: 12px;
@@ -205,6 +240,8 @@
               {% endif %}
             {% elif pirmet.status == "issued" %}
               تم إصدار التصريح
+            {% elif pirmet.status == "cancelled_admin" %}
+            تم اغلاق الطلب 
             {% else %}
               {{ pirmet.get_status_display }}
             {% endif %}
@@ -224,28 +261,81 @@
       </div>
     {% endif %}
 
-    <section class="permit-section">
+    <section class="permit-section {% if can_record_payment %}admin-inline-edit{% endif %}" {% if can_record_payment %}data-admin-inline-edit{% endif %}>
       <div class="section-title">بيانات التصريح</div>
+      {% if can_record_payment %}
+      <form method="post" class="review-form" style="margin:0;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="admin_update_request_data">
+        <div class="admin-edit-actions no-print">
+          <button type="button" class="admin-edit-toggle" data-edit-toggle>تعديل</button>
+        </div>
+      {% endif %}
       <div class="detail-grid">
         <div class="detail-item">
+          <span class="label">اسم الشركة</span>
+          <span class="value">{{ pirmet.company.name|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
           <span class="label">تاريخ إنشاء الطلب</span>
-          <span class="value">{{ pirmet.dateOfCreation|date:"Y-m-d" }}</span>
+          <span class="value">{{ pirmet.dateOfCreation|date:"d/m/Y" }}</span>
         </div>
         <div class="detail-item">
           <span class="label">البريد الإلكتروني لمُرسل الطلب</span>
-          <span class="value">{{ pirmet.request_email|default:pirmet.company.email|default:"-" }}</span>
+          <span class="value">
+            {% if can_record_payment %}
+              <span class="js-read-value">{{ pirmet.request_email|default:pirmet.company.email|default:"-" }}</span>
+              <input class="js-edit-input" name="request_email" type="email" value="{{ pirmet.request_email|default:pirmet.company.email|default:'' }}">
+            {% else %}
+              {{ pirmet.request_email|default:pirmet.company.email|default:"-" }}
+            {% endif %}
+          </span>
         </div>
         <div class="detail-item">
           <span class="label">تاريخ إخراج التصريح</span>
-          <span class="value">{{ pirmet.issue_date|date:"Y-m-d"|default:"-" }}</span>
+          <span class="value">
+            {% if can_record_payment %}
+              <span class="js-read-value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span>
+              <input class="js-edit-input" name="issue_date" type="date" value="{{ pirmet.issue_date|date:'Y-m-d'|default:'' }}">
+            {% else %}
+              {{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}
+            {% endif %}
+          </span>
         </div>
         <div class="detail-item">
           <span class="label">تاريخ انتهاء التصريح</span>
-          <span class="value">{{ pirmet.dateOfExpiry|date:"Y-m-d"|default:"-" }}</span>
+          <span class="value">
+            {% if can_record_payment %}
+              <span class="js-read-value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span>
+              <input class="js-edit-input" name="expiry_date" type="date" value="{{ pirmet.dateOfExpiry|date:'Y-m-d'|default:'' }}">
+            {% else %}
+              {{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}
+            {% endif %}
+          </span>
         </div>
         <div class="detail-item">
           <span class="label">تاريخ الدفع</span>
-          <span class="value">{{ pirmet.payment_date|date:"Y-m-d"|default:"-" }}</span>
+          <span class="value">
+            {% if can_record_payment %}
+              <span class="js-read-value">{{ pirmet.payment_date|date:"d/m/Y"|default:"-" }}</span>
+              <input class="js-edit-input" name="payment_date" type="date" value="{{ pirmet.payment_date|date:'Y-m-d'|default:'' }}">
+            {% else %}
+              {{ pirmet.payment_date|date:"d/m/Y"|default:"-" }}
+            {% endif %}
+          </span>
+        </div>
+      </div>
+      <div class="detail-grid" style="margin-top: 12px;">
+        <div class="detail-item">
+          <span class="label">رقم تواصل  </span>
+          <span class="value">
+            {% if can_record_payment %}
+              <span class="js-read-value">{{ pirmet.company.enginer.phone|default:"-" }}</span>
+              <input class="js-edit-input" name="engineer_phone" type="text" value="{{ pirmet.company.enginer.phone|default:'' }}">
+            {% else %}
+              {{ pirmet.company.enginer.phone|default:"-" }}
+            {% endif %}
+          </span>
         </div>
       </div>
       <div class="payment-pairs">
@@ -253,7 +343,14 @@
           <div class="payment-box-title">دفع التفتيش</div>
           <div class="detail-item">
             <span class="label">رقم امر الدفع الموحد - التفتيش</span>
-            <span class="value">{{ pirmet.inspection_payment_reference|default:"-" }}</span>
+            <span class="value">
+              {% if can_record_payment %}
+                <span class="js-read-value">{{ pirmet.inspection_payment_reference|default:"-" }}</span>
+                <input class="js-edit-input" name="inspection_payment_reference" type="text" value="{{ pirmet.inspection_payment_reference|default:'' }}">
+              {% else %}
+                {{ pirmet.inspection_payment_reference|default:"-" }}
+              {% endif %}
+            </span>
           </div>
           <div class="detail-item">
             <span class="label">إيصال دفع التفتيش</span>
@@ -270,7 +367,14 @@
           <div class="payment-box-title">دفع تصريح المزاولة</div>
           <div class="detail-item">
             <span class="label">رقم امر الدفع الموحد - تصريح مزاولة النشاط</span>
-            <span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span>
+            <span class="value">
+              {% if can_record_payment %}
+                <span class="js-read-value">{{ pirmet.PaymentNumber|default:"-" }}</span>
+                <input class="js-edit-input" name="payment_number" type="text" value="{{ pirmet.PaymentNumber|default:'' }}">
+              {% else %}
+                {{ pirmet.PaymentNumber|default:"-" }}
+              {% endif %}
+            </span>
           </div>
           <div class="detail-item">
             <span class="label">إيصال دفع تصريح المزاولة</span>
@@ -284,6 +388,28 @@
           </div>
         </div>
       </div>
+      {% if can_record_payment %}
+        <div class="detail-grid" style="margin-top: 12px;">
+          <div class="detail-item">
+            <span class="label">بريد الشركة</span>
+            <span class="value">
+              <span class="js-read-value">{{ pirmet.company.email|default:"-" }}</span>
+              <input class="js-edit-input" name="company_email" type="email" value="{{ pirmet.company.email|default:'' }}">
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">بريد المهندس</span>
+            <span class="value">
+              <span class="js-read-value">{{ pirmet.company.enginer.email|default:"-" }}</span>
+              <input class="js-edit-input" name="engineer_email" type="email" value="{{ pirmet.company.enginer.email|default:'' }}">
+            </span>
+          </div>
+        </div>
+        <div class="js-save-actions" style="margin-top:12px; display:flex; justify-content:flex-end;">
+          <button type="submit">حفظ تعديل البيانات الظاهرة</button>
+        </div>
+      </form>
+      {% endif %}
     </section>
 
     {% if inspection_report_decision %}
@@ -312,16 +438,65 @@
       </section>
     {% endif %}
 
+    {% if request_documents %}
+      <section class="permit-section">
+        <div class="section-title">مستندات الطلب</div>
+        <div class="inspection-photos">
+          {% for doc in request_documents %}
+            {% if doc.file.url|lower|slice:"-4:" == ".pdf" %}
+              <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
+                <span>PDF</span>
+              </a>
+            {% else %}
+              <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener">
+                <img src="{{ doc.file.url }}" alt="مستند الطلب {{ forloop.counter }}">
+              </a>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
     {% if inspection_report_photos %}
       <section class="permit-section">
         <div class="section-title">صور تقرير التفتيش</div>
         <div class="inspection-photos">
           {% for photo in inspection_report_photos %}
-            <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
-              <img src="{{ photo.file.url }}" alt="صورة تقرير التفتيش {{ forloop.counter }}">
-            </a>
+            <div>
+              <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
+                <img src="{{ photo.file.url }}" alt="صورة تقرير التفتيش {{ forloop.counter }}">
+              </a>
+              {% if can_manage_inspection_photos %}
+                <form method="post" class="no-print" style="margin-top:6px;">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete_inspection_photo">
+                  <input type="hidden" name="photo_id" value="{{ photo.id }}">
+                  <button type="submit" style="width:100%; background:#8c2f2f;">حذف الصورة</button>
+                </form>
+              {% endif %}
+            </div>
           {% endfor %}
         </div>
+        {% if can_manage_inspection_photos %}
+          <form method="post" enctype="multipart/form-data" class="review-form no-print" style="margin-top:12px;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_inspection_photos">
+            <label for="inspection_report_photos_extra">إضافة صور تفتيش إضافية</label>
+            <input id="inspection_report_photos_extra" name="inspection_report_photos_extra" type="file" accept="image/*" multiple>
+            <button type="submit">حفظ الصور الإضافية</button>
+          </form>
+        {% endif %}
+      </section>
+    {% elif can_manage_inspection_photos %}
+      <section class="permit-section no-print">
+        <div class="section-title">صور تقرير التفتيش</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_inspection_photos">
+          <label for="inspection_report_photos_extra_empty">إضافة صور تفتيش</label>
+          <input id="inspection_report_photos_extra_empty" name="inspection_report_photos_extra" type="file" accept="image/*" multiple>
+          <button type="submit">حفظ الصور</button>
+        </form>
       </section>
     {% endif %}
 
@@ -340,6 +515,19 @@
             required
           >
           <button type="submit">حفظ رقم الامر</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status != "issued" and pirmet.status != "cancelled_admin" %}
+      <section class="permit-section no-print">
+        <div class="section-title">إغلاق </div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="cancel_admin">
+          <label for="cancel_reason">ملاحظه سبب الاغلاق</label>
+          <textarea id="cancel_reason" name="cancel_reason" rows="3" required placeholder=":ادخال الملاحظه هنا "></textarea>
+          <button type="submit" style="background:#8c2f2f;">إغلاق الطلب </button>
         </form>
       </section>
     {% endif %}
@@ -569,6 +757,15 @@
     }
 
     document.querySelectorAll('.js-file-input').forEach(attachUploadCard);
+
+    document.querySelectorAll('[data-admin-inline-edit]').forEach(function (section) {
+      var btn = section.querySelector('[data-edit-toggle]');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var editing = section.classList.toggle('is-editing');
+        btn.textContent = editing ? 'إلغاء التعديل' : 'تعديل';
+      });
+    });
   })();
 </script>
 {% endblock %}

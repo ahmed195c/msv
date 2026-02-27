@@ -428,6 +428,9 @@
 
     <div class="section extension-panel" data-extension-panel {% if not extension_error %}hidden{% endif %}>
       <div class="section-title">تقديم طلب مهلة</div>
+      {% if extension_notice %}
+        <div class="error-box" style="background:#fff8dc;color:#6b5200;border-color:#e2cb83;">{{ extension_notice }}</div>
+      {% endif %}
       {% if extension_error %}
         <div class="error-box">{{ extension_error }}</div>
       {% endif %}
@@ -437,6 +440,10 @@
           <input type="hidden" name="action" value="request_extension">
           <label>نوع المهلة</label>
           <input type="text" name="extension_type" placeholder="مثال: تجديد تصريح المركبة / النشاط / التخلص / المؤهل العلمي" required>
+          <label>تاريخ بداية المهلة</label>
+          <input type="date" name="extension_start_date" required>
+          <label>تاريخ نهاية المهلة</label>
+          <input type="date" name="extension_end_date" required>
           <label>المستند المرفق (PDF أو صورة)</label>
           <input type="file" name="extension_document" accept=".pdf,image/*" required>
           <button type="submit">حفظ طلب المهلة</button>
@@ -677,7 +684,7 @@
         <div class="timeline">
           {% for log in logs %}
             <div class="timeline-item">
-              <div class="timeline-date">{{ log.created_at|date:"d M, Y" }}</div>
+              <div class="timeline-date">{{ log.created_at|date:"d/m/Y" }}</div>
               <div class="timeline-track">
                 <span class="timeline-dot"></span>
               </div>
@@ -705,6 +712,9 @@
                 </div>
                 {% if log.notes %}
                   <div class="timeline-notes">{{ log.notes }}</div>
+                {% endif %}
+                {% if log.action == "extension_requested" and log.extension_start_date and log.extension_end_date %}
+                  <div class="timeline-notes">المدة: {{ log.extension_start_date|date:"d/m/Y" }} إلى {{ log.extension_end_date|date:"d/m/Y" }}</div>
                 {% endif %}
                 {% if log.attachment %}
                   <div class="timeline-notes">
