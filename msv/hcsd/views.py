@@ -794,6 +794,12 @@ def clearance_list(request):
     for clearance in clearances:
         review = review_map.get(clearance.id)
         clearance.inspector_name = _inspector_review_name(review)
+        request_docs = _request_documents(clearance)
+        clearance.request_documents_count = len(request_docs)
+        clearance.has_request_documents = bool(
+            clearance.request_documents_bundle
+            or clearance.request_documents_count
+        )
         receive_change = inspection_receive_map.get(clearance.id)
         clearance.inspection_receiver_name = None
         if receive_change and ':' in receive_change.notes:

@@ -356,15 +356,12 @@
                             <td>{{ clearance.inspection_payment_reference|default:"-" }}</td>
                             <td>{{ clearance.PaymentNumber|default:"-" }}</td>
                             <td>
-                                {% if clearance.request_documents_bundle %}
-                                    <a href="{{ clearance.request_documents_bundle.url }}">ملف المستندات الموحد</a><br>
-                                {% endif %}
-                                {% if clearance.documents.all %}
-                                    {% for doc in clearance.documents.all %}
-                                        <a href="{{ doc.file.url }}">{{ doc.file.name|cut:"pirmet_documents/" }}</a><br>
-                                    {% endfor %}
+                                {% if clearance.has_request_documents %}
+                                    <a href="{% url 'pest_control_permit_detail' clearance.id %}#request-documents" class="action-link">
+                                        مستندات الطلب{% if clearance.request_documents_count %} ({{ clearance.request_documents_count }}){% endif %}
+                                    </a>
                                 {% else %}
-                                    {% if not clearance.request_documents_bundle %}-{% endif %}
+                                    -
                                 {% endif %}
                             </td>
                             <td>
@@ -506,15 +503,12 @@
                             <div class="clearance-card-row">
                                 <div class="clearance-card-label">المستندات</div>
                                 <div class="clearance-card-value">
-                                    {% if clearance.request_documents_bundle %}
-                                        <a href="{{ clearance.request_documents_bundle.url }}">ملف المستندات الموحد</a><br>
-                                    {% endif %}
-                                    {% if clearance.documents.all %}
-                                        {% for doc in clearance.documents.all %}
-                                            <a href="{{ doc.file.url }}">{{ doc.file.name|cut:"pirmet_documents/" }}</a><br>
-                                        {% endfor %}
+                                    {% if clearance.has_request_documents %}
+                                        <a href="{% url 'pest_control_permit_detail' clearance.id %}#request-documents" class="action-link">
+                                            مستندات الطلب{% if clearance.request_documents_count %} ({{ clearance.request_documents_count }}){% endif %}
+                                        </a>
                                     {% else %}
-                                        {% if not clearance.request_documents_bundle %}-{% endif %}
+                                        -
                                     {% endif %}
                                 </div>
                             </div>

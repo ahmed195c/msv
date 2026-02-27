@@ -21,17 +21,35 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$-bfvto%7462=m55ofj$k4614*_!i0+_9k@ij&r(^lzxh%3#&-'
+SECRET_KEY = os.getenv(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-change-me-in-production',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', '1') in {'1', 'true', 'True'}
 
-ALLOWED_HOSTS = ['msvshjminc.asuscomm.com', '.trycloudflare.com', 'localhost', '127.0.0.1']
+DEFAULT_ALLOWED_HOSTS = [
+    'msvshjminc.asuscomm.com',
+    'msvshjminc.com',
+    '.msvshjminc.com',
+    '.trycloudflare.com',
+    'localhost',
+    '127.0.0.1',
+    '192.168.50.74',
+]
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('DJANGO_ALLOWED_HOSTS', ','.join(DEFAULT_ALLOWED_HOSTS)).split(',')
+    if host.strip()
+]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.trycloudflare.com',
     'http://msvshjminc.asuscomm.com',
     'https://msvshjminc.asuscomm.com',
+    'https://msvshjminc.com',
+    'https://*.msvshjminc.com',
 ]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
