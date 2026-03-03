@@ -96,6 +96,24 @@
     min-height: 42px;
   }
 
+  .phone-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-decoration: none;
+    color: #0e5f4a;
+    background: #e8f5f0;
+    border: 1px solid #bfe1d3;
+    font-weight: 800;
+    direction: ltr;
+  }
+
+  .phone-link:hover {
+    background: #dbefe8;
+    color: #0a4f3d;
+  }
+
   .clearance-cards {
     display: grid;
     gap: 14px;
@@ -267,6 +285,9 @@
                 <a href="{% url 'pest_control_permit' %}" class="btn primary">
                     تصريح مزاولة نشاط مكافحة آفات الصحة العامة
                 </a>
+                <a href="{% url 'vehicle_permit' %}" class="btn primary">
+                    تصريح المركبة للشركات
+                </a>
             </div>
         {% else %}
             <p><em>Only Data Entry or Administration accounts can create permits.</em></p>
@@ -288,7 +309,7 @@
                         <th>الحالة</th>
                         <th>مرجع دفع التفتيش</th>
                         <th>مرجع دفع التصريح</th>
-                        <th>المستندات</th>
+                        <th>رقم التواصل</th>
                         <th>الإجراءات</th>
                     </tr>
                 </thead>
@@ -296,7 +317,7 @@
                     {% for clearance in clearances %}
                         <tr>
                             <td>{{ clearance.company.name }}</td>
-                            <td>تصريح مزاولة نشاط مكافحة آفات الصحة العامة</td>
+                            <td>{{ clearance.permit_label_ar }}</td>
                             <td>{{ clearance.dateOfCreation }}</td>
                             <td>{{ clearance.dateOfExpiry }}</td>
                             <td>
@@ -356,17 +377,17 @@
                             <td>{{ clearance.inspection_payment_reference|default:"-" }}</td>
                             <td>{{ clearance.PaymentNumber|default:"-" }}</td>
                             <td>
-                                {% if clearance.has_request_documents %}
-                                    <a href="{% url 'pest_control_permit_detail' clearance.id %}#request-documents" class="action-link">
-                                        مستندات الطلب{% if clearance.request_documents_count %} ({{ clearance.request_documents_count }}){% endif %}
-                                    </a>
-                                {% else %}
-                                    -
-                                {% endif %}
+                                {% with contact_number=clearance.company.owner_phone|default:clearance.company.landline %}
+                                    {% if contact_number %}
+                                        <a href="tel:{{ contact_number }}" class="phone-link">{{ contact_number }}</a>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                {% endwith %}
                             </td>
                             <td>
                                 <div style="margin-bottom: 8px;">
-                                    <a href="{% url 'pest_control_permit_detail' clearance.id %}" class="action-link">
+                                    <a href="{% url clearance.detail_url_name clearance.id %}" class="action-link">
                                         عرض التفاصيل
                                     </a>
                                 </div>
@@ -431,7 +452,7 @@
                         <div class="clearance-card-grid">
                             <div class="clearance-card-row">
                                 <div class="clearance-card-label">نوع التصريح</div>
-                                <div class="clearance-card-value">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</div>
+                                <div class="clearance-card-value">{{ clearance.permit_label_ar }}</div>
                             </div>
                             <div class="clearance-card-row">
                                 <div class="clearance-card-label">تاريخ الانتهاء</div>
@@ -501,21 +522,21 @@
                                 <div class="clearance-card-value">{{ clearance.PaymentNumber|default:"-" }}</div>
                             </div>
                             <div class="clearance-card-row">
-                                <div class="clearance-card-label">المستندات</div>
+                                <div class="clearance-card-label">رقم التواصل</div>
                                 <div class="clearance-card-value">
-                                    {% if clearance.has_request_documents %}
-                                        <a href="{% url 'pest_control_permit_detail' clearance.id %}#request-documents" class="action-link">
-                                            مستندات الطلب{% if clearance.request_documents_count %} ({{ clearance.request_documents_count }}){% endif %}
-                                        </a>
-                                    {% else %}
-                                        -
-                                    {% endif %}
+                                    {% with contact_number=clearance.company.owner_phone|default:clearance.company.landline %}
+                                        {% if contact_number %}
+                                            <a href="tel:{{ contact_number }}" class="phone-link">{{ contact_number }}</a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    {% endwith %}
                                 </div>
                             </div>
                         </div>
 
                         <div class="clearance-card-actions">
-                            <a href="{% url 'pest_control_permit_detail' clearance.id %}" class="action-link">عرض التفاصيل</a>
+                            <a href="{% url clearance.detail_url_name clearance.id %}" class="action-link">عرض التفاصيل</a>
                         </div>
                     </article>
                 {% endfor %}

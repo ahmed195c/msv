@@ -1,0 +1,171 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}تصريح المركبة{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pest_control_activity_permit.css' %}">
+{% endblock %}
+{% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+  <form class="permit-card" method="post" enctype="multipart/form-data" autocomplete="off">
+    {% csrf_token %}
+    <header class="permit-header">
+      <div class="municipality">
+        <div class="logo-box">
+          <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+        </div>
+        <div class="municipality-text">
+          <div class="title">بلدية مدينة الشارقة</div>
+          <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+          <div class="sub">قسم رقابة وتنظيم النفايات</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="permit-title">تصريح المركبة للشركات</div>
+
+    {% if form_errors %}
+      <div class="alert">
+        <strong>يرجى تصحيح التالي:</strong>
+        <ul class="alert-list">
+          {% for error in form_errors %}
+            <li>
+              {% if error == "company_select_invalid" %}
+                يرجى اختيار شركة صحيحة.
+              {% elif error == "request_email_required" %}
+                يرجى إدخال بريد مقدم الطلب.
+              {% elif error == "vehicle_type_required" %}
+                يرجى إدخال نوع المركبة.
+              {% elif error == "vehicle_number_required" %}
+                يرجى إدخال رقم المركبة.
+              {% elif error == "vehicle_color_required" %}
+                يرجى إدخال لون المركبة.
+              {% elif error == "issue_authority_required" %}
+                يرجى إدخال مصدر الرخصة.
+              {% elif error == "vehicle_license_expiry_required" %}
+                يرجى إدخال تاريخ انتهاء ملكية المركبة.
+              {% elif error == "vehicle_license_expiry_invalid" %}
+                تاريخ انتهاء ملكية المركبة غير صالح.
+              {% elif error == "documents_required" %}
+                يرجى إرفاق مستند واحد على الأقل.
+              {% elif error == "documents_invalid" %}
+                الملفات المسموحة هي PDF أو صور فقط: {{ invalid_docs|join:", " }}
+              {% else %}
+                {{ error }}
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <section class="permit-section">
+      <div class="section-title">بيانات الشركة</div>
+      <div class="permit-grid">
+        <div class="field">
+          <label for="company_id">اختيار الشركة المسجلة</label>
+          <select id="company_id" name="company_id" required>
+            <option value="">-- اختيار --</option>
+            {% for company in companies %}
+              <option value="{{ company.id }}"
+                data-name="{{ company.name }}"
+                data-number="{{ company.number }}"
+                data-phone="{{ company.owner_phone|default:company.landline|default_if_none:'' }}"
+                data-exp="{{ company.trade_license_exp|date:'Y-m-d' }}"
+                {% if company.id == selected_company_id %}selected{% endif %}>
+                {{ company.name }} - {{ company.number }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>اسم الشركة</label>
+          <input id="company_name" type="text" value="{{ selected_company.name|default:'' }}" readonly>
+        </div>
+        <div class="field">
+          <label>رقم الرخصة التجارية</label>
+          <input id="company_number" type="text" value="{{ selected_company.number|default:'' }}" readonly>
+        </div>
+        <div class="field">
+          <label>رقم التواصل</label>
+          <input id="company_phone" type="text" value="{% if selected_company %}{{ selected_company.owner_phone|default:selected_company.landline|default:'' }}{% endif %}" readonly>
+        </div>
+        <div class="field">
+          <label>تاريخ انتهاء الرخصة التجارية</label>
+          <input id="company_trade_exp" type="date" value="{{ selected_company.trade_license_exp|date:'Y-m-d'|default:'' }}" readonly>
+        </div>
+        <div class="field">
+          <label for="request_email">بريد مقدم الطلب</label>
+          <input id="request_email" name="request_email" type="email" value="{{ form_data.request_email|default:'' }}" required>
+        </div>
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">بيانات المركبة</div>
+      <div class="permit-grid">
+        <div class="field">
+          <label for="vehicle_type">نوع المركبة</label>
+          <input id="vehicle_type" name="vehicle_type" type="text" value="{{ form_data.vehicle_type|default:'' }}" required>
+        </div>
+        <div class="field">
+          <label for="vehicle_number">رقم المركبة</label>
+          <input id="vehicle_number" name="vehicle_number" type="text" value="{{ form_data.vehicle_number|default:'' }}" required>
+        </div>
+        <div class="field">
+          <label for="vehicle_color">لون المركبة</label>
+          <input id="vehicle_color" name="vehicle_color" type="text" value="{{ form_data.vehicle_color|default:'' }}" required>
+        </div>
+        <div class="field">
+          <label for="issue_authority">مصدر الرخصة</label>
+          <input id="issue_authority" name="issue_authority" type="text" value="{{ form_data.issue_authority|default:'' }}" required>
+        </div>
+        <div class="field">
+          <label for="vehicle_license_expiry">تاريخ انتهاء ملكية المركبة</label>
+          <input id="vehicle_license_expiry" name="vehicle_license_expiry" type="date" value="{{ form_data.vehicle_license_expiry|default:'' }}" required>
+        </div>
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">المستندات المطلوبة</div>
+      <div class="field">
+        <label for="documents">إرفاق المستندات (PDF أو صور)</label>
+        <input id="documents" type="file" name="documents" multiple required>
+      </div>
+    </section>
+
+    <div class="permit-actions">
+      <button type="submit">إرسال الطلب</button>
+      <a class="secondary" href="{% url 'clearance_list' %}">العودة للطلبات</a>
+    </div>
+  </form>
+</section>
+<script>
+  (function () {
+    var companySelect = document.getElementById('company_id');
+    if (!companySelect) return;
+    var companyName = document.getElementById('company_name');
+    var companyNumber = document.getElementById('company_number');
+    var companyPhone = document.getElementById('company_phone');
+    var companyTradeExp = document.getElementById('company_trade_exp');
+
+    function fillCompanyFields() {
+      var option = companySelect.options[companySelect.selectedIndex];
+      if (!option || !option.value) {
+        companyName.value = '';
+        companyNumber.value = '';
+        companyPhone.value = '';
+        companyTradeExp.value = '';
+        return;
+      }
+      companyName.value = option.dataset.name || '';
+      companyNumber.value = option.dataset.number || '';
+      companyPhone.value = option.dataset.phone || '';
+      companyTradeExp.value = option.dataset.exp || '';
+    }
+
+    companySelect.addEventListener('change', fillCompanyFields);
+    fillCompanyFields();
+  })();
+</script>
+{% endblock %}

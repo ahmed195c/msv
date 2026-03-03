@@ -4,6 +4,7 @@ import os
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -14,6 +15,7 @@ from .models import (
     Enginer,
     EnginerStatusLog,
     InspectorReview,
+    PesticideTransportPermit,
     PirmetChangeLog,
     PirmetClearance,
     PirmetDocument,
@@ -40,6 +42,25 @@ def _parse_int(value):
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def _parse_int_list(values):
+    ids = []
+    for value in values or []:
+        parsed = _parse_int(value)
+        if parsed:
+            ids.append(parsed)
+    return list(dict.fromkeys(ids))
+
+
+def _validate_engineer_for_type(enginer, pest_control_type):
+    if not enginer:
+        return None
+    if pest_control_type == 'termite_control' and not enginer.termite_cert:
+        return f'المهندس "{enginer.name}" لا يملك شهادة النمل الأبيض.'
+    if pest_control_type == 'public_health_pest_control' and not enginer.public_health_cert:
+        return f'المهندس "{enginer.name}" لا يملك شهادة صحة عامة.'
+    return None
 
 
 def _parse_date(value):
@@ -254,20 +275,40 @@ def _activity_keys_for_company(company, permit):
     return keys
 
 
+def _permit_label_ar(permit_type):
+    labels = {
+        'pest_control': 'تصريح مزاولة نشاط مكافحة آفات الصحة العامة',
+        'pesticide_transport': 'تصريح المركبة',
+        'waste_disposal': 'تصريح التخلص من النفايات',
+    }
+    return labels.get(permit_type, permit_type)
+
+
+def _permit_detail_url_name(permit_type):
+    mapping = {
+        'pest_control': 'pest_control_permit_detail',
+        'pesticide_transport': 'vehicle_permit_detail',
+    }
+    return mapping.get(permit_type, 'pest_control_permit_detail')
+
+
 def home(request):
     latest_pirmet = (
-        PirmetClearance.objects.filter(permit_type='pest_control')
+        PirmetClearance.objects.filter(permit_type__in=['pest_control', 'pesticide_transport'])
         .select_related('company')
         .order_by('-dateOfCreation')[:8]
     )
+    for permit in latest_pirmet:
+        permit.permit_label_ar = _permit_label_ar(permit.permit_type)
+        permit.detail_url_name = _permit_detail_url_name(permit.permit_type)
     return render(request, 'hcsd/base.html', {'latest_pirmet': latest_pirmet, 'show_latest': True})
 
 
 @login_required
 def company_list(request):
     query = (request.GET.get('q') or '').strip()
-    activity_filter = (request.GET.get('activity') or 'all').strip()
-    sort = (request.GET.get('sort') or 'name_asc').strip()
+    status_filter = (request.GET.get('status') or 'all').strip()
+    today = datetime.date.today()
 
     companies = Company.objects.all()
     if query:
@@ -276,51 +317,89 @@ def company_list(request):
 
     rows = []
     for company in companies:
-        permit = (
+        latest_issued_permit = (
             PirmetClearance.objects.filter(
                 company=company,
                 permit_type='pest_control',
-                status='issued',
+                status__in=['issued', 'payment_completed'],
             )
-            .order_by('-issue_date', '-dateOfCreation')
+            .order_by('-dateOfCreation')
             .first()
         )
-        activity_keys = _activity_keys_for_company(company, permit)
-        last_issued = None
-        if permit:
-            last_issued = permit.issue_date or permit.dateOfCreation
+        latest_permit_any = (
+            PirmetClearance.objects.filter(company=company, permit_type='pest_control')
+            .order_by('-dateOfCreation')
+            .first()
+        )
+        has_expired_permit = PirmetClearance.objects.filter(
+            company=company,
+            permit_type__in=['pest_control', 'pesticide_transport'],
+            status__in=['issued', 'payment_completed'],
+            dateOfExpiry__isnull=False,
+            dateOfExpiry__lt=today,
+        ).exists()
+        activity_keys = _activity_keys_for_company(company, latest_issued_permit)
+
+        latest_extension = (
+            CompanyChangeLog.objects.filter(company=company, action='extension_requested')
+            .order_by('-created_at')
+            .first()
+        )
+        has_active_extension = bool(
+            latest_extension
+            and latest_extension.extension_end_date
+            and (not latest_extension.extension_start_date or latest_extension.extension_start_date <= today)
+            and latest_extension.extension_end_date >= today
+        )
+        is_suspended = bool(latest_permit_any and latest_permit_any.status == 'cancelled_admin')
+
+        activity_expiry = latest_issued_permit.dateOfExpiry if latest_issued_permit else None
+        trade_expiry = company.trade_license_exp
+        effective_expiry = activity_expiry or trade_expiry
+
         rows.append(
             {
                 'company': company,
                 'activity_keys': activity_keys,
-                'last_issued': last_issued,
+                'activity_expiry': activity_expiry,
+                'trade_expiry': trade_expiry,
+                'effective_expiry': effective_expiry,
+                'has_active_extension': has_active_extension,
+                'is_suspended': is_suspended,
+                'has_expired_permit': has_expired_permit,
             }
         )
 
-    if activity_filter != 'all':
-        rows = [row for row in rows if activity_filter in row['activity_keys']]
+    if status_filter == 'extension':
+        rows = [row for row in rows if row['has_active_extension']]
+    elif status_filter == 'suspended':
+        rows = [row for row in rows if row['is_suspended']]
+    elif status_filter == 'expired_permits':
+        rows = [row for row in rows if row['has_expired_permit']]
 
-    if sort == 'name_desc':
-        rows.sort(key=lambda row: (row['company'].name or ''), reverse=True)
-    elif sort == 'number_asc':
-        rows.sort(key=lambda row: (row['company'].number or ''))
-    elif sort == 'number_desc':
-        rows.sort(key=lambda row: (row['company'].number or ''), reverse=True)
-    elif sort == 'last_issued_asc':
-        rows.sort(key=lambda row: row['last_issued'] or datetime.date.min)
-    elif sort == 'last_issued_desc':
-        rows.sort(key=lambda row: row['last_issued'] or datetime.date.min, reverse=True)
-    else:
-        rows.sort(key=lambda row: (row['company'].name or ''))
+    # Default ordering: closest expiry first (activity expiry, then trade license expiry).
+    rows.sort(
+        key=lambda row: (
+            row['effective_expiry'] is None,
+            row['effective_expiry'] or datetime.date.max,
+            row['trade_expiry'] is None,
+            row['trade_expiry'] or datetime.date.max,
+            row['company'].name or '',
+        )
+    )
+
+    paginator = Paginator(rows, 30)
+    page_obj = paginator.get_page(request.GET.get('page'))
 
     return render(
         request,
-        'hcsd/companyes_info.html',
+        'hcsd/company_list.html',
         {
-            'company_rows': rows,
+            'company_rows': page_obj.object_list,
+            'page_obj': page_obj,
+            'total_companies': len(rows),
             'query': query,
-            'activity_filter': activity_filter,
-            'sort': sort,
+            'status_filter': status_filter,
             'can_add_company': _can_data_entry(request.user),
         },
     )
@@ -391,6 +470,9 @@ def add_company(request):
         business_activity_text = (request.POST.get('business_activity') or '').strip()
         pest_control_type = (request.POST.get('pest_control_type') or '').strip()
         enginer_id = _parse_int(request.POST.get('enginer'))
+        enginer_ids = _parse_int_list(request.POST.getlist('enginers'))
+        if enginer_id and enginer_id not in enginer_ids:
+            enginer_ids.insert(0, enginer_id)
 
         form_data = {
             'name': name,
@@ -402,6 +484,7 @@ def add_company(request):
             'email': email,
             'business_activity': business_activity_text,
             'enginer_id': str(enginer_id) if enginer_id else '',
+            'enginer_ids': [str(i) for i in enginer_ids],
         }
 
         if not _can_data_entry(request.user):
@@ -421,11 +504,19 @@ def add_company(request):
             if not enginer:
                 error = 'يرجى اختيار مهندس صحيح.'
 
+        selected_engineers = []
+        if enginer_ids:
+            selected_engineers = list(Enginer.objects.filter(id__in=enginer_ids))
+            if len(selected_engineers) != len(enginer_ids):
+                error = 'يرجى اختيار مهندسين صحيحين.'
         if not error and enginer:
-            if pest_control_type == 'termite_control' and not enginer.termite_cert:
-                error = 'المهندس المختار لا يملك شهادة النمل الأبيض.'
-            elif pest_control_type == 'public_health_pest_control' and not enginer.public_health_cert:
-                error = 'المهندس المختار لا يملك شهادة صحة عامة.'
+            error = _validate_engineer_for_type(enginer, pest_control_type) or ''
+        if not error:
+            for engineer_item in selected_engineers:
+                validation_error = _validate_engineer_for_type(engineer_item, pest_control_type)
+                if validation_error:
+                    error = validation_error
+                    break
 
         if not error:
             company = Company.objects.create(
@@ -440,6 +531,8 @@ def add_company(request):
                 pest_control_type=pest_control_type,
                 enginer=enginer,
             )
+            if selected_engineers:
+                company.engineers.set(selected_engineers)
             create_notes = 'Company created.'
             if not enginer:
                 create_notes = 'Company created without engineer (new company pending inspection/setup).'
@@ -478,6 +571,7 @@ def company_detail(request, id):
         'email': company.email or '',
         'business_activity': company.business_activity or '',
         'enginer_id': str(company.enginer_id) if company.enginer_id else '',
+        'enginer_ids': [str(i) for i in company.engineers.values_list('id', flat=True)],
     }
     selected_pest_control_type = company.pest_control_type or ''
 
@@ -528,6 +622,9 @@ def company_detail(request, id):
                 business_activity_text = (request.POST.get('business_activity') or '').strip()
                 pest_control_type = (request.POST.get('pest_control_type') or '').strip()
                 enginer_id = _parse_int(request.POST.get('enginer'))
+                enginer_ids = _parse_int_list(request.POST.getlist('enginers'))
+                if enginer_id and enginer_id not in enginer_ids:
+                    enginer_ids.insert(0, enginer_id)
 
                 form_data.update(
                     {
@@ -540,6 +637,7 @@ def company_detail(request, id):
                         'email': email,
                         'business_activity': business_activity_text,
                         'enginer_id': str(enginer_id) if enginer_id else '',
+                        'enginer_ids': [str(i) for i in enginer_ids],
                     }
                 )
                 selected_pest_control_type = pest_control_type
@@ -561,11 +659,20 @@ def company_detail(request, id):
                     if not enginer:
                         error = 'يرجى اختيار مهندس صحيح.'
 
+                selected_engineers = []
+                if enginer_ids:
+                    selected_engineers = list(Enginer.objects.filter(id__in=enginer_ids))
+                    if len(selected_engineers) != len(enginer_ids):
+                        error = 'يرجى اختيار مهندسين صحيحين.'
+
                 if not error and enginer:
-                    if pest_control_type == 'termite_control' and not enginer.termite_cert:
-                        error = 'المهندس المختار لا يملك شهادة النمل الأبيض.'
-                    elif pest_control_type == 'public_health_pest_control' and not enginer.public_health_cert:
-                        error = 'المهندس المختار لا يملك شهادة صحة عامة.'
+                    error = _validate_engineer_for_type(enginer, pest_control_type) or ''
+                if not error:
+                    for engineer_item in selected_engineers:
+                        validation_error = _validate_engineer_for_type(engineer_item, pest_control_type)
+                        if validation_error:
+                            error = validation_error
+                            break
 
                 if not error:
                     changes = []
@@ -582,6 +689,7 @@ def company_detail(request, id):
                     company.pest_control_type = pest_control_type
                     company.enginer = enginer
                     company.save()
+                    company.engineers.set(selected_engineers)
 
                     _log_company_change(company, 'updated', request.user, notes='Company updated.')
                     if 'engineer_changed' in changes:
@@ -760,7 +868,7 @@ def enginer_detail(request, id):
 @login_required
 def clearance_list(request):
     clearances = (
-        PirmetClearance.objects.filter(permit_type='pest_control')
+        PirmetClearance.objects.filter(permit_type__in=['pest_control', 'pesticide_transport'])
         .select_related('company')
         .order_by('-dateOfCreation')
     )
@@ -792,6 +900,8 @@ def clearance_list(request):
         if change.pirmet_id not in inspection_report_map:
             inspection_report_map[change.pirmet_id] = change
     for clearance in clearances:
+        clearance.permit_label_ar = _permit_label_ar(clearance.permit_type)
+        clearance.detail_url_name = _permit_detail_url_name(clearance.permit_type)
         review = review_map.get(clearance.id)
         clearance.inspector_name = _inspector_review_name(review)
         request_docs = _request_documents(clearance)
@@ -824,6 +934,363 @@ def clearance_list(request):
 
 def permit_types(request):
     return render(request, 'hcsd/permit_types.html')
+
+
+@login_required
+def vehicle_permit(request):
+    if not _can_data_entry(request.user):
+        return redirect('clearance_list')
+
+    companies = Company.objects.select_related('enginer').all().order_by('name')
+    selected_company_id = _parse_int(request.GET.get('company_id') or request.POST.get('company_id'))
+    selected_company = (
+        Company.objects.select_related('enginer').filter(id=selected_company_id).first()
+        if selected_company_id
+        else None
+    )
+
+    form_data = {
+        'request_email': '',
+        'vehicle_type': '',
+        'vehicle_number': '',
+        'vehicle_color': '',
+        'issue_authority': '',
+        'vehicle_license_expiry': '',
+    }
+    form_errors = []
+    invalid_docs = []
+
+    if request.method == 'POST':
+        company_id = _parse_int(request.POST.get('company_id'))
+        company = (
+            Company.objects.select_related('enginer').filter(id=company_id).first()
+            if company_id
+            else None
+        )
+        if not company:
+            form_errors.append('company_select_invalid')
+
+        form_data.update(
+            {
+                'request_email': (request.POST.get('request_email') or '').strip(),
+                'vehicle_type': (request.POST.get('vehicle_type') or '').strip(),
+                'vehicle_number': (request.POST.get('vehicle_number') or '').strip(),
+                'vehicle_color': (request.POST.get('vehicle_color') or '').strip(),
+                'issue_authority': (request.POST.get('issue_authority') or '').strip(),
+                'vehicle_license_expiry': (request.POST.get('vehicle_license_expiry') or '').strip(),
+            }
+        )
+
+        if not form_data['request_email']:
+            form_errors.append('request_email_required')
+        if not form_data['vehicle_type']:
+            form_errors.append('vehicle_type_required')
+        if not form_data['vehicle_number']:
+            form_errors.append('vehicle_number_required')
+        if not form_data['vehicle_color']:
+            form_errors.append('vehicle_color_required')
+        if not form_data['issue_authority']:
+            form_errors.append('issue_authority_required')
+        if not form_data['vehicle_license_expiry']:
+            form_errors.append('vehicle_license_expiry_required')
+
+        vehicle_license_expiry = _parse_date(form_data['vehicle_license_expiry'])
+        if form_data['vehicle_license_expiry'] and not vehicle_license_expiry:
+            form_errors.append('vehicle_license_expiry_invalid')
+
+        documents = request.FILES.getlist('documents')
+        if not documents:
+            form_errors.append('documents_required')
+        else:
+            for doc in documents:
+                ext = os.path.splitext(doc.name)[1].lower()
+                if ext not in ALLOWED_DOC_EXTENSIONS:
+                    invalid_docs.append(doc.name)
+            if invalid_docs:
+                form_errors.append('documents_invalid')
+
+        if not form_errors:
+            permit = PirmetClearance.objects.create(
+                company=company,
+                permit_type='pesticide_transport',
+                status='inspection_pending',
+                request_email=form_data['request_email'] or None,
+            )
+            PesticideTransportPermit.objects.create(
+                pirmet=permit,
+                contact_number=company.owner_phone or company.landline or None,
+                vehicle_type=form_data['vehicle_type'],
+                vehicle_number=form_data['vehicle_number'],
+                vehicle_color=form_data['vehicle_color'],
+                issue_authority=form_data['issue_authority'],
+                vehicle_license_expiry=vehicle_license_expiry,
+            )
+            for doc in documents:
+                PirmetDocument.objects.create(pirmet=permit, file=doc)
+            _log_pirmet_change(permit, 'created', request.user, new_status=permit.status, notes='Vehicle permit request created.')
+            _log_pirmet_change(
+                permit,
+                'document_upload',
+                request.user,
+                notes=f'Documents uploaded: {len(documents)}',
+            )
+            return redirect('vehicle_permit_detail', id=permit.id)
+
+    context = {
+        'companies': companies,
+        'selected_company_id': selected_company_id,
+        'selected_company': selected_company,
+        'form_data': form_data,
+        'form_errors': form_errors,
+    }
+    if invalid_docs:
+        context['invalid_docs'] = invalid_docs
+    return render(request, 'hcsd/vehicle_permit.html', context)
+
+
+@login_required
+def vehicle_permit_detail(request, id):
+    pirmet = get_object_or_404(
+        PirmetClearance.objects.select_related('company', 'transport_details').prefetch_related('documents'),
+        id=id,
+        permit_type='pesticide_transport',
+    )
+    transport = getattr(pirmet, 'transport_details', None)
+    review_errors = []
+
+    assigned_review = InspectorReview.objects.filter(pirmet=pirmet).select_related('inspector_user').first()
+    assigned_inspector_user = assigned_review.inspector_user if assigned_review else None
+    can_submit_inspection_report = (
+        _can_inspector(request.user)
+        and pirmet.status == 'inspection_pending'
+        and (
+            not assigned_inspector_user
+            or assigned_inspector_user.id == request.user.id
+            or _can_admin(request.user)
+        )
+    )
+
+    latest_inspection_receive = (
+        PirmetChangeLog.objects.filter(
+            pirmet=pirmet,
+            change_type='details_update',
+            notes__startswith='inspection_received_by:',
+        )
+        .order_by('-created_at')
+        .first()
+    )
+    inspection_receiver_name = None
+    if latest_inspection_receive and ':' in latest_inspection_receive.notes:
+        inspection_receiver_name = latest_inspection_receive.notes.split(':', 1)[1].strip()
+
+    latest_inspection_report = (
+        PirmetChangeLog.objects.filter(
+            pirmet=pirmet,
+            change_type='details_update',
+            notes__startswith='inspection_report:',
+        )
+        .select_related('changed_by')
+        .order_by('-created_at')
+        .first()
+    )
+    inspection_report_decision = (
+        _inspection_report_decision_from_note(latest_inspection_report.notes)
+        if latest_inspection_report
+        else None
+    )
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'receive_for_inspection':
+            if not _can_inspector(request.user):
+                review_errors.append('ليس لديك صلاحية لاستلام الطلب للتفتيش.')
+            if pirmet.status != 'inspection_pending':
+                review_errors.append('هذا الطلب ليس في مرحلة التفتيش.')
+
+            inspector_id = _parse_int(request.POST.get('inspector_id'))
+            inspector_user = (
+                _inspector_users_qs().filter(id=inspector_id).first()
+                if inspector_id
+                else None
+            )
+            if not inspector_user:
+                review_errors.append('يرجى اختيار مفتش صحيح.')
+
+            if not review_errors:
+                InspectorReview.objects.update_or_create(
+                    pirmet=pirmet,
+                    defaults={
+                        'inspector': None,
+                        'inspector_user': inspector_user,
+                        'isApproved': False,
+                        'comments': 'تم استلام الطلب للتفتيش.',
+                    },
+                )
+                _log_pirmet_change(
+                    pirmet,
+                    'details_update',
+                    request.user,
+                    notes=f'inspection_received_by:{_display_user_name(inspector_user)}',
+                )
+                return redirect('vehicle_permit_detail', id=pirmet.id)
+
+        if action == 'submit_inspection_report':
+            if not can_submit_inspection_report:
+                review_errors.append('ليس لديك صلاحية لإضافة تقرير التفتيش.')
+            if pirmet.status != 'inspection_pending':
+                review_errors.append('هذا الطلب ليس في مرحلة إدخال تقرير التفتيش.')
+
+            decision = (request.POST.get('inspection_decision') or '').strip().lower()
+            report_notes = (request.POST.get('inspection_report_notes') or '').strip()
+            if decision not in {'approved', 'rejected'}:
+                review_errors.append('يرجى اختيار نتيجة التقرير.')
+            if decision == 'rejected' and not report_notes:
+                review_errors.append('يرجى كتابة ملاحظات سبب عدم الاعتماد.')
+
+            if not review_errors:
+                old_status = pirmet.status
+                if decision == 'approved':
+                    pirmet.status = 'payment_pending'
+                    if pirmet.unapprovedReason:
+                        pirmet.unapprovedReason = None
+                    pirmet.save(update_fields=['status', 'unapprovedReason'])
+                else:
+                    pirmet.status = 'needs_completion'
+                    pirmet.unapprovedReason = report_notes or 'Inspection rejected.'
+                    pirmet.save(update_fields=['status', 'unapprovedReason'])
+                _log_pirmet_change(
+                    pirmet,
+                    'status_change',
+                    request.user,
+                    old_status=old_status,
+                    new_status=pirmet.status,
+                    notes='Vehicle inspection report submitted.',
+                )
+                _log_pirmet_change(
+                    pirmet,
+                    'details_update',
+                    request.user,
+                    notes=f'inspection_report:{decision}',
+                )
+                if report_notes:
+                    _log_pirmet_change(
+                        pirmet,
+                        'details_update',
+                        request.user,
+                        notes=f'inspection_report_notes:{report_notes}',
+                    )
+                return redirect('vehicle_permit_detail', id=pirmet.id)
+
+        if action == 'send_payment_link':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لإدخال رقم الدفع.')
+            if pirmet.status != 'payment_pending':
+                review_errors.append('هذا الطلب ليس بانتظار إدخال رقم دفع التصريح.')
+            payment_number = (request.POST.get('payment_number') or '').strip()
+            if not payment_number:
+                review_errors.append('يرجى إدخال رقم أمر دفع تصريح المركبة.')
+
+            if not review_errors:
+                pirmet.PaymentNumber = payment_number
+                pirmet.save(update_fields=['PaymentNumber'])
+                _log_pirmet_change(
+                    pirmet,
+                    'details_update',
+                    request.user,
+                    notes='Vehicle permit payment reference recorded.',
+                )
+                return redirect('vehicle_permit_detail', id=pirmet.id)
+
+        if action == 'payment':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لتأكيد الدفع.')
+            if pirmet.status != 'payment_pending':
+                review_errors.append('هذا الطلب ليس بانتظار الدفع.')
+            if not (pirmet.PaymentNumber or '').strip():
+                review_errors.append('يرجى إدخال رقم أمر الدفع أولاً.')
+
+            receipt = (
+                request.FILES.get('payment_receipt_camera')
+                or request.FILES.get('payment_receipt')
+            )
+            if not receipt:
+                review_errors.append('يرجى إرفاق إيصال الدفع.')
+            else:
+                ext = os.path.splitext(receipt.name)[1].lower()
+                if ext not in ALLOWED_DOC_EXTENSIONS:
+                    review_errors.append('يُسمح فقط بملفات PDF أو صور للإيصال.')
+
+            if not review_errors:
+                old_status = pirmet.status
+                pirmet.payment_receipt = receipt
+                pirmet.payment_date = datetime.date.today()
+                pirmet.status = 'payment_completed'
+                pirmet.save()
+                _log_pirmet_change(
+                    pirmet,
+                    'status_change',
+                    request.user,
+                    old_status=old_status,
+                    new_status=pirmet.status,
+                    notes='Vehicle permit payment received.',
+                )
+                return redirect('vehicle_permit_detail', id=pirmet.id)
+
+        if action == 'issue':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لإصدار التصريح.')
+            if pirmet.status != 'payment_completed':
+                review_errors.append('لا يمكن إصدار التصريح قبل تأكيد دفع التصريح.')
+
+            if not review_errors:
+                old_status = pirmet.status
+                issue_date = datetime.date.today()
+                expiry_date = _calculate_permit_expiry(issue_date)
+                pirmet.issue_date = issue_date
+                pirmet.dateOfExpiry = expiry_date
+                pirmet.status = 'issued'
+                pirmet.save(update_fields=['issue_date', 'dateOfExpiry', 'status'])
+                _log_pirmet_change(
+                    pirmet,
+                    'status_change',
+                    request.user,
+                    old_status=old_status,
+                    new_status=pirmet.status,
+                    notes='Vehicle permit issued.',
+                )
+                return redirect('vehicle_permit_detail', id=pirmet.id)
+
+    latest_inspection_report_notes = (
+        PirmetChangeLog.objects.filter(
+            pirmet=pirmet,
+            change_type='details_update',
+            notes__startswith='inspection_report_notes:',
+        )
+        .order_by('-created_at')
+        .first()
+    )
+    inspection_report_notes = None
+    if latest_inspection_report_notes and ':' in latest_inspection_report_notes.notes:
+        inspection_report_notes = latest_inspection_report_notes.notes.split(':', 1)[1].strip()
+
+    return render(
+        request,
+        'hcsd/vehicle_permit_detail.html',
+        {
+            'pirmet': pirmet,
+            'transport': transport,
+            'review_errors': review_errors,
+            'request_documents': _request_documents(pirmet),
+            'inspection_report_decision': inspection_report_decision,
+            'inspection_report_notes': inspection_report_notes,
+            'inspection_receiver_name': inspection_receiver_name,
+            'can_review_pirmet': _can_inspector(request.user),
+            'can_submit_inspection_report': can_submit_inspection_report,
+            'can_record_payment': _can_admin(request.user),
+            'inspector_users': _inspector_users_qs(),
+        },
+    )
 
 
 @login_required
@@ -1133,7 +1600,6 @@ def pest_control_permit_detail(request, id):
     can_submit_inspection_report = (
         _can_inspector(request.user)
         and pirmet.status == 'inspection_pending'
-        and not inspection_report_decision
         and (
             not assigned_inspector_user
             or assigned_inspector_user.id == request.user.id
@@ -1157,8 +1623,8 @@ def pest_control_permit_detail(request, id):
         action = request.POST.get('action')
 
         if action == 'complete_missing':
-            if not _can_data_entry(request.user):
-                review_errors.append('ليس لديك صلاحية لاستكمال النواقص.')
+            if not (_can_inspector(request.user) or _can_data_entry(request.user)):
+                review_errors.append('ليس لديك صلاحية لتحويل الطلب لإعادة التفتيش.')
             if pirmet.status != 'needs_completion':
                 review_errors.append('هذا الطلب ليس بحاجة لاستكمال نواقص.')
 
@@ -1188,7 +1654,7 @@ def pest_control_permit_detail(request, id):
                     _log_pirmet_change(pirmet, 'details_update', request.user, notes=notes)
 
                 old_status = pirmet.status
-                pirmet.status = 'review_pending'
+                pirmet.status = 'inspection_pending'
                 pirmet.save(update_fields=['status'])
                 _log_pirmet_change(
                     pirmet,
@@ -1196,7 +1662,7 @@ def pest_control_permit_detail(request, id):
                     request.user,
                     old_status=old_status,
                     new_status=pirmet.status,
-                    notes='Completed missing requirements.',
+                    notes='Request moved to re-inspection after completion.',
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
@@ -1541,16 +2007,8 @@ def pest_control_permit_detail(request, id):
                 if inspector_id
                 else None
             )
-            existing_receive = PirmetChangeLog.objects.filter(
-                pirmet=pirmet,
-                change_type='details_update',
-                notes__startswith='inspection_received_by:',
-            ).exists()
-
             if not inspector_user:
                 review_errors.append('يرجى اختيار مفتش صحيح.')
-            if existing_receive:
-                review_errors.append('تم استلام الطلب للتفتيش مسبقاً.')
 
             if not review_errors:
                 with transaction.atomic():
@@ -1564,43 +2022,21 @@ def pest_control_permit_detail(request, id):
                     elif locked_pirmet.status != 'inspection_pending':
                         review_errors.append('هذا الطلب لم يعد بانتظار الاستلام للتفتيش.')
                     else:
-                        latest_receive = (
-                            PirmetChangeLog.objects.filter(
-                                pirmet=locked_pirmet,
-                                change_type='details_update',
-                                notes__startswith='inspection_received_by:',
-                            )
-                            .order_by('-created_at')
-                            .first()
+                        InspectorReview.objects.update_or_create(
+                            pirmet=locked_pirmet,
+                            defaults={
+                                'inspector': None,
+                                'inspector_user': inspector_user,
+                                'isApproved': False,
+                                'comments': 'تم استلام الطلب للتفتيش.',
+                            },
                         )
-                        if latest_receive:
-                            received_by_name = (
-                                latest_receive.notes.split(':', 1)[1].strip()
-                                if ':' in latest_receive.notes
-                                else ''
-                            )
-                            if received_by_name:
-                                review_errors.append(
-                                    f'تم استلام الطلب للتفتيش مسبقاً بواسطة {received_by_name}.'
-                                )
-                            else:
-                                review_errors.append('تم استلام الطلب للتفتيش مسبقاً.')
-                        else:
-                            InspectorReview.objects.update_or_create(
-                                pirmet=locked_pirmet,
-                                defaults={
-                                    'inspector': None,
-                                    'inspector_user': inspector_user,
-                                    'isApproved': False,
-                                    'comments': 'تم استلام الطلب للتفتيش.',
-                                },
-                            )
-                            _log_pirmet_change(
-                                locked_pirmet,
-                                'details_update',
-                                request.user,
-                                notes=f'inspection_received_by:{_display_user_name(inspector_user)}',
-                            )
+                        _log_pirmet_change(
+                            locked_pirmet,
+                            'details_update',
+                            request.user,
+                            notes=f'inspection_received_by:{_display_user_name(inspector_user)}',
+                        )
                 if review_errors:
                     pass
                 else:
@@ -1623,14 +2059,6 @@ def pest_control_permit_detail(request, id):
             ):
                 review_errors.append('فقط المفتش الذي استلم الطلب يمكنه إدخال التقرير.')
 
-            existing_report = PirmetChangeLog.objects.filter(
-                pirmet=pirmet,
-                change_type='details_update',
-                notes__startswith='inspection_report:',
-            ).exists()
-            if existing_report:
-                review_errors.append('تم إدخال تقرير التفتيش مسبقاً.')
-
             decision = (request.POST.get('inspection_decision') or '').strip().lower()
             report_notes = (request.POST.get('inspection_report_notes') or '').strip()
             photos = request.FILES.getlist('inspection_report_photos')
@@ -1639,7 +2067,6 @@ def pest_control_permit_detail(request, id):
                 review_errors.append('يرجى اختيار نتيجة التقرير (معتمد أو غير معتمد).')
             if decision == 'rejected' and not report_notes:
                 review_errors.append('يرجى كتابة ملاحظات سبب عدم الاعتماد.')
-
             invalid_photos = []
             for photo in photos:
                 ext = os.path.splitext(photo.name)[1].lower()
@@ -1651,12 +2078,14 @@ def pest_control_permit_detail(request, id):
             if not review_errors:
                 old_status = pirmet.status
                 update_fields = ['status']
-                pirmet.status = 'inspection_completed'
-                if decision == 'rejected':
+                if decision == 'approved':
+                    pirmet.status = 'inspection_completed'
+                    if pirmet.unapprovedReason:
+                        pirmet.unapprovedReason = None
+                        update_fields.append('unapprovedReason')
+                else:
+                    pirmet.status = 'needs_completion'
                     pirmet.unapprovedReason = report_notes or 'Inspection rejected.'
-                    update_fields.append('unapprovedReason')
-                elif pirmet.unapprovedReason:
-                    pirmet.unapprovedReason = None
                     update_fields.append('unapprovedReason')
                 pirmet.save(update_fields=update_fields)
                 _log_pirmet_change(
@@ -1849,7 +2278,7 @@ def pest_control_permit_detail(request, id):
             'can_submit_inspection_report': can_submit_inspection_report,
             'can_manage_inspection_photos': can_manage_inspection_photos,
             'can_review_pirmet': _can_inspector(request.user),
-            'can_complete_missing': _can_data_entry(request.user),
+            'can_complete_missing': (_can_inspector(request.user) or _can_data_entry(request.user)),
             'can_record_payment': _can_admin(request.user),
             'can_issue_pirmet': _can_admin(request.user),
             'can_update_pirmet': _can_admin(request.user),

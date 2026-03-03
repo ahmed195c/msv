@@ -3,143 +3,74 @@
 {% block content %}
 <style>
   .enginer-page {
-    max-width: 1100px;
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 22px 16px 40px;
+    padding: 20px 16px 32px;
     font-family: "Cairo", "Noto Kufi Arabic", "Tahoma", sans-serif;
   }
 
-  .enginer-card {
-    background:
-      radial-gradient(220px 160px at 10% 6%, rgba(31, 90, 75, 0.06), transparent 75%),
-      radial-gradient(180px 140px at 90% 8%, rgba(200, 138, 45, 0.08), transparent 75%),
-      linear-gradient(180deg, #fffdf8 0%, #f8f4ec 100%);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    box-shadow: var(--shadow);
-    padding: 24px;
-  }
-
-  .section {
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.92);
-    padding: 14px;
-    margin-top: 16px;
-  }
-
-  .section-title {
-    font-weight: 700;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 10px;
-    background: linear-gradient(180deg, #edf5f1 0%, #e2ede9 100%);
-    border: 1px solid #c8dad3;
-    color: var(--accent);
-    border-radius: 999px;
-    margin-bottom: 12px;
-  }
-
-  .section-head {
+  .enginer-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
     flex-wrap: wrap;
-    margin-bottom: 12px;
+    gap: 12px;
+    margin-bottom: 16px;
+    background: #fbf9f5;
+    border: 1px solid #ded6c6;
+    border-radius: 16px;
+    padding: 14px 16px;
   }
 
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px 16px;
-  }
-
-  .field {
-    display: grid;
-    gap: 6px;
-  }
-
-  .field label {
-    font-size: 12px;
-    color: var(--muted);
-    font-weight: 700;
-  }
-
-  .field input {
-    border: 1px solid var(--line);
-    padding: 10px 12px;
-    font-size: 14px;
-    background: #fff;
-    border-radius: 12px;
-    width: 100%;
-    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
-  }
-
-  .field input:focus {
-    outline: none;
-    border-color: rgba(31, 90, 75, 0.55);
-    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.10);
-  }
-
-  .actions {
-    margin-top: 12px;
-  }
-
-  .actions button {
-    border: none;
-    padding: 10px 16px;
+  .enginer-actions .add-link {
     background: linear-gradient(180deg, #2b6c5a 0%, #1f5a4b 100%);
     color: #fff;
-    cursor: pointer;
-    border-radius: 12px;
-    font-size: 14px;
+    padding: 9px 14px;
+    text-decoration: none;
+    border-radius: 10px;
     font-weight: 700;
     box-shadow: 0 8px 18px rgba(31, 90, 75, 0.18);
-    transition: transform .12s ease, box-shadow .15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .actions button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(31, 90, 75, 0.22);
-  }
-
-  .error-box {
-    border: 1px solid #d9b0b0;
-    background: #fff4f4;
-    color: #8a1f1f;
-    border-radius: 12px;
-    padding: 10px 12px;
-    margin-top: 8px;
+  .hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
   }
 
   .enginer-table {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
-    border-radius: 12px;
+    border: 1px solid #e0d9ca;
+    border-radius: 14px;
     overflow: hidden;
+    box-shadow: 0 8px 18px rgba(24, 35, 28, 0.04);
   }
 
   .enginer-table th,
   .enginer-table td {
-    border: 1px solid #ece4d8;
+    border: 1px solid #ece6d9;
     padding: 10px;
     text-align: right;
     vertical-align: top;
   }
 
   .enginer-table thead {
-    background: linear-gradient(180deg, #f7f2e9 0%, #f0e9dd 100%);
+    background: #f4f0e7;
+  }
+
+  .enginer-table thead th {
+    color: #3e433f;
+    font-size: 13px;
+    white-space: nowrap;
   }
 
   .enginer-table tbody tr:nth-child(even) {
-    background: #fcfaf5;
-  }
-
-  .enginer-table tbody tr:hover {
-    background: #f4faf7;
+    background: #fcfbf8;
   }
 
   .badge {
@@ -162,106 +93,96 @@
   }
 
   .detail-link {
-    background: linear-gradient(180deg, #2b6c5a 0%, #1f5a4b 100%);
+    background: #1f5a4b;
     color: #fff;
-    padding: 7px 12px;
-    border-radius: 10px;
+    padding: 8px 14px;
     text-decoration: none;
-    display: inline-block;
-    font-size: 13px;
-    font-weight: 700;
-    box-shadow: 0 6px 14px rgba(31, 90, 75, 0.14);
-  }
-
-  .add-link {
-    background: linear-gradient(180deg, #2b6c5a 0%, #1f5a4b 100%);
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 10px;
-    text-decoration: none;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
     font-weight: 700;
-    box-shadow: 0 6px 14px rgba(31, 90, 75, 0.14);
+    min-width: 82px;
+    white-space: nowrap;
   }
 
-  .detail-link:hover {
-    filter: brightness(1.02);
-  }
-
-  @media (max-width: 680px) {
-    .enginer-card {
-      padding: 16px 14px;
-      border-radius: 14px;
+  @media (max-width: 720px) {
+    .enginer-page {
+      padding: 16px 12px 32px;
     }
 
-    .actions button {
+    .enginer-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .enginer-actions {
       width: 100%;
     }
 
-    .section {
-      border-radius: 12px;
+    .enginer-actions .add-link {
+      width: 100%;
+      text-align: center;
+      display: block;
     }
 
     .enginer-table {
       display: block;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
     }
   }
 </style>
 
 <section class="enginer-page" lang="ar" dir="rtl">
-  <div class="enginer-card">
-    <div class="section">
-      <div class="section-head">
-        <div class="section-title">قائمة المهندسين</div>
-        {% if can_add_enginer %}
-          <a class="add-link" href="{% url 'enginer_add' %}">تسجيل مهندس جديد</a>
-        {% endif %}
-      </div>
-      {% if engineers %}
-        <table class="enginer-table">
-          <thead>
-            <tr>
-              <th>الاسم</th>
-              <th>رقم الهوية / الموحد</th>
-              <th>البريد الإلكتروني</th>
-              <th>الهاتف</th>
-              <th>الشهادات</th>
-              <th>الملف</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for engineer in engineers %}
-              <tr>
-                <td>{{ engineer.name }}</td>
-                <td>{{ engineer.national_or_unified_number|default:"-" }}</td>
-                <td>{{ engineer.email }}</td>
-                <td>{{ engineer.phone }}</td>
-                <td>
-                  {% if engineer.public_health_cert %}
-                    <span class="badge">الصحة العامة</span>
-                  {% else %}
-                    <span class="badge warn">بدون صحة عامة</span>
-                  {% endif %}
-                  {% if engineer.termite_cert %}
-                    <span class="badge">النمل الأبيض</span>
-                  {% else %}
-                    <span class="badge warn">بدون نمل أبيض</span>
-                  {% endif %}
-                </td>
-                <td><a class="detail-link" href="{% url 'enginer_detail' engineer.id %}">عرض</a></td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p>No engineers found.</p>
+  <div class="enginer-header">
+    <div>
+      <h1 style="margin: 0;">قائمة المهندسين</h1>
+    </div>
+    <div class="enginer-actions">
+      {% if can_add_enginer %}
+        <a class="add-link" href="{% url 'enginer_add' %}">تسجيل مهندس جديد</a>
       {% endif %}
     </div>
   </div>
+
+  {% if engineers %}
+    <table class="enginer-table">
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>رقم البطاقة</th>
+          <th>الهاتف</th>
+          <th>شهادت لمن يهمه الامر </th>
+          <th>الملف</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for engineer in engineers %}
+          <tr>
+            <td>{{ engineer.name }}</td>
+            <td>{{ engineer.card_number|default:"-" }}</td>
+            <td>{{ engineer.phone }}</td>
+            <td>
+              {% if engineer.public_health_cert %}
+                <span class="badge">الصحة العامة</span>
+              {% else %}
+                <span class="badge warn">   افات الصحه العامه  </span>
+              {% endif %}
+              {% if engineer.termite_cert %}
+                <span class="badge">النمل الأبيض</span>
+              {% else %}
+                <span class="badge warn"> نمل أبيض</span>
+              {% endif %}
+            </td>
+            <td><a class="detail-link" href="{% url 'enginer_detail' engineer.id %}">عرض</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No engineers found.</p>
+  {% endif %}
 </section>
 {% endblock %}

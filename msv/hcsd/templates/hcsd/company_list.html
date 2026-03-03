@@ -153,6 +153,48 @@
     white-space: nowrap;
   }
 
+  .pagination-wrap {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    color: #5e655f;
+  }
+
+  .pagination-links {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-links a,
+  .pagination-links span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid #d7d0c2;
+    background: #fff;
+    color: #2f3a33;
+    text-decoration: none;
+    font-size: 13px;
+  }
+
+  .pagination-links .is-active {
+    background: #1f5a4b;
+    border-color: #1f5a4b;
+    color: #fff;
+    font-weight: 700;
+  }
+
   @media (max-width: 720px) {
     .company-page {
       padding: 16px 12px 32px;
@@ -202,40 +244,26 @@
   <div class="company-header">
     <div>
       <h1 style="margin: 0;">قائمة الشركات</h1>
-      <div class="hint">نوع الشركة حسب آخر تصريح صادر أو بيانات التسجيل.</div>
     </div>
     <div class="company-actions">
       {% if can_add_company %}
         <a href="{% url 'add_company' %}">إضافة شركة جديدة</a>
-      {% else %}
-        <em>إضافة الشركات متاحة فقط لمسؤولي الإدخال أو الإدارة.</em>
       {% endif %}
     </div>
   </div>
-
+  
   <form class="filters" method="get">
     <div>
       <label for="q">بحث</label>
       <input type="text" id="q" name="q" value="{{ query }}" placeholder="ابحث بالاسم أو رقم الرخصة">
     </div>
     <div>
-      <label for="activity">نوع الشركة</label>
-      <select id="activity" name="activity">
-        <option value="all" {% if activity_filter == "all" %}selected{% endif %}>الكل</option>
-        <option value="public_health_pest_control" {% if activity_filter == "public_health_pest_control" %}selected{% endif %}>مكافحة آفات الصحة العامة</option>
-        <option value="termite_control" {% if activity_filter == "termite_control" %}selected{% endif %}>مكافحة النمل الأبيض</option>
-        <option value="grain_pests" {% if activity_filter == "grain_pests" %}selected{% endif %}>مكافحة آفات الحبوب</option>
-      </select>
-    </div>
-    <div>
-      <label for="sort">الترتيب</label>
-      <select id="sort" name="sort">
-        <option value="name_asc" {% if sort == "name_asc" %}selected{% endif %}>الاسم (أ - ي)</option>
-        <option value="name_desc" {% if sort == "name_desc" %}selected{% endif %}>الاسم (ي - أ)</option>
-        <option value="number_asc" {% if sort == "number_asc" %}selected{% endif %}>رقم الرخصة (تصاعدي)</option>
-        <option value="number_desc" {% if sort == "number_desc" %}selected{% endif %}>رقم الرخصة (تنازلي)</option>
-        <option value="last_issued_desc" {% if sort == "last_issued_desc" %}selected{% endif %}>آخر تصريح (الأحدث)</option>
-        <option value="last_issued_asc" {% if sort == "last_issued_asc" %}selected{% endif %}>آخر تصريح (الأقدم)</option>
+      <label for="status">الحالة</label>
+      <select id="status" name="status">
+        <option value="all" {% if status_filter == "all" %}selected{% endif %}>الكل</option>
+        <option value="extension" {% if status_filter == "extension" %}selected{% endif %}> مهلة</option>
+        <option value="suspended" {% if status_filter == "suspended" %}selected{% endif %}>موقوفة</option>
+        <option value="expired_permits" {% if status_filter == "expired_permits" %}selected{% endif %}>تصاريح منتهية</option>
       </select>
     </div>
     <div>
@@ -245,16 +273,31 @@
       <a href="{% url 'company_list' %}">إعادة ضبط</a>
     </div>
   </form>
-
+  {% if page_obj %}
+      <div class="pagination-wrap">
+        <div class="pagination-info">
+          عرض {{ company_rows|length }} من {{ total_companies }} شركة · صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}
+        </div>
+        <div class="pagination-links">
+          {% if page_obj.has_previous %}
+            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page=1">الأولى</a>
+            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">السابق</a>
+          {% endif %}
+          <span class="is-active">{{ page_obj.number }}</span>
+          {% if page_obj.has_next %}
+            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">التالي</a>
+            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.paginator.num_pages }}">الأخيرة</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
   {% if company_rows %}
     <table class="company-table">
       <thead>
         <tr>
           <th>اسم الشركة</th>
           <th>رقم الرخصة</th>
-          <th>نوع الشركة</th>
-          <th>نوع المكافحة</th>
-          <th>المهندس</th>
+          <th>انتهاء الرخصة</th>
           <th>التفاصيل</th>
         </tr>
       </thead>
@@ -263,45 +306,7 @@
           <tr>
             <td>{{ row.company.name }}</td>
             <td>{{ row.company.number }}</td>
-            <td>
-              <div class="tags">
-                {% if row.activity_keys %}
-                  {% for key in row.activity_keys %}
-                    <span class="tag">
-                      {% if key == "public_health_pest_control" %}
-                        مكافحة آفات الصحة العامة
-                      {% elif key == "termite_control" %}
-                        مكافحة النمل الأبيض
-                      {% elif key == "grain_pests" %}
-                        مكافحة آفات الحبوب
-                      {% else %}
-                        {{ key }}
-                      {% endif %}
-                    </span>
-                  {% endfor %}
-                {% else %}
-                  <span class="tag">-</span>
-                {% endif %}
-              </div>
-            </td>
-            <td>
-              {% if row.company.pest_control_type == "public_health_pest_control" %}
-                مكافحة آفات الصحة العامة
-              {% elif row.company.pest_control_type == "termite_control" %}
-                مكافحة النمل الأبيض
-              {% elif row.company.pest_control_type == "grain_pests" %}
-                مكافحة آفات الحبوب
-              {% else %}
-                -
-              {% endif %}
-            </td>
-            <td>
-              {% if row.company.enginer %}
-                {{ row.company.enginer.name }}
-              {% else %}
-                -
-              {% endif %}
-            </td>
+            <td>{{ row.trade_expiry|date:"d/m/Y"|default:"-" }}</td>
             <td>
               <a class="details-link" href="{% url 'company_detail' row.company.id %}">عرض</a>
             </td>
@@ -309,8 +314,36 @@
         {% endfor %}
       </tbody>
     </table>
+    {% if page_obj %}
+      <div class="pagination-wrap">
+        <div class="pagination-info">
+          عرض {{ company_rows|length }} من {{ total_companies }} شركة · صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}
+        </div>
+        <div class="pagination-links">
+          {% if page_obj.has_previous %}
+            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page=1">الأولى</a>
+            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">السابق</a>
+          {% endif %}
+          <span class="is-active">{{ page_obj.number }}</span>
+          {% if page_obj.has_next %}
+            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">التالي</a>
+            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.paginator.num_pages }}">الأخيرة</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
   {% else %}
-    <p>لا توجد شركات مطابقة. <a href="{% url 'add_company' %}">إضافة شركة</a></p>
+    <p>
+      {% if status_filter == "suspended" %}
+        لا توجد شركة موقوفة.
+      {% elif status_filter == "extension" %}
+        لا توجد شركة على قيد مهلة.
+      {% elif status_filter == "expired_permits" %}
+        لا توجد شركة بدون تصاريح سارية.
+      {% else %}
+        لا توجد شركات مطابقة.
+      {% endif %}
+    </p>
   {% endif %}
 </section>
 {% endblock %}

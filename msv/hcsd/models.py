@@ -1,5 +1,7 @@
+import random
+
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import IntegrityError, models
 
 # Create your models here.
 BUSINESS_ACTIVITY_CHOICES = [
@@ -18,6 +20,10 @@ class Company(models.Model):
     landline = models.CharField(max_length=30, null=True, blank=True)
     owner_phone = models.CharField(max_length=30, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    location_area = models.CharField(max_length=150, null=True, blank=True)
+    location_street = models.CharField(max_length=180, null=True, blank=True)
     pest_control_type = models.CharField(
         max_length=30,
         null=True,
@@ -30,6 +36,11 @@ class Company(models.Model):
     )
     enginer = models.ForeignKey(
         'Enginer', on_delete=models.SET_NULL, null=True, blank=True
+    )
+    engineers = models.ManyToManyField(
+        'Enginer',
+        blank=True,
+        related_name='companies',
     )
     companyDocuments = models.FileField(upload_to='company_documents/', null=True, blank=True)
 
@@ -58,6 +69,7 @@ class Enginer(models.Model):
     national_or_unified_number = models.CharField(max_length=50, null=True, blank=True)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
+    card_number = models.CharField(max_length=4, unique=True, null=True, blank=True, editable=False)
     public_health_cert = models.FileField(
         upload_to='engineer_certificates/', null=True, blank=True
     )
@@ -72,6 +84,30 @@ class Enginer(models.Model):
     @property
     def has_termite_cert(self):
         return bool(self.termite_cert)
+
+    @staticmethod
+    def _random_card_number():
+        return f"{random.randint(0, 9999):04d}"
+
+    def _generate_unique_card_number(self):
+        for _ in range(12000):
+            candidate = self._random_card_number()
+            exists = Enginer.objects.filter(card_number=candidate)
+            if self.pk:
+                exists = exists.exclude(pk=self.pk)
+            if not exists.exists():
+                return candidate
+        raise RuntimeError('Unable to generate a unique 4-digit card number.')
+
+    def save(self, *args, **kwargs):
+        if not self.card_number:
+            self.card_number = self._generate_unique_card_number()
+        try:
+            return super().save(*args, **kwargs)
+        except IntegrityError:
+            # Retry once in case of a concurrent write collision.
+            self.card_number = self._generate_unique_card_number()
+            return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

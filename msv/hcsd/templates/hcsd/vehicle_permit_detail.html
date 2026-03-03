@@ -1,0 +1,457 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}متابعة تصريح المركبة{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
+  <style>
+    .upload-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .upload-card {
+      border: 1px solid var(--line, #d8cfbf);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fff, #fbf8f2);
+      padding: 12px;
+      box-shadow: 0 8px 20px rgba(30, 70, 52, 0.06);
+    }
+
+    .upload-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: #1f5b46;
+    }
+
+    .upload-card-note {
+      color: var(--muted, #6a746d);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .upload-dropzone {
+      display: grid;
+      gap: 8px;
+      place-items: center;
+      min-height: 120px;
+      border: 2px dashed #b9ccb8;
+      border-radius: 12px;
+      background: #f8fbf7;
+      cursor: pointer;
+      text-align: center;
+      padding: 14px;
+      transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+    }
+
+    .upload-dropzone:hover {
+      border-color: #2b6b55;
+      background: #f2f8f4;
+    }
+
+    .upload-dropzone.is-dragover {
+      border-color: #1e6c4f;
+      background: #edf6ef;
+      transform: translateY(-1px);
+    }
+
+    .upload-dropzone-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(34, 104, 76, 0.08);
+      color: #22684c;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .upload-dropzone-title {
+      font-weight: 700;
+      color: #21352d;
+    }
+
+    .upload-dropzone-sub {
+      color: var(--muted, #6a746d);
+      font-size: 12px;
+    }
+
+    .upload-hidden-input {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    .upload-file-chip {
+      margin-top: 8px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid #d6e3d5;
+      background: #f4faf5;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .upload-file-chip.is-visible {
+      display: flex;
+    }
+
+    .upload-file-chip-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #24483d;
+      font-weight: 600;
+    }
+
+    .upload-file-chip-size {
+      color: var(--muted, #6a746d);
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .upload-grid-two {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 720px) {
+      .upload-grid-two {
+        grid-template-columns: 1fr;
+      }
+      .upload-dropzone {
+        min-height: 104px;
+      }
+    }
+  </style>
+{% endblock %}
+{% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+  <div class="permit-card">
+    <div class="action-bar no-print">
+      <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
+    </div>
+
+    <div class="permit-title permit-title--hero">متابعة تصريح المركبة</div>
+
+    <header class="permit-header">
+      <div class="municipality">
+        <div class="logo-box">
+          <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+        </div>
+        <div class="municipality-text">
+          <div class="title">بلدية مدينة الشارقة</div>
+          <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+          <div class="sub">قسم رقابة وتنظيم النفايات</div>
+        </div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="label">رقم التصريح</span>
+          <span class="value">{{ pirmet.permit_no|default:"-" }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">نوع التصريح</span>
+          <span class="value">تصريح المركبة للشركات</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">الحالة الحالية</span>
+          <span class="status-badge">
+            {% if pirmet.status == "inspection_pending" %}
+              {% if inspection_receiver_name %}
+                تم استلام الطلب للتفتيش من المفتش {{ inspection_receiver_name }}
+              {% else %}
+                بانتظار استلام الطلب للتفتيش
+              {% endif %}
+            {% elif pirmet.status == "inspection_completed" %}
+              {% if inspection_report_decision == "approved" %}
+                تم إنهاء التفتيش - معتمد
+              {% elif inspection_report_decision == "rejected" %}
+                تم إنهاء التفتيش - غير معتمد
+              {% else %}
+                تم إنهاء التفتيش
+              {% endif %}
+            {% elif pirmet.status == "needs_completion" %}
+              نواقص بحاجة للاستكمال
+            {% elif pirmet.status == "payment_pending" %}
+              بانتظار دفع التصريح
+            {% elif pirmet.status == "payment_completed" %}
+              تم استلام الدفع
+            {% elif pirmet.status == "issued" %}
+              تم إصدار التصريح
+            {% else %}
+              {{ pirmet.get_status_display }}
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </header>
+
+    {% if review_errors %}
+      <div class="alert">
+        <strong>يرجى تصحيح التالي:</strong>
+        <ul class="alert-list">
+          {% for error in review_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <section class="permit-section">
+      <div class="section-title">بيانات الطلب</div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="label">تاريخ الإنشاء</span><span class="value">{{ pirmet.dateOfCreation|date:"d/m/Y" }}</span></div>
+        <div class="detail-item"><span class="label">تاريخ الإصدار</span><span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">تاريخ الانتهاء</span><span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">رقم التواصل</span><span class="value">{{ pirmet.company.owner_phone|default:pirmet.company.landline|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">إيميل مقدم الطلب</span><span class="value">{{ pirmet.request_email|default:"-" }}</span></div>
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">بيانات الشركة</div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="label">اسم الشركة</span><span class="value">{{ pirmet.company.name|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">رقم الرخصة التجارية</span><span class="value">{{ pirmet.company.number|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">رقم التواصل</span><span class="value">{{ pirmet.company.owner_phone|default:pirmet.company.landline|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">تاريخ انتهاء الرخصة التجارية</span><span class="value">{{ pirmet.company.trade_license_exp|date:"d/m/Y"|default:"-" }}</span></div>
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">بيانات المركبة</div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="label">نوع المركبة</span><span class="value">{{ transport.vehicle_type|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">رقم المركبة</span><span class="value">{{ transport.vehicle_number|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">لون المركبة</span><span class="value">{{ transport.vehicle_color|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">مصدر الرخصة</span><span class="value">{{ transport.issue_authority|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">تاريخ انتهاء ملكية المركبة</span><span class="value">{{ transport.vehicle_license_expiry|date:"d/m/Y"|default:"-" }}</span></div>
+      </div>
+    </section>
+
+    {% if request_documents %}
+      <section class="permit-section">
+        <div class="section-title">مستندات الطلب</div>
+        <div class="documents">
+          {% for doc in request_documents %}
+            <a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name|cut:"pirmet_documents/" }}</a><br>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if inspection_report_decision %}
+      <section class="permit-section">
+        <div class="section-title">نتيجة التفتيش</div>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="label">النتيجة</span><span class="value">{% if inspection_report_decision == "approved" %}معتمد{% else %}غير معتمد{% endif %}</span></div>
+          <div class="detail-item"><span class="label">الملاحظات</span><span class="value">{{ inspection_report_notes|default:"-" }}</span></div>
+        </div>
+      </section>
+    {% endif %}
+
+    {% if can_review_pirmet and pirmet.status == "inspection_pending" %}
+      <section class="permit-section no-print">
+        <div class="section-title">استلام الطلب للتفتيش</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="receive_for_inspection">
+          <label for="inspector_id">المفتش</label>
+          <select id="inspector_id" name="inspector_id" required>
+            <option value="">-- اختيار المفتش --</option>
+            {% for inspector_user in inspector_users %}
+              <option value="{{ inspector_user.id }}" {% if request.user.id == inspector_user.id %}selected{% endif %}>
+                {{ inspector_user.get_full_name|default:inspector_user.username }}
+              </option>
+            {% endfor %}
+          </select>
+          <button type="submit">استلام الطلب للتفتيش</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_submit_inspection_report %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال تقرير التفتيش</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="submit_inspection_report">
+          <label for="inspection_decision">نتيجة التقرير</label>
+          <select id="inspection_decision" name="inspection_decision" required>
+            <option value="">-- اختيار --</option>
+            <option value="approved">معتمد</option>
+            <option value="rejected">غير معتمد</option>
+          </select>
+          <label for="inspection_report_notes">ملاحظات التفتيش</label>
+          <textarea id="inspection_report_notes" name="inspection_report_notes" rows="4"></textarea>
+          <button type="submit">حفظ تقرير التفتيش</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status == "payment_pending" and not pirmet.PaymentNumber %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال رقم دفع تصريح المركبة</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="send_payment_link">
+          <label for="payment_number">رقم أمر الدفع</label>
+          <input id="payment_number" name="payment_number" type="text" value="{{ pirmet.PaymentNumber|default:'' }}" required>
+          <button type="submit">حفظ رقم الدفع</button>
+        </form>
+      </section>
+
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status == "payment_pending" and pirmet.PaymentNumber %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال إثبات دفع تصريح المركبة</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="payment">
+          <div class="upload-grid-two">
+            <div class="upload-card">
+              <div class="upload-card-head">
+                <span>التقاط صورة مباشرة</span>
+                <span class="upload-card-note">كاميرا الجهاز</span>
+              </div>
+              <label class="upload-dropzone js-dropzone" for="payment_receipt_camera">
+                <span class="upload-dropzone-icon">CAM</span>
+                <span class="upload-dropzone-title">اضغط لالتقاط صورة الإيصال</span>
+                <span class="upload-dropzone-sub">صورة مباشرة من الكاميرا</span>
+              </label>
+              <input
+                id="payment_receipt_camera"
+                name="payment_receipt_camera"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                class="upload-hidden-input js-file-input"
+              >
+              <div class="upload-file-chip js-file-chip" aria-live="polite">
+                <span class="upload-file-chip-name js-file-name">لم يتم اختيار صورة</span>
+                <span class="upload-file-chip-size js-file-size"></span>
+              </div>
+            </div>
+
+            <div class="upload-card">
+              <div class="upload-card-head">
+                <span>إرفاق إثبات الدفع</span>
+                <span class="upload-card-note">PDF أو صورة</span>
+              </div>
+              <label class="upload-dropzone js-dropzone" for="payment_receipt">
+                <span class="upload-dropzone-icon">⇪</span>
+                <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
+                <span class="upload-dropzone-sub">يمكنك رفع صورة أو PDF</span>
+              </label>
+              <input
+                id="payment_receipt"
+                name="payment_receipt"
+                type="file"
+                accept=".pdf,image/*"
+                class="upload-hidden-input js-file-input"
+              >
+              <div class="upload-file-chip js-file-chip" aria-live="polite">
+                <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
+                <span class="upload-file-chip-size js-file-size"></span>
+              </div>
+            </div>
+          </div>
+          <button type="submit">حفظ إثبات الدفع</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status == "payment_completed" %}
+      <section class="permit-section no-print">
+        <div class="section-title">إصدار تصريح المركبة</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="issue">
+          <button type="submit">إصدار التصريح (مدة سنة من اليوم)</button>
+        </form>
+      </section>
+    {% endif %}
+  </div>
+</section>
+<script>
+  (function () {
+    function formatSize(bytes) {
+      if (!bytes && bytes !== 0) return '';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function attachUploadCard(input) {
+      var card = input.closest('.upload-card');
+      if (!card) return;
+      var dropzone = card.querySelector('.js-dropzone');
+      var chip = card.querySelector('.js-file-chip');
+      var nameEl = card.querySelector('.js-file-name');
+      var sizeEl = card.querySelector('.js-file-size');
+      if (!dropzone || !chip || !nameEl || !sizeEl) return;
+
+      function updateChip(file) {
+        if (!file) {
+          chip.classList.remove('is-visible');
+          return;
+        }
+        nameEl.textContent = file.name || 'ملف مرفق';
+        sizeEl.textContent = formatSize(file.size || 0);
+        chip.classList.add('is-visible');
+      }
+
+      input.addEventListener('change', function () {
+        updateChip(input.files && input.files[0] ? input.files[0] : null);
+      });
+
+      ['dragenter', 'dragover'].forEach(function (evt) {
+        dropzone.addEventListener(evt, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add('is-dragover');
+        });
+      });
+
+      ['dragleave', 'dragend', 'drop'].forEach(function (evt) {
+        dropzone.addEventListener(evt, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (evt !== 'drop') {
+            dropzone.classList.remove('is-dragover');
+          }
+        });
+      });
+
+      dropzone.addEventListener('drop', function (e) {
+        var files = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null;
+        if (!files || !files.length) return;
+        input.files = files;
+        dropzone.classList.remove('is-dragover');
+        updateChip(files[0]);
+      });
+    }
+
+    var inputs = document.querySelectorAll('.js-file-input');
+    if (!inputs.length) return;
+    inputs.forEach(attachUploadCard);
+  })();
+</script>
+{% endblock %}

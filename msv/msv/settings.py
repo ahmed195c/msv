@@ -30,6 +30,7 @@ SECRET_KEY = os.getenv(
 DEBUG = os.getenv('DJANGO_DEBUG', '1') in {'1', 'true', 'True'}
 
 DEFAULT_ALLOWED_HOSTS = [
+    '0.0.0.0',
     'msvshjminc.asuscomm.com',
     'msvshjminc.com',
     '.msvshjminc.com',
@@ -37,14 +38,21 @@ DEFAULT_ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '192.168.50.74',
+    '10.116.222.225',
 ]
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv('DJANGO_ALLOWED_HOSTS', ','.join(DEFAULT_ALLOWED_HOSTS)).split(',')
-    if host.strip()
+    if host.strip() 
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    'http://localhost',
+    'http://127.0.0.1',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://localhost',
+    'https://127.0.0.1',
     'https://*.trycloudflare.com',
     'http://msvshjminc.asuscomm.com',
     'https://msvshjminc.asuscomm.com',
@@ -160,3 +168,5 @@ if not EMAIL_BACKEND:
         EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     else:
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')

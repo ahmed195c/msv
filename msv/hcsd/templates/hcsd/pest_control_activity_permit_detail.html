@@ -187,6 +187,8 @@
       {% endif %}
     </div>
 
+    <div class="permit-title permit-title--hero">متابعة تصريح النشاط</div>
+
     <header class="permit-header">
       <div class="municipality">
         <div class="logo-box">
@@ -435,6 +437,21 @@
             <span class="value">{{ inspection_report_notes|default:"-" }}</span>
           </div>
         </div>
+      </section>
+    {% endif %}
+
+    {% if can_complete_missing and pirmet.status == "needs_completion" %}
+      <section class="permit-section no-print">
+        <div class="section-title">إعادة التفتيش لاستيفاء الشروط</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="complete_missing">
+          <label for="completion_notes">ملاحظات استيفاء النواقص</label>
+          <textarea id="completion_notes" name="completion_notes" rows="3" placeholder="تم استيفاء النواقص المطلوبة وجاهز لإعادة التفتيش"></textarea>
+          <label for="completion_documents">إرفاق مستندات الاستيفاء (اختياري)</label>
+          <input id="completion_documents" name="documents" type="file" accept=".pdf,image/*" multiple>
+          <button type="submit">تحويل الطلب إلى إعادة التفتيش</button>
+        </form>
       </section>
     {% endif %}
 

@@ -155,6 +155,20 @@
   letter-spacing: 0.4px;
 }
 
+.permit-title--hero {
+  font-size: 30px;
+  margin: 8px 0 18px;
+  border-width: 3px;
+  background: linear-gradient(180deg, #eaf3ef 0%, #dcece5 100%);
+  color: #124637;
+}
+
+@media (max-width: 720px) {
+  .permit-title--hero {
+    font-size: 24px;
+  }
+}
+
 .permit-section {
   margin-top: 18px;
   border: 1px solid var(--line);

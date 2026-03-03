@@ -251,6 +251,20 @@
             </select>
             <small class="muted">يمكن تركه فارغاً للشركة الجديدة. عند اختيار مهندس، يتم التحقق من الشهادات حسب نوع المكافحة.</small>
           </div>
+          <div class="company-field">
+            <label>مهندسون إضافيون (اختياري)</label>
+            <select name="enginers" multiple size="6">
+              {% for engineer in engineers %}
+                <option
+                  value="{{ engineer.id }}"
+                  {% if engineer.id|stringformat:"s" in form_data.enginer_ids %}selected{% endif %}
+                >
+                  {{ engineer.name }}
+                </option>
+              {% endfor %}
+            </select>
+            <small class="muted">يمكن اختيار أكثر من مهندس بنفس الوقت (Ctrl/Cmd + Click).</small>
+          </div>
         </div>
       </div>
 

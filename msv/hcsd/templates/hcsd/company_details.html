@@ -528,6 +528,16 @@
         {% else %}
           <p class="muted">لا يوجد مهندس مرتبط.</p>
         {% endif %}
+        {% if company.engineers.all %}
+          <div class="info-item" style="margin-top:10px;">
+            <span class="label">كل المهندسين المرتبطين</span>
+            <span class="value">
+              {% for engineer in company.engineers.all %}
+                {{ engineer.name }}{% if not forloop.last %}، {% endif %}
+              {% endfor %}
+            </span>
+          </div>
+        {% endif %}
       </div>
 
       <div class="section edit-panel" data-edit-panel {% if not error %}hidden{% endif %}>
@@ -612,6 +622,17 @@
                     {% endfor %}
                   </select>
                   <small class="muted">لا يظهر للاختيار إلا المهندس الذي أكمل الشهادات المطلوبة.</small>
+                </div>
+                <div class="company-field">
+                  <label>مهندسون إضافيون</label>
+                  <select name="enginers" multiple size="6" disabled data-editable>
+                    {% for engineer in engineers %}
+                      <option value="{{ engineer.id }}" {% if engineer.id|stringformat:"s" in form_data.enginer_ids %}selected{% endif %}>
+                        {{ engineer.name }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <small class="muted">يمكن اختيار أكثر من مهندس بنفس الوقت (Ctrl/Cmd + Click).</small>
                 </div>
               </div>
             </div>

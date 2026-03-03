@@ -55,7 +55,7 @@
                             <tr>
                                 <td>{{ pirmet.company.name }}</td>
                                 <td>
-                                    تصريح مزاولة نشاط مكافحة آفات الصحة العامة
+                                    {{ pirmet.permit_label_ar }}
                                 </td>
                                 <td>{{ pirmet.dateOfCreation }}</td>
                                 <td>
@@ -66,7 +66,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'pest_control_permit_detail' pirmet.id %}">View details</a>
+                                    <a href="{% url pirmet.detail_url_name pirmet.id %}">View details</a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -83,7 +83,7 @@
                             </div>
                             <div class="permit-mini-row">
                                 <span class="permit-mini-label">نوع التصريح</span>
-                                <span class="permit-mini-value">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</span>
+                                <span class="permit-mini-value">{{ pirmet.permit_label_ar }}</span>
                             </div>
                             <div class="permit-mini-row">
                                 <span class="permit-mini-label">تاريخ الإنشاء</span>
@@ -99,7 +99,7 @@
                                     {% endif %}
                                 </span>
                             </div>
-                            <a class="permit-mini-link" href="{% url 'pest_control_permit_detail' pirmet.id %}">عرض التفاصيل</a>
+                            <a class="permit-mini-link" href="{% url pirmet.detail_url_name pirmet.id %}">عرض التفاصيل</a>
                         </article>
                     {% endfor %}
                 </div>
