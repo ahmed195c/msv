@@ -650,18 +650,38 @@
     <div class="section">
       <div class="section-title">التصاريح المرتبطة</div>
       <div class="permit-statuses">
-        {% if latest_permit %}
-          {% if latest_permit.status == "issued" or latest_permit.status == "payment_completed" %}
-            <a class="permit-pill is-valid" href="{% url 'pest_control_permit_view' latest_permit.id %}">
+        {% if latest_pest_permit %}
+          {% if latest_pest_permit.status == "issued" or latest_pest_permit.status == "payment_completed" %}
+            <a class="permit-pill is-valid" href="{% url 'pest_control_permit_view' latest_pest_permit.id %}">
               تصريح النشاط · عرض التصريح
             </a>
           {% endif %}
-          <a class="permit-pill {% if latest_permit.status == "issued" or latest_permit.status == "payment_completed" %}is-valid{% else %}is-missing{% endif %}" href="{% url 'pest_control_permit_detail' latest_permit.id %}">
+          <a class="permit-pill {% if latest_pest_permit.status == "issued" or latest_pest_permit.status == "payment_completed" %}is-valid{% else %}is-missing{% endif %}" href="{% url 'pest_control_permit_detail' latest_pest_permit.id %}">
             تصريح النشاط · متابعة الطلب
           </a>
         {% else %}
           <a class="permit-pill is-missing" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">
             تصريح النشاط · طلب جديد
+          </a>
+        {% endif %}
+
+        {% if latest_vehicle_permit %}
+          <a class="permit-pill {% if latest_vehicle_permit.status == "issued" or latest_vehicle_permit.status == "payment_completed" %}is-valid{% else %}is-missing{% endif %}" href="{% url 'vehicle_permit_detail' latest_vehicle_permit.id %}">
+            تصريح المركبة · متابعة الطلب
+          </a>
+        {% else %}
+          <a class="permit-pill is-missing" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">
+            تصريح المركبة · طلب جديد
+          </a>
+        {% endif %}
+
+        {% if latest_waste_permit %}
+          <a class="permit-pill {% if latest_waste_permit.status == "issued" or latest_waste_permit.status == "payment_completed" %}is-valid{% else %}is-missing{% endif %}" href="{% url 'waste_permit_detail' latest_waste_permit.id %}">
+            تصريح التخلص من النفايات · متابعة الطلب
+          </a>
+        {% else %}
+          <a class="permit-pill is-missing" href="{% url 'waste_permit' %}?company_id={{ company.id }}">
+            تصريح التخلص من النفايات · طلب جديد
           </a>
         {% endif %}
       </div>
@@ -679,15 +699,19 @@
           <tbody>
             {% for clearance in company_permits %}
               <tr>
-                <td>تصريح مزاولة نشاط مكافحة آفات الصحة العامة</td>
+                <td>{{ clearance.permit_label_ar }}</td>
                 <td>{{ clearance.dateOfCreation }}</td>
                 <td>{{ clearance.dateOfExpiry }}</td>
                 <td>{{ clearance.PaymentNumber|default:"-" }}</td>
                 <td>
-                  {% if clearance.status == "issued" or clearance.status == "payment_completed" %}
-                    <a class="permit-link" href="{% url 'pest_control_permit_view' clearance.id %}">عرض التصريح</a>
+                  {% if clearance.permit_type == "pest_control" %}
+                    {% if clearance.status == "issued" or clearance.status == "payment_completed" %}
+                      <a class="permit-link" href="{% url 'pest_control_permit_view' clearance.id %}">عرض التصريح</a>
+                    {% else %}
+                      <a class="permit-link" href="{% url clearance.detail_url_name clearance.id %}">متابعة الطلب</a>
+                    {% endif %}
                   {% else %}
-                    <a class="permit-link" href="{% url 'pest_control_permit_detail' clearance.id %}">متابعة الطلب</a>
+                    <a class="permit-link" href="{% url clearance.detail_url_name clearance.id %}">متابعة الطلب</a>
                   {% endif %}
                 </td>
               </tr>
@@ -719,6 +743,22 @@
                     تم تغيير المهندس المسؤول
                   {% elif log.action == "extension_requested" %}
                     تم طلب مهلة
+                  {% elif log.action == "waste_permit_created" %}
+                    تم إنشاء تصريح التخلص من النفايات
+                  {% elif log.action == "waste_permit_payment_reference" %}
+                    تم تسجيل رقم دفع تصريح التخلص
+                  {% elif log.action == "waste_permit_paid" %}
+                    تم تأكيد دفع تصريح التخلص
+                  {% elif log.action == "waste_permit_issued" %}
+                    تم إصدار تصريح التخلص من النفايات
+                  {% elif log.action == "waste_request_created" %}
+                    تم إنشاء طلب التخلص
+                  {% elif log.action == "waste_request_payment_reference" %}
+                    تم تسجيل رقم دفع طلب التخلص
+                  {% elif log.action == "waste_request_paid" %}
+                    تم تأكيد دفع طلب التخلص
+                  {% elif log.action == "waste_request_inspected" %}
+                    تم اعتماد/رفض طلب التخلص بعد التفتيش
                   {% else %}
                     {{ log.action }}
                   {% endif %}

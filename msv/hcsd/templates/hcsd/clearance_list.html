@@ -278,24 +278,10 @@
         </div>
     {% endif %}
 
-    <div class="card">
-        <h2>إنشاء طلب تصريح النشاط</h2>
-        {% if can_create_pirmet %}
-            <div style="display: grid; gap: 10px;">
-                <a href="{% url 'pest_control_permit' %}" class="btn primary">
-                    تصريح مزاولة نشاط مكافحة آفات الصحة العامة
-                </a>
-                <a href="{% url 'vehicle_permit' %}" class="btn primary">
-                    تصريح المركبة للشركات
-                </a>
-            </div>
-        {% else %}
-            <p><em>Only Data Entry or Administration accounts can create permits.</em></p>
-        {% endif %}
-    </div>
+    
 
     <div class="card">
-        <h2>طلبات تصريح النشاط</h2>
+        <h2>طلبات التصاريح </h2>
 
         {% if clearances %}
             <div class="clearance-table-wrap">

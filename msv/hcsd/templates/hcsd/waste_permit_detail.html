@@ -1,0 +1,109 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}متابعة تصريح التخلص من النفايات{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
+{% endblock %}
+{% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+  <div class="permit-card">
+    <div class="action-bar no-print">
+      <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
+    </div>
+
+    <div class="permit-title permit-title--hero">متابعة تصريح التخلص من النفايات</div>
+    <section class="permit-section">
+      <div class="section-title">بيانات التصريح الأساسي</div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="label">رقم التصريح</span><span class="value">{{ pirmet.permit_no|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">الحالة</span><span class="value">{{ pirmet.get_status_display }}</span></div>
+        <div class="detail-item"><span class="label">تاريخ الإصدار</span><span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">تاريخ الانتهاء</span><span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">الشركة</span><span class="value">{{ pirmet.company.name }}</span></div>
+      </div>
+    </section>
+
+    {% if review_errors %}
+      <div class="alert">
+        <strong>يرجى تصحيح التالي:</strong>
+        <ul class="alert-list">{% for error in review_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status == "payment_pending" and not pirmet.PaymentNumber %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال رقم الدفع</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="send_payment_link">
+          <label for="payment_number">رقم أمر الدفع</label>
+          <input id="payment_number" name="payment_number" type="text" required>
+          <button type="submit">حفظ رقم الدفع</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status == "payment_pending" and pirmet.PaymentNumber %}
+      <section class="permit-section no-print">
+        <div class="section-title">تأكيد الدفع</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="payment">
+          <label for="payment_receipt">إيصال الدفع (PDF أو صورة)</label>
+          <input id="payment_receipt" name="payment_receipt" type="file" required>
+          <button type="submit">تأكيد الدفع</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_issue_pirmet and pirmet.status == "payment_completed" %}
+      <section class="permit-section no-print">
+        <div class="section-title">إصدار التصريح</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="issue">
+          <button type="submit">إصدار التصريح لمدة 6 أشهر</button>
+        </form>
+      </section>
+    {% endif %}
+
+    <section class="permit-section">
+      <div class="section-title">طلبات التخلص المرتبطة</div>
+      {% if is_active %}
+        <div class="no-print" style="margin-bottom:10px;">
+          <a class="action-link" href="{% url 'waste_disposal_request_new' permit_id=pirmet.id %}">إضافة طلب التخلص</a>
+        </div>
+      {% else %}
+        <p>لا يمكن إضافة طلبات جديدة إلا إذا كان التصريح الأساسي ساريًا.</p>
+      {% endif %}
+      {% if disposal_requests %}
+        <table class="status-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>تاريخ الطلب</th>
+              <th>الحالة</th>
+              <th>رقم الدفع</th>
+              <th>تفاصيل</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in disposal_requests %}
+              <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.request_date|date:"d/m/Y" }}</td>
+                <td>{{ item.get_status_display }}</td>
+                <td>{{ item.disposal_reference|default:"-" }}</td>
+                <td><a href="{% url 'waste_disposal_request_detail' permit_id=pirmet.id request_id=item.id %}">فتح</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>لا توجد طلبات مرتبطة حتى الآن.</p>
+      {% endif %}
+    </section>
+  </div>
+</section>
+{% endblock %}

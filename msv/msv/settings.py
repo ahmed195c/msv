@@ -106,13 +106,26 @@ WSGI_APPLICATION = 'msv.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DB_ENGINE = os.getenv('DJANGO_DB_ENGINE', 'sqlite').strip().lower()
+if DB_ENGINE in {'postgres', 'postgresql'}:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DJANGO_DB_NAME', 'msv'),
+            'USER': os.getenv('DJANGO_DB_USER', 'msv'),
+            'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', ''),
+            'HOST': os.getenv('DJANGO_DB_HOST', '127.0.0.1'),
+            'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
+            'CONN_MAX_AGE': int(os.getenv('DJANGO_DB_CONN_MAX_AGE', '60')),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -170,3 +183,29 @@ if not EMAIL_BACKEND:
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+
+# Cache / Redis
+REDIS_URL = os.getenv('REDIS_URL', '').strip()
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': os.getenv('CACHE_KEY_PREFIX', 'msv'),
+            'TIMEOUT': int(os.getenv('CACHE_DEFAULT_TIMEOUT', '300')),
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'msv-local-cache',
+        }
+    }
+
+if os.getenv('DJANGO_SESSION_ENGINE', '').strip().lower() == 'cache':
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'default'

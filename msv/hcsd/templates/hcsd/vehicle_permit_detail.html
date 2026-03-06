@@ -266,6 +266,17 @@
       </section>
     {% endif %}
 
+    {% if inspection_report_photos %}
+      <section class="permit-section">
+        <div class="section-title">صور من التفتيش</div>
+        <div class="documents">
+          {% for doc in inspection_report_photos %}
+            <a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name|cut:"pirmet_documents/" }}</a><br>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
     {% if can_review_pirmet and pirmet.status == "inspection_pending" %}
       <section class="permit-section no-print">
         <div class="section-title">استلام الطلب للتفتيش</div>
@@ -289,7 +300,7 @@
     {% if can_submit_inspection_report %}
       <section class="permit-section no-print">
         <div class="section-title">إدخال تقرير التفتيش</div>
-        <form method="post" class="review-form">
+        <form method="post" enctype="multipart/form-data" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="submit_inspection_report">
           <label for="inspection_decision">نتيجة التقرير</label>
@@ -300,6 +311,14 @@
           </select>
           <label for="inspection_report_notes">ملاحظات التفتيش</label>
           <textarea id="inspection_report_notes" name="inspection_report_notes" rows="4"></textarea>
+          <label for="inspection_report_photos">صور من التفتيش (اختياري)</label>
+          <input
+            id="inspection_report_photos"
+            name="inspection_report_photos"
+            type="file"
+            accept="image/*"
+            multiple
+          >
           <button type="submit">حفظ تقرير التفتيش</button>
         </form>
       </section>

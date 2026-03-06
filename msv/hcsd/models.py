@@ -229,6 +229,41 @@ class WasteDisposalPermit(models.Model):
         return f"{self.pirmet.company.name} - Waste Details"
 
 
+class WasteDisposalRequest(models.Model):
+    STATUS_CHOICES = [
+        ('payment_pending', 'Waiting for Disposal Payment'),
+        ('inspection_pending', 'Inspection Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+    ]
+
+    permit = models.ForeignKey(
+        PirmetClearance,
+        on_delete=models.CASCADE,
+        related_name='waste_disposal_requests',
+    )
+    request_date = models.DateField(auto_now_add=True)
+    disposal_reference = models.CharField(max_length=100, null=True, blank=True)
+    disposal_payment_receipt = models.FileField(
+        upload_to='pirmet_documents/waste_disposal_receipts/', null=True, blank=True
+    )
+    inspection_notes = models.TextField(null=True, blank=True)
+    inspected_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='waste_disposal_inspections',
+    )
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='payment_pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.permit.company.name} - Disposal Request #{self.id}"
+
+
 class InspectorReview(models.Model):
     pirmet = models.OneToOneField(PirmetClearance, on_delete=models.CASCADE)
     inspector = models.ForeignKey(Enginer, on_delete=models.SET_NULL, null=True)
@@ -340,8 +375,8 @@ class PirmetChangeLog(models.Model):
         PirmetClearance, on_delete=models.CASCADE, related_name='changes'
     )
     change_type = models.CharField(max_length=30, choices=CHANGE_CHOICES)
-    old_status = models.CharField(max_length=25, null=True, blank=True)
-    new_status = models.CharField(max_length=25, null=True, blank=True)
+    old_status = models.CharField(max_length=40, null=True, blank=True)
+    new_status = models.CharField(max_length=40, null=True, blank=True)
     notes = models.TextField(blank=True)
     changed_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True

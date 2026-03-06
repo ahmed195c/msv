@@ -1,0 +1,79 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}طلب التخلص من النفايات{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
+{% endblock %}
+{% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+  <div class="permit-card">
+    <div class="action-bar no-print">
+      <a class="back-link" href="{% url 'waste_permit_detail' id=permit.id %}">العودة لتصريح النفايات</a>
+    </div>
+    <div class="permit-title permit-title--hero">طلب التخلص #{{ disposal_request.id }}</div>
+
+    {% if review_errors %}
+      <div class="alert">
+        <strong>يرجى تصحيح التالي:</strong>
+        <ul class="alert-list">{% for error in review_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}
+
+    <section class="permit-section">
+      <div class="section-title">بيانات الطلب</div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="label">الشركة</span><span class="value">{{ permit.company.name }}</span></div>
+        <div class="detail-item"><span class="label">تاريخ الطلب</span><span class="value">{{ disposal_request.request_date|date:"d/m/Y" }}</span></div>
+        <div class="detail-item"><span class="label">الحالة</span><span class="value">{{ disposal_request.get_status_display }}</span></div>
+        <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ disposal_request.disposal_reference|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">ملاحظات التفتيش</span><span class="value">{{ disposal_request.inspection_notes|default:"-" }}</span></div>
+      </div>
+    </section>
+
+    {% if can_record_payment and disposal_request.status == "payment_pending" and not disposal_request.disposal_reference %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال رقم دفع طلب التخلص</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="send_payment_link">
+          <label for="disposal_reference">رقم أمر الدفع</label>
+          <input id="disposal_reference" name="disposal_reference" type="text" required>
+          <button type="submit">حفظ رقم الدفع</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_payment and disposal_request.status == "payment_pending" and disposal_request.disposal_reference %}
+      <section class="permit-section no-print">
+        <div class="section-title">تأكيد دفع طلب التخلص</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="payment">
+          <label for="disposal_payment_receipt">إيصال الدفع (PDF أو صورة)</label>
+          <input id="disposal_payment_receipt" name="disposal_payment_receipt" type="file" required>
+          <button type="submit">تأكيد الدفع والانتقال للتفتيش</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_review_request and disposal_request.status == "inspection_pending" %}
+      <section class="permit-section no-print">
+        <div class="section-title">تقرير التفتيش</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="submit_inspection_report">
+          <label for="inspection_decision">النتيجة</label>
+          <select id="inspection_decision" name="inspection_decision" required>
+            <option value="">-- اختيار --</option>
+            <option value="approved">معتمد</option>
+            <option value="rejected">مرفوض</option>
+          </select>
+          <label for="inspection_notes">ملاحظات التفتيش</label>
+          <textarea id="inspection_notes" name="inspection_notes" rows="4"></textarea>
+          <button type="submit">حفظ تقرير التفتيش</button>
+        </form>
+      </section>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
