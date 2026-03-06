@@ -29,3 +29,7 @@ msv/staticfiles/
 .DS_Store
 .idea/
 .vscode/
+
+# Local tooling artifacts
+msv/tools/
+media_paths.txt
