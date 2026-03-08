@@ -49,6 +49,25 @@
     box-shadow: 0 4px 10px rgba(31, 90, 75, 0.08);
   }
 
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .exam-request-link {
+    border: 1px solid rgba(30, 95, 140, 0.26);
+    color: #fff;
+    background: linear-gradient(180deg, #1e5f8c 0%, #174d72 100%);
+    padding: 8px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 6px 14px rgba(21, 67, 95, 0.2);
+  }
+
   .section {
     border: 1px solid var(--line);
     background: rgba(255,255,255,0.92);
@@ -537,7 +556,13 @@
   <div class="enginer-card">
     <div class="header">
       <h1>ملف المهندس</h1>
-      <a class="back-link" href="{% url 'enginer_list' %}">العودة إلى قائمة المهندسين</a>
+      <div class="header-actions">
+        {% if can_create_exam_request %}
+          <a class="exam-request-link" href="{% url 'public_health_exam_request_list' %}?enginer_id={{ enginer.id }}">تقديم طلب اختبار</a>
+          <a class="exam-request-link" style="background:linear-gradient(180deg,#217f60 0%,#176149 100%);border-color:rgba(33,127,96,.28);" href="{% url 'engineer_certificate_request_list' %}?enginer_id={{ enginer.id }}">طلب شهادة لمن يهمه الأمر</a>
+        {% endif %}
+        <a class="back-link" href="{% url 'enginer_list' %}">العودة إلى قائمة المهندسين</a>
+      </div>
     </div>
 
     <div class="section">
@@ -566,12 +591,20 @@
       </div>
       <div style="margin-top: 12px;">
         {% if enginer.public_health_cert %}
-          <span class="badge">شهادة الصحة العامة مرفقة</span>
+          {% if public_health_is_expired %}
+            <span class="badge warn">شهادة الصحة العامة منتهية</span>
+          {% else %}
+            <span class="badge">شهادة الصحة العامة مرفقة</span>
+          {% endif %}
         {% else %}
           <span class="badge warn">شهادة الصحة العامة غير مرفقة</span>
         {% endif %}
         {% if enginer.termite_cert %}
-          <span class="badge">شهادة النمل الأبيض مرفقة</span>
+          {% if termite_is_expired %}
+            <span class="badge warn">شهادة النمل الأبيض منتهية</span>
+          {% else %}
+            <span class="badge">شهادة النمل الأبيض مرفقة</span>
+          {% endif %}
         {% else %}
           <span class="badge warn">شهادة النمل الأبيض غير مرفقة</span>
         {% endif %}
@@ -586,6 +619,11 @@
           <span class="value">
             {% if enginer.public_health_cert %}
               <a href="{{ enginer.public_health_cert.url }}" target="_blank" rel="noopener">فتح الشهادة</a>
+              {% if enginer.public_health_cert_issue_date %}
+                <br>تاريخ الإصدار: {{ enginer.public_health_cert_issue_date }}
+                {% if public_health_expiry_date %}<br>تاريخ الانتهاء: {{ public_health_expiry_date }}{% endif %}
+                {% if public_health_is_expired %}<br><strong style="color:#b42318;">منتهية</strong>{% endif %}
+              {% endif %}
             {% else %}
               -
             {% endif %}
@@ -596,6 +634,11 @@
           <span class="value">
             {% if enginer.termite_cert %}
               <a href="{{ enginer.termite_cert.url }}" target="_blank" rel="noopener">فتح الشهادة</a>
+              {% if enginer.termite_cert_issue_date %}
+                <br>تاريخ الإصدار: {{ enginer.termite_cert_issue_date }}
+                {% if termite_expiry_date %}<br>تاريخ الانتهاء: {{ termite_expiry_date }}{% endif %}
+                {% if termite_is_expired %}<br><strong style="color:#b42318;">منتهية</strong>{% endif %}
+              {% endif %}
             {% else %}
               -
             {% endif %}

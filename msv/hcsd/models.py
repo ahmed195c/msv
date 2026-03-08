@@ -2,6 +2,7 @@ import random
 
 from django.contrib.auth.models import User
 from django.db import IntegrityError, models
+from django.utils import timezone
 
 # Create your models here.
 BUSINESS_ACTIVITY_CHOICES = [
@@ -73,9 +74,11 @@ class Enginer(models.Model):
     public_health_cert = models.FileField(
         upload_to='engineer_certificates/', null=True, blank=True
     )
+    public_health_cert_issue_date = models.DateField(null=True, blank=True)
     termite_cert = models.FileField(
         upload_to='engineer_certificates/', null=True, blank=True
     )
+    termite_cert_issue_date = models.DateField(null=True, blank=True)
 
     @property
     def has_public_health_cert(self):
@@ -333,6 +336,197 @@ class EnginerStatusLog(models.Model):
 
     def __str__(self):
         return f"{self.enginer.name} - {self.action}"
+
+
+class PublicHealthExamRequest(models.Model):
+    STATUS_CHOICES = [
+        ('submitted', 'بانتظار الاعتماد'),
+        ('inspector_approved', 'تم الاعتماد'),
+        ('payment_pending', 'بانتظار الدفع'),
+        ('scheduled', 'تم حجز الموعد'),
+        ('rejected', 'مرفوض'),
+        # Legacy statuses kept for old records.
+        ('payment_received', 'بانتظار الدفع'),
+        ('completed', 'مكتمل'),
+    ]
+
+    enginer = models.ForeignKey(
+        Enginer,
+        on_delete=models.CASCADE,
+        related_name='public_health_exam_requests',
+    )
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='public_health_exam_requests',
+    )
+    serial_number = models.CharField(max_length=100, null=True, blank=True)
+    attempt_number = models.PositiveIntegerField()
+    exam_fee = models.DecimalField(max_digits=10, decimal_places=2, default=200)
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='submitted')
+
+    request_submission_date = models.DateField(null=True, blank=True)
+    exam_number = models.CharField(max_length=100, null=True, blank=True)
+    unified_number = models.CharField(max_length=100, null=True, blank=True)
+    identity_number = models.CharField(max_length=100, null=True, blank=True)
+    exam_language = models.CharField(max_length=50, null=True, blank=True)
+    exam_type = models.CharField(max_length=120, null=True, blank=True)
+    qualified_technician_name = models.CharField(max_length=200, null=True, blank=True)
+    phone_number = models.CharField(max_length=30, null=True, blank=True)
+    company_trade_name = models.CharField(max_length=200, null=True, blank=True)
+    trade_license_number = models.CharField(max_length=100, null=True, blank=True)
+
+    request_notes = models.TextField(blank=True)
+    request_document = models.FileField(
+        upload_to='public_health_exam_requests/documents/',
+        null=True,
+        blank=True,
+    )
+
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='public_health_exam_reviews',
+    )
+    review_notes = models.TextField(blank=True)
+    recommendation = models.TextField(blank=True)
+    exam_result = models.CharField(max_length=120, null=True, blank=True)
+
+    payment_link = models.CharField(max_length=500, null=True, blank=True)
+    payment_reference = models.CharField(max_length=120, null=True, blank=True)
+    payment_receipt_number = models.CharField(max_length=120, null=True, blank=True)
+    payment_receipt_date = models.DateField(null=True, blank=True)
+    payment_receipt = models.FileField(
+        upload_to='public_health_exam_requests/receipts/',
+        null=True,
+        blank=True,
+    )
+    payment_received_at = models.DateTimeField(null=True, blank=True)
+
+    exam_datetime = models.DateTimeField(null=True, blank=True)
+    exam_location = models.CharField(max_length=200, null=True, blank=True)
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='public_health_exam_requests_created',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @staticmethod
+    def fee_for_attempt(attempt_number):
+        if attempt_number <= 1:
+            return 200
+        if attempt_number == 2:
+            return 500
+        return 1000
+
+    @classmethod
+    def next_attempt_number(cls, enginer):
+        if not enginer:
+            return 1
+        return cls.objects.filter(enginer=enginer).count() + 1
+
+    def save(self, *args, **kwargs):
+        if not self.attempt_number:
+            self.attempt_number = self.next_attempt_number(self.enginer)
+        if not self.exam_fee:
+            self.exam_fee = self.fee_for_attempt(self.attempt_number)
+        if not self.request_submission_date:
+            self.request_submission_date = timezone.localdate()
+        if self.company:
+            if not self.company_trade_name:
+                self.company_trade_name = self.company.name
+            if not self.trade_license_number:
+                self.trade_license_number = self.company.number
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.enginer.name} - Exam Request #{self.id} (Attempt {self.attempt_number})"
+
+
+class EngineerCertificateRequest(models.Model):
+    CERTIFICATE_TYPE_CHOICES = [
+        ('public_health', 'شهادة اختبار عام'),
+        ('termite', 'شهادة النمل الأبيض'),
+    ]
+    STATUS_CHOICES = [
+        ('submitted', 'تم تقديم طلب الشهادة'),
+        ('payment_pending', 'بانتظار سداد رسوم الشهادة'),
+        ('payment_received', 'تم استلام الإيصال والهوية الإماراتية'),
+        ('issued', 'تم إصدار الشهادة'),
+        ('rejected', 'مرفوض'),
+    ]
+
+    exam_request = models.OneToOneField(
+        PublicHealthExamRequest,
+        on_delete=models.CASCADE,
+        related_name='certificate_request',
+        null=True,
+        blank=True,
+    )
+    enginer = models.ForeignKey(
+        Enginer,
+        on_delete=models.CASCADE,
+        related_name='certificate_requests',
+    )
+    certificate_type = models.CharField(max_length=30, choices=CERTIFICATE_TYPE_CHOICES)
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='submitted')
+
+    payment_link = models.CharField(max_length=500, null=True, blank=True)
+    payment_order_number = models.CharField(max_length=120, null=True, blank=True)
+    payment_receipt = models.FileField(
+        upload_to='engineer_certificate_requests/receipts/',
+        null=True,
+        blank=True,
+    )
+    emirates_id_document = models.FileField(
+        upload_to='engineer_certificate_requests/emirates_id/',
+        null=True,
+        blank=True,
+    )
+    payment_received_at = models.DateTimeField(null=True, blank=True)
+
+    issued_certificate = models.FileField(
+        upload_to='engineer_certificate_requests/issued_certificates/',
+        null=True,
+        blank=True,
+    )
+    certificate_issue_date = models.DateField(null=True, blank=True)
+    issued_at = models.DateTimeField(null=True, blank=True)
+    issued_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='issued_engineer_certificates',
+    )
+    rejection_reason = models.TextField(blank=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='engineer_certificate_requests_created',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.enginer.name} - Certificate Request #{self.id}"
 
 
 class CompanyChangeLog(models.Model):

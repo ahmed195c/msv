@@ -4,14 +4,16 @@ import os
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
+from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import (
     Company,
     CompanyChangeLog,
+    EngineerCertificateRequest,
     Enginer,
     EnginerStatusLog,
     InspectorReview,
@@ -19,6 +21,7 @@ from .models import (
     PirmetChangeLog,
     PirmetClearance,
     PirmetDocument,
+    PublicHealthExamRequest,
     WasteDisposalRequest,
 )
 from .forms import StaffRegistrationForm
@@ -154,6 +157,19 @@ def _can_data_entry(user):
         _can_admin(user)
         or _has_any_group(user, GROUP_NAME_ALIASES['data_entry'])
     )
+
+
+def _can_create_exam_request(user):
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    if _has_any_group(user, GROUP_NAME_ALIASES['admin']):
+        return True
+    if _has_any_group(user, GROUP_NAME_ALIASES['data_entry']):
+        return True
+    # Staff inspectors must not create exam requests unless they also have an allowed group.
+    return False
 
 
 def _inspector_users_qs():
@@ -326,6 +342,42 @@ def _permit_detail_url_name(permit_type):
         'waste_disposal': 'waste_permit_detail',
     }
     return mapping.get(permit_type, 'pest_control_permit_detail')
+
+
+def _certificate_type_for_exam(exam_type):
+    exam_type_value = (exam_type or '').strip()
+    if 'نمل' in exam_type_value:
+        return 'termite'
+    return 'public_health'
+
+
+def _certificate_expiry(issue_date):
+    if not issue_date:
+        return None, False
+    expiry_date = _add_months(issue_date, 3)
+    if not expiry_date:
+        return None, False
+    return expiry_date, expiry_date < timezone.localdate()
+
+
+def _enginer_has_passed_for_certificate(enginer, certificate_type):
+    if not enginer:
+        return False
+    cert_type = (certificate_type or '').strip()
+    if cert_type == 'termite' and enginer.termite_cert:
+        return True
+    if cert_type == 'public_health' and enginer.public_health_cert:
+        return True
+
+    successful_exam_requests = PublicHealthExamRequest.objects.filter(
+        enginer=enginer,
+        status='completed',
+        exam_result='ناجح',
+    )
+    for exam_request in successful_exam_requests:
+        if _certificate_type_for_exam(exam_request.exam_type) == cert_type:
+            return True
+    return False
 
 
 def home(request):
@@ -779,13 +831,37 @@ def company_detail(request, id):
 
 @login_required
 def enginer_list(request):
-    engineers = Enginer.objects.all().order_by('name')
+    card_number_query = (request.GET.get('card_number') or '').strip()
+    certification_filter = (request.GET.get('certification') or '').strip()
+
+    engineers = Enginer.objects.all()
+
+    if card_number_query:
+        engineers = engineers.filter(card_number__icontains=card_number_query)
+
+    if certification_filter == 'public_health':
+        engineers = engineers.exclude(public_health_cert='')
+    elif certification_filter == 'termite':
+        engineers = engineers.exclude(termite_cert='')
+
+    engineers = list(engineers.order_by('name'))
+    for engineer in engineers:
+        ph_expiry_date, ph_is_expired = _certificate_expiry(engineer.public_health_cert_issue_date)
+        termite_expiry_date, termite_is_expired = _certificate_expiry(engineer.termite_cert_issue_date)
+        engineer.public_health_cert_expiry_date = ph_expiry_date
+        engineer.public_health_cert_is_expired = ph_is_expired
+        engineer.termite_cert_expiry_date = termite_expiry_date
+        engineer.termite_cert_is_expired = termite_is_expired
     return render(
         request,
         'hcsd/enginer_list.html',
         {
             'engineers': engineers,
             'can_add_enginer': _can_data_entry(request.user),
+            'can_create_exam_request': _can_create_exam_request(request.user),
+            'can_view_exam_requests': _can_inspector(request.user) or _can_create_exam_request(request.user),
+            'card_number_query': card_number_query,
+            'certification_filter': certification_filter,
         },
     )
 
@@ -898,15 +974,495 @@ def enginer_detail(request, id):
 
     logs = enginer.status_logs.select_related('changed_by').all().order_by('-created_at')
     archived_logs = [log for log in logs if getattr(log, 'archived_file', None)]
+    public_health_expiry_date, public_health_is_expired = _certificate_expiry(enginer.public_health_cert_issue_date)
+    termite_expiry_date, termite_is_expired = _certificate_expiry(enginer.termite_cert_issue_date)
     return render(
         request,
         'hcsd/enginer_detail.html',
         {
             'enginer': enginer,
             'can_update_enginer': _can_data_entry(request.user),
+            'can_create_exam_request': _can_create_exam_request(request.user),
             'error': error,
             'logs': logs,
             'archived_logs': archived_logs,
+            'public_health_expiry_date': public_health_expiry_date,
+            'public_health_is_expired': public_health_is_expired,
+            'termite_expiry_date': termite_expiry_date,
+            'termite_is_expired': termite_is_expired,
+        },
+    )
+
+
+@login_required
+def public_health_exam_request_list(request):
+    prefilled_enginer_id = _parse_int(request.GET.get('enginer_id'))
+    card_number_query = (request.GET.get('card_number') or '').strip()
+    status_filter = (request.GET.get('status') or '').strip()
+    form_error = ''
+    can_create_exam_request = _can_create_exam_request(request.user)
+
+    if request.method == 'POST':
+        if not can_create_exam_request:
+            form_error = 'ليس لديك صلاحية لإنشاء طلب جديد.'
+        else:
+            enginer_id = _parse_int(request.POST.get('enginer_id'))
+            company_id = _parse_int(request.POST.get('company_id'))
+            request_notes = (request.POST.get('request_notes') or '').strip()
+            request_document = request.FILES.get('request_document')
+            unified_identity_number = (request.POST.get('unified_identity_number') or '').strip()
+            exam_language = (request.POST.get('exam_language') or '').strip()
+            exam_type = (request.POST.get('exam_type') or '').strip()
+            qualified_technician_name = (request.POST.get('qualified_technician_name') or '').strip()
+            phone_number = (request.POST.get('phone_number') or '').strip()
+            request_submission_date = _parse_date((request.POST.get('request_submission_date') or '').strip())
+            enginer = Enginer.objects.filter(id=enginer_id).first()
+            company = None
+            if not enginer:
+                form_error = 'يرجى اختيار مهندس صحيح.'
+            if not form_error and company_id:
+                company = Company.objects.filter(id=company_id).first()
+                if not company:
+                    form_error = 'الشركة المختارة غير صحيحة.'
+            if not form_error and not request_document:
+                form_error = 'يرجى إرفاق مستندات الطلب.'
+            if not form_error:
+                if not company:
+                    company = (
+                        Company.objects.filter(Q(engineers=enginer) | Q(enginer=enginer))
+                        .distinct()
+                        .order_by('name')
+                        .first()
+                    )
+                attempt_number = PublicHealthExamRequest.next_attempt_number(enginer)
+                exam_fee = PublicHealthExamRequest.fee_for_attempt(attempt_number)
+                PublicHealthExamRequest.objects.create(
+                    enginer=enginer,
+                    company=company,
+                    serial_number='',
+                    attempt_number=attempt_number,
+                    exam_fee=exam_fee,
+                    request_submission_date=request_submission_date,
+                    unified_number='',
+                    identity_number=unified_identity_number,
+                    exam_language=exam_language,
+                    exam_type=exam_type,
+                    qualified_technician_name=qualified_technician_name,
+                    phone_number=phone_number or enginer.phone,
+                    request_notes=request_notes,
+                    request_document=request_document,
+                    created_by=request.user,
+                    status='submitted',
+                )
+                return redirect('public_health_exam_request_list')
+
+    requests_qs = PublicHealthExamRequest.objects.select_related('enginer', 'reviewed_by')
+    if card_number_query:
+        requests_qs = requests_qs.filter(enginer__card_number__icontains=card_number_query)
+    if status_filter:
+        requests_qs = requests_qs.filter(status=status_filter)
+
+    engineers = Enginer.objects.order_by('name')
+    attempt_counts = {
+        row['enginer_id']: row['total']
+        for row in PublicHealthExamRequest.objects.values('enginer_id').annotate(total=Count('id'))
+    }
+    engineer_next_attempt_map = {}
+    engineer_next_fee_map = {}
+    for eng in engineers:
+        next_attempt = attempt_counts.get(eng.id, 0) + 1
+        engineer_next_attempt_map[eng.id] = next_attempt
+        engineer_next_fee_map[eng.id] = PublicHealthExamRequest.fee_for_attempt(next_attempt)
+
+    companies = Company.objects.all().prefetch_related('engineers').order_by('name')
+    engineer_company_map = {}
+    for company in companies:
+        if company.enginer_id and company.enginer_id not in engineer_company_map:
+            engineer_company_map[company.enginer_id] = company.id
+        for engineer_id in company.engineers.values_list('id', flat=True):
+            if engineer_id not in engineer_company_map:
+                engineer_company_map[engineer_id] = company.id
+
+    return render(
+        request,
+        'hcsd/public_health_exam_request_list.html',
+        {
+            'requests': requests_qs,
+            'engineers': engineers,
+            'companies': companies,
+            'form_error': form_error,
+            'card_number_query': card_number_query,
+            'status_filter': status_filter,
+            'can_create': can_create_exam_request,
+            'can_inspector_review': _can_inspector(request.user),
+            'prefilled_enginer_id': prefilled_enginer_id,
+            'engineer_company_map': engineer_company_map,
+            'engineer_next_attempt_map': engineer_next_attempt_map,
+            'engineer_next_fee_map': engineer_next_fee_map,
+        },
+    )
+
+
+@login_required
+def public_health_exam_request_detail(request, request_id):
+    exam_request = get_object_or_404(
+        PublicHealthExamRequest.objects.select_related('enginer', 'reviewed_by'),
+        id=request_id,
+    )
+    error = ''
+    can_inspector_review = _can_inspector(request.user)
+    can_manage_payment = _can_create_exam_request(request.user)
+    exam_date_passed = False
+    if exam_request.exam_datetime:
+        exam_date_passed = timezone.localdate() >= exam_request.exam_datetime.date()
+    suggested_certificate_type = _certificate_type_for_exam(exam_request.exam_type)
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+
+        if action == 'inspector_review':
+            if not can_inspector_review:
+                error = 'ليس لديك صلاحية لمراجعة الطلب.'
+            elif exam_request.status not in {'submitted'}:
+                error = 'لا يمكن مراجعة الطلب في حالته الحالية.'
+            else:
+                decision = (request.POST.get('decision') or '').strip()
+                notes = (request.POST.get('review_notes') or '').strip()
+                if decision not in {'approve', 'reject'}:
+                    error = 'يرجى اختيار قرار المراجعة.'
+                elif decision == 'reject' and not notes:
+                    error = 'يرجى كتابة سبب الرفض.'
+                else:
+                    exam_request.reviewed_by = request.user
+                    exam_request.review_notes = notes
+                    exam_request.recommendation = (request.POST.get('recommendation') or '').strip()
+                    exam_request.status = 'inspector_approved' if decision == 'approve' else 'rejected'
+                    exam_request.save()
+                    return redirect('public_health_exam_request_detail', request_id=exam_request.id)
+
+        elif action == 'set_payment_order_number':
+            if not can_manage_payment:
+                error = 'ليس لديك صلاحية لإدخال بيانات الدفع.'
+            elif exam_request.status not in {'inspector_approved', 'payment_pending'}:
+                error = 'لا يمكن إدخال رقم أمر الدفع في حالة الطلب الحالية.'
+            else:
+                payment_reference = (request.POST.get('payment_reference') or '').strip()
+                if not payment_reference:
+                    error = 'يرجى إدخال رقم أمر الدفع.'
+                else:
+                    exam_request.payment_reference = payment_reference
+                    exam_request.status = 'payment_pending'
+                    exam_request.save(update_fields=['payment_reference', 'status', 'updated_at'])
+                    return redirect('public_health_exam_request_detail', request_id=exam_request.id)
+
+        elif action == 'record_payment':
+            if not can_manage_payment:
+                error = 'ليس لديك صلاحية لتسجيل الدفع.'
+            elif exam_request.status != 'payment_pending':
+                error = 'لا يمكن تسجيل الدفع في حالة الطلب الحالية.'
+            elif not exam_request.payment_reference:
+                error = 'يرجى إدخال رقم أمر الدفع أولاً.'
+            else:
+                receipt = request.FILES.get('payment_receipt')
+                if not receipt:
+                    error = 'يرجى إرفاق إيصال الدفع.'
+                else:
+                    exam_request.payment_receipt = receipt
+                    exam_request.payment_receipt_number = None
+                    exam_request.payment_receipt_date = None
+                    exam_request.payment_received_at = timezone.now()
+                    exam_request.save()
+                    return redirect('public_health_exam_request_detail', request_id=exam_request.id)
+
+        elif action == 'schedule_exam':
+            if not can_manage_payment:
+                error = 'ليس لديك صلاحية لحجز موعد الاختبار.'
+            elif exam_request.status != 'payment_pending':
+                error = 'لا يمكن حجز موعد قبل تسجيل الدفع.'
+            elif not exam_request.payment_receipt:
+                error = 'يرجى تسجيل إيصال الدفع أولاً.'
+            else:
+                exam_date_raw = (request.POST.get('exam_date') or '').strip()
+                if not exam_date_raw:
+                    error = 'يرجى إدخال تاريخ موعد الاختبار.'
+                else:
+                    exam_date = _parse_date(exam_date_raw)
+                    if not exam_date:
+                        error = 'صيغة تاريخ الموعد غير صحيحة.'
+                    else:
+                        exam_request.exam_datetime = datetime.datetime.combine(exam_date, datetime.time.min)
+                        exam_request.exam_location = None
+                        exam_request.status = 'scheduled'
+                        exam_request.save()
+                        return redirect('public_health_exam_request_detail', request_id=exam_request.id)
+
+        elif action == 'record_exam_result':
+            if not can_inspector_review:
+                error = 'ليس لديك صلاحية لتسجيل نتيجة الاختبار.'
+            elif exam_request.status != 'scheduled':
+                error = 'لا يمكن تسجيل النتيجة قبل حجز الموعد.'
+            elif not exam_date_passed:
+                error = 'لا يمكن تسجيل النتيجة قبل تاريخ موعد الاختبار.'
+            else:
+                exam_result = (request.POST.get('exam_result') or '').strip()
+                if exam_result not in {'ناجح', 'غير ناجح'}:
+                    error = 'يرجى اختيار نتيجة صحيحة.'
+                else:
+                    exam_request.exam_result = exam_result
+                    exam_request.status = 'completed'
+                    exam_request.save(update_fields=['exam_result', 'status', 'updated_at'])
+                    return redirect('public_health_exam_request_detail', request_id=exam_request.id)
+
+    return render(
+        request,
+        'hcsd/public_health_exam_request_detail.html',
+        {
+            'exam_request': exam_request,
+            'error': error,
+            'can_inspector_review': can_inspector_review,
+            'can_manage_payment': can_manage_payment,
+            'can_record_result': can_inspector_review and exam_request.status == 'scheduled' and exam_date_passed,
+            'can_create_certificate_request': (
+                can_manage_payment
+                and exam_request.status == 'completed'
+                and exam_request.exam_result == 'ناجح'
+            ),
+            'suggested_certificate_type': suggested_certificate_type,
+        },
+    )
+
+
+@login_required
+def engineer_certificate_request_list(request):
+    prefilled_enginer_id = _parse_int(request.GET.get('enginer_id'))
+    prefilled_certificate_type = (request.GET.get('certificate_type') or '').strip()
+    prefilled_source_exam_request_id = _parse_int(request.GET.get('source_exam_request_id'))
+    card_number_query = (request.GET.get('card_number') or '').strip()
+    status_filter = (request.GET.get('status') or '').strip()
+    certificate_type_filter = (request.GET.get('certificate_type_filter') or '').strip()
+    form_error = ''
+    can_manage_certificate_requests = _can_create_exam_request(request.user)
+
+    if request.method == 'POST':
+        if not can_manage_certificate_requests:
+            form_error = 'ليس لديك صلاحية لتقديم طلب شهادة جديد.'
+        else:
+            enginer_id = _parse_int(request.POST.get('enginer_id'))
+            certificate_type = (request.POST.get('certificate_type') or '').strip()
+            source_exam_request_id = _parse_int(request.POST.get('source_exam_request_id'))
+
+            enginer = Enginer.objects.filter(id=enginer_id).first()
+            if not enginer:
+                form_error = 'يرجى اختيار مهندس صحيح.'
+            elif certificate_type not in {'public_health', 'termite'}:
+                form_error = 'يرجى اختيار نوع الشهادة.'
+            elif not _enginer_has_passed_for_certificate(enginer, certificate_type):
+                form_error = 'لا يمكن تقديم الطلب: المهندس لا يملك نتيجة نجاح مثبتة لهذا النوع.'
+            else:
+                active_request_exists = EngineerCertificateRequest.objects.filter(
+                    enginer=enginer,
+                    certificate_type=certificate_type,
+                    status__in={'submitted', 'payment_pending', 'payment_received'},
+                ).exists()
+                if active_request_exists:
+                    form_error = 'يوجد طلب شهادة مفتوح لنفس المهندس ونفس النوع.'
+
+            if not form_error:
+                exam_request = None
+                if source_exam_request_id:
+                    exam_request = PublicHealthExamRequest.objects.filter(
+                        id=source_exam_request_id,
+                        enginer=enginer,
+                        status='completed',
+                        exam_result='ناجح',
+                    ).first()
+                    if exam_request and _certificate_type_for_exam(exam_request.exam_type) != certificate_type:
+                        exam_request = None
+
+                EngineerCertificateRequest.objects.create(
+                    enginer=enginer,
+                    exam_request=exam_request,
+                    certificate_type=certificate_type,
+                    status='submitted',
+                    created_by=request.user,
+                )
+                return redirect('engineer_certificate_request_list')
+
+    certificate_requests = EngineerCertificateRequest.objects.select_related(
+        'enginer',
+        'issued_by',
+        'exam_request',
+    )
+    if card_number_query:
+        certificate_requests = certificate_requests.filter(enginer__card_number__icontains=card_number_query)
+    if status_filter:
+        certificate_requests = certificate_requests.filter(status=status_filter)
+    if certificate_type_filter:
+        certificate_requests = certificate_requests.filter(certificate_type=certificate_type_filter)
+
+    engineers = Enginer.objects.order_by('name')
+    return render(
+        request,
+        'hcsd/engineer_certificate_request_list.html',
+        {
+            'requests': certificate_requests,
+            'engineers': engineers,
+            'form_error': form_error,
+            'card_number_query': card_number_query,
+            'status_filter': status_filter,
+            'certificate_type_filter': certificate_type_filter,
+            'prefilled_enginer_id': prefilled_enginer_id,
+            'prefilled_certificate_type': prefilled_certificate_type,
+            'prefilled_source_exam_request_id': prefilled_source_exam_request_id,
+            'can_manage_certificate_requests': can_manage_certificate_requests,
+        },
+    )
+
+
+@login_required
+def engineer_certificate_request_detail(request, request_id):
+    certificate_request = get_object_or_404(
+        EngineerCertificateRequest.objects.select_related('enginer', 'issued_by', 'exam_request'),
+        id=request_id,
+    )
+    can_manage_certificate_requests = _can_create_exam_request(request.user)
+    error = ''
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+
+        if action == 'set_payment_order_number':
+            if not can_manage_certificate_requests:
+                error = 'ليس لديك صلاحية لإدخال بيانات دفع الشهادة.'
+            elif certificate_request.status not in {'submitted', 'payment_pending'}:
+                error = 'لا يمكن تعديل بيانات الدفع في الحالة الحالية.'
+            else:
+                payment_order_number = (request.POST.get('payment_order_number') or '').strip()
+                if not payment_order_number:
+                    error = 'يرجى إدخال رقم أمر الدفع.'
+                else:
+                    certificate_request.payment_order_number = payment_order_number
+                    certificate_request.status = 'payment_pending'
+                    certificate_request.save(update_fields=['payment_order_number', 'status', 'updated_at'])
+                    return redirect('engineer_certificate_request_detail', request_id=certificate_request.id)
+
+        elif action == 'record_payment':
+            if not can_manage_certificate_requests:
+                error = 'ليس لديك صلاحية لتسجيل دفع الشهادة.'
+            elif certificate_request.status != 'payment_pending':
+                error = 'لا يمكن تسجيل الدفع في الحالة الحالية.'
+            elif not certificate_request.payment_order_number:
+                error = 'يرجى إدخال رقم أمر الدفع أولاً.'
+            else:
+                payment_receipt = request.FILES.get('payment_receipt')
+                emirates_id_document = request.FILES.get('emirates_id_document')
+                if not payment_receipt or not emirates_id_document:
+                    error = 'يرجى إرفاق إيصال الدفع والهوية الإماراتية.'
+                else:
+                    certificate_request.payment_receipt = payment_receipt
+                    certificate_request.emirates_id_document = emirates_id_document
+                    certificate_request.payment_received_at = timezone.now()
+                    certificate_request.status = 'payment_received'
+                    certificate_request.save(
+                        update_fields=[
+                            'payment_receipt',
+                            'emirates_id_document',
+                            'payment_received_at',
+                            'status',
+                            'updated_at',
+                        ]
+                    )
+                    return redirect('engineer_certificate_request_detail', request_id=certificate_request.id)
+
+        elif action == 'issue_certificate':
+            if not can_manage_certificate_requests:
+                error = 'ليس لديك صلاحية إصدار الشهادة.'
+            elif certificate_request.status != 'payment_received':
+                error = 'لا يمكن إصدار الشهادة قبل استلام متطلبات الدفع.'
+            else:
+                issued_certificate = request.FILES.get('issued_certificate')
+                certificate_issue_date_raw = (request.POST.get('certificate_issue_date') or '').strip()
+                certificate_issue_date = None
+                if certificate_issue_date_raw:
+                    certificate_issue_date = _parse_date(certificate_issue_date_raw)
+                    if not certificate_issue_date:
+                        error = 'صيغة تاريخ إصدار الشهادة غير صحيحة.'
+                if not error and not issued_certificate:
+                    error = 'يرجى إرفاق ملف الشهادة الصادرة.'
+                if not error:
+                    certificate_issue_date = certificate_issue_date or timezone.localdate()
+                    with transaction.atomic():
+                        certificate_request.issued_certificate = issued_certificate
+                        certificate_request.certificate_issue_date = certificate_issue_date
+                        certificate_request.issued_by = request.user
+                        certificate_request.issued_at = timezone.now()
+                        certificate_request.status = 'issued'
+                        certificate_request.save(
+                            update_fields=[
+                                'issued_certificate',
+                                'certificate_issue_date',
+                                'issued_by',
+                                'issued_at',
+                                'status',
+                                'updated_at',
+                            ]
+                        )
+
+                        enginer = certificate_request.enginer
+                        if certificate_request.certificate_type == 'termite':
+                            previous_file = enginer.termite_cert.name if enginer.termite_cert else None
+                            enginer.termite_cert = certificate_request.issued_certificate
+                            enginer.termite_cert_issue_date = certificate_issue_date
+                            enginer.save(update_fields=['termite_cert', 'termite_cert_issue_date'])
+                            EnginerStatusLog.objects.create(
+                                enginer=enginer,
+                                action='termite_cert_uploaded',
+                                notes='Termite certificate issued from standalone certificate request.',
+                                changed_by=request.user,
+                                archived_file=previous_file or None,
+                            )
+                        else:
+                            previous_file = enginer.public_health_cert.name if enginer.public_health_cert else None
+                            enginer.public_health_cert = certificate_request.issued_certificate
+                            enginer.public_health_cert_issue_date = certificate_issue_date
+                            enginer.save(update_fields=['public_health_cert', 'public_health_cert_issue_date'])
+                            EnginerStatusLog.objects.create(
+                                enginer=enginer,
+                                action='public_health_cert_uploaded',
+                                notes='Public health certificate issued from standalone certificate request.',
+                                changed_by=request.user,
+                                archived_file=previous_file or None,
+                            )
+                    return redirect('engineer_certificate_request_detail', request_id=certificate_request.id)
+
+    can_set_payment_order_number = (
+        can_manage_certificate_requests
+        and certificate_request.status in {'submitted', 'payment_pending'}
+        and not certificate_request.payment_order_number
+    )
+    can_record_certificate_payment = (
+        can_manage_certificate_requests
+        and certificate_request.status == 'payment_pending'
+        and not certificate_request.payment_receipt
+    )
+    can_issue_certificate = (
+        can_manage_certificate_requests
+        and certificate_request.status == 'payment_received'
+    )
+    certificate_expiry_date, certificate_is_expired = _certificate_expiry(certificate_request.certificate_issue_date)
+
+    return render(
+        request,
+        'hcsd/engineer_certificate_request_detail.html',
+        {
+            'certificate_request': certificate_request,
+            'error': error,
+            'can_manage_certificate_requests': can_manage_certificate_requests,
+            'can_set_payment_order_number': can_set_payment_order_number,
+            'can_record_certificate_payment': can_record_certificate_payment,
+            'can_issue_certificate': can_issue_certificate,
+            'certificate_expiry_date': certificate_expiry_date,
+            'certificate_is_expired': certificate_is_expired,
         },
     )
 
@@ -1732,6 +2288,13 @@ def pest_control_permit(request):
     selected_allowed_activities = _activities_for_enginer(selected_enginer)
     selected_restricted_activities = _restricted_activities_for_enginer(selected_enginer)
 
+    def _engineer_no_certificate_notice(enginer_obj):
+        if not enginer_obj:
+            return ''
+        if enginer_obj.public_health_cert or enginer_obj.termite_cert:
+            return ''
+        return 'تنبيه: المهندس المختار لا يملك حالياً شهادات لمن يهمه الأمر. تم السماح بتقديم الطلب مع ضرورة استكمال الشهادات لاحقاً.'
+
     form_data = {
         'company_name': selected_company.name if selected_company else '',
         'trade_license_no': selected_company.number if selected_company else '',
@@ -1759,7 +2322,7 @@ def pest_control_permit(request):
     trade_license_notice = _expired_trade_license_notice(
         selected_company.trade_license_exp if selected_company else None
     )
-    engineer_notice = ''
+    engineer_notice = _engineer_no_certificate_notice(selected_enginer)
 
     if request.method == 'POST':
         company_id = _parse_int(request.POST.get('company_id'))
@@ -1842,8 +2405,7 @@ def pest_control_permit(request):
                     changed_fields.append('phone')
                 if changed_fields:
                     enginer.save(update_fields=changed_fields)
-                if not enginer.public_health_cert:
-                    form_errors.append('engineer_cert_required')
+                engineer_notice = _engineer_no_certificate_notice(enginer)
         else:
             if form_data['engineer_name'] or form_data['engineer_email'] or form_data['engineer_phone']:
                 if not (form_data['engineer_name'] and form_data['engineer_email'] and form_data['engineer_phone']):
@@ -1859,8 +2421,7 @@ def pest_control_permit(request):
                             enginer.phone = form_data['engineer_phone']
                         if enginer.name != form_data['engineer_name'] or enginer.phone != form_data['engineer_phone']:
                             enginer.save(update_fields=['name', 'phone'])
-                        if not enginer.public_health_cert:
-                            form_errors.append('engineer_cert_required')
+                        engineer_notice = _engineer_no_certificate_notice(enginer)
             else:
                 engineer_notice = 'تنبيه: يمكن تقديم الطلب بدون مهندس للشركة الجديدة، وسيتم استكمال المهندس لاحقاً.'
 

@@ -2,7 +2,7 @@
 
 @import "tailwindcss";
 
-@source "../../templates/**/*.html";
+@source "../../../templates/**/*.html";
 
 @theme {
   --font-sans: "Cairo", "Tahoma", sans-serif;

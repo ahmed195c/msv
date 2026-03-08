@@ -1,6 +1,24 @@
 {% extends "hcsd/base.html" %}
 {% block title %}Engineers{% endblock %}
 {% block content %}
+<script>
+  (function () {
+    var root = document.documentElement;
+    root.classList.add("enginer-list--loading");
+
+    function clearLoadingState() {
+      root.classList.remove("enginer-list--loading");
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", clearLoadingState, { once: true });
+    } else {
+      clearLoadingState();
+    }
+
+    window.addEventListener("pageshow", clearLoadingState);
+  })();
+</script>
 <style>
   .enginer-page {
     max-width: 1280px;
@@ -33,6 +51,31 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .enginer-filters {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr auto;
+    gap: 10px;
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  .enginer-filters input,
+  .enginer-filters select {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .enginer-filters .filter-btn {
+    min-height: 40px;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #2b6c5a 0%, #1f5a4b 100%);
+    color: #fff;
+    padding: 0 14px;
+    font-weight: 700;
+    cursor: pointer;
   }
 
   .hint {
@@ -106,6 +149,74 @@
     white-space: nowrap;
   }
 
+  .enginer-skeleton {
+    display: none;
+    gap: 14px;
+  }
+
+  .enginer-list--loading .enginer-page .enginer-runtime {
+    display: none;
+  }
+
+  .enginer-list--loading .enginer-page .enginer-skeleton {
+    display: grid;
+  }
+
+  .enginer-skeleton-card {
+    border: 1px solid #e3dccd;
+    border-radius: 16px;
+    background: #fff;
+    padding: 14px;
+    box-shadow: 0 8px 18px rgba(24, 35, 28, 0.04);
+  }
+
+  .enginer-skeleton-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr auto;
+    gap: 10px;
+  }
+
+  .enginer-skeleton-line {
+    height: 14px;
+    border-radius: 8px;
+    background: linear-gradient(100deg, #ece8de 30%, #f7f5ee 48%, #ece8de 66%);
+    background-size: 220% 100%;
+    animation: enginer-skeleton-shimmer 1.2s linear infinite;
+  }
+
+  .enginer-skeleton-line--title {
+    width: 35%;
+    height: 18px;
+    margin-bottom: 10px;
+  }
+
+  .enginer-skeleton-line--input {
+    width: 100%;
+    height: 40px;
+  }
+
+  .enginer-skeleton-table {
+    border: 1px solid #e0d9ca;
+    border-radius: 14px;
+    background: #fff;
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .enginer-skeleton-row {
+    height: 16px;
+    border-radius: 8px;
+    background: linear-gradient(100deg, #ece8de 30%, #f7f5ee 48%, #ece8de 66%);
+    background-size: 220% 100%;
+    animation: enginer-skeleton-shimmer 1.2s linear infinite;
+  }
+
+  @keyframes enginer-skeleton-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+  }
+
   @media (max-width: 720px) {
     .enginer-page {
       padding: 16px 12px 32px;
@@ -126,6 +237,14 @@
       display: block;
     }
 
+    .enginer-filters {
+      grid-template-columns: 1fr;
+    }
+
+    .enginer-skeleton-grid {
+      grid-template-columns: 1fr;
+    }
+
     .enginer-table {
       display: block;
       overflow-x: auto;
@@ -136,53 +255,114 @@
 </style>
 
 <section class="enginer-page" lang="ar" dir="rtl">
-  <div class="enginer-header">
-    <div>
-      <h1 style="margin: 0;">قائمة المهندسين</h1>
+  <div class="enginer-skeleton" aria-hidden="true">
+    <div class="enginer-skeleton-card">
+      <div class="enginer-skeleton-line enginer-skeleton-line--title"></div>
+      <div class="enginer-skeleton-grid">
+        <div class="enginer-skeleton-line enginer-skeleton-line--input"></div>
+        <div class="enginer-skeleton-line enginer-skeleton-line--input"></div>
+        <div class="enginer-skeleton-line enginer-skeleton-line--input"></div>
+      </div>
     </div>
-    <div class="enginer-actions">
-      {% if can_add_enginer %}
-        <a class="add-link" href="{% url 'enginer_add' %}">تسجيل مهندس جديد</a>
-      {% endif %}
+    <div class="enginer-skeleton-table">
+      <div class="enginer-skeleton-row"></div>
+      <div class="enginer-skeleton-row"></div>
+      <div class="enginer-skeleton-row"></div>
+      <div class="enginer-skeleton-row"></div>
+      <div class="enginer-skeleton-row"></div>
+      <div class="enginer-skeleton-row"></div>
     </div>
   </div>
 
-  {% if engineers %}
-    <table class="enginer-table">
-      <thead>
-        <tr>
-          <th>الاسم</th>
-          <th>رقم البطاقة</th>
-          <th>الهاتف</th>
-          <th>شهادت لمن يهمه الامر </th>
-          <th>الملف</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for engineer in engineers %}
+  <div class="enginer-runtime">
+    <div class="enginer-header">
+      <div>
+        <h1 style="margin: 0;">قائمة المهندسين</h1>
+        <form method="get" class="enginer-filters">
+          <input
+            type="text"
+            name="card_number"
+            value="{{ card_number_query }}"
+            placeholder="ابحث برقم البطاقة"
+            inputmode="numeric"
+            autocomplete="off"
+          >
+          <select name="certification">
+            <option value="" {% if not certification_filter %}selected{% endif %}>اختر الشهادة</option>
+            <option value="public_health" {% if certification_filter == 'public_health' %}selected{% endif %}>شهادة الصحة العامة</option>
+            <option value="termite" {% if certification_filter == 'termite' %}selected{% endif %}>شهادة النمل الأبيض</option>
+          </select>
+          <button type="submit" class="filter-btn">تصفية</button>
+        </form>
+      </div>
+      <div class="enginer-actions">
+        {% if can_view_exam_requests %}
+          <a class="add-link" style="margin-inline-start:8px;background:linear-gradient(180deg,#1e5f8c 0%,#174d72 100%);" href="{% url 'public_health_exam_request_list' %}">طلبات اختبار آفات الصحة العامة</a>
+        {% endif %}
+        {% if can_create_exam_request %}
+          <a class="add-link" style="margin-inline-start:8px;background:linear-gradient(180deg,#217f60 0%,#176149 100%);" href="{% url 'engineer_certificate_request_list' %}">طلبات شهادة لمن يهمه الأمر</a>
+        {% endif %}
+        {% if can_add_enginer %}
+          <a class="add-link" href="{% url 'enginer_add' %}">تسجيل مهندس جديد</a>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if engineers %}
+      <table class="enginer-table">
+        <thead>
           <tr>
-            <td>{{ engineer.name }}</td>
-            <td>{{ engineer.card_number|default:"-" }}</td>
-            <td>{{ engineer.phone }}</td>
-            <td>
-              {% if engineer.public_health_cert %}
-                <span class="badge">الصحة العامة</span>
-              {% else %}
-                <span class="badge warn">   افات الصحه العامه  </span>
-              {% endif %}
-              {% if engineer.termite_cert %}
-                <span class="badge">النمل الأبيض</span>
-              {% else %}
-                <span class="badge warn"> نمل أبيض</span>
-              {% endif %}
-            </td>
-            <td><a class="detail-link" href="{% url 'enginer_detail' engineer.id %}">عرض</a></td>
+            <th>الاسم</th>
+            <th>رقم البطاقة</th>
+            <th>الهاتف</th>
+            <th>شهادت لمن يهمه الامر </th>
+            <th>الملف</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No engineers found.</p>
-  {% endif %}
+        </thead>
+        <tbody>
+          {% for engineer in engineers %}
+            <tr>
+              <td>{{ engineer.name }}</td>
+              <td>{{ engineer.card_number|default:"-" }}</td>
+              <td>{{ engineer.phone }}</td>
+              <td>
+                {% if engineer.public_health_cert %}
+                  {% if engineer.public_health_cert_is_expired %}
+                    <span class="badge warn">الصحة العامة - منتهية</span>
+                  {% else %}
+                    <span class="badge">الصحة العامة</span>
+                  {% endif %}
+                {% else %}
+                  <span class="badge warn">   افات الصحه العامه  </span>
+                {% endif %}
+                {% if engineer.termite_cert %}
+                  {% if engineer.termite_cert_is_expired %}
+                    <span class="badge warn">النمل الأبيض - منتهية</span>
+                  {% else %}
+                    <span class="badge">النمل الأبيض</span>
+                  {% endif %}
+                {% else %}
+                  <span class="badge warn"> نمل أبيض</span>
+                {% endif %}
+              </td>
+              <td><a class="detail-link" href="{% url 'enginer_detail' engineer.id %}">عرض</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No engineers found.</p>
+    {% endif %}
+  </div>
 </section>
+<script>
+  (function () {
+    document.addEventListener("submit", function (event) {
+      if (!event.target.matches(".enginer-page .enginer-filters")) {
+        return;
+      }
+      document.documentElement.classList.add("enginer-list--loading");
+    });
+  })();
+</script>
 {% endblock %}

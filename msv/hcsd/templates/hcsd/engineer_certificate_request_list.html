@@ -1,0 +1,227 @@
+{% extends "hcsd/base.html" %}
+{% block title %}طلبات شهادة لمن يهمه الأمر{% endblock %}
+{% block content %}
+<script>
+  (function () {
+    var root = document.documentElement;
+    root.classList.add("cert-list--loading");
+
+    function clearLoadingState() {
+      root.classList.remove("cert-list--loading");
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", clearLoadingState, { once: true });
+    } else {
+      clearLoadingState();
+    }
+
+    window.addEventListener("pageshow", clearLoadingState);
+  })();
+</script>
+<style>
+  .cert-page { display: grid; gap: 14px; }
+  .cert-title { margin: 0; font-size: 24px; }
+  .cert-card {
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.78);
+    padding: 14px;
+    box-shadow: var(--shadow-soft);
+  }
+  .cert-form { display: grid; gap: 10px; }
+  .cert-grid-2, .cert-grid-3 { display: grid; gap: 10px; }
+  .cert-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cert-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cert-hint {
+    margin: 0;
+    border: 1px solid rgba(31, 90, 75, 0.2);
+    border-radius: 10px;
+    background: #f4faf7;
+    color: #1f5a4b;
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  .cert-error { color: #b42318; margin: 0; font-weight: 700; }
+  .cert-table th, .cert-table td { text-align: right; }
+  .cert-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    text-decoration: none;
+    background: linear-gradient(180deg, var(--teal-600) 0%, var(--teal-700) 100%);
+    color: #fff;
+    padding: 8px 12px;
+    font-weight: 700;
+  }
+
+  .cert-card--skeleton {
+    display: none;
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.78);
+    padding: 16px;
+    box-shadow: var(--shadow-soft);
+    gap: 12px;
+  }
+
+  .cert-list--loading .cert-list-runtime-card {
+    display: none;
+  }
+
+  .cert-list--loading .cert-card--skeleton {
+    display: grid;
+  }
+
+  .cert-skeleton-line {
+    height: 14px;
+    border-radius: 8px;
+    background: linear-gradient(100deg, #e7eceb 30%, #f5f8f7 48%, #e7eceb 66%);
+    background-size: 220% 100%;
+    animation: cert-skeleton-shimmer 1.2s linear infinite;
+  }
+
+  .cert-skeleton-line--title {
+    width: 45%;
+    height: 18px;
+  }
+
+  .cert-skeleton-line--input {
+    width: 100%;
+    height: 40px;
+  }
+
+  .cert-skeleton-table {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .cert-skeleton-row {
+    height: 16px;
+    border-radius: 8px;
+    background: linear-gradient(100deg, #e7eceb 30%, #f5f8f7 48%, #e7eceb 66%);
+    background-size: 220% 100%;
+    animation: cert-skeleton-shimmer 1.2s linear infinite;
+  }
+
+  @keyframes cert-skeleton-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+  }
+
+  @media (max-width: 900px) {
+    .cert-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .cert-grid-2, .cert-grid-3 { grid-template-columns: 1fr; }
+  }
+</style>
+
+<section class="cert-page" lang="ar" dir="rtl">
+  <h1 class="cert-title">طلبات شهادة لمن يهمه الأمر</h1>
+
+  <div class="cert-card--skeleton" aria-hidden="true">
+    <div class="cert-skeleton-line cert-skeleton-line--title"></div>
+    <div class="cert-grid-3">
+      <div class="cert-skeleton-line cert-skeleton-line--input"></div>
+      <div class="cert-skeleton-line cert-skeleton-line--input"></div>
+      <div class="cert-skeleton-line cert-skeleton-line--input"></div>
+    </div>
+    <div class="cert-skeleton-table">
+      <div class="cert-skeleton-row"></div>
+      <div class="cert-skeleton-row"></div>
+      <div class="cert-skeleton-row"></div>
+      <div class="cert-skeleton-row"></div>
+      <div class="cert-skeleton-row"></div>
+      <div class="cert-skeleton-row"></div>
+    </div>
+  </div>
+
+  {% if can_manage_certificate_requests %}
+    <div class="cert-card cert-list-runtime-card">
+      <form method="post" class="cert-form">
+        {% csrf_token %}
+        {% if prefilled_source_exam_request_id %}
+          <input type="hidden" name="source_exam_request_id" value="{{ prefilled_source_exam_request_id }}">
+        {% endif %}
+        <div class="cert-grid-2">
+          <select id="enginer_id" name="enginer_id" required>
+            <option value="">اختر المهندس</option>
+            {% for eng in engineers %}
+              <option value="{{ eng.id }}" {% if prefilled_enginer_id == eng.id %}selected{% endif %}>{{ eng.name }} (بطاقة: {{ eng.card_number|default:"-" }})</option>
+            {% endfor %}
+          </select>
+          <select id="certificate_type" name="certificate_type" required>
+            <option value="">نوع الشهادة</option>
+            <option value="public_health" {% if prefilled_certificate_type == 'public_health' %}selected{% endif %}>شهادة اختبار عام</option>
+            <option value="termite" {% if prefilled_certificate_type == 'termite' %}selected{% endif %}>شهادة النمل الأبيض</option>
+          </select>
+        </div>
+        <button type="submit">تقديم طلب شهادة جديد</button>
+        {% if form_error %}<p class="cert-error">{{ form_error }}</p>{% endif %}
+      </form>
+    </div>
+  {% endif %}
+
+  <div class="cert-card cert-list-runtime-card">
+    <form method="get" class="cert-form">
+      <div class="cert-grid-3">
+        <input type="text" name="card_number" value="{{ card_number_query }}" placeholder="فلترة برقم البطاقة">
+        <select name="certificate_type_filter">
+          <option value="">كل أنواع الشهادات</option>
+          <option value="public_health" {% if certificate_type_filter == 'public_health' %}selected{% endif %}>اختبار عام</option>
+          <option value="termite" {% if certificate_type_filter == 'termite' %}selected{% endif %}>نمل أبيض</option>
+        </select>
+        <select name="status">
+          <option value="">كل الحالات</option>
+          <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>تم تقديم طلب الشهادة</option>
+          <option value="payment_pending" {% if status_filter == 'payment_pending' %}selected{% endif %}>بانتظار سداد رسوم الشهادة</option>
+          <option value="payment_received" {% if status_filter == 'payment_received' %}selected{% endif %}>تم استلام الإيصال والهوية الإماراتية</option>
+          <option value="issued" {% if status_filter == 'issued' %}selected{% endif %}>تم إصدار الشهادة</option>
+          <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>مرفوض</option>
+        </select>
+        <button type="submit">تصفية</button>
+      </div>
+    </form>
+
+    <table class="cert-table no-mobile-cards">
+      <thead>
+        <tr>
+          <th>المهندس</th>
+          <th>رقم البطاقة</th>
+          <th>نوع الشهادة</th>
+          <th>رقم أمر الدفع</th>
+          <th>الحالة</th>
+          <th>الإجراء</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+          <tr>
+            <td>{{ req.enginer.name }}</td>
+            <td>{{ req.enginer.card_number|default:"-" }}</td>
+            <td>{{ req.get_certificate_type_display }}</td>
+            <td>{{ req.payment_order_number|default:"-" }}</td>
+            <td>{{ req.get_status_display }}</td>
+            <td><a class="cert-action" href="{% url 'engineer_certificate_request_detail' req.id %}">عرض</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6">لا توجد طلبات شهادات حالياً.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+<script>
+  (function () {
+    document.addEventListener("submit", function (event) {
+      if (!event.target.matches(".cert-form")) {
+        return;
+      }
+      document.documentElement.classList.add("cert-list--loading");
+    });
+  })();
+</script>
+{% endblock %}

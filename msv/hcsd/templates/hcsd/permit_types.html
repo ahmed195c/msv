@@ -1,6 +1,22 @@
 {% extends "hcsd/base.html" %}
 {% block title %}تصاريح البلدية{% endblock %}
 {% block content %}
+<script>
+  (function () {
+    var root = document.documentElement;
+    root.classList.add("permit-types--loading");
+
+    function clearLoadingState() {
+      root.classList.remove("permit-types--loading");
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", clearLoadingState, { once: true });
+    } else {
+      clearLoadingState();
+    }
+  })();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
 
@@ -29,6 +45,55 @@
     display: grid;
     gap: 18px;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .permit-types__skeleton {
+    display: none;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .permit-skeleton-card {
+    background: #fff;
+    border: 2px solid #d7d2c6;
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.05);
+  }
+
+  .permit-skeleton-line {
+    height: 14px;
+    border-radius: 8px;
+    background: linear-gradient(100deg, #ece8de 30%, #f7f5ee 48%, #ece8de 66%);
+    background-size: 220% 100%;
+    animation: permit-skeleton-shimmer 1.2s linear infinite;
+  }
+
+  .permit-skeleton-line--title {
+    height: 22px;
+    width: 82%;
+  }
+
+  .permit-skeleton-line--long { width: 100%; }
+  .permit-skeleton-line--mid { width: 70%; }
+  .permit-skeleton-line--button {
+    margin-top: 6px;
+    width: 110px;
+    height: 32px;
+  }
+
+  .permit-types--loading .permit-types .permit-grid {
+    display: none;
+  }
+
+  .permit-types--loading .permit-types .permit-types__skeleton {
+    display: grid;
+  }
+
+  @keyframes permit-skeleton-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
   }
 
   .permit-card {
@@ -67,6 +132,20 @@
 <section class="permit-types" lang="ar" dir="rtl">
   <div class="permit-types__wrap">
     <div class="permit-types__title">تصريح النشاط</div>
+    <div class="permit-types__skeleton" aria-hidden="true">
+      <div class="permit-skeleton-card">
+        <div class="permit-skeleton-line permit-skeleton-line--title"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--long"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--mid"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--button"></div>
+      </div>
+      <div class="permit-skeleton-card">
+        <div class="permit-skeleton-line permit-skeleton-line--title"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--long"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--mid"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--button"></div>
+      </div>
+    </div>
     <div class="permit-grid">
       <div class="permit-card">
         <h3>تصريح مزاولة نشاط مكافحة آفات الصحة العامة</h3>

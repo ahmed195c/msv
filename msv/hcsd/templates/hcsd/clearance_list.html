@@ -20,24 +20,12 @@
     font-size: 22px;
   }
 
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-size: 14px;
-    border: 1px solid var(--line);
-    background: var(--paper);
-    color: var(--ink);
-  }
+ 
 
   .btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
+    backgroundcolor: #1c7675;
     color: #fff;
+
   }
 
   .card {
@@ -83,8 +71,6 @@
   }
 
   .action-link {
-    background: var(--accent);
-    color: #fff;
     padding: 10px 14px;
     text-decoration: none;
     border-radius: 10px;
@@ -373,7 +359,7 @@
                             </td>
                             <td>
                                 <div style="margin-bottom: 8px;">
-                                    <a href="{% url clearance.detail_url_name clearance.id %}" class="action-link">
+                                    <a href="{% url clearance.detail_url_name clearance.id %}" class="action-link bg-amber-500">
                                         عرض التفاصيل
                                     </a>
                                 </div>
