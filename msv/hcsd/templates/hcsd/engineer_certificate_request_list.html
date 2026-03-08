@@ -1,24 +1,6 @@
 {% extends "hcsd/base.html" %}
 {% block title %}طلبات شهادة لمن يهمه الأمر{% endblock %}
 {% block content %}
-<script>
-  (function () {
-    var root = document.documentElement;
-    root.classList.add("cert-list--loading");
-
-    function clearLoadingState() {
-      root.classList.remove("cert-list--loading");
-    }
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", clearLoadingState, { once: true });
-    } else {
-      clearLoadingState();
-    }
-
-    window.addEventListener("pageshow", clearLoadingState);
-  })();
-</script>
 <style>
   .cert-page { display: grid; gap: 14px; }
   .cert-title { margin: 0; font-size: 24px; }

@@ -16,7 +16,10 @@
       <div class="section-title">بيانات التصريح الأساسي</div>
       <div class="detail-grid">
         <div class="detail-item"><span class="label">رقم التصريح</span><span class="value">{{ pirmet.permit_no|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">الحالة</span><span class="value">{{ pirmet.get_status_display }}</span></div>
+        <div class="detail-item detail-item--status">
+          <span class="label">الحالة</span>
+          <span class="value status-badge">{{ pirmet.get_status_display }}</span>
+        </div>
         <div class="detail-item"><span class="label">تاريخ الإصدار</span><span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">تاريخ الانتهاء</span><span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span></div>

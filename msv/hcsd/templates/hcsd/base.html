@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}MSV{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'hcsd/tailwind.css' %}">
-    <link rel="stylesheet" href="{% static 'hcsd/base.css' %}">
+    <link rel="stylesheet" href="{% static 'hcsd/base.css' %}?v=20260309a">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="app-shell">
@@ -127,8 +127,26 @@
     </div>
     <script>
         (function () {
+            var isNavigating = false;
+            var LOADER_BYPASS_ATTR = "data-loader-bypass";
+
             function setNavigatingState(isNavigating) {
                 document.body.classList.toggle("is-navigating", Boolean(isNavigating));
+            }
+
+            function navigateWithLoader(url) {
+                if (isNavigating) {
+                    return;
+                }
+                isNavigating = true;
+                setNavigatingState(true);
+
+                // Give the browser one frame to paint the skeleton before navigation.
+                window.requestAnimationFrame(function () {
+                    window.setTimeout(function () {
+                        window.location.href = url;
+                    }, 40);
+                });
             }
 
             function prepareResponsiveTables() {
@@ -192,7 +210,8 @@
                 if (!shouldHandleAnchor(anchor, event)) {
                     return;
                 }
-                setNavigatingState(true);
+                event.preventDefault();
+                navigateWithLoader(anchor.href);
             }, true);
 
             document.addEventListener("submit", function (event) {
@@ -203,10 +222,42 @@
                 if (!form || form.dataset.skipLoader === "true") {
                     return;
                 }
+                if (form.getAttribute(LOADER_BYPASS_ATTR) === "1") {
+                    form.setAttribute(LOADER_BYPASS_ATTR, "0");
+                    return;
+                }
+                var formTarget = (form.getAttribute("target") || "").trim();
+                if (formTarget && formTarget !== "_self") {
+                    return;
+                }
+                if (isNavigating) {
+                    event.preventDefault();
+                    return;
+                }
+
+                event.preventDefault();
+                isNavigating = true;
                 setNavigatingState(true);
+
+                var submitter = event.submitter || null;
+                window.requestAnimationFrame(function () {
+                    window.setTimeout(function () {
+                        form.setAttribute(LOADER_BYPASS_ATTR, "1");
+                        if (typeof form.requestSubmit === "function") {
+                            if (submitter) {
+                                form.requestSubmit(submitter);
+                            } else {
+                                form.requestSubmit();
+                            }
+                            return;
+                        }
+                        form.submit();
+                    }, 40);
+                });
             }, true);
 
             window.addEventListener("pageshow", function () {
+                isNavigating = false;
                 setNavigatingState(false);
             });
 

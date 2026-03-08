@@ -1,22 +1,6 @@
 {% extends "hcsd/base.html" %}
 {% block title %}تصاريح البلدية{% endblock %}
 {% block content %}
-<script>
-  (function () {
-    var root = document.documentElement;
-    root.classList.add("permit-types--loading");
-
-    function clearLoadingState() {
-      root.classList.remove("permit-types--loading");
-    }
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", clearLoadingState, { once: true });
-    } else {
-      clearLoadingState();
-    }
-  })();
-</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
 
@@ -127,11 +111,34 @@
     border-radius: 3px;
     font-size: 14px;
   }
+
+  .permit-denied {
+    text-align: center;
+    margin: 10px 0 0;
+    font-weight: 700;
+  }
+
+  .permit-card .disabled-link {
+    display: inline-block;
+    background: #d7d7d7;
+    color: #555;
+    padding: 8px 14px;
+    border-radius: 3px;
+    font-size: 14px;
+    cursor: not-allowed;
+  }
+
+  .permit-lock-note {
+    margin: 2px 0 0;
+    color: #8a1f1f;
+    font-size: 12px;
+    font-weight: 700;
+  }
 </style>
 
 <section class="permit-types" lang="ar" dir="rtl">
   <div class="permit-types__wrap">
-    <div class="permit-types__title">تصريح النشاط</div>
+    <div class="permit-types__title">طلب تصريح  </div>
     <div class="permit-types__skeleton" aria-hidden="true">
       <div class="permit-skeleton-card">
         <div class="permit-skeleton-line permit-skeleton-line--title"></div>
@@ -145,19 +152,40 @@
         <div class="permit-skeleton-line permit-skeleton-line--mid"></div>
         <div class="permit-skeleton-line permit-skeleton-line--button"></div>
       </div>
+      <div class="permit-skeleton-card">
+        <div class="permit-skeleton-line permit-skeleton-line--title"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--long"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--mid"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--button"></div>
+      </div>
     </div>
+    {% if can_create_pirmet %}
     <div class="permit-grid">
       <div class="permit-card">
         <h3>تصريح مزاولة نشاط مكافحة آفات الصحة العامة</h3>
         <p>طلب تصريح لشركات مكافحة آفات الصحة العامة مع بيانات المهندس والأنشطة.</p>
-        <a href="{% url 'pest_control_permit' %}">بدء الطلب</a>
+   
+          <a href="{% url 'pest_control_permit' %}">بدء الطلب</a>
+       
       </div>
       <div class="permit-card">
         <h3>تصريح المركبة للشركات</h3>
         <p>تقديم مستندات المركبة والتفتيش ثم متابعة دفع تصريح المركبة وإصداره.</p>
-        <a href="{% url 'vehicle_permit' %}">بدء الطلب</a>
+   
+          <a href="{% url 'vehicle_permit' %}">بدء الطلب</a>
+       
+      </div>
+      <div class="permit-card">
+        <h3>تصريح التخلص من النفايات</h3>
+        <p>تقديم بيانات تصنيف وكمية النفايات ومتابعة إجراءات الدفع والاعتماد وإصدار التصريح.</p>
+        
+          <a href="{% url 'waste_permit' %}">بدء الطلب</a>
+       
       </div>
     </div>
+    {% else %}
+      <p class="permit-denied">ليس لديك صلاحية إنشاء تصاريح.</p>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

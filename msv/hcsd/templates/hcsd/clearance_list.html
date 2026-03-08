@@ -42,6 +42,12 @@
     font-size: 18px;
   }
 
+  .card.finished-card {
+    border-style: dashed;
+    border-color: #d7cdb8;
+    background: linear-gradient(180deg, #fbf7ef, #f7f1e5);
+  }
+
   .hint {
     color: var(--muted);
     font-size: 13px;
@@ -118,10 +124,9 @@
 
   .clearance-card-head {
     display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    align-items: flex-start;
-    flex-wrap: wrap;
+    flex-direction: column-reverse;
+    gap: 8px;
+    align-items: stretch;
     border-bottom: 1px solid #e7ddcf;
     padding-bottom: 8px;
   }
@@ -131,14 +136,17 @@
     font-size: 18px;
     color: var(--ink);
     line-height: 1.35;
+    text-align: center;
   }
 
   .clearance-card-status {
+    display: block;
+    width: 100%;
+    text-align: center;
     font-size: 13px;
     font-weight: 800;
     border-radius: 999px;
     padding: 6px 12px;
-    white-space: nowrap;
     line-height: 1.2;
     border: 1px solid transparent;
   }
@@ -267,9 +275,9 @@
     
 
     <div class="card">
-        <h2>طلبات التصاريح </h2>
+        <h2>طلبات قيد المتابعة</h2>
 
-        {% if clearances %}
+        {% if active_clearances %}
             <div class="clearance-table-wrap">
             <table class="clearance-table no-mobile-cards">
                 <thead>
@@ -286,7 +294,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for clearance in clearances %}
+                    {% for clearance in active_clearances %}
                         <tr>
                             <td>{{ clearance.company.name }}</td>
                             <td>{{ clearance.permit_label_ar }}</td>
@@ -372,7 +380,7 @@
             </div>
 
             <div class="clearance-cards">
-                {% for clearance in clearances %}
+                {% for clearance in active_clearances %}
                     <article class="clearance-card">
                         <div class="clearance-card-head">
                             <div class="clearance-card-company">{{ clearance.company.name }}</div>
@@ -514,7 +522,59 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p class="hint">لا توجد طلبات حالياً.</p>
+            <p class="hint">لا توجد طلبات قيد المتابعة حالياً.</p>
+        {% endif %}
+    </div>
+
+    <div class="card finished-card">
+        <h2>طلبات منتهية</h2>
+        {% if finished_clearances %}
+            <div class="clearance-cards">
+                {% for clearance in finished_clearances %}
+                    <article class="clearance-card">
+                        <div class="clearance-card-head">
+                            <div class="clearance-card-company">{{ clearance.company.name }}</div>
+                            <div class="clearance-card-status
+                              {% if clearance.status == 'issued' %}status-issued
+                              {% elif clearance.status == 'cancelled_admin' %}status-needs-completion
+                              {% elif clearance.status == 'inspection_completed' %}status-inspection-completed
+                              {% elif clearance.status == 'disposal_approved' %}status-disposal-approved
+                              {% elif clearance.status == 'disposal_rejected' %}status-disposal-rejected
+                              {% else %}status-fallback{% endif %}">
+                                {% if clearance.status == 'issued' %}
+                                    تم إصدار التصريح
+                                {% elif clearance.status == 'cancelled_admin' %}
+                                    مغلق إداريًا
+                                {% elif clearance.status == 'inspection_completed' %}
+                                    تم التفتيش
+                                {% elif clearance.status == 'disposal_approved' %}
+                                    إتلاف معتمد
+                                {% elif clearance.status == 'disposal_rejected' %}
+                                    إتلاف مرفوض
+                                {% else %}
+                                    {{ clearance.get_status_display }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="clearance-card-created">تاريخ الإنشاء: {{ clearance.dateOfCreation }}</div>
+                        <div class="clearance-card-grid">
+                            <div class="clearance-card-row">
+                                <div class="clearance-card-label">نوع التصريح</div>
+                                <div class="clearance-card-value">{{ clearance.permit_label_ar }}</div>
+                            </div>
+                            <div class="clearance-card-row">
+                                <div class="clearance-card-label">تاريخ الانتهاء</div>
+                                <div class="clearance-card-value">{{ clearance.dateOfExpiry }}</div>
+                            </div>
+                        </div>
+                        <div class="clearance-card-actions">
+                            <a href="{% url clearance.detail_url_name clearance.id %}" class="action-link">عرض التفاصيل</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="hint">لا توجد طلبات منتهية حالياً.</p>
         {% endif %}
     </div>
 </section>

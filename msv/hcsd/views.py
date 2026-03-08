@@ -381,15 +381,82 @@ def _enginer_has_passed_for_certificate(enginer, certificate_type):
 
 
 def home(request):
-    latest_pirmet = (
-        PirmetClearance.objects.filter(permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'])
-        .select_related('company')
-        .order_by('-dateOfCreation')[:8]
+    permits_qs = PirmetClearance.objects.filter(
+        permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal']
     )
-    for permit in latest_pirmet:
-        permit.permit_label_ar = _permit_label_ar(permit.permit_type)
-        permit.detail_url_name = _permit_detail_url_name(permit.permit_type)
-    return render(request, 'hcsd/base.html', {'latest_pirmet': latest_pirmet, 'show_latest': True})
+    total_permits = permits_qs.count()
+    issued_permits = permits_qs.filter(status='issued').count()
+    pending_permits = permits_qs.filter(
+        status__in=[
+            'order_received',
+            'inspection_payment_pending',
+            'inspection_pending',
+            'review_pending',
+            'payment_pending',
+            'payment_completed',
+            'disposal_approved',
+        ]
+    ).count()
+    needs_completion_permits = permits_qs.filter(status__in=['needs_completion', 'rejected', 'disposal_rejected']).count()
+
+    status_label_map = {
+        'order_received': 'تم استلام الطلب',
+        'inspection_payment_pending': 'بانتظار دفع التفتيش',
+        'inspection_pending': 'بانتظار التفتيش',
+        'review_pending': 'بانتظار المراجعة',
+        'approved': 'معتمد من المفتش',
+        'needs_completion': 'نواقص بحاجة للاستكمال',
+        'payment_pending': 'بانتظار دفع التصريح',
+        'payment_completed': 'تم استلام الدفع',
+        'issued': 'تم إصدار التصريح',
+        'cancelled_admin': 'موقوف إداريًا',
+        'disposal_approved': 'إتلاف معتمد',
+        'disposal_rejected': 'إتلاف مرفوض',
+    }
+    status_breakdown = [
+        {
+            'key': row['status'],
+            'label': status_label_map.get(row['status'], row['status']),
+            'total': row['total'],
+        }
+        for row in permits_qs.values('status').annotate(total=Count('id')).order_by('-total')[:6]
+    ]
+    permit_type_breakdown = [
+        {
+            'key': row['permit_type'],
+            'label': _permit_label_ar(row['permit_type']),
+            'total': row['total'],
+        }
+        for row in permits_qs.values('permit_type').annotate(total=Count('id')).order_by('-total')
+    ]
+    today = timezone.localdate()
+    active_extension_companies = (
+        CompanyChangeLog.objects.filter(
+            action='extension_requested',
+            extension_end_date__isnull=False,
+            extension_end_date__gte=today,
+        )
+        .filter(Q(extension_start_date__isnull=True) | Q(extension_start_date__lte=today))
+        .values('company_id')
+        .distinct()
+        .count()
+    )
+
+    return render(
+        request,
+        'hcsd/home.html',
+        {
+            'total_companies': Company.objects.count(),
+            'total_engineers': Enginer.objects.count(),
+            'total_permits': total_permits,
+            'issued_permits': issued_permits,
+            'pending_permits': pending_permits,
+            'needs_completion_permits': needs_completion_permits,
+            'active_extension_companies': active_extension_companies,
+            'status_breakdown': status_breakdown,
+            'permit_type_breakdown': permit_type_breakdown,
+        },
+    )
 
 
 @login_required
@@ -1469,16 +1536,16 @@ def engineer_certificate_request_detail(request, request_id):
 
 @login_required
 def clearance_list(request):
-    clearances = (
+    clearances_qs = (
         PirmetClearance.objects.filter(permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'])
         .select_related('company')
         .order_by('-dateOfCreation')
     )
-    reviews = InspectorReview.objects.filter(pirmet__in=clearances).select_related('inspector', 'inspector_user')
+    reviews = InspectorReview.objects.filter(pirmet__in=clearances_qs).select_related('inspector', 'inspector_user')
     review_map = {review.pirmet_id: review for review in reviews}
     inspection_receive_changes = (
         PirmetChangeLog.objects.filter(
-            pirmet__in=clearances,
+            pirmet__in=clearances_qs,
             change_type='details_update',
             notes__startswith='inspection_received_by:',
         )
@@ -1486,7 +1553,7 @@ def clearance_list(request):
     )
     inspection_report_changes = (
         PirmetChangeLog.objects.filter(
-            pirmet__in=clearances,
+            pirmet__in=clearances_qs,
             change_type='details_update',
             notes__startswith='inspection_report:',
         )
@@ -1501,11 +1568,13 @@ def clearance_list(request):
     for change in inspection_report_changes:
         if change.pirmet_id not in inspection_report_map:
             inspection_report_map[change.pirmet_id] = change
+    clearances = list(clearances_qs)
     for clearance in clearances:
         clearance.permit_label_ar = _permit_label_ar(clearance.permit_type)
         clearance.detail_url_name = _permit_detail_url_name(clearance.permit_type)
         review = review_map.get(clearance.id)
         clearance.inspector_name = _inspector_review_name(review)
+        clearance.inspection_assigned_user_id = review.inspector_user_id if review and review.inspector_user_id else None
         request_docs = _request_documents(clearance)
         clearance.request_documents_count = len(request_docs)
         clearance.has_request_documents = bool(
@@ -1523,11 +1592,58 @@ def clearance_list(request):
             else None
         )
 
+    finished_statuses = {
+        'issued',
+        'inspection_completed',
+        'cancelled_admin',
+        'disposal_approved',
+        'disposal_rejected',
+    }
+    active_clearances = [item for item in clearances if item.status not in finished_statuses]
+    finished_clearances = [item for item in clearances if item.status in finished_statuses]
+
+    if _can_inspector(request.user):
+        current_user_id = request.user.id
+
+        def _active_inspector_sort_key(item):
+            is_inspection_pending = item.status == 'inspection_pending'
+            assigned_to_current = bool(
+                is_inspection_pending
+                and item.inspection_assigned_user_id
+                and item.inspection_assigned_user_id == current_user_id
+            )
+            if assigned_to_current:
+                priority = 0
+            elif is_inspection_pending:
+                priority = 1
+            else:
+                priority = 2
+            created_ordinal = item.dateOfCreation.toordinal() if item.dateOfCreation else 0
+            return (priority, -created_ordinal, -item.id)
+
+        active_clearances.sort(key=_active_inspector_sort_key)
+    else:
+        active_clearances.sort(
+            key=lambda item: (
+                -(item.dateOfCreation.toordinal() if item.dateOfCreation else 0),
+                -item.id,
+            )
+        )
+
+    finished_clearances.sort(
+        key=lambda item: (
+            -(item.dateOfCreation.toordinal() if item.dateOfCreation else 0),
+            -item.id,
+        )
+    )
+
     return render(
         request,
         'hcsd/clearance_list.html',
         {
-            'clearances': clearances,
+            'clearances': active_clearances,
+            'active_clearances': active_clearances,
+            'finished_clearances': finished_clearances,
             'can_create_pirmet': _can_data_entry(request.user),
             'form_errors': [],
         },
@@ -1535,7 +1651,13 @@ def clearance_list(request):
 
 
 def permit_types(request):
-    return render(request, 'hcsd/permit_types.html')
+    return render(
+        request,
+        'hcsd/permit_types.html',
+        {
+            'can_create_pirmet': _can_data_entry(request.user),
+        },
+    )
 
 
 @login_required
@@ -2143,10 +2265,12 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
         permit_type='waste_disposal',
     )
     today = datetime.date.today()
-    if permit.status != 'issued' or not permit.dateOfExpiry or permit.dateOfExpiry < today:
+    if not permit.dateOfExpiry or permit.dateOfExpiry < today:
         return redirect('waste_permit_detail', id=permit.id)
 
     if request_id is None:
+        if permit.status != 'issued':
+            return redirect('waste_permit_detail', id=permit.id)
         if not _can_data_entry(request.user):
             return redirect('waste_permit_detail', id=permit.id)
         disposal_request = WasteDisposalRequest.objects.create(permit=permit, status='payment_pending')
@@ -2236,13 +2360,28 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
             if decision == 'rejected' and not notes:
                 review_errors.append('يرجى كتابة سبب الرفض.')
             if not review_errors:
+                old_permit_status = permit.status
                 if decision == 'approved':
                     disposal_request.status = 'completed'
+                    permit.status = 'disposal_approved'
+                    if permit.unapprovedReason:
+                        permit.unapprovedReason = None
                 else:
                     disposal_request.status = 'rejected'
+                    permit.status = 'disposal_rejected'
+                    permit.unapprovedReason = notes or 'Waste disposal inspection rejected.'
                 disposal_request.inspection_notes = notes or None
                 disposal_request.inspected_by = request.user
                 disposal_request.save(update_fields=['status', 'inspection_notes', 'inspected_by', 'updated_at'])
+                permit.save(update_fields=['status', 'unapprovedReason'])
+                _log_pirmet_change(
+                    permit,
+                    'status_change',
+                    request.user,
+                    old_status=old_permit_status,
+                    new_status=permit.status,
+                    notes=f'Waste disposal request {disposal_request.id} decision: {decision}.',
+                )
                 _log_pirmet_change(
                     permit,
                     'details_update',

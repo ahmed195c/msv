@@ -1,0 +1,223 @@
+{% extends "hcsd/base.html" %}
+{% block title %}لوحة النظام{% endblock %}
+{% block content %}
+<style>
+  .home-dashboard {
+    display: grid;
+    gap: 16px;
+    padding: 8px 0 28px;
+  }
+
+  .home-hero {
+    border: 1px solid var(--line-soft);
+    border-radius: 18px;
+    background:
+      radial-gradient(circle at 8% 16%, rgba(28, 118, 117, 0.14), transparent 42%),
+      radial-gradient(circle at 85% 25%, rgba(187, 127, 45, 0.18), transparent 48%),
+      linear-gradient(140deg, rgba(255, 255, 255, 0.95), rgba(246, 241, 232, 0.92));
+    padding: 18px;
+  }
+
+  .home-hero h1 {
+    margin: 0;
+    font-size: 28px;
+  }
+
+  .home-hero p {
+    margin: 8px 0 0;
+    color: var(--ink-500);
+    font-size: 14px;
+  }
+
+  .home-metrics {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  }
+
+  .home-metric {
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 14px;
+    background: var(--surface-base);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .home-metric .label {
+    font-size: 12px;
+    color: var(--ink-500);
+  }
+
+  .home-metric .value {
+    margin-top: 8px;
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 800;
+    color: var(--ink-900);
+  }
+
+  .home-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-card {
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    background: var(--surface-raised);
+    padding: 14px;
+  }
+
+  .home-card h2 {
+    margin: 0 0 10px;
+    font-size: 18px;
+  }
+
+  .home-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .home-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid rgba(26, 51, 63, 0.12);
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.86);
+  }
+
+  .home-list .count {
+    min-width: 34px;
+    text-align: center;
+    border-radius: 999px;
+    background: var(--teal-100);
+    color: var(--teal-700);
+    font-weight: 800;
+    padding: 3px 9px;
+  }
+
+  .home-actions {
+    display: grid;
+    gap: 8px;
+  }
+
+  .home-actions a {
+    text-decoration: none;
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--ink-900);
+    background: rgba(255, 255, 255, 0.9);
+    font-weight: 700;
+  }
+
+  .home-actions a:hover {
+    border-color: rgba(28, 118, 117, 0.45);
+    color: var(--teal-700);
+  }
+
+  @media (max-width: 900px) {
+    .home-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<section class="home-dashboard" lang="ar" dir="rtl">
+  <div class="home-hero">
+    <h1>لوحة النظام</h1>
+  </div>
+
+  <div class="home-metrics">
+    <article class="home-metric">
+      <div class="label">إجمالي الشركات</div>
+      <div class="value">{{ total_companies }}</div>
+    </article>
+    <article class="home-metric">
+      <div class="label">إجمالي المهندسين</div>
+      <div class="value">{{ total_engineers }}</div>
+    </article>
+    <article class="home-metric">
+      <div class="label">إجمالي الطلبات</div>
+      <div class="value">{{ total_permits }}</div>
+    </article>
+    <article class="home-metric">
+      <div class="label">التصاريح الصادرة</div>
+      <div class="value">{{ issued_permits }}</div>
+    </article>
+    <article class="home-metric">
+      <div class="label">طلبات قيد الإجراء</div>
+      <div class="value">{{ pending_permits }}</div>
+    </article>
+    <article class="home-metric">
+      <div class="label">شركات داخل مهلة</div>
+      <div class="value">{{ active_extension_companies }}</div>
+    </article>
+  </div>
+
+  <div class="home-grid">
+    <article class="home-card">
+      <h2>توزيع حسب الحالة</h2>
+      <ul class="home-list">
+        {% for item in status_breakdown %}
+          <li>
+            <span>{{ item.label }}</span>
+            <span class="count">{{ item.total }}</span>
+          </li>
+        {% empty %}
+          <li><span>لا توجد بيانات حالياً</span><span class="count">0</span></li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="home-card">
+      <h2>توزيع حسب نوع التصريح</h2>
+      <ul class="home-list">
+        {% for item in permit_type_breakdown %}
+          <li>
+            <span>{{ item.label }}</span>
+            <span class="count">{{ item.total }}</span>
+          </li>
+        {% empty %}
+          <li><span>لا توجد بيانات حالياً</span><span class="count">0</span></li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="home-card">
+      <h2>روابط سريعة</h2>
+      <div class="home-actions">
+        <a href="{% url 'clearance_list' %}">متابعة الطلبات</a>
+        <a href="{% url 'permit_types' %}">التصاريح</a>
+        <a href="{% url 'company_list' %}">الشركات</a>
+        <a href="{% url 'enginer_list' %}">المهندسين</a>
+      </div>
+    </article>
+
+    <article class="home-card">
+      <h2>طلبات تحتاج متابعة</h2>
+      <ul class="home-list">
+        <li>
+          <span>نواقص بحاجة للاستكمال</span>
+          <span class="count">{{ needs_completion_permits }}</span>
+        </li>
+        <li>
+          <span>طلبات قيد الإجراء</span>
+          <span class="count">{{ pending_permits }}</span>
+        </li>
+        <li>
+          <span>تصاريح صادرة</span>
+          <span class="count">{{ issued_permits }}</span>
+        </li>
+      </ul>
+    </article>
+  </div>
+</section>
+{% endblock %}
