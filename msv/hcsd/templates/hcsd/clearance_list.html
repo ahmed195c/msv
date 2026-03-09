@@ -18,6 +18,41 @@
   .clearance-title {
     margin: 0;
     font-size: 22px;
+    background: #eef3f1;
+    color: #1f3b34;
+    border: 1px solid #cfe0db;
+    border-radius: 10px;
+    padding: 6px 12px;
+  }
+
+  .clearance-filters {
+    margin-bottom: 14px;
+  }
+
+  .clearance-filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .clearance-filter-form label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .clearance-filter-form select {
+    min-width: 240px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  .clearance-filter-active {
+    margin-top: 8px;
   }
 
  
@@ -40,6 +75,12 @@
   .card h2 {
     margin: 0 0 12px;
     font-size: 18px;
+    background: #f3efe6;
+    color: #2f3c37;
+    border: 1px solid #e1d7c7;
+    border-radius: 10px;
+    padding: 8px 12px;
+    width: fit-content;
   }
 
   .card.finished-card {
@@ -124,7 +165,14 @@
     margin: 0 0 10px;
     font-size: 16px;
     font-weight: 800;
-    color: #3f433a;
+    color: #2f3b36;
+    background: #eef2f7;
+    border: 1px solid #d5dee9;
+    border-radius: 999px;
+    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .clearance-card {
@@ -158,12 +206,13 @@
     display: block;
     width: 100%;
     text-align: center;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 800;
     border-radius: 999px;
-    padding: 6px 12px;
+    padding: 8px 12px;
     line-height: 1.2;
     border: 1px solid transparent;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
   }
 
   .status-order-received { background: #eaf3ff; color: #0f4f98; border-color: #cfe2ff; }
@@ -176,7 +225,7 @@
   .status-issued { background: #e6fbf5; color: #0c6d56; border-color: #b5eadc; }
   .status-inspection-pending { background: #eef2ff; color: #2f4aa0; border-color: #cfd8ff; }
   .status-inspection-completed { background: #edf6f6; color: #1f6161; border-color: #cae2e2; }
-  .status-fallback { background: #f3eee5; color: var(--muted); border-color: #e2d8c8; }
+  .status-fallback { background: #f3eee5; color: #4f5652; border-color: #e2d8c8; }
   .status-disposal-approved { background: #e8f7ee; color: #17653d; border-color: #bfe5cc; }
   .status-disposal-rejected { background: #fff0f0; color: #9a2626; border-color: #f0c2c2; }
 
@@ -243,6 +292,11 @@
       width: 100%;
     }
 
+    .clearance-filter-form select {
+      width: 100%;
+      min-width: 0;
+    }
+
     .card {
       padding: 14px;
     }
@@ -287,7 +341,23 @@
         </div>
     {% endif %}
 
-    
+    <div class="clearance-filters">
+        <form method="get" class="clearance-filter-form">
+            <label for="status_filter">فلترة حسب الحالة</label>
+            <select id="status_filter" name="status">
+                {% for option in status_filter_options %}
+                    <option value="{{ option.value }}" {% if status_filter == option.value %}selected{% endif %}>{{ option.label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn">تطبيق</button>
+            {% if status_filter != 'all' %}
+                <a href="{% url 'clearance_list' %}" class="btn">إلغاء الفلتر</a>
+            {% endif %}
+        </form>
+        {% if status_filter != 'all' %}
+            <div class="hint clearance-filter-active">الفلتر الحالي: {{ status_filter_label }}</div>
+        {% endif %}
+    </div>
 
     <div class="card">
         <h2>طلبات قيد المتابعة</h2>
@@ -359,7 +429,7 @@
                                         <div class="hint" style="color: #a00;">{{ clearance.unapprovedReason }}</div>
                                     {% endif %}
                                 {% endif %}
-                                {% if clearance.inspection_payment_link %}
+                                {% if clearance.permit_type != 'pesticide_transport' and clearance.inspection_payment_link %}
                                     <div class="hint" style="margin-top: 4px;">
                                         <a href="{{ clearance.inspection_payment_link }}" target="_blank" rel="noopener">رابط دفع التفتيش</a>
                                     </div>
@@ -370,7 +440,7 @@
                                     </div>
                                 {% endif %}
                             </td>
-                            <td>{{ clearance.inspection_payment_reference|default:"-" }}</td>
+                            <td>{% if clearance.permit_type == 'pesticide_transport' %}-{% else %}{{ clearance.inspection_payment_reference|default:"-" }}{% endif %}</td>
                             <td>{{ clearance.PaymentNumber|default:"-" }}</td>
                             <td>{{ clearance.company_location|default:"-" }}</td>
                             <td>
@@ -503,7 +573,7 @@
                                             {% if clearance.unapprovedReason and clearance.status == 'needs_completion' or clearance.unapprovedReason and clearance.status == 'rejected' %}
                                                 <div class="hint" style="color: #a00; margin-top: 4px;">{{ clearance.unapprovedReason }}</div>
                                             {% endif %}
-                                            {% if clearance.inspection_payment_link %}
+                                            {% if clearance.permit_type != 'pesticide_transport' and clearance.inspection_payment_link %}
                                                 <div class="hint" style="margin-top: 4px;">
                                                     <a href="{{ clearance.inspection_payment_link }}" target="_blank" rel="noopener">رابط دفع التفتيش</a>
                                                 </div>
@@ -515,10 +585,12 @@
                                             {% endif %}
                                         </div>
                                     </div>
-                                    <div class="clearance-card-row">
-                                        <div class="clearance-card-label">مرجع دفع التفتيش</div>
-                                        <div class="clearance-card-value">{{ clearance.inspection_payment_reference|default:"-" }}</div>
-                                    </div>
+                                    {% if clearance.permit_type != 'pesticide_transport' %}
+                                        <div class="clearance-card-row">
+                                            <div class="clearance-card-label">مرجع دفع التفتيش</div>
+                                            <div class="clearance-card-value">{{ clearance.inspection_payment_reference|default:"-" }}</div>
+                                        </div>
+                                    {% endif %}
                                     <div class="clearance-card-row">
                                         <div class="clearance-card-label">مرجع دفع التصريح</div>
                                         <div class="clearance-card-value">{{ clearance.PaymentNumber|default:"-" }}</div>

@@ -213,7 +213,13 @@
           <span class="label">الحالة الحالية</span>
           <span class="status-badge">
             {% if pirmet.status == "order_received" %}
-              إدخال رقم امر الدفع الموحد - التفتيش
+              {% if violation_required and not violation_order_recorded %}
+                إدخال أمر دفع مخالفة التأخير
+              {% elif violation_required and violation_order_recorded and not violation_receipt_recorded %}
+                إدخال إيصال دفع مخالفة التأخير
+              {% else %}
+                إدخال رقم امر الدفع الموحد - التفتيش
+              {% endif %}
             {% elif pirmet.status == "inspection_payment_pending" %}
               إدخال إيصال دفع التفتيش
             {% elif pirmet.status == "review_pending" %}
@@ -494,30 +500,173 @@
             </div>
           {% endfor %}
         </div>
-        {% if can_manage_inspection_photos %}
-          <form method="post" enctype="multipart/form-data" class="review-form no-print" style="margin-top:12px;">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add_inspection_photos">
-            <label for="inspection_report_photos_extra">إضافة صور تفتيش إضافية</label>
-            <input id="inspection_report_photos_extra" name="inspection_report_photos_extra" type="file" accept="image/*" multiple>
-            <button type="submit">حفظ الصور الإضافية</button>
-          </form>
-        {% endif %}
       </section>
-    {% elif can_manage_inspection_photos %}
+    {% endif %}
+
+    {% if violation_required or violation_order_recorded or violation_receipt_recorded %}
+      <section class="permit-section">
+        <div class="section-title">بيانات مخالفة التأخير</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">تاريخ مرجع المخالفة</span>
+            <span class="value">{{ renewal_reference_date|date:"d/m/Y"|default:"-" }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">أيام التأخير</span>
+            <span class="value">{{ delay_days_total }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">أشهر التأخير المحتسبة</span>
+            <span class="value">{{ delay_months_after_grace }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">رقم أمر دفع المخالفة</span>
+            <span class="value">{{ pirmet.violation_payment_order_number|default:"-" }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">قيمة المخالفة</span>
+            <span class="value">
+              {% if violation_amount_due %}
+                {{ violation_amount_due }} درهم
+              {% else %}
+                -
+              {% endif %}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">إيصال دفع المخالفة</span>
+            <span class="value">
+              {% if pirmet.violation_payment_receipt %}
+                <a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
+              {% else %}
+                -
+              {% endif %}
+            </span>
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    {% if can_add_inspection_photos %}
       <section class="permit-section no-print">
-        <div class="section-title">صور تقرير التفتيش</div>
+        <div class="section-title">
+          {% if inspection_report_photos %}
+            إرفاق صور إضافية
+          {% else %}
+            إرفاق صور التفتيش
+          {% endif %}
+        </div>
         <form method="post" enctype="multipart/form-data" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="add_inspection_photos">
-          <label for="inspection_report_photos_extra_empty">إضافة صور تفتيش</label>
-          <input id="inspection_report_photos_extra_empty" name="inspection_report_photos_extra" type="file" accept="image/*" multiple>
-          <button type="submit">حفظ الصور</button>
+          <div class="upload-stack">
+            <div class="upload-card">
+              <div class="upload-card-head">
+                <span>
+                  {% if inspection_report_photos %}
+                    إرفاق صور إضافية (اختياري)
+                  {% else %}
+                    إرفاق صور التفتيش (اختياري)
+                  {% endif %}
+                </span>
+                <span class="upload-card-note">JPG أو PNG</span>
+              </div>
+              <label class="upload-dropzone js-dropzone" for="inspection_report_photos_extra">
+                <span class="upload-dropzone-icon">⇪</span>
+                <span class="upload-dropzone-title">اسحب الصور هنا أو اضغط للاختيار</span>
+                <span class="upload-dropzone-sub">يمكنك إرفاق أكثر من صورة</span>
+              </label>
+              <input
+                id="inspection_report_photos_extra"
+                name="inspection_report_photos_extra"
+                type="file"
+                accept="image/*"
+                multiple
+                class="upload-hidden-input js-file-input"
+              >
+              <div class="upload-file-chip js-file-chip" aria-live="polite">
+                <span class="upload-file-chip-name js-file-name">لم يتم اختيار صور</span>
+                <span class="upload-file-chip-size js-file-size"></span>
+              </div>
+            </div>
+          </div>
+          <button type="submit">حفظ الصور الإضافية</button>
         </form>
       </section>
     {% endif %}
 
-    {% if can_record_payment and pirmet.status == "order_received" %}
+    {% if can_record_violation_order %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال أمر دفع مخالفة التأخير</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_violation_payment_order">
+          <div class="detail-grid" style="margin-bottom: 14px;">
+            <div class="detail-item">
+              <span class="label">أشهر التأخير بعد الشهر الأول</span>
+              <span class="value">{{ delay_months_after_grace }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">قيمة المخالفة</span>
+              <span class="value">{{ violation_amount_due }} درهم</span>
+            </div>
+          </div>
+          <label for="violation_payment_order_number">رقم أمر دفع المخالفة</label>
+          <input
+            id="violation_payment_order_number"
+            name="violation_payment_order_number"
+            type="text"
+            value="{{ pirmet.violation_payment_order_number|default:'' }}"
+            required
+          >
+          <button type="submit">حفظ رقم أمر المخالفة</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_violation_receipt %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال إيصال دفع مخالفة التأخير</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_violation_payment_receipt">
+          <div class="upload-stack">
+            <div class="upload-card">
+              <div class="upload-card-head">
+                <span>إيصال دفع المخالفة</span>
+                <span class="upload-card-note">PDF أو صورة</span>
+              </div>
+              <label class="upload-dropzone js-dropzone" for="violation_payment_receipt">
+                <span class="upload-dropzone-icon">⇪</span>
+                <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
+                <span class="upload-dropzone-sub">يدعم PDF / JPG / PNG</span>
+              </label>
+              <input
+                id="violation_payment_receipt"
+                name="violation_payment_receipt"
+                type="file"
+                accept=".pdf,image/*"
+                required
+                class="upload-hidden-input js-file-input"
+              >
+              <div class="upload-file-chip js-file-chip" aria-live="polite">
+                <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
+                <span class="upload-file-chip-size js-file-size"></span>
+              </div>
+            </div>
+          </div>
+          {% if pirmet.violation_payment_receipt %}
+            <p class="helper-text">
+              الإيصال الحالي:
+              <a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">عرض الإيصال</a>
+            </p>
+          {% endif %}
+          <button type="submit">حفظ إيصال المخالفة</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_inspection_payment_reference %}
       <section class="permit-section no-print">
         <div class="section-title">إدخال رقم امر الدفع الموحد - التفتيش</div>
         <form method="post" class="review-form">
@@ -536,20 +685,7 @@
       </section>
     {% endif %}
 
-    {% if can_record_payment and pirmet.status != "issued" and pirmet.status != "cancelled_admin" %}
-      <section class="permit-section no-print">
-        <div class="section-title">إغلاق </div>
-        <form method="post" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="cancel_admin">
-          <label for="cancel_reason">ملاحظه سبب الاغلاق</label>
-          <textarea id="cancel_reason" name="cancel_reason" rows="3" required placeholder=":ادخال الملاحظه هنا "></textarea>
-          <button type="submit" style="background:#8c2f2f;">إغلاق الطلب </button>
-        </form>
-      </section>
-    {% endif %}
-
-    {% if can_record_payment and pirmet.status == "inspection_payment_pending" %}
+    {% if can_record_inspection_payment_receipt %}
       <section class="permit-section no-print">
         <div class="section-title">إدخال إيصال دفع التفتيش</div>
         <form method="post" enctype="multipart/form-data" class="review-form">
@@ -585,7 +721,7 @@
       </section>
     {% endif %}
 
-    {% if can_record_payment and pirmet.status == "inspection_completed" and inspection_report_decision == "approved" %}
+    {% if can_record_permit_payment_reference %}
       <section class="permit-section no-print">
         <div class="section-title">إدخال رقم امر الدفع الموحد - تصريح مزاولة النشاط</div>
         <form method="post" class="review-form">
@@ -697,15 +833,45 @@
           </select>
           <label for="inspection_report_notes">ملاحظات التفتيش</label>
           <textarea id="inspection_report_notes" name="inspection_report_notes" rows="4"></textarea>
-          <label for="inspection_report_photos">صور من التفتيش (اختياري)</label>
-          <input
-            id="inspection_report_photos"
-            name="inspection_report_photos"
-            type="file"
-            accept="image/*"
-            multiple
-          >
+          <div class="upload-stack">
+            <div class="upload-card">
+              <div class="upload-card-head">
+                <span>صور من التفتيش (اختياري)</span>
+                <span class="upload-card-note">JPG أو PNG</span>
+              </div>
+              <label class="upload-dropzone js-dropzone" for="inspection_report_photos">
+                <span class="upload-dropzone-icon">⇪</span>
+                <span class="upload-dropzone-title">اسحب الصور هنا أو اضغط للاختيار</span>
+                <span class="upload-dropzone-sub">يمكنك إرفاق أكثر من صورة</span>
+              </label>
+              <input
+                id="inspection_report_photos"
+                name="inspection_report_photos"
+                type="file"
+                accept="image/*"
+                multiple
+                class="upload-hidden-input js-file-input"
+              >
+              <div class="upload-file-chip js-file-chip" aria-live="polite">
+                <span class="upload-file-chip-name js-file-name">لم يتم اختيار صور</span>
+                <span class="upload-file-chip-size js-file-size"></span>
+              </div>
+            </div>
+          </div>
           <button type="submit">حفظ تقرير التفتيش</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_payment and pirmet.status != "issued" and pirmet.status != "cancelled_admin" %}
+      <section class="permit-section no-print">
+        <div class="section-title">إغلاق </div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="cancel_admin">
+          <label for="cancel_reason">ملاحظه سبب الاغلاق</label>
+          <textarea id="cancel_reason" name="cancel_reason" rows="3" required placeholder=":ادخال الملاحظه هنا "></textarea>
+          <button type="submit" style="background:#8c2f2f;">إغلاق الطلب </button>
         </form>
       </section>
     {% endif %}
@@ -729,18 +895,28 @@
       var sizeEl = card.querySelector('.js-file-size');
       if (!dropzone || !chip || !nameEl || !sizeEl) return;
 
-      function updateChip(file) {
-        if (!file) {
+      function updateChip(fileList) {
+        if (!fileList || !fileList.length) {
           chip.classList.remove('is-visible');
           return;
         }
-        nameEl.textContent = file.name || 'ملف مرفق';
-        sizeEl.textContent = formatSize(file.size || 0);
+        if (fileList.length === 1) {
+          var singleFile = fileList[0];
+          nameEl.textContent = singleFile.name || 'ملف مرفق';
+          sizeEl.textContent = formatSize(singleFile.size || 0);
+        } else {
+          var totalSize = 0;
+          Array.from(fileList).forEach(function (file) {
+            totalSize += file.size || 0;
+          });
+          nameEl.textContent = 'تم اختيار ' + fileList.length + ' صور';
+          sizeEl.textContent = formatSize(totalSize);
+        }
         chip.classList.add('is-visible');
       }
 
       input.addEventListener('change', function () {
-        updateChip(input.files && input.files[0] ? input.files[0] : null);
+        updateChip(input.files);
       });
 
       ['dragenter', 'dragover'].forEach(function (evt) {
@@ -767,9 +943,15 @@
         if (!files || !files.length) return;
 
         var dt = new DataTransfer();
-        dt.items.add(files[0]);
+        if (input.multiple) {
+          Array.from(files).forEach(function (file) {
+            dt.items.add(file);
+          });
+        } else {
+          dt.items.add(files[0]);
+        }
         input.files = dt.files;
-        updateChip(files[0]);
+        updateChip(input.files);
       });
     }
 

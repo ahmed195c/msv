@@ -127,19 +127,8 @@
     font-weight: 700;
   }
 
-  .eng-field input {
+  :where(.eng-field input) {
     width: 100%;
-    border: 1px solid var(--line);
-    background: #fff;
-    border-radius: 12px;
-    padding: 10px 12px;
-    font-size: 14px;
-  }
-
-  .eng-field input:focus {
-    outline: none;
-    border-color: rgba(31, 90, 75, 0.55);
-    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.10);
   }
 
   .upload-box {
@@ -333,10 +322,7 @@
   }
 
   .eng-actions button {
-    min-height: 42px;
-    padding: 10px 16px;
-    border-radius: 12px;
-    font-weight: 700;
+    cursor: pointer;
   }
 
   .eng-actions .secondary-link {
@@ -393,8 +379,6 @@
     <div class="eng-add-grid">
       <aside class="eng-add-side">
         <h1>تسجيل مهندس جديد</h1>
-        <p>أدخل بيانات المهندس وارفع شهادة الصحة العامة بشكل إلزامي، ويمكن إضافة شهادة النمل الأبيض بشكل اختياري.</p>
-        <p>بعد الحفظ سيظهر المهندس مباشرة في قائمة المهندسين ويمكن استخدامه في طلبات التصاريح.</p>
         <a class="eng-side-link" href="{% url 'enginer_list' %}">العودة لقائمة المهندسين</a>
       </aside>
 
@@ -418,29 +402,29 @@
             <div class="eng-form-grid">
               <div class="eng-field full">
                 <label>اسم المهندس</label>
-                <input type="text" name="name" value="{{ form_data.name|default:'' }}" required>
+                <input class="w-full rounded-xl border bg-white px-4 py-2 text-sm shadow-md transition-all" type="text" name="name" value="{{ form_data.name|default:'' }}" required>
               </div>
               <div class="eng-field">
                 <label>رقم الهوية / الرقم الموحد</label>
-                <input type="text" name="national_or_unified_number" value="{{ form_data.national_or_unified_number|default:'' }}" required>
+                <input class="w-full rounded-xl border bg-white px-4 py-2 text-sm shadow-md transition-all" type="text" name="national_or_unified_number" value="{{ form_data.national_or_unified_number|default:'' }}" required>
               </div>
               <div class="eng-field">
                 <label>البريد الإلكتروني</label>
-                <input type="email" name="email" value="{{ form_data.email|default:'' }}" required>
+                <input class="w-full rounded-xl border bg-white px-4 py-2 text-sm shadow-md transition-all" type="email" name="email" value="{{ form_data.email|default:'' }}" required>
               </div>
               <div class="eng-field">
                 <label>رقم الهاتف</label>
-                <input type="text" name="phone" value="{{ form_data.phone|default:'' }}" required>
+                <input class="w-full rounded-xl border bg-white px-4 py-2 text-sm shadow-md transition-all" type="text" name="phone" value="{{ form_data.phone|default:'' }}" required>
               </div>
               <div class="eng-field full">
-                <label>شهادة الصحة العامة (PDF أو صورة)</label>
+                <label>شهادة الصحة العامة (اختياري)</label>
                 <div class="upload-box">
                   <div class="upload-box-head">
                     <span class="upload-box-title">رفع شهادة الصحة العامة</span>
-                    <span class="upload-box-tag">إلزامي</span>
+                    <span class="upload-box-tag">اختياري</span>
                   </div>
                   <div class="upload-box-body">
-                    <input id="public_health_cert" class="upload-native" type="file" name="public_health_cert" required>
+                    <input id="public_health_cert" class="upload-native" type="file" name="public_health_cert">
                     <label class="upload-drop" for="public_health_cert" tabindex="0" data-upload-drop="public_health_cert">
                       <span class="upload-drop-inner">
                         <span class="upload-icon">↑</span>
@@ -453,14 +437,10 @@
                         <span>📄</span>
                         <span class="upload-file-name" data-file-name="public_health_cert">لا يوجد ملف</span>
                       </div>
-                      <div class="upload-actions">
-                        <label class="upload-btn" for="public_health_cert">اختيار ملف</label>
-                        <span class="upload-btn muted">التالي</span>
-                      </div>
                     </div>
                   </div>
                 </div>
-                <div class="eng-help">هذا الحقل مطلوب، ويدعم PDF أو الصور.</div>
+               
               </div>
               <div class="eng-field full">
                 <label>شهادة النمل الأبيض (اختياري)</label>
@@ -483,19 +463,14 @@
                         <span>📄</span>
                         <span class="upload-file-name" data-file-name="termite_cert">لا يوجد ملف</span>
                       </div>
-                      <div class="upload-actions">
-                        <label class="upload-btn" for="termite_cert">اختيار ملف</label>
-                        <span class="upload-btn muted">اختياري</span>
-                      </div>
                     </div>
                   </div>
                 </div>
-                <div class="eng-help">اختياري، ويمكن رفعه لاحقًا من صفحة تفاصيل المهندس.</div>
               </div>
             </div>
             <div class="eng-actions">
-              <button type="submit">حفظ المهندس</button>
-              <a class="secondary-link" href="{% url 'enginer_list' %}">إلغاء والعودة للقائمة</a>
+              <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-[linear-gradient(180deg,#1c7675_0%,#155f5e_100%)] px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-px">حفظ المهندس</button>
+              <a class="secondary-link inline-flex items-center justify-center rounded-xl border  px-4 py-2 text-sm shadow-md transition-all hover:-translate-y-px" href="{% url 'enginer_list' %}">إلغاء والعودة للقائمة</a>
             </div>
           </form>
         {% endif %}

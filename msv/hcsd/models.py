@@ -168,6 +168,12 @@ class PirmetClearance(models.Model):
     inspection_payment_receipt = models.FileField(
         upload_to='pirmet_documents/inspection_receipts/', null=True, blank=True
     )
+    violation_reference_expiry = models.DateField(null=True, blank=True)
+    violation_payment_order_number = models.CharField(max_length=100, null=True, blank=True)
+    violation_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    violation_payment_receipt = models.FileField(
+        upload_to='pirmet_documents/violation_receipts/', null=True, blank=True
+    )
     request_email = models.EmailField(null=True, blank=True)
     request_documents_bundle = models.FileField(
         upload_to='pirmet_documents/bundles/', null=True, blank=True

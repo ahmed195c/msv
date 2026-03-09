@@ -41,7 +41,7 @@
     {% if item.unapprovedReason and item.status == 'needs_completion' or item.unapprovedReason and item.status == 'rejected' %}
       <div class="hint" style="color: #a00; margin-top: 4px;">{{ item.unapprovedReason }}</div>
     {% endif %}
-    {% if item.inspection_payment_link %}
+    {% if item.permit_type != 'pesticide_transport' and item.inspection_payment_link %}
       <div class="hint" style="margin-top: 4px;">
         <a href="{{ item.inspection_payment_link }}" target="_blank" rel="noopener">رابط دفع التفتيش</a>
       </div>

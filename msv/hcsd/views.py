@@ -293,6 +293,77 @@ def _request_documents(pirmet):
     ]
 
 
+def _latest_expired_activity_permit_before(pirmet, reference_date):
+    official_expired = (
+        PirmetClearance.objects.filter(
+            company=pirmet.company,
+            permit_type='pest_control',
+            status__in={'issued', 'payment_completed'},
+            dateOfExpiry__isnull=False,
+            dateOfExpiry__lt=reference_date,
+        )
+        .exclude(id=pirmet.id)
+        .order_by('-dateOfExpiry', '-id')
+        .first()
+    )
+    if official_expired:
+        return official_expired
+
+    # Fallback for legacy records where historical permits may not be marked as issued.
+    return (
+        PirmetClearance.objects.filter(
+            company=pirmet.company,
+            permit_type='pest_control',
+            dateOfExpiry__isnull=False,
+            dateOfExpiry__lt=reference_date,
+        )
+        .exclude(id=pirmet.id)
+        .order_by('-dateOfExpiry', '-id')
+        .first()
+    )
+
+
+def _delay_months_after_first_month(expiry_date, reference_date):
+    if not expiry_date or not reference_date or reference_date <= expiry_date:
+        return 0
+    grace_end = _add_months(expiry_date, 1)
+    if not grace_end or reference_date <= grace_end:
+        return 0
+
+    months = 0
+    cursor = grace_end
+    while cursor and cursor < reference_date:
+        months += 1
+        cursor = _add_months(cursor, 1)
+    return months
+
+
+def _initial_violation_reference_expiry(existing_company_trade_license_expiry, submitted_trade_license_expiry):
+    # Freeze the reference at request creation time using the company's
+    # previously stored trade license expiry (before any in-form edits).
+    if existing_company_trade_license_expiry:
+        return existing_company_trade_license_expiry
+    if submitted_trade_license_expiry:
+        return submitted_trade_license_expiry
+    return None
+
+
+def _violation_reference_expiry_date(pirmet, reference_date):
+    if pirmet.violation_reference_expiry:
+        return pirmet.violation_reference_expiry
+
+    previous_permit = _latest_expired_activity_permit_before(pirmet, reference_date)
+    if previous_permit and previous_permit.dateOfExpiry:
+        return previous_permit.dateOfExpiry
+
+    # Legacy fallback: if this request itself carries an old expiry date,
+    # treat it as the overdue renewal baseline.
+    if pirmet.dateOfExpiry and pirmet.dateOfExpiry < reference_date:
+        return pirmet.dateOfExpiry
+
+    return None
+
+
 def _log_pirmet_change(pirmet, change_type, user, old_status=None, new_status=None, notes=''):
     PirmetChangeLog.objects.create(
         pirmet=pirmet,
@@ -962,8 +1033,6 @@ def enginer_add(request):
             }
             if not name or not national_or_unified_number or not email or not phone:
                 error = 'يرجى إدخال بيانات المهندس كاملة.'
-            elif not public_health_cert:
-                error = 'يرجى إرفاق شهادة الصحة العامة.'
 
             if not error:
                 enginer = Enginer.objects.create(
@@ -980,12 +1049,13 @@ def enginer_add(request):
                     notes='Engineer created.',
                     changed_by=request.user,
                 )
-                EnginerStatusLog.objects.create(
-                    enginer=enginer,
-                    action='public_health_cert_uploaded',
-                    notes='Public health certificate uploaded.',
-                    changed_by=request.user,
-                )
+                if public_health_cert:
+                    EnginerStatusLog.objects.create(
+                        enginer=enginer,
+                        action='public_health_cert_uploaded',
+                        notes='Public health certificate uploaded.',
+                        changed_by=request.user,
+                    )
                 if termite_cert:
                     EnginerStatusLog.objects.create(
                         enginer=enginer,
@@ -1649,6 +1719,22 @@ def clearance_list(request):
         )
     )
 
+    status_filter_label_map = {
+        'inspection_pending': 'بانتظار التفتيش',
+        'order_received': 'تم استلام الطلب',
+        'inspection_payment_pending': 'بانتظار دفع التفتيش',
+        'review_pending': 'بانتظار مراجعة المفتش',
+        'approved': 'معتمد من المفتش',
+        'needs_completion': 'بحاجة للاستكمال',
+        'rejected': 'مرفوض',
+        'payment_pending': 'بانتظار دفع التصريح',
+        'payment_completed': 'تم استلام الدفع',
+        'issued': 'تم إصدار التصريح',
+        'inspection_completed': 'اكتمل التفتيش',
+        'cancelled_admin': 'مغلق إداريًا',
+        'disposal_approved': 'إتلاف معتمد',
+        'disposal_rejected': 'إتلاف مرفوض',
+    }
     status_section_label_map = {
         'inspection_pending': 'طلبات بانتظار التفتيش',
         'order_received': 'طلبات تم استلامها',
@@ -1683,6 +1769,28 @@ def clearance_list(request):
         'disposal_approved',
         'disposal_rejected',
     ]
+    all_status_order = active_status_order + finished_status_order
+
+    status_filter = (request.GET.get('status') or 'all').strip()
+    if status_filter != 'all' and status_filter not in status_filter_label_map:
+        status_filter = 'all'
+
+    if status_filter != 'all':
+        active_clearances = [item for item in active_clearances if item.status == status_filter]
+        finished_clearances = [item for item in finished_clearances if item.status == status_filter]
+
+    status_filter_options = [
+        {'value': 'all', 'label': 'كل الحالات'},
+        *[
+            {'value': status_key, 'label': status_filter_label_map.get(status_key, status_key)}
+            for status_key in all_status_order
+        ],
+    ]
+    status_filter_label = (
+        status_filter_label_map.get(status_filter, 'كل الحالات')
+        if status_filter != 'all'
+        else 'كل الحالات'
+    )
 
     def _group_clearances_by_status(items, status_order):
         grouped = []
@@ -1724,6 +1832,9 @@ def clearance_list(request):
             'finished_clearances': finished_clearances,
             'active_clearance_groups': active_clearance_groups,
             'finished_clearance_groups': finished_clearance_groups,
+            'status_filter': status_filter,
+            'status_filter_label': status_filter_label,
+            'status_filter_options': status_filter_options,
             'can_create_pirmet': _can_data_entry(request.user),
             'form_errors': [],
         },
@@ -2550,6 +2661,7 @@ def pest_control_permit(request):
             if company_id
             else None
         )
+        original_company_trade_license_exp = company.trade_license_exp if company else None
         if company_id and not company:
             form_errors.append('company_select_invalid')
 
@@ -2704,9 +2816,14 @@ def pest_control_permit(request):
                         notes='Company data updated from permit request form.',
                     )
 
+            violation_reference_expiry = _initial_violation_reference_expiry(
+                original_company_trade_license_exp,
+                trade_license_exp,
+            )
             permit = PirmetClearance.objects.create(
                 company=company,
                 dateOfExpiry=expiry_date,
+                violation_reference_expiry=violation_reference_expiry,
                 permit_type='pest_control',
                 status='order_received',
                 allowed_activities=','.join(allowed_activities) if allowed_activities else None,
@@ -2801,23 +2918,72 @@ def pest_control_permit_detail(request, id):
     can_submit_inspection_report = (
         _can_inspector(request.user)
         and pirmet.status == 'inspection_pending'
-        and (
-            not assigned_inspector_user
-            or assigned_inspector_user.id == request.user.id
-        )
+        and assigned_inspector_user
+        and assigned_inspector_user.id == request.user.id
     )
     can_manage_inspection_photos = (
-        pirmet.status in {'inspection_pending', 'inspection_completed'}
-        and (
-            _can_admin(request.user)
-            or (
-                _can_inspector(request.user)
-                and (
-                    not assigned_inspector_user
-                    or assigned_inspector_user.id == request.user.id
-                )
-            )
+        _can_admin(request.user)
+        or _can_data_entry(request.user)
+        or (
+            _can_inspector(request.user)
+            and assigned_inspector_user
+            and assigned_inspector_user.id == request.user.id
         )
+    )
+    can_add_inspection_photos = (
+        _can_inspector(request.user)
+        and assigned_inspector_user
+        and assigned_inspector_user.id == request.user.id
+        and bool(pirmet.inspection_payment_receipt)
+        and not can_submit_inspection_report
+    )
+    renewal_reference_date = _violation_reference_expiry_date(
+        pirmet,
+        timezone.localdate(),
+    )
+    delay_months_after_grace = _delay_months_after_first_month(
+        renewal_reference_date,
+        timezone.localdate(),
+    )
+    delay_days_total = 0
+    if renewal_reference_date and timezone.localdate() > renewal_reference_date:
+        delay_days_total = (timezone.localdate() - renewal_reference_date).days
+    violation_amount_due = delay_months_after_grace * 100
+    violation_required = delay_months_after_grace > 0
+    violation_order_recorded = bool((pirmet.violation_payment_order_number or '').strip())
+    violation_receipt_recorded = bool(pirmet.violation_payment_receipt)
+    violation_payment_completed = (
+        violation_order_recorded
+        and violation_receipt_recorded
+        and (pirmet.violation_amount or 0) == violation_amount_due
+    )
+    can_record_violation_order = (
+        _can_admin(request.user)
+        and pirmet.status == 'order_received'
+        and violation_required
+        and not violation_order_recorded
+    )
+    can_record_violation_receipt = (
+        _can_admin(request.user)
+        and pirmet.status == 'order_received'
+        and violation_required
+        and violation_order_recorded
+        and not violation_receipt_recorded
+    )
+    can_record_inspection_payment_reference = (
+        _can_admin(request.user)
+        and pirmet.status in {'order_received', 'inspection_payment_pending'}
+        and (not violation_required or violation_payment_completed)
+    )
+    can_record_inspection_payment_receipt = (
+        _can_admin(request.user)
+        and pirmet.status == 'inspection_payment_pending'
+        and (not violation_required or violation_payment_completed)
+    )
+    can_record_permit_payment_reference = (
+        _can_admin(request.user)
+        and pirmet.status == 'inspection_completed'
+        and inspection_report_decision == 'approved'
     )
     review_errors = []
 
@@ -3003,11 +3169,71 @@ def pest_control_permit_detail(request, id):
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
+        if action == 'save_violation_payment_order':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لإدخال بيانات مخالفة التأخير.')
+            if pirmet.status != 'order_received':
+                review_errors.append('يمكن إدخال أمر دفع المخالفة فقط قبل بدء دفع التفتيش.')
+            if not violation_required:
+                review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
+            if violation_receipt_recorded:
+                review_errors.append('تم حفظ إيصال المخالفة بالفعل، لا يمكن تعديل أمر الدفع.')
+
+            violation_order = (request.POST.get('violation_payment_order_number') or '').strip()
+            if not violation_order:
+                review_errors.append('يرجى إدخال رقم أمر دفع المخالفة.')
+
+            if not review_errors:
+                pirmet.violation_payment_order_number = violation_order
+                pirmet.violation_amount = violation_amount_due
+                pirmet.save(update_fields=['violation_payment_order_number', 'violation_amount'])
+                _log_pirmet_change(
+                    pirmet,
+                    'details_update',
+                    request.user,
+                    notes=f'Violation order recorded. Amount: {violation_amount_due}',
+                )
+                return redirect('pest_control_permit_detail', id=pirmet.id)
+
+        if action == 'save_violation_payment_receipt':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لإدخال إيصال مخالفة التأخير.')
+            if pirmet.status != 'order_received':
+                review_errors.append('يمكن إدخال إيصال المخالفة فقط قبل بدء دفع التفتيش.')
+            if not violation_required:
+                review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
+            if not (pirmet.violation_payment_order_number or '').strip():
+                review_errors.append('يرجى إدخال رقم أمر دفع المخالفة أولاً.')
+            if violation_receipt_recorded:
+                review_errors.append('تم إدخال إيصال المخالفة مسبقاً.')
+
+            violation_receipt = request.FILES.get('violation_payment_receipt')
+            if not violation_receipt:
+                review_errors.append('يرجى إرفاق إيصال دفع المخالفة.')
+            else:
+                ext = os.path.splitext(violation_receipt.name)[1].lower()
+                if ext not in ALLOWED_DOC_EXTENSIONS:
+                    review_errors.append('يُسمح فقط بملفات PDF أو صور لإيصال المخالفة.')
+
+            if not review_errors:
+                pirmet.violation_amount = violation_amount_due
+                pirmet.violation_payment_receipt = violation_receipt
+                pirmet.save(update_fields=['violation_amount', 'violation_payment_receipt'])
+                _log_pirmet_change(
+                    pirmet,
+                    'document_upload',
+                    request.user,
+                    notes='Violation payment receipt uploaded.',
+                )
+                return redirect('pest_control_permit_detail', id=pirmet.id)
+
         if action == 'send_inspection_payment_link':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال الرقم المرجعي لدفع التفتيش.')
             if pirmet.status not in {'order_received', 'inspection_payment_pending'}:
                 review_errors.append('لا يمكن تعديل الرقم المرجعي في هذه المرحلة.')
+            if violation_required and not violation_payment_completed:
+                review_errors.append('يرجى استكمال أمر دفع المخالفة وإيصالها قبل إدخال أمر دفع التفتيش.')
 
             inspection_reference = (request.POST.get('inspection_payment_reference') or '').strip()
             if not inspection_reference:
@@ -3042,6 +3268,8 @@ def pest_control_permit_detail(request, id):
                 review_errors.append('ليس لديك صلاحية لتأكيد دفع التفتيش.')
             if pirmet.status != 'inspection_payment_pending':
                 review_errors.append('هذا الطلب ليس بانتظار دفع التفتيش.')
+            if violation_required and not violation_payment_completed:
+                review_errors.append('يرجى استكمال سداد المخالفة أولاً.')
 
             inspection_reference = (request.POST.get('inspection_payment_reference') or '').strip()
             receipt = request.FILES.get('inspection_payment_receipt')
@@ -3142,7 +3370,6 @@ def pest_control_permit_detail(request, id):
             )
             if inspection_decision != 'approved':
                 review_errors.append('لا يمكن إدخال رقم الدفع قبل اعتماد تقرير التفتيش.')
-
             payment_number = (request.POST.get('payment_number') or '').strip()
             if not payment_number:
                 review_errors.append('يرجى إدخال الرقم المرجعي لدفع التصريح.')
@@ -3255,8 +3482,8 @@ def pest_control_permit_detail(request, id):
             ).first()
             assigned_inspector_user = assigned_review.inspector_user if assigned_review else None
             if (
-                assigned_inspector_user
-                and assigned_inspector_user.id != request.user.id
+                not assigned_inspector_user
+                or assigned_inspector_user.id != request.user.id
             ):
                 review_errors.append('فقط المفتش الذي استلم الطلب يمكنه إدخال التقرير.')
 
@@ -3328,7 +3555,7 @@ def pest_control_permit_detail(request, id):
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
         if action == 'add_inspection_photos':
-            if not can_manage_inspection_photos:
+            if not can_add_inspection_photos:
                 review_errors.append('ليس لديك صلاحية لإضافة صور التفتيش.')
             photos = request.FILES.getlist('inspection_report_photos_extra')
             if not photos:
@@ -3367,9 +3594,10 @@ def pest_control_permit_detail(request, id):
                 if photo_id
                 else None
             )
+            inspection_photo_ids = {doc.id for doc in _inspection_report_photo_docs(pirmet)}
             if not photo_doc:
                 review_errors.append('الصورة غير موجودة.')
-            elif INSPECTION_REPORT_PHOTO_PREFIX not in (photo_doc.file.name or ''):
+            elif photo_doc.id not in inspection_photo_ids:
                 review_errors.append('لا يمكن حذف هذا الملف من هنا لأنه ليس صورة تفتيش.')
 
             if not review_errors and photo_doc:
@@ -3478,6 +3706,20 @@ def pest_control_permit_detail(request, id):
             'request_documents': _request_documents(pirmet),
             'can_submit_inspection_report': can_submit_inspection_report,
             'can_manage_inspection_photos': can_manage_inspection_photos,
+            'can_add_inspection_photos': can_add_inspection_photos,
+            'delay_months_after_grace': delay_months_after_grace,
+            'delay_days_total': delay_days_total,
+            'renewal_reference_date': renewal_reference_date,
+            'violation_amount_due': violation_amount_due,
+            'violation_required': violation_required,
+            'violation_order_recorded': violation_order_recorded,
+            'violation_receipt_recorded': violation_receipt_recorded,
+            'violation_payment_completed': violation_payment_completed,
+            'can_record_violation_order': can_record_violation_order,
+            'can_record_violation_receipt': can_record_violation_receipt,
+            'can_record_inspection_payment_reference': can_record_inspection_payment_reference,
+            'can_record_inspection_payment_receipt': can_record_inspection_payment_receipt,
+            'can_record_permit_payment_reference': can_record_permit_payment_reference,
             'can_review_pirmet': _can_inspector(request.user),
             'can_complete_missing': (_can_inspector(request.user) or _can_data_entry(request.user)),
             'can_record_payment': _can_admin(request.user),

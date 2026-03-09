@@ -265,16 +265,17 @@
             type="text"
             name="card_number"
             value="{{ card_number_query }}"
+            class="w-full rounded-xl border bg-white px-4 py-2 text-sm shadow-md transition-all"
             placeholder="ابحث برقم البطاقة"
             inputmode="numeric"
             autocomplete="off"
           >
-          <select name="certification">
+          <select name="certification" class="w-full rounded-xl border bg-white px-4 py-2 text-sm shadow-md transition-all">
             <option value="" {% if not certification_filter %}selected{% endif %}>اختر الشهادة</option>
             <option value="public_health" {% if certification_filter == 'public_health' %}selected{% endif %}>شهادة الصحة العامة</option>
             <option value="termite" {% if certification_filter == 'termite' %}selected{% endif %}>شهادة النمل الأبيض</option>
           </select>
-          <button type="submit" class="filter-btn">تصفية</button>
+          <button type="submit" class="filter-btn rounded-xl px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-px">تصفية</button>
         </form>
       </div>
       <div class="enginer-actions">
