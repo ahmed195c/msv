@@ -180,57 +180,6 @@
     </section>
 
     <section class="permit-section">
-      <div class="section-title">بيانات الأنشطة</div>
-      <div class="hint">يتم تحديد الأنشطة تلقائياً حسب شهادات المهندس المعتمد.</div>
-      <div class="activities-grid">
-        <div class="activities-col">
-          <h4>الأنشطة المصرح بها</h4>
-          <label class="check">
-            <input type="checkbox" name="allowed_activities" value="public_health_pest_control" disabled
-              {% if selected_allowed_activities and "public_health_pest_control" in selected_allowed_activities %}checked{% endif %}>
-            مكافحة آفات الصحة العامة
-          </label>
-          <label class="check">
-            <input type="checkbox" name="allowed_activities" value="termite_control" disabled
-              {% if selected_allowed_activities and "termite_control" in selected_allowed_activities %}checked{% endif %}>
-            مكافحة النمل الأبيض
-          </label>
-          <label class="check">
-            <input type="checkbox" name="allowed_activities" value="grain_pests" disabled
-              {% if selected_allowed_activities and "grain_pests" in selected_allowed_activities %}checked{% endif %}>
-            مكافحة آفات الحبوب
-          </label>
-          <label class="check">
-            <span>أخرى</span>
-            <input type="text" name="allowed_other" value="{{ form_data.allowed_other|default:'' }}" disabled>
-          </label>
-        </div>
-        <div class="activities-col">
-          <h4>الأنشطة غير المصرح بها</h4>
-          <label class="check">
-            <input type="checkbox" name="restricted_activities" value="public_health_pest_control" disabled
-              {% if selected_restricted_activities and "public_health_pest_control" in selected_restricted_activities %}checked{% endif %}>
-            مكافحة آفات الصحة العامة
-          </label>
-          <label class="check">
-            <input type="checkbox" name="restricted_activities" value="termite_control" disabled
-              {% if selected_restricted_activities and "termite_control" in selected_restricted_activities %}checked{% endif %}>
-            مكافحة النمل الأبيض
-          </label>
-          <label class="check">
-            <input type="checkbox" name="restricted_activities" value="grain_pests" disabled
-              {% if selected_restricted_activities and "grain_pests" in selected_restricted_activities %}checked{% endif %}>
-            مكافحة آفات الحبوب
-          </label>
-          <label class="check">
-            <span>أخرى</span>
-            <input type="text" name="restricted_other" value="{{ form_data.restricted_other|default:'' }}" disabled>
-          </label>
-        </div>
-      </div>
-    </section>
-
-    <section class="permit-section">
       <div class="section-title">المستندات المطلوبة</div>
       <div class="field">
         <label for="documents">إرفاق المستندات (PDF أو صور)</label>
@@ -267,12 +216,6 @@
 
     const businessActivityField = document.getElementById('business_activity');
     const engineerCertInlineWarning = document.getElementById('engineer-cert-inline-warning');
-    const allowedChecks = Array.from(
-      document.querySelectorAll('input[name="allowed_activities"]')
-    );
-    const restrictedChecks = Array.from(
-      document.querySelectorAll('input[name="restricted_activities"]')
-    );
 
     const pad = (value) => String(value).padStart(2, '0');
     const daysInMonth = (year, month) => new Date(year, month, 0).getDate();
@@ -303,29 +246,6 @@
       fields.expiry_date.value = addYear(fields.trade_license_exp.value);
     };
 
-    const setActivityChecks = (hasPublic, hasTermite) => {
-      const allowed = new Set();
-      if (hasPublic) {
-        allowed.add('public_health_pest_control');
-        allowed.add('grain_pests');
-      }
-      if (hasTermite) {
-        allowed.add('termite_control');
-      }
-      allowedChecks.forEach((checkbox) => {
-        checkbox.checked = allowed.has(checkbox.value);
-      });
-      if (!allowed.size) {
-        restrictedChecks.forEach((checkbox) => {
-          checkbox.checked = false;
-        });
-        return;
-      }
-      restrictedChecks.forEach((checkbox) => {
-        checkbox.checked = !allowed.has(checkbox.value);
-      });
-    };
-
     const applyCompany = () => {
       const option = companySelect.options[companySelect.selectedIndex];
       const hasCompany = option && option.value;
@@ -333,7 +253,6 @@
         if (engineerCertInlineWarning) {
           engineerCertInlineWarning.style.display = 'none';
         }
-        setActivityChecks(false, false);
         updateExpiry();
         return;
       }
@@ -354,7 +273,6 @@
         const hasEngineerName = Boolean((option.dataset.engineerName || '').trim());
         engineerCertInlineWarning.style.display = hasEngineerName && !hasPublic && !hasTermite ? 'block' : 'none';
       }
-      setActivityChecks(hasPublic, hasTermite);
       updateExpiry();
     };
 

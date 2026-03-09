@@ -131,7 +131,7 @@
       <div class="cert-meta-item"><strong>نوع الشهادة:</strong> {{ certificate_request.get_certificate_type_display }}</div>
       <div class="cert-meta-item"><strong>الحالة:</strong> {{ certificate_request.get_status_display }}</div>
       <div class="cert-meta-item"><strong>رقم أمر الدفع:</strong> {{ certificate_request.payment_order_number|default:"-" }}</div>
-      <div class="cert-meta-item"><strong>تاريخ إصدار الشهادة:</strong> {{ certificate_request.certificate_issue_date|default:"-" }}</div>
+      <div class="cert-meta-item"><strong>تاريخ إصدار الشهادة:</strong> {{ certificate_request.certificate_issue_date|date:"d/m/Y"|default:"-" }}</div>
       <div class="cert-meta-item">
         <strong>صلاحية الشهادة (3 أشهر):</strong>
         {% if certificate_request.certificate_issue_date %}
@@ -140,12 +140,12 @@
           {% else %}
             <span style="color:#1f5a4b;font-weight:700;">سارية</span>
           {% endif %}
-          {% if certificate_expiry_date %} (تنتهي بتاريخ {{ certificate_expiry_date }}){% endif %}
+          {% if certificate_expiry_date %} (تنتهي بتاريخ {{ certificate_expiry_date|date:"d/m/Y" }}){% endif %}
         {% else %}
           -
         {% endif %}
       </div>
-      <div class="cert-meta-item"><strong>تاريخ الطلب:</strong> {{ certificate_request.created_at }}</div>
+      <div class="cert-meta-item"><strong>تاريخ الطلب:</strong> {{ certificate_request.created_at|date:"d/m/Y" }}</div>
     </div>
   </div>
 

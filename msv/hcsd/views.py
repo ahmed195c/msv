@@ -74,6 +74,11 @@ def _parse_date(value):
     try:
         return datetime.date.fromisoformat(value)
     except ValueError:
+        for date_format in ('%d/%m/%Y', '%d-%m-%Y'):
+            try:
+                return datetime.datetime.strptime(value, date_format).date()
+            except ValueError:
+                continue
         return None
 
 
@@ -870,9 +875,9 @@ def company_detail(request, id):
     if latest_extension and latest_extension.extension_end_date:
         days_left = (latest_extension.extension_end_date - datetime.date.today()).days
         if 0 <= days_left <= 7:
-            extension_notice = f'تنبيه: تنتهي المهلة الحالية بتاريخ {latest_extension.extension_end_date:%Y-%m-%d} (بعد {days_left} يوم).'
+            extension_notice = f'تنبيه: تنتهي المهلة الحالية بتاريخ {latest_extension.extension_end_date:%d/%m/%Y} (بعد {days_left} يوم).'
         elif days_left < 0:
-            extension_notice = f'تنبيه: انتهت المهلة الحالية بتاريخ {latest_extension.extension_end_date:%Y-%m-%d}.'
+            extension_notice = f'تنبيه: انتهت المهلة الحالية بتاريخ {latest_extension.extension_end_date:%d/%m/%Y}.'
 
     return render(
         request,

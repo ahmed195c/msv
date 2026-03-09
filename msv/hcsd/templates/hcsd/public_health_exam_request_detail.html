@@ -321,7 +321,7 @@
     <div class="exam-meta">
       <div class="exam-meta-item"><strong>المهندس:</strong> {{ exam_request.enginer.name }}</div>
       <div class="exam-meta-item"><strong>رقم البطاقة:</strong> {{ exam_request.enginer.card_number|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>تاريخ تقديم الطلب:</strong> {{ exam_request.request_submission_date|default:"-" }}</div>
+      <div class="exam-meta-item"><strong>تاريخ تقديم الطلب:</strong> {{ exam_request.request_submission_date|date:"d/m/Y"|default:"-" }}</div>
       <div class="exam-meta-item"><strong>الرقم الموحد / رقم الهوية:</strong> {{ exam_request.identity_number|default:"-" }}</div>
       <div class="exam-meta-item"><strong>لغة الاختبار:</strong> {{ exam_request.exam_language|default:"-" }}</div>
       <div class="exam-meta-item"><strong>نوع الاختبار:</strong> {{ exam_request.exam_type|default:"-" }}</div>
@@ -334,7 +334,7 @@
       <div class="exam-meta-item"><strong>الحالة:</strong> {{ exam_request.get_status_display }}</div>
       <div class="exam-meta-item"><strong>رقم أمر الدفع:</strong> {{ exam_request.payment_reference|default:"-" }}</div>
       <div class="exam-meta-item"><strong>نتيجة الإمتحان:</strong> {{ exam_request.exam_result|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>تاريخ إنشاء السجل:</strong> {{ exam_request.created_at }}</div>
+      <div class="exam-meta-item"><strong>تاريخ إنشاء السجل:</strong> {{ exam_request.created_at|date:"d/m/Y" }}</div>
     </div>
   </div>
 
@@ -441,7 +441,7 @@
     {% if exam_request.exam_datetime %}
       <div class="scheduled-date-card">
         <p class="scheduled-date-label">تاريخ موعد الاختبار</p>
-        <p class="scheduled-date-value">{{ exam_request.exam_datetime|date:"Y-m-d" }}</p>
+        <p class="scheduled-date-value">{{ exam_request.exam_datetime|date:"d/m/Y" }}</p>
       </div>
     {% endif %}
 

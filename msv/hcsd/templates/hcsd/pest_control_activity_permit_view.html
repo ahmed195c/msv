@@ -30,11 +30,11 @@
         </div>
         <div class="meta-item">
           <span class="label">تاريخ الإصدار</span>
-          <span class="value">{{ pirmet.issue_date|default:"-" }}</span>
+          <span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span>
         </div>
         <div class="meta-item">
           <span class="label">تاريخ الانتهاء</span>
-          <span class="value">{{ pirmet.dateOfExpiry|default:"-" }}</span>
+          <span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span>
         </div>
       </div>
     </header>

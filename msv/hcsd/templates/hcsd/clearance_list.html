@@ -298,8 +298,8 @@
                         <tr>
                             <td>{{ clearance.company.name }}</td>
                             <td>{{ clearance.permit_label_ar }}</td>
-                            <td>{{ clearance.dateOfCreation }}</td>
-                            <td>{{ clearance.dateOfExpiry }}</td>
+                            <td>{{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</td>
+                            <td>{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</td>
                             <td>
                                 {% if clearance.status == 'order_received' %}
                                     تم استلام الطلب
@@ -427,7 +427,7 @@
                                 {% endif %}
                             </div>
                         </div>
-                        <div class="clearance-card-created">تاريخ الإنشاء: {{ clearance.dateOfCreation }}</div>
+                        <div class="clearance-card-created">تاريخ الإنشاء: {{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</div>
 
                         <div class="clearance-card-grid">
                             <div class="clearance-card-row">
@@ -436,7 +436,7 @@
                             </div>
                             <div class="clearance-card-row">
                                 <div class="clearance-card-label">تاريخ الانتهاء</div>
-                                <div class="clearance-card-value">{{ clearance.dateOfExpiry }}</div>
+                                <div class="clearance-card-value">{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</div>
                             </div>
                             <div class="clearance-card-row">
                                 <div class="clearance-card-label">تفاصيل الحالة</div>
@@ -556,7 +556,7 @@
                                 {% endif %}
                             </div>
                         </div>
-                        <div class="clearance-card-created">تاريخ الإنشاء: {{ clearance.dateOfCreation }}</div>
+                        <div class="clearance-card-created">تاريخ الإنشاء: {{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</div>
                         <div class="clearance-card-grid">
                             <div class="clearance-card-row">
                                 <div class="clearance-card-label">نوع التصريح</div>
@@ -564,7 +564,7 @@
                             </div>
                             <div class="clearance-card-row">
                                 <div class="clearance-card-label">تاريخ الانتهاء</div>
-                                <div class="clearance-card-value">{{ clearance.dateOfExpiry }}</div>
+                                <div class="clearance-card-value">{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</div>
                             </div>
                         </div>
                         <div class="clearance-card-actions">

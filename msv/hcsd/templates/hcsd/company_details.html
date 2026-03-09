@@ -700,8 +700,8 @@
             {% for clearance in company_permits %}
               <tr>
                 <td>{{ clearance.permit_label_ar }}</td>
-                <td>{{ clearance.dateOfCreation }}</td>
-                <td>{{ clearance.dateOfExpiry }}</td>
+                <td>{{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</td>
+                <td>{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</td>
                 <td>{{ clearance.PaymentNumber|default:"-" }}</td>
                 <td>
                   {% if clearance.permit_type == "pest_control" %}

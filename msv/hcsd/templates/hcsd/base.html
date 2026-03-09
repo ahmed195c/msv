@@ -62,7 +62,7 @@
                                 <td>
                                     {{ pirmet.permit_label_ar }}
                                 </td>
-                                <td>{{ pirmet.dateOfCreation }}</td>
+                                <td>{{ pirmet.dateOfCreation|date:"d/m/Y" }}</td>
                                 <td>
                                     {% if pirmet.status == "needs_completion" or pirmet.status == "rejected" %}
                                         نواقص بحاجة للاستكمال
@@ -92,7 +92,7 @@
                             </div>
                             <div class="permit-mini-row">
                                 <span class="permit-mini-label">تاريخ الإنشاء</span>
-                                <span class="permit-mini-value">{{ pirmet.dateOfCreation }}</span>
+                                <span class="permit-mini-value">{{ pirmet.dateOfCreation|date:"d/m/Y" }}</span>
                             </div>
                             <div class="permit-mini-row">
                                 <span class="permit-mini-label">الحالة</span>
@@ -170,6 +170,17 @@
                             cell.setAttribute("data-label", label);
                         });
                     });
+                });
+            }
+
+            function normalizeDateInputs() {
+                document.querySelectorAll('input[type="date"]').forEach(function (input) {
+                    if (!input.getAttribute("lang")) {
+                        input.setAttribute("lang", "en-GB");
+                    }
+                    if (!input.getAttribute("title")) {
+                        input.setAttribute("title", "DD/MM/YYYY");
+                    }
                 });
             }
 
@@ -262,9 +273,13 @@
             });
 
             if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", prepareResponsiveTables);
+                document.addEventListener("DOMContentLoaded", function () {
+                    prepareResponsiveTables();
+                    normalizeDateInputs();
+                });
             } else {
                 prepareResponsiveTables();
+                normalizeDateInputs();
             }
         })();
     </script>

@@ -620,8 +620,8 @@
             {% if enginer.public_health_cert %}
               <a href="{{ enginer.public_health_cert.url }}" target="_blank" rel="noopener">فتح الشهادة</a>
               {% if enginer.public_health_cert_issue_date %}
-                <br>تاريخ الإصدار: {{ enginer.public_health_cert_issue_date }}
-                {% if public_health_expiry_date %}<br>تاريخ الانتهاء: {{ public_health_expiry_date }}{% endif %}
+                <br>تاريخ الإصدار: {{ enginer.public_health_cert_issue_date|date:"d/m/Y" }}
+                {% if public_health_expiry_date %}<br>تاريخ الانتهاء: {{ public_health_expiry_date|date:"d/m/Y" }}{% endif %}
                 {% if public_health_is_expired %}<br><strong style="color:#b42318;">منتهية</strong>{% endif %}
               {% endif %}
             {% else %}
@@ -635,8 +635,8 @@
             {% if enginer.termite_cert %}
               <a href="{{ enginer.termite_cert.url }}" target="_blank" rel="noopener">فتح الشهادة</a>
               {% if enginer.termite_cert_issue_date %}
-                <br>تاريخ الإصدار: {{ enginer.termite_cert_issue_date }}
-                {% if termite_expiry_date %}<br>تاريخ الانتهاء: {{ termite_expiry_date }}{% endif %}
+                <br>تاريخ الإصدار: {{ enginer.termite_cert_issue_date|date:"d/m/Y" }}
+                {% if termite_expiry_date %}<br>تاريخ الانتهاء: {{ termite_expiry_date|date:"d/m/Y" }}{% endif %}
                 {% if termite_is_expired %}<br><strong style="color:#b42318;">منتهية</strong>{% endif %}
               {% endif %}
             {% else %}
