@@ -1543,7 +1543,7 @@ def engineer_certificate_request_detail(request, request_id):
 def clearance_list(request):
     clearances_qs = (
         PirmetClearance.objects.filter(permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'])
-        .select_related('company')
+        .select_related('company', 'company__enginer')
         .order_by('-dateOfCreation')
     )
     reviews = InspectorReview.objects.filter(pirmet__in=clearances_qs).select_related('inspector', 'inspector_user')
@@ -1577,6 +1577,13 @@ def clearance_list(request):
     for clearance in clearances:
         clearance.permit_label_ar = _permit_label_ar(clearance.permit_type)
         clearance.detail_url_name = _permit_detail_url_name(clearance.permit_type)
+        company = clearance.company
+        engineer = company.enginer if company else None
+        engineer_phone = (engineer.phone or '').strip() if engineer else ''
+        landline_phone = (company.landline or '').strip() if company else ''
+        company_phone = (company.owner_phone or '').strip() if company else ''
+        clearance.contact_number = engineer_phone or landline_phone or company_phone or None
+        clearance.company_location = (company.address or '').strip() if company and company.address else '-'
         review = review_map.get(clearance.id)
         clearance.inspector_name = _inspector_review_name(review)
         clearance.inspection_assigned_user_id = review.inspector_user_id if review and review.inspector_user_id else None
@@ -1642,6 +1649,72 @@ def clearance_list(request):
         )
     )
 
+    status_section_label_map = {
+        'inspection_pending': 'طلبات بانتظار التفتيش',
+        'order_received': 'طلبات تم استلامها',
+        'inspection_payment_pending': 'طلبات بانتظار دفع التفتيش',
+        'review_pending': 'طلبات بانتظار مراجعة المفتش',
+        'approved': 'طلبات معتمدة من المفتش',
+        'needs_completion': 'طلبات بحاجة للاستكمال',
+        'rejected': 'طلبات مرفوضة',
+        'payment_pending': 'طلبات بانتظار دفع التصريح',
+        'payment_completed': 'طلبات تم استلام دفعها',
+        'issued': 'طلبات صادرة',
+        'inspection_completed': 'طلبات اكتمل تفتيشها',
+        'cancelled_admin': 'طلبات مغلقة إداريًا',
+        'disposal_approved': 'طلبات إتلاف معتمدة',
+        'disposal_rejected': 'طلبات إتلاف مرفوضة',
+    }
+    active_status_order = [
+        'inspection_pending',
+        'order_received',
+        'inspection_payment_pending',
+        'review_pending',
+        'approved',
+        'needs_completion',
+        'rejected',
+        'payment_pending',
+        'payment_completed',
+    ]
+    finished_status_order = [
+        'issued',
+        'inspection_completed',
+        'cancelled_admin',
+        'disposal_approved',
+        'disposal_rejected',
+    ]
+
+    def _group_clearances_by_status(items, status_order):
+        grouped = []
+        by_status = {}
+        for item in items:
+            by_status.setdefault(item.status, []).append(item)
+
+        for status_key in status_order:
+            status_items = by_status.pop(status_key, [])
+            if not status_items:
+                continue
+            grouped.append(
+                {
+                    'status': status_key,
+                    'label': status_section_label_map.get(status_key, status_key),
+                    'items': status_items,
+                }
+            )
+
+        for status_key, status_items in by_status.items():
+            grouped.append(
+                {
+                    'status': status_key,
+                    'label': status_section_label_map.get(status_key, status_key),
+                    'items': status_items,
+                }
+            )
+        return grouped
+
+    active_clearance_groups = _group_clearances_by_status(active_clearances, active_status_order)
+    finished_clearance_groups = _group_clearances_by_status(finished_clearances, finished_status_order)
+
     return render(
         request,
         'hcsd/clearance_list.html',
@@ -1649,6 +1722,8 @@ def clearance_list(request):
             'clearances': active_clearances,
             'active_clearances': active_clearances,
             'finished_clearances': finished_clearances,
+            'active_clearance_groups': active_clearance_groups,
+            'finished_clearance_groups': finished_clearance_groups,
             'can_create_pirmet': _can_data_entry(request.user),
             'form_errors': [],
         },

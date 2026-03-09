@@ -112,6 +112,21 @@
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   }
 
+  .status-group {
+    margin-top: 16px;
+  }
+
+  .status-group:first-child {
+    margin-top: 0;
+  }
+
+  .status-group-title {
+    margin: 0 0 10px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #3f433a;
+  }
+
   .clearance-card {
     border: 1px solid var(--line);
     border-radius: 16px;
@@ -289,6 +304,7 @@
                         <th>الحالة</th>
                         <th>مرجع دفع التفتيش</th>
                         <th>مرجع دفع التصريح</th>
+                        <th>موقع الشركة</th>
                         <th>رقم التواصل</th>
                         <th>الإجراءات</th>
                     </tr>
@@ -356,14 +372,13 @@
                             </td>
                             <td>{{ clearance.inspection_payment_reference|default:"-" }}</td>
                             <td>{{ clearance.PaymentNumber|default:"-" }}</td>
+                            <td>{{ clearance.company_location|default:"-" }}</td>
                             <td>
-                                {% with contact_number=clearance.company.owner_phone|default:clearance.company.landline %}
-                                    {% if contact_number %}
-                                        <a href="tel:{{ contact_number }}" class="phone-link">{{ contact_number }}</a>
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                {% endwith %}
+                                {% if clearance.contact_number %}
+                                    <a href="tel:{{ clearance.contact_number }}" class="phone-link">{{ clearance.contact_number }}</a>
+                                {% else %}
+                                    -
+                                {% endif %}
                             </td>
                             <td>
                                 <div style="margin-bottom: 8px;">
@@ -379,148 +394,155 @@
             </table>
             </div>
 
-            <div class="clearance-cards">
-                {% for clearance in active_clearances %}
-                    <article class="clearance-card">
-                        <div class="clearance-card-head">
-                            <div class="clearance-card-company">{{ clearance.company.name }}</div>
-                            <div class="clearance-card-status
-                              {% if clearance.status == 'order_received' %}status-order-received
-                              {% elif clearance.status == 'inspection_payment_pending' %}status-inspection-payment-pending
-                              {% elif clearance.status == 'review_pending' %}status-review-pending
-                              {% elif clearance.status == 'approved' %}status-approved
-                              {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}status-needs-completion
-                              {% elif clearance.status == 'payment_pending' %}status-payment-pending
-                              {% elif clearance.status == 'payment_completed' %}status-payment-completed
-                              {% elif clearance.status == 'issued' %}status-issued
-                              {% elif clearance.status == 'inspection_pending' %}status-inspection-pending
-                              {% elif clearance.status == 'inspection_completed' %}status-inspection-completed
-                              {% elif clearance.status == 'disposal_approved' %}status-disposal-approved
-                              {% elif clearance.status == 'disposal_rejected' %}status-disposal-rejected
-                              {% else %}status-fallback{% endif %}">
-                                {% if clearance.status == 'order_received' %}
-                                    تم استلام الطلب
-                                {% elif clearance.status == 'inspection_payment_pending' %}
-                                    بانتظار دفع التفتيش
-                                {% elif clearance.status == 'review_pending' %}
-                                    بانتظار المراجعة
-                                {% elif clearance.status == 'approved' %}
-                                    معتمد
-                                {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}
-                                    نواقص
-                                {% elif clearance.status == 'payment_pending' %}
-                                    بانتظار دفع التصريح
-                                {% elif clearance.status == 'payment_completed' %}
-                                    تم استلام الدفع
-                                {% elif clearance.status == 'issued' %}
-                                    تم الإصدار
-                                {% elif clearance.status == 'inspection_pending' %}
-                                    بانتظار التفتيش
-                                {% elif clearance.status == 'inspection_completed' %}
-                                    تم التفتيش
-                                {% elif clearance.status == 'disposal_approved' %}
-                                    إتلاف معتمد
-                                {% elif clearance.status == 'disposal_rejected' %}
-                                    إتلاف مرفوض
-                                {% else %}
-                                    {{ clearance.get_status_display }}
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="clearance-card-created">تاريخ الإنشاء: {{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</div>
-
-                        <div class="clearance-card-grid">
-                            <div class="clearance-card-row">
-                                <div class="clearance-card-label">نوع التصريح</div>
-                                <div class="clearance-card-value">{{ clearance.permit_label_ar }}</div>
-                            </div>
-                            <div class="clearance-card-row">
-                                <div class="clearance-card-label">تاريخ الانتهاء</div>
-                                <div class="clearance-card-value">{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</div>
-                            </div>
-                            <div class="clearance-card-row">
-                                <div class="clearance-card-label">تفاصيل الحالة</div>
-                                <div class="clearance-card-value">
-                                    {% if clearance.status == 'order_received' %}
-                                        تم استلام الطلب
-                                    {% elif clearance.status == 'inspection_payment_pending' %}
-                                        تم إرسال رابط دفع التفتيش وبانتظار الدفع
-                                    {% elif clearance.status == 'review_pending' %}
-                                        بانتظار مراجعة المفتش
-                                    {% elif clearance.status == 'approved' %}
-                                        تم الاعتماد من المفتش{% if clearance.inspector_name %} {{ clearance.inspector_name }}{% endif %}
-                                    {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}
-                                        نواقص بحاجة للاستكمال
-                                    {% elif clearance.status == 'payment_pending' %}
-                                        بانتظار دفع التصريح
-                                    {% elif clearance.status == 'payment_completed' %}
-                                        تم استلام الدفع
-                                    {% elif clearance.status == 'issued' %}
-                                        تم إصدار التصريح
-                                    {% elif clearance.status == 'inspection_pending' %}
-                                        {% if clearance.inspection_receiver_name %}
-                                            تم استلام الطلب للتفتيش من المفتش {{ clearance.inspection_receiver_name }}
-                                        {% else %}
-                                            تفتيش قيد الانتظار
-                                        {% endif %}
-                                    {% elif clearance.status == 'inspection_completed' %}
-                                        {% if clearance.inspection_report_decision == 'approved' %}
-                                            تم التفتيش - معتمد
-                                        {% elif clearance.inspection_report_decision == 'rejected' %}
-                                            تم التفتيش - غير معتمد
-                                        {% else %}
+            {% for group in active_clearance_groups %}
+                <section class="status-group">
+                    <h3 class="status-group-title">{{ group.label }} ({{ group.items|length }})</h3>
+                    <div class="clearance-cards">
+                        {% for clearance in group.items %}
+                            <article class="clearance-card">
+                                <div class="clearance-card-head">
+                                    <div class="clearance-card-company">{{ clearance.company.name }}</div>
+                                    <div class="clearance-card-status
+                                      {% if clearance.status == 'order_received' %}status-order-received
+                                      {% elif clearance.status == 'inspection_payment_pending' %}status-inspection-payment-pending
+                                      {% elif clearance.status == 'review_pending' %}status-review-pending
+                                      {% elif clearance.status == 'approved' %}status-approved
+                                      {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}status-needs-completion
+                                      {% elif clearance.status == 'payment_pending' %}status-payment-pending
+                                      {% elif clearance.status == 'payment_completed' %}status-payment-completed
+                                      {% elif clearance.status == 'issued' %}status-issued
+                                      {% elif clearance.status == 'inspection_pending' %}status-inspection-pending
+                                      {% elif clearance.status == 'inspection_completed' %}status-inspection-completed
+                                      {% elif clearance.status == 'disposal_approved' %}status-disposal-approved
+                                      {% elif clearance.status == 'disposal_rejected' %}status-disposal-rejected
+                                      {% else %}status-fallback{% endif %}">
+                                        {% if clearance.status == 'order_received' %}
+                                            تم استلام الطلب
+                                        {% elif clearance.status == 'inspection_payment_pending' %}
+                                            بانتظار دفع التفتيش
+                                        {% elif clearance.status == 'review_pending' %}
+                                            بانتظار المراجعة
+                                        {% elif clearance.status == 'approved' %}
+                                            معتمد
+                                        {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}
+                                            نواقص
+                                        {% elif clearance.status == 'payment_pending' %}
+                                            بانتظار دفع التصريح
+                                        {% elif clearance.status == 'payment_completed' %}
+                                            تم استلام الدفع
+                                        {% elif clearance.status == 'issued' %}
+                                            تم الإصدار
+                                        {% elif clearance.status == 'inspection_pending' %}
+                                            بانتظار التفتيش
+                                        {% elif clearance.status == 'inspection_completed' %}
                                             تم التفتيش
-                                        {% endif %}
-                                    {% elif clearance.status == 'disposal_approved' %}
-                                        تمت الموافقة على الإتلاف
-                                    {% elif clearance.status == 'disposal_rejected' %}
-                                        تم رفض الإتلاف
-                                    {% else %}
-                                        {{ clearance.get_status_display }}
-                                    {% endif %}
-                                    {% if clearance.unapprovedReason and clearance.status == 'needs_completion' or clearance.unapprovedReason and clearance.status == 'rejected' %}
-                                        <div class="hint" style="color: #a00; margin-top: 4px;">{{ clearance.unapprovedReason }}</div>
-                                    {% endif %}
-                                    {% if clearance.inspection_payment_link %}
-                                        <div class="hint" style="margin-top: 4px;">
-                                            <a href="{{ clearance.inspection_payment_link }}" target="_blank" rel="noopener">رابط دفع التفتيش</a>
-                                        </div>
-                                    {% endif %}
-                                    {% if clearance.payment_link %}
-                                        <div class="hint" style="margin-top: 4px;">
-                                            <a href="{{ clearance.payment_link }}" target="_blank" rel="noopener">رابط دفع التصريح</a>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="clearance-card-row">
-                                <div class="clearance-card-label">مرجع دفع التفتيش</div>
-                                <div class="clearance-card-value">{{ clearance.inspection_payment_reference|default:"-" }}</div>
-                            </div>
-                            <div class="clearance-card-row">
-                                <div class="clearance-card-label">مرجع دفع التصريح</div>
-                                <div class="clearance-card-value">{{ clearance.PaymentNumber|default:"-" }}</div>
-                            </div>
-                            <div class="clearance-card-row">
-                                <div class="clearance-card-label">رقم التواصل</div>
-                                <div class="clearance-card-value">
-                                    {% with contact_number=clearance.company.owner_phone|default:clearance.company.landline %}
-                                        {% if contact_number %}
-                                            <a href="tel:{{ contact_number }}" class="phone-link">{{ contact_number }}</a>
+                                        {% elif clearance.status == 'disposal_approved' %}
+                                            إتلاف معتمد
+                                        {% elif clearance.status == 'disposal_rejected' %}
+                                            إتلاف مرفوض
                                         {% else %}
-                                            -
+                                            {{ clearance.get_status_display }}
                                         {% endif %}
-                                    {% endwith %}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                                <div class="clearance-card-created">تاريخ الإنشاء: {{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</div>
 
-                        <div class="clearance-card-actions">
-                            <a href="{% url clearance.detail_url_name clearance.id %}" class="action-link">عرض التفاصيل</a>
-                        </div>
-                    </article>
-                {% endfor %}
-            </div>
+                                <div class="clearance-card-grid">
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">نوع التصريح</div>
+                                        <div class="clearance-card-value">{{ clearance.permit_label_ar }}</div>
+                                    </div>
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">تاريخ الانتهاء</div>
+                                        <div class="clearance-card-value">{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</div>
+                                    </div>
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">موقع الشركة</div>
+                                        <div class="clearance-card-value">{{ clearance.company_location|default:"-" }}</div>
+                                    </div>
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">تفاصيل الحالة</div>
+                                        <div class="clearance-card-value">
+                                            {% if clearance.status == 'order_received' %}
+                                                تم استلام الطلب
+                                            {% elif clearance.status == 'inspection_payment_pending' %}
+                                                تم إرسال رابط دفع التفتيش وبانتظار الدفع
+                                            {% elif clearance.status == 'review_pending' %}
+                                                بانتظار مراجعة المفتش
+                                            {% elif clearance.status == 'approved' %}
+                                                تم الاعتماد من المفتش{% if clearance.inspector_name %} {{ clearance.inspector_name }}{% endif %}
+                                            {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}
+                                                نواقص بحاجة للاستكمال
+                                            {% elif clearance.status == 'payment_pending' %}
+                                                بانتظار دفع التصريح
+                                            {% elif clearance.status == 'payment_completed' %}
+                                                تم استلام الدفع
+                                            {% elif clearance.status == 'issued' %}
+                                                تم إصدار التصريح
+                                            {% elif clearance.status == 'inspection_pending' %}
+                                                {% if clearance.inspection_receiver_name %}
+                                                    تم استلام الطلب للتفتيش من المفتش {{ clearance.inspection_receiver_name }}
+                                                {% else %}
+                                                    تفتيش قيد الانتظار
+                                                {% endif %}
+                                            {% elif clearance.status == 'inspection_completed' %}
+                                                {% if clearance.inspection_report_decision == 'approved' %}
+                                                    تم التفتيش - معتمد
+                                                {% elif clearance.inspection_report_decision == 'rejected' %}
+                                                    تم التفتيش - غير معتمد
+                                                {% else %}
+                                                    تم التفتيش
+                                                {% endif %}
+                                            {% elif clearance.status == 'disposal_approved' %}
+                                                تمت الموافقة على الإتلاف
+                                            {% elif clearance.status == 'disposal_rejected' %}
+                                                تم رفض الإتلاف
+                                            {% else %}
+                                                {{ clearance.get_status_display }}
+                                            {% endif %}
+                                            {% if clearance.unapprovedReason and clearance.status == 'needs_completion' or clearance.unapprovedReason and clearance.status == 'rejected' %}
+                                                <div class="hint" style="color: #a00; margin-top: 4px;">{{ clearance.unapprovedReason }}</div>
+                                            {% endif %}
+                                            {% if clearance.inspection_payment_link %}
+                                                <div class="hint" style="margin-top: 4px;">
+                                                    <a href="{{ clearance.inspection_payment_link }}" target="_blank" rel="noopener">رابط دفع التفتيش</a>
+                                                </div>
+                                            {% endif %}
+                                            {% if clearance.payment_link %}
+                                                <div class="hint" style="margin-top: 4px;">
+                                                    <a href="{{ clearance.payment_link }}" target="_blank" rel="noopener">رابط دفع التصريح</a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">مرجع دفع التفتيش</div>
+                                        <div class="clearance-card-value">{{ clearance.inspection_payment_reference|default:"-" }}</div>
+                                    </div>
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">مرجع دفع التصريح</div>
+                                        <div class="clearance-card-value">{{ clearance.PaymentNumber|default:"-" }}</div>
+                                    </div>
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">رقم التواصل</div>
+                                        <div class="clearance-card-value">
+                                            {% if clearance.contact_number %}
+                                                <a href="tel:{{ clearance.contact_number }}" class="phone-link">{{ clearance.contact_number }}</a>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="clearance-card-actions">
+                                    <a href="{% url clearance.detail_url_name clearance.id %}" class="action-link">عرض التفاصيل</a>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
         {% else %}
             <p class="hint">لا توجد طلبات قيد المتابعة حالياً.</p>
         {% endif %}
@@ -528,51 +550,70 @@
 
     <div class="card finished-card">
         <h2>طلبات منتهية</h2>
-        {% if finished_clearances %}
-            <div class="clearance-cards">
-                {% for clearance in finished_clearances %}
-                    <article class="clearance-card">
-                        <div class="clearance-card-head">
-                            <div class="clearance-card-company">{{ clearance.company.name }}</div>
-                            <div class="clearance-card-status
-                              {% if clearance.status == 'issued' %}status-issued
-                              {% elif clearance.status == 'cancelled_admin' %}status-needs-completion
-                              {% elif clearance.status == 'inspection_completed' %}status-inspection-completed
-                              {% elif clearance.status == 'disposal_approved' %}status-disposal-approved
-                              {% elif clearance.status == 'disposal_rejected' %}status-disposal-rejected
-                              {% else %}status-fallback{% endif %}">
-                                {% if clearance.status == 'issued' %}
-                                    تم إصدار التصريح
-                                {% elif clearance.status == 'cancelled_admin' %}
-                                    مغلق إداريًا
-                                {% elif clearance.status == 'inspection_completed' %}
-                                    تم التفتيش
-                                {% elif clearance.status == 'disposal_approved' %}
-                                    إتلاف معتمد
-                                {% elif clearance.status == 'disposal_rejected' %}
-                                    إتلاف مرفوض
-                                {% else %}
-                                    {{ clearance.get_status_display }}
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="clearance-card-created">تاريخ الإنشاء: {{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</div>
-                        <div class="clearance-card-grid">
-                            <div class="clearance-card-row">
-                                <div class="clearance-card-label">نوع التصريح</div>
-                                <div class="clearance-card-value">{{ clearance.permit_label_ar }}</div>
-                            </div>
-                            <div class="clearance-card-row">
-                                <div class="clearance-card-label">تاريخ الانتهاء</div>
-                                <div class="clearance-card-value">{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</div>
-                            </div>
-                        </div>
-                        <div class="clearance-card-actions">
-                            <a href="{% url clearance.detail_url_name clearance.id %}" class="action-link">عرض التفاصيل</a>
-                        </div>
-                    </article>
-                {% endfor %}
-            </div>
+        {% if finished_clearance_groups %}
+            {% for group in finished_clearance_groups %}
+                <section class="status-group">
+                    <h3 class="status-group-title">{{ group.label }} ({{ group.items|length }})</h3>
+                    <div class="clearance-cards">
+                        {% for clearance in group.items %}
+                            <article class="clearance-card">
+                                <div class="clearance-card-head">
+                                    <div class="clearance-card-company">{{ clearance.company.name }}</div>
+                                    <div class="clearance-card-status
+                                      {% if clearance.status == 'issued' %}status-issued
+                                      {% elif clearance.status == 'cancelled_admin' %}status-needs-completion
+                                      {% elif clearance.status == 'inspection_completed' %}status-inspection-completed
+                                      {% elif clearance.status == 'disposal_approved' %}status-disposal-approved
+                                      {% elif clearance.status == 'disposal_rejected' %}status-disposal-rejected
+                                      {% else %}status-fallback{% endif %}">
+                                        {% if clearance.status == 'issued' %}
+                                            تم إصدار التصريح
+                                        {% elif clearance.status == 'cancelled_admin' %}
+                                            مغلق إداريًا
+                                        {% elif clearance.status == 'inspection_completed' %}
+                                            تم التفتيش
+                                        {% elif clearance.status == 'disposal_approved' %}
+                                            إتلاف معتمد
+                                        {% elif clearance.status == 'disposal_rejected' %}
+                                            إتلاف مرفوض
+                                        {% else %}
+                                            {{ clearance.get_status_display }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="clearance-card-created">تاريخ الإنشاء: {{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</div>
+                                <div class="clearance-card-grid">
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">نوع التصريح</div>
+                                        <div class="clearance-card-value">{{ clearance.permit_label_ar }}</div>
+                                    </div>
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">تاريخ الانتهاء</div>
+                                        <div class="clearance-card-value">{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</div>
+                                    </div>
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">موقع الشركة</div>
+                                        <div class="clearance-card-value">{{ clearance.company_location|default:"-" }}</div>
+                                    </div>
+                                    <div class="clearance-card-row">
+                                        <div class="clearance-card-label">رقم التواصل</div>
+                                        <div class="clearance-card-value">
+                                            {% if clearance.contact_number %}
+                                                <a href="tel:{{ clearance.contact_number }}" class="phone-link">{{ clearance.contact_number }}</a>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="clearance-card-actions">
+                                    <a href="{% url clearance.detail_url_name clearance.id %}" class="action-link">عرض التفاصيل</a>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
         {% else %}
             <p class="hint">لا توجد طلبات منتهية حالياً.</p>
         {% endif %}
