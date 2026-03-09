@@ -608,13 +608,11 @@ def company_list(request):
     elif status_filter == 'expired_permits':
         rows = [row for row in rows if row['has_expired_permit']]
 
-    # Default ordering: closest expiry first (activity expiry, then trade license expiry).
+    # Default ordering: latest trade license expiry first (newest to oldest).
     rows.sort(
         key=lambda row: (
-            row['effective_expiry'] is None,
-            row['effective_expiry'] or datetime.date.max,
             row['trade_expiry'] is None,
-            row['trade_expiry'] or datetime.date.max,
+            -(row['trade_expiry'].toordinal() if row['trade_expiry'] else 0),
             row['company'].name or '',
         )
     )
