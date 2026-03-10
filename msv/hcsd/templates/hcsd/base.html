@@ -1,287 +1,705 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}MSV{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'hcsd/tailwind.css' %}?v=20260309b">
-    <link rel="stylesheet" href="{% static 'hcsd/base.css' %}?v=20260309a">
-    {% block extra_css %}{% endblock %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}نظام التصاريح{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'hcsd/tailwind.css' %}?v=20260309b">
+  <link rel="stylesheet" href="{% static 'hcsd/base.css' %}?v=20260309a">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
+
+<style>
+/* ══════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════ */
+:root {
+  --ink:        #304357;
+  --ink-2:      #41576f;
+  --ink-3:      #6f8194;
+  --ink-4:      #97a6b5;
+  --paper:      #ffffff;
+  --surface:    #F1F4F7;
+  --surface-2:  #e6ecf2;
+  --line:       #d7dfe8;
+  --line-2:     #bec9d5;
+  --accent:     #304357;
+  --accent-dk:  #26384a;
+  --accent-lt:  #4a627c;
+  --accent-bg:  #eaf0f6;
+  --mono:       'JetBrains Mono', monospace;
+  --sans:       'IBM Plex Sans Arabic', sans-serif;
+  --nav-h:      58px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg:  8px;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:  0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+body.app-shell {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--surface);
+  direction: rtl;
+  text-align: right;
+}
+
+/* ══════════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════════ */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+/* ══════════════════════════════════════════
+   NAVBAR
+══════════════════════════════════════════ */
+.app-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--paper);
+  border-bottom: 1.5px solid var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar {
+  max-width: 1280px;
+  margin: 0 auto;
+  height: var(--nav-h);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Brand */
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 6px 10px 6px 0;
+  border-left: 1.5px solid var(--line);
+  margin-left: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nav-brand:hover { color: var(--accent); }
+
+.nav-brand-logo {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Nav Links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.nav-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  position: relative;
+}
+
+.nav-links a:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.nav-links a.is-active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.nav-links a.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: 14px;
+  left: 14px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+
+/* Nav Auth */
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+  padding-right: 0;
+  border-right: 1.5px solid var(--line);
+  padding-right: 16px;
+  flex-shrink: 0;
+}
+
+.nav-user {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.nav-auth-form { margin: 0; }
+
+.nav-ghost {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--line-2);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-2);
+  text-decoration: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.nav-ghost:hover {
+  background: var(--surface-2);
+  border-color: var(--ink-3);
+}
+
+/* ══════════════════════════════════════════
+   LATEST PERMITS SECTION
+══════════════════════════════════════════ */
+.latest-permits {
+  max-width: 1280px;
+  margin: 20px auto 0;
+  padding: 0 20px;
+}
+
+.base-page-card,
+.page-card {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.base-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1.5px solid var(--line);
+}
+
+.base-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.base-card-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* Latest Table (desktop) */
+.latest-table-wrap {
+  overflow-x: auto;
+}
+
+.latest-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.latest-table th {
+  background: var(--surface);
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 12px;
+  border-bottom: 1.5px solid var(--line-2);
+  white-space: nowrap;
+}
+
+.latest-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-2);
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.latest-table tr:last-child td { border-bottom: none; }
+
+.latest-table tr:hover td {
+  background: var(--surface);
+}
+
+.latest-table a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 12.5px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  transition: background 0.15s;
+}
+
+.latest-table a:hover {
+  background: var(--accent-bg);
+}
+
+/* Latest Permit Mini Cards (mobile) */
+.latest-permit-cards {
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.permit-mini-card {
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--paper);
+}
+
+.permit-mini-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--line);
+}
+
+.permit-mini-row:last-of-type { border-bottom: none; }
+
+.permit-mini-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.permit-mini-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: left;
+}
+
+.permit-mini-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px;
+  border: 1.5px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+  margin-top: 4px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.permit-mini-link:hover {
+  background: var(--accent);
+  color: var(--paper);
+  border-color: var(--accent);
+}
+
+/* ══════════════════════════════════════════
+   MAIN CONTENT
+══════════════════════════════════════════ */
+.app-main {
+  flex: 1;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 20px 48px;
+}
+
+/* ══════════════════════════════════════════
+   PAGE NAVIGATION SKELETON (loader)
+══════════════════════════════════════════ */
+.page-nav-skeleton {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(247, 246, 243, 0.82);
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+}
+
+body.is-navigating .page-nav-skeleton {
+  display: flex;
+}
+
+body.is-navigating .app-chrome,
+body.is-navigating .app-main {
+  pointer-events: none;
+}
+
+.page-nav-skeleton__panel {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-lg);
+}
+
+.page-nav-skeleton__line {
+  height: 12px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+.page-nav-skeleton__line--title { height: 18px; width: 60%; }
+.page-nav-skeleton__line--wide  { width: 100%; }
+.page-nav-skeleton__line--mid   { width: 72%; }
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media (max-width: 860px) {
+  .navbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 16px;
+    gap: 10px;
+  }
+
+  .nav-brand {
+    border-left: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .nav-auth {
+    border-right: none;
+    padding-right: 0;
+    margin-right: 0;
+    order: -1;
+    margin-left: auto;
+  }
+
+  .nav-links {
+    width: 100%;
+    overflow-x: auto;
+    gap: 2px;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+}
+
+@media (max-width: 640px) {
+  .latest-table-wrap { display: none; }
+  .latest-permit-cards { display: grid; }
+  .app-main { padding: 16px 14px 40px; }
+}
+</style>
 </head>
+
 <body class="app-shell">
-    <header class="app-chrome" lang="ar" dir="rtl">
-        <nav class="navbar">
-            <a class="nav-brand" href="{% url 'home' %}">
-                <img class="nav-brand-logo" src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
-                <span>نظام التصاريح</span>
-            </a>
-            <div class="nav-links">
-                <a class="{% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' or request.resolver_match.url_name == 'add_company' %}is-active{% endif %}" href="{% url 'company_list' %}">الشركات</a>
-                <a class="{% if request.resolver_match.url_name == 'enginer_list' or request.resolver_match.url_name == 'enginer_add' or request.resolver_match.url_name == 'enginer_detail' %}is-active{% endif %}" href="{% url 'enginer_list' %}">المهندسين</a>
-                <a class="{% if request.resolver_match.url_name == 'permit_types' or request.resolver_match.url_name == 'pest_control_permit' or request.resolver_match.url_name == 'vehicle_permit' or request.resolver_match.url_name == 'waste_permit' or request.resolver_match.url_name == 'pest_control_permit_detail' or request.resolver_match.url_name == 'vehicle_permit_detail' or request.resolver_match.url_name == 'waste_permit_detail' or request.resolver_match.url_name == 'pest_control_permit_view' or request.resolver_match.url_name == 'waste_disposal_request_new' or request.resolver_match.url_name == 'waste_disposal_request_detail' %}is-active{% endif %}" href="{% url 'permit_types' %}">التصاريح</a>
-                <a class="{% if request.resolver_match.url_name == 'clearance_list' %}is-active{% endif %}" href="{% url 'clearance_list' %}">متابعة الطلبات</a>
-                <a class="{% if request.resolver_match.url_name == 'extension_followup' %}is-active{% endif %}" href="{% url 'extension_followup' %}">متابعة المهل</a>
-                {% comment %} <a href="{% url 'printer' %}">Printer</a> {% endcomment %}
-            </div>
-            <div class="nav-auth">
-                {% if user.is_authenticated %}
-                    <span class="nav-user">مرحباً، {{ user.get_full_name|default:user.username }}</span>
-                    <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
-                        {% csrf_token %}
-                        <button type="submit" class="nav-ghost">تسجيل الخروج</button>
-                    </form>
-                {% else %}
-                    <a class="nav-ghost" href="{% url 'login' %}">تسجيل الدخول</a>
-                    <a class="nav-ghost" href="{% url 'register' %}">إنشاء حساب</a>
-                {% endif %}
-            </div>
-        </nav>
-    </header>
-    {% if show_latest %}
-        <section  class="page-card latest-permits">
-            <div class="card-header">
-                <h2 class="card-title">قائمة أحدث التصاريح</h2>
-            </div>
-            {% if latest_pirmet %}
-                <div class="latest-table-wrap" dir="rtl">
-                <table class="latest-table" dir="rtl">
-                    <thead>
-                        <tr>
-                            <th>الشركة</th>
-                            <th>نوع التصريح</th>
-                            <th>تاريخ الإنشاء</th>
-                            <th>الحالة</th>
-                            <th>التفاصيل</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for pirmet in latest_pirmet %}
-                            <tr>
-                                <td>{{ pirmet.company.name }}</td>
-                                <td>
-                                    {{ pirmet.permit_label_ar }}
-                                </td>
-                                <td>{{ pirmet.dateOfCreation|date:"d/m/Y" }}</td>
-                                <td>
-                                    {% if pirmet.status == "needs_completion" or pirmet.status == "rejected" %}
-                                        نواقص بحاجة للاستكمال
-                                    {% else %}
-                                        {{ pirmet.get_status_display }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="{% url pirmet.detail_url_name pirmet.id %}">عرض التفاصيل</a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                </div>
 
-                <div class="latest-permit-cards" lang="ar" dir="rtl">
-                    {% for pirmet in latest_pirmet %}
-                        <article class="permit-mini-card">
-                            <div class="permit-mini-row">
-                                <span class="permit-mini-label">الشركة</span>
-                                <span class="permit-mini-value">{{ pirmet.company.name }}</span>
-                            </div>
-                            <div class="permit-mini-row">
-                                <span class="permit-mini-label">نوع التصريح</span>
-                                <span class="permit-mini-value">{{ pirmet.permit_label_ar }}</span>
-                            </div>
-                            <div class="permit-mini-row">
-                                <span class="permit-mini-label">تاريخ الإنشاء</span>
-                                <span class="permit-mini-value">{{ pirmet.dateOfCreation|date:"d/m/Y" }}</span>
-                            </div>
-                            <div class="permit-mini-row">
-                                <span class="permit-mini-label">الحالة</span>
-                                <span class="permit-mini-value">
-                                    {% if pirmet.status == "needs_completion" or pirmet.status == "rejected" %}
-                                        نواقص بحاجة للاستكمال
-                                    {% else %}
-                                        {{ pirmet.get_status_display }}
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <a class="permit-mini-link" href="{% url pirmet.detail_url_name pirmet.id %}">عرض التفاصيل</a>
-                        </article>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p>لا توجد تصاريح قيد الإجراء حالياً.</p>
-            {% endif %}
-        </section>
-    {% endif %}
-    <main class="app-main">
-        {% block content %}
-        {% endblock %}
-    </main>
-    <div class="page-nav-skeleton" aria-hidden="true">
-        <div class="page-nav-skeleton__panel">
-            <div class="page-nav-skeleton__line page-nav-skeleton__line--title"></div>
-            <div class="page-nav-skeleton__line page-nav-skeleton__line--wide"></div>
-            <div class="page-nav-skeleton__line page-nav-skeleton__line--mid"></div>
-            <div class="page-nav-skeleton__line page-nav-skeleton__line--wide"></div>
+  {# ── NAVBAR ── #}
+  <header class="app-chrome" lang="ar" dir="rtl">
+    <nav class="navbar">
+
+      <div class="nav-auth">
+        {% if user.is_authenticated %}
+          <span class="nav-user">{{ user.get_full_name|default:user.username }}</span>
+          <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
+            {% csrf_token %}
+            <button type="submit" class="nav-ghost">خروج</button>
+          </form>
+        {% else %}
+          <a class="nav-ghost" href="{% url 'login' %}">دخول</a>
+          <a class="nav-ghost" href="{% url 'register' %}">تسجيل حساب جديد </a>
+        {% endif %}
+      </div>
+
+      <div class="nav-links">
+        <a class="{% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' or request.resolver_match.url_name == 'add_company' %}is-active{% endif %}"
+           href="{% url 'company_list' %}">الشركات</a>
+
+        <a class="{% if request.resolver_match.url_name == 'enginer_list' or request.resolver_match.url_name == 'enginer_add' or request.resolver_match.url_name == 'enginer_detail' %}is-active{% endif %}"
+           href="{% url 'enginer_list' %}">المهندسين</a>
+
+        <a class="{% if request.resolver_match.url_name == 'permit_types' or request.resolver_match.url_name == 'pest_control_permit' or request.resolver_match.url_name == 'vehicle_permit' or request.resolver_match.url_name == 'waste_permit' or request.resolver_match.url_name == 'pest_control_permit_detail' or request.resolver_match.url_name == 'vehicle_permit_detail' or request.resolver_match.url_name == 'waste_permit_detail' or request.resolver_match.url_name == 'pest_control_permit_view' or request.resolver_match.url_name == 'waste_disposal_request_new' or request.resolver_match.url_name == 'waste_disposal_request_detail' %}is-active{% endif %}"
+           href="{% url 'permit_types' %}">التصاريح</a>
+
+        <a class="{% if request.resolver_match.url_name == 'clearance_list' %}is-active{% endif %}"
+           href="{% url 'clearance_list' %}">متابعة الطلبات</a>
+
+        <a class="{% if request.resolver_match.url_name == 'extension_followup' %}is-active{% endif %}"
+           href="{% url 'extension_followup' %}">متابعة المهل</a>
+      </div>
+
+      <a class="nav-brand" href="{% url 'home' %}">
+        <img class="nav-brand-logo" src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+        <span>نظام التصاريح</span>
+      </a>
+
+    </nav>
+  </header>
+
+  {# ── LATEST PERMITS ── #}
+  {% if show_latest %}
+    <section class="latest-permits base-page-card" lang="ar" dir="rtl">
+      <div class="base-card-header">
+        <h2 class="base-card-title">أحدث التصاريح</h2>
+      </div>
+
+      {% if latest_pirmet %}
+
+        <div class="latest-table-wrap">
+          <table class="latest-table">
+            <thead>
+              <tr>
+                <th>الشركة</th>
+                <th>نوع التصريح</th>
+                <th>تاريخ الإنشاء</th>
+                <th>الحالة</th>
+                <th>التفاصيل</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pirmet in latest_pirmet %}
+                <tr>
+                  <td>{{ pirmet.company.name }}</td>
+                  <td>{{ pirmet.permit_label_ar }}</td>
+                  <td style="font-family:var(--mono);font-size:12.5px;">{{ pirmet.dateOfCreation|date:"d/m/Y" }}</td>
+                  <td>
+                    {% if pirmet.status == "needs_completion" or pirmet.status == "rejected" %}
+                      نواقص بحاجة للاستكمال
+                    {% else %}
+                      {{ pirmet.get_status_display }}
+                    {% endif %}
+                  </td>
+                  <td><a href="{% url pirmet.detail_url_name pirmet.id %}">عرض التفاصيل</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+
+        <div class="latest-permit-cards" lang="ar" dir="rtl">
+          {% for pirmet in latest_pirmet %}
+            <article class="permit-mini-card">
+              <div class="permit-mini-row">
+                <span class="permit-mini-label">الشركة</span>
+                <span class="permit-mini-value">{{ pirmet.company.name }}</span>
+              </div>
+              <div class="permit-mini-row">
+                <span class="permit-mini-label">نوع التصريح</span>
+                <span class="permit-mini-value">{{ pirmet.permit_label_ar }}</span>
+              </div>
+              <div class="permit-mini-row">
+                <span class="permit-mini-label">التاريخ</span>
+                <span class="permit-mini-value" style="font-family:var(--mono);font-size:12px;">{{ pirmet.dateOfCreation|date:"d/m/Y" }}</span>
+              </div>
+              <div class="permit-mini-row">
+                <span class="permit-mini-label">الحالة</span>
+                <span class="permit-mini-value">
+                  {% if pirmet.status == "needs_completion" or pirmet.status == "rejected" %}
+                    نواقص بحاجة للاستكمال
+                  {% else %}
+                    {{ pirmet.get_status_display }}
+                  {% endif %}
+                </span>
+              </div>
+              <a class="permit-mini-link" href="{% url pirmet.detail_url_name pirmet.id %}">عرض التفاصيل ←</a>
+            </article>
+          {% endfor %}
+        </div>
+
+      {% else %}
+        <p style="color:var(--ink-3);font-size:14px;padding:20px 0;">لا توجد تصاريح قيد الإجراء حالياً.</p>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {# ── MAIN CONTENT ── #}
+  <main class="app-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {# ── PAGE TRANSITION SKELETON ── #}
+  <div class="page-nav-skeleton" aria-hidden="true" aria-live="polite" aria-label="جارٍ التحميل…">
+    <div class="page-nav-skeleton__panel">
+      <div class="page-nav-skeleton__line page-nav-skeleton__line--title"></div>
+      <div class="page-nav-skeleton__line page-nav-skeleton__line--wide"></div>
+      <div class="page-nav-skeleton__line page-nav-skeleton__line--mid"></div>
+      <div class="page-nav-skeleton__line page-nav-skeleton__line--wide"></div>
     </div>
-    <script>
-        (function () {
-            var isNavigating = false;
-            var LOADER_BYPASS_ATTR = "data-loader-bypass";
+  </div>
 
-            function setNavigatingState(isNavigating) {
-                document.body.classList.toggle("is-navigating", Boolean(isNavigating));
-            }
+  <script>
+  (function () {
+    var isNavigating = false;
+    var BYPASS = "data-loader-bypass";
 
-            function navigateWithLoader(url) {
-                if (isNavigating) {
-                    return;
-                }
-                isNavigating = true;
-                setNavigatingState(true);
+    function setNav(v) {
+      document.body.classList.toggle("is-navigating", Boolean(v));
+    }
 
-                // Give the browser one frame to paint the skeleton before navigation.
-                window.requestAnimationFrame(function () {
-                    window.setTimeout(function () {
-                        window.location.href = url;
-                    }, 40);
-                });
-            }
+    function go(url) {
+      if (isNavigating) return;
+      isNavigating = true;
+      setNav(true);
+      requestAnimationFrame(function () {
+        setTimeout(function () { window.location.href = url; }, 40);
+      });
+    }
 
-            function prepareResponsiveTables() {
-                document.querySelectorAll("table").forEach(function (table) {
-                    if (table.classList.contains("no-mobile-cards")) {
-                        return;
-                    }
+    function shouldHandle(a, e) {
+      if (!a || !a.href) return false;
+      if (a.hasAttribute("download") || a.dataset.skipLoader === "true") return false;
+      var h = (a.getAttribute("href") || "").trim().toLowerCase();
+      if (!h || h === "#" || /^(javascript:|mailto:|tel:)/.test(h)) return false;
+      var t = a.getAttribute("target");
+      if (t && t !== "_self") return false;
+      if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) return false;
+      if (e && typeof e.button === "number" && e.button !== 0) return false;
+      try {
+        if (new URL(a.href, location.href).origin !== location.origin) return false;
+      } catch (_) { return false; }
+      return true;
+    }
 
-                    table.classList.add("mobile-card-table");
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest("a");
+      if (!shouldHandle(a, e)) return;
+      e.preventDefault();
+      go(a.href);
+    }, true);
 
-                    var headers = Array.from(table.querySelectorAll("thead th")).map(function (th) {
-                        return (th.innerText || th.textContent || "").trim();
-                    });
+    document.addEventListener("submit", function (e) {
+      if (e.defaultPrevented) return;
+      var f = e.target;
+      if (!f || f.dataset.skipLoader === "true") return;
+      if (f.getAttribute(BYPASS) === "1") { f.setAttribute(BYPASS, "0"); return; }
+      var t = (f.getAttribute("target") || "").trim();
+      if (t && t !== "_self") return;
+      if (isNavigating) { e.preventDefault(); return; }
+      e.preventDefault();
+      isNavigating = true;
+      setNav(true);
+      var sub = e.submitter || null;
+      requestAnimationFrame(function () {
+        setTimeout(function () {
+          f.setAttribute(BYPASS, "1");
+          if (typeof f.requestSubmit === "function") {
+            sub ? f.requestSubmit(sub) : f.requestSubmit();
+          } else {
+            f.submit();
+          }
+        }, 40);
+      });
+    }, true);
 
-                    table.querySelectorAll("tbody tr").forEach(function (row) {
-                        Array.from(row.children).forEach(function (cell, index) {
-                            if (!cell.matches("td")) {
-                                return;
-                            }
-                            var label = headers[index] || ("Field " + (index + 1));
-                            cell.setAttribute("data-label", label);
-                        });
-                    });
-                });
-            }
+    window.addEventListener("pageshow", function () {
+      isNavigating = false;
+      setNav(false);
+    });
 
-            function normalizeDateInputs() {
-                document.querySelectorAll('input[type="date"]').forEach(function (input) {
-                    if (!input.getAttribute("lang")) {
-                        input.setAttribute("lang", "en-GB");
-                    }
-                    if (!input.getAttribute("title")) {
-                        input.setAttribute("title", "DD/MM/YYYY");
-                    }
-                });
-            }
+    function prepTables() {
+      document.querySelectorAll("table:not(.no-mobile-cards)").forEach(function (t) {
+        t.classList.add("mobile-card-table");
+        var hs = Array.from(t.querySelectorAll("thead th")).map(function (th) {
+          return (th.innerText || th.textContent || "").trim();
+        });
+        t.querySelectorAll("tbody tr").forEach(function (row) {
+          Array.from(row.children).forEach(function (cell, i) {
+            if (cell.tagName === "TD") cell.setAttribute("data-label", hs[i] || ("Field " + (i + 1)));
+          });
+        });
+      });
+    }
 
-            function shouldHandleAnchor(anchor, event) {
-                if (!anchor || !anchor.href) {
-                    return false;
-                }
-                if (anchor.hasAttribute("download") || anchor.dataset.skipLoader === "true") {
-                    return false;
-                }
-                var hrefAttr = (anchor.getAttribute("href") || "").trim().toLowerCase();
-                if (!hrefAttr || hrefAttr === "#" || hrefAttr.indexOf("javascript:") === 0 || hrefAttr.indexOf("mailto:") === 0 || hrefAttr.indexOf("tel:") === 0) {
-                    return false;
-                }
-                var target = anchor.getAttribute("target");
-                if (target && target !== "_self") {
-                    return false;
-                }
-                if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
-                    return false;
-                }
-                if (event && typeof event.button === "number" && event.button !== 0) {
-                    return false;
-                }
-                try {
-                    var url = new URL(anchor.href, window.location.href);
-                    if (url.origin !== window.location.origin) {
-                        return false;
-                    }
-                } catch (error) {
-                    return false;
-                }
-                return true;
-            }
+    function normDates() {
+      document.querySelectorAll('input[type="date"]').forEach(function (inp) {
+        if (!inp.getAttribute("lang")) inp.setAttribute("lang", "en-GB");
+        if (!inp.getAttribute("title")) inp.setAttribute("title", "DD/MM/YYYY");
+      });
+    }
 
-            document.addEventListener("click", function (event) {
-                var anchor = event.target.closest("a");
-                if (!shouldHandleAnchor(anchor, event)) {
-                    return;
-                }
-                event.preventDefault();
-                navigateWithLoader(anchor.href);
-            }, true);
-
-            document.addEventListener("submit", function (event) {
-                if (event.defaultPrevented) {
-                    return;
-                }
-                var form = event.target;
-                if (!form || form.dataset.skipLoader === "true") {
-                    return;
-                }
-                if (form.getAttribute(LOADER_BYPASS_ATTR) === "1") {
-                    form.setAttribute(LOADER_BYPASS_ATTR, "0");
-                    return;
-                }
-                var formTarget = (form.getAttribute("target") || "").trim();
-                if (formTarget && formTarget !== "_self") {
-                    return;
-                }
-                if (isNavigating) {
-                    event.preventDefault();
-                    return;
-                }
-
-                event.preventDefault();
-                isNavigating = true;
-                setNavigatingState(true);
-
-                var submitter = event.submitter || null;
-                window.requestAnimationFrame(function () {
-                    window.setTimeout(function () {
-                        form.setAttribute(LOADER_BYPASS_ATTR, "1");
-                        if (typeof form.requestSubmit === "function") {
-                            if (submitter) {
-                                form.requestSubmit(submitter);
-                            } else {
-                                form.requestSubmit();
-                            }
-                            return;
-                        }
-                        form.submit();
-                    }, 40);
-                });
-            }, true);
-
-            window.addEventListener("pageshow", function () {
-                isNavigating = false;
-                setNavigatingState(false);
-            });
-
-            if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", function () {
-                    prepareResponsiveTables();
-                    normalizeDateInputs();
-                });
-            } else {
-                prepareResponsiveTables();
-                normalizeDateInputs();
-            }
-        })();
-    </script>
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function () { prepTables(); normDates(); });
+    } else {
+      prepTables(); normDates();
+    }
+  })();
+  </script>
 </body>
 </html>

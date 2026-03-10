@@ -1,7 +1,7 @@
 {% with item=clearance|default:pirmet %}
   {% if item %}
     {% if item.status == 'order_received' %}
-      تم استلام الطلب
+      بانتظار اصدار رابط دفع التفتيش
     {% elif item.status == 'inspection_payment_pending' %}
       تم إرسال رابط دفع التفتيش وبانتظار الدفع
     {% elif item.status == 'review_pending' %}
@@ -20,7 +20,7 @@
       {% if item.inspection_receiver_name %}
         تم استلام الطلب للتفتيش من المفتش {{ item.inspection_receiver_name }}
       {% else %}
-        تفتيش قيد الانتظار
+        جاهز للاستلام
       {% endif %}
     {% elif item.status == 'inspection_completed' %}
       {% if item.inspection_report_decision == 'approved' %}
