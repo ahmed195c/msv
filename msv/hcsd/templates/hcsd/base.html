@@ -428,7 +428,7 @@ body.is-navigating .app-main {
 /* ══════════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════════ */
-@media (max-width: 860px) {
+@media (max-width: 768px) {
   .app-chrome {
     position: fixed;
     top: 0;
@@ -441,7 +441,9 @@ body.is-navigating .app-main {
   body.app-shell {
     padding-top: calc(var(--mobile-nav-offset, 0px) + env(safe-area-inset-top, 0px));
   }
+}
 
+@media (max-width: 860px) {
   .navbar {
     flex-wrap: wrap;
     height: auto;
@@ -488,18 +490,10 @@ body.is-navigating .app-main {
   <header class="app-chrome" lang="ar" dir="rtl">
     <nav class="navbar">
 
-      <div class="nav-auth">
-        {% if user.is_authenticated %}
-          <span class="nav-user">{{ user.get_full_name|default:user.username }}</span>
-          <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
-            {% csrf_token %}
-            <button type="submit" class="nav-ghost">خروج</button>
-          </form>
-        {% else %}
-          <a class="nav-ghost" href="{% url 'login' %}">دخول</a>
-          <a class="nav-ghost" href="{% url 'register' %}">تسجيل حساب جديد </a>
-        {% endif %}
-      </div>
+      <a class="nav-brand" href="{% url 'home' %}">
+        <img class="nav-brand-logo" src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+        <span>نظام التصاريح</span>
+      </a>
 
       <div class="nav-links">
         <a class="{% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' or request.resolver_match.url_name == 'add_company' %}is-active{% endif %}"
@@ -518,10 +512,19 @@ body.is-navigating .app-main {
            href="{% url 'extension_followup' %}">متابعة المهل</a>
       </div>
 
-      <a class="nav-brand" href="{% url 'home' %}">
-        <img class="nav-brand-logo" src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
-        <span>نظام التصاريح</span>
-      </a>
+      <div class="nav-auth">
+        {% if user.is_authenticated %}
+          <span class="nav-user"> مرحبآ :  {{ user.get_full_name|default:user.username }}</span>
+          <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
+            {% csrf_token %}
+            <button type="submit" class="nav-ghost"> تسجيل الخروج</button>
+          </form>
+        {% else %}
+          <a class="nav-ghost" href="{% url 'login' %}"> تسجيل الدخول</a>
+          <a class="nav-ghost" href="{% url 'register' %}">إنشاء حساب جديد </a>
+        {% endif %}
+      </div>
+
 
     </nav>
   </header>
@@ -710,7 +713,7 @@ body.is-navigating .app-main {
     function syncMobileNavOffset() {
       var header = document.querySelector(".app-chrome");
       if (!header) return;
-      if (!window.matchMedia("(max-width: 860px)").matches) {
+      if (!window.matchMedia("(max-width: 768px)").matches) {
         document.body.style.removeProperty("--mobile-nav-offset");
         return;
       }
