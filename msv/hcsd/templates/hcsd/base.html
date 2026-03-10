@@ -89,6 +89,37 @@ body.app-shell {
   gap: 8px;
 }
 
+.nav-mobile-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1.5px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+
+.nav-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.nav-toggle:hover {
+  background: var(--surface-2);
+}
+
 /* Brand */
 .nav-brand {
   display: flex;
@@ -445,10 +476,42 @@ body.is-navigating .app-main {
 
 @media (max-width: 860px) {
   .navbar {
-    flex-wrap: wrap;
     height: auto;
+    min-height: var(--nav-h);
     padding: 10px 16px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "brand toggle"
+      "panel panel";
+    align-items: center;
+    gap: 10px 12px;
+  }
+
+  .nav-brand {
+    grid-area: brand;
+    justify-self: start;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+    grid-area: toggle;
+    justify-self: end;
+  }
+
+  .nav-mobile-panel {
+    grid-area: panel;
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+
+  .navbar.is-open .nav-mobile-panel {
+    display: flex;
   }
 
   .nav-brand {
@@ -461,22 +524,42 @@ body.is-navigating .app-main {
     border-right: none;
     padding-right: 0;
     margin-right: 0;
-    order: -1;
-    margin-left: auto;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .nav-auth-form {
+    margin-right: auto;
+  }
+
+  .nav-user {
+    font-size: 12px;
+    width: 100%;
   }
 
   .nav-links {
     width: 100%;
-    overflow-x: auto;
-    gap: 2px;
-    padding-bottom: 2px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+    padding-bottom: 0;
   }
-  .nav-links::-webkit-scrollbar { display: none; }
+
+  .nav-links a {
+    justify-content: center;
+    border: 1.5px solid var(--line-2);
+    background: #fff;
+  }
 }
 
 @media (max-width: 640px) {
+  .nav-links {
+    grid-template-columns: 1fr;
+  }
+
   .latest-table-wrap { display: none; }
   .latest-permit-cards { display: grid; }
   .app-main { padding: 16px 14px 40px; }
@@ -489,43 +572,54 @@ body.is-navigating .app-main {
   {# ── NAVBAR ── #}
   <header class="app-chrome" lang="ar" dir="rtl">
     <nav class="navbar">
-
       <a class="nav-brand" href="{% url 'home' %}">
         <img class="nav-brand-logo" src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
         <span>نظام التصاريح</span>
       </a>
 
-      <div class="nav-links">
-        <a class="{% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' or request.resolver_match.url_name == 'add_company' %}is-active{% endif %}"
-           href="{% url 'company_list' %}">الشركات</a>
+      <button
+        class="nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="nav-mobile-panel"
+        aria-label="فتح القائمة"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
+      </button>
 
-        <a class="{% if request.resolver_match.url_name == 'enginer_list' or request.resolver_match.url_name == 'enginer_add' or request.resolver_match.url_name == 'enginer_detail' %}is-active{% endif %}"
-           href="{% url 'enginer_list' %}">المهندسين</a>
+      <div class="nav-mobile-panel" id="nav-mobile-panel">
+        <div class="nav-links">
+          <a class="{% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' or request.resolver_match.url_name == 'add_company' %}is-active{% endif %}"
+             href="{% url 'company_list' %}">الشركات</a>
 
-        <a class="{% if request.resolver_match.url_name == 'permit_types' or request.resolver_match.url_name == 'pest_control_permit' or request.resolver_match.url_name == 'vehicle_permit' or request.resolver_match.url_name == 'waste_permit' or request.resolver_match.url_name == 'pest_control_permit_detail' or request.resolver_match.url_name == 'vehicle_permit_detail' or request.resolver_match.url_name == 'waste_permit_detail' or request.resolver_match.url_name == 'pest_control_permit_view' or request.resolver_match.url_name == 'waste_disposal_request_new' or request.resolver_match.url_name == 'waste_disposal_request_detail' %}is-active{% endif %}"
-           href="{% url 'permit_types' %}">التصاريح</a>
+          <a class="{% if request.resolver_match.url_name == 'enginer_list' or request.resolver_match.url_name == 'enginer_add' or request.resolver_match.url_name == 'enginer_detail' %}is-active{% endif %}"
+             href="{% url 'enginer_list' %}">المهندسين</a>
 
-        <a class="{% if request.resolver_match.url_name == 'clearance_list' %}is-active{% endif %}"
-           href="{% url 'clearance_list' %}">متابعة الطلبات</a>
+          <a class="{% if request.resolver_match.url_name == 'permit_types' or request.resolver_match.url_name == 'pest_control_permit' or request.resolver_match.url_name == 'vehicle_permit' or request.resolver_match.url_name == 'waste_permit' or request.resolver_match.url_name == 'pest_control_permit_detail' or request.resolver_match.url_name == 'vehicle_permit_detail' or request.resolver_match.url_name == 'waste_permit_detail' or request.resolver_match.url_name == 'pest_control_permit_view' or request.resolver_match.url_name == 'waste_disposal_request_new' or request.resolver_match.url_name == 'waste_disposal_request_detail' %}is-active{% endif %}"
+             href="{% url 'permit_types' %}">التصاريح</a>
 
-        <a class="{% if request.resolver_match.url_name == 'extension_followup' %}is-active{% endif %}"
-           href="{% url 'extension_followup' %}">متابعة المهل</a>
+          <a class="{% if request.resolver_match.url_name == 'clearance_list' %}is-active{% endif %}"
+             href="{% url 'clearance_list' %}">متابعة الطلبات</a>
+
+          <a class="{% if request.resolver_match.url_name == 'extension_followup' %}is-active{% endif %}"
+             href="{% url 'extension_followup' %}">متابعة المهل</a>
+        </div>
+
+        <div class="nav-auth">
+          {% if user.is_authenticated %}
+            <span class="nav-user"> مرحبآ :  {{ user.get_full_name|default:user.username }}</span>
+            <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
+              {% csrf_token %}
+              <button type="submit" class="nav-ghost"> تسجيل الخروج</button>
+            </form>
+          {% else %}
+            <a class="nav-ghost" href="{% url 'login' %}"> تسجيل الدخول</a>
+            <a class="nav-ghost" href="{% url 'register' %}">إنشاء حساب جديد </a>
+          {% endif %}
+        </div>
       </div>
-
-      <div class="nav-auth">
-        {% if user.is_authenticated %}
-          <span class="nav-user"> مرحبآ :  {{ user.get_full_name|default:user.username }}</span>
-          <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
-            {% csrf_token %}
-            <button type="submit" class="nav-ghost"> تسجيل الخروج</button>
-          </form>
-        {% else %}
-          <a class="nav-ghost" href="{% url 'login' %}"> تسجيل الدخول</a>
-          <a class="nav-ghost" href="{% url 'register' %}">إنشاء حساب جديد </a>
-        {% endif %}
-      </div>
-
-
     </nav>
   </header>
 
@@ -720,16 +814,55 @@ body.is-navigating .app-main {
       document.body.style.setProperty("--mobile-nav-offset", header.offsetHeight + "px");
     }
 
+    function setupMobileNavbar() {
+      var navbar = document.querySelector(".navbar");
+      var toggle = navbar ? navbar.querySelector(".nav-toggle") : null;
+      var panel = navbar ? navbar.querySelector(".nav-mobile-panel") : null;
+      if (!navbar || !toggle || !panel) return;
+
+      function closeMenu() {
+        navbar.classList.remove("is-open");
+        toggle.setAttribute("aria-expanded", "false");
+        syncMobileNavOffset();
+      }
+
+      toggle.addEventListener("click", function () {
+        var willOpen = !navbar.classList.contains("is-open");
+        navbar.classList.toggle("is-open", willOpen);
+        toggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        syncMobileNavOffset();
+      });
+
+      panel.addEventListener("click", function (e) {
+        if (!e.target.closest("a")) return;
+        closeMenu();
+      });
+
+      document.addEventListener("click", function (e) {
+        if (!window.matchMedia("(max-width: 860px)").matches) return;
+        if (navbar.contains(e.target)) return;
+        closeMenu();
+      });
+
+      window.addEventListener("resize", function () {
+        if (!window.matchMedia("(max-width: 860px)").matches) {
+          closeMenu();
+        }
+      });
+    }
+
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", function () {
         prepTables();
         normDates();
         syncMobileNavOffset();
+        setupMobileNavbar();
       });
     } else {
       prepTables();
       normDates();
       syncMobileNavOffset();
+      setupMobileNavbar();
     }
 
     window.addEventListener("resize", syncMobileNavOffset);
