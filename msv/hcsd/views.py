@@ -936,12 +936,45 @@ def company_detail(request, id):
     )
     permits = list(permits_qs)
     latest_permits = {}
+    today = timezone.localdate()
+    active_permits = {}
+
+    def _is_effective_active_permit(permit):
+        if permit.status == 'cancelled_admin':
+            return False
+        if permit.dateOfExpiry and permit.dateOfExpiry < today:
+            return False
+        if permit.issue_date:
+            return True
+        return (
+            permit.status in {'issued', 'payment_completed'}
+            and bool(permit.dateOfExpiry)
+            and permit.dateOfExpiry >= today
+        )
 
     for permit in permits:
         permit.permit_label_ar = _permit_label_ar(permit.permit_type)
         permit.detail_url_name = _permit_detail_url_name(permit.permit_type)
+        permit.is_issued_record = bool(permit.issue_date) or permit.status in {'issued', 'payment_completed'}
+        permit.is_effective_active = _is_effective_active_permit(permit)
+
+        if permit.status == 'cancelled_admin':
+            permit.primary_action_label = None
+            permit.primary_action_url = None
+        elif permit.permit_type == 'pest_control' and permit.is_issued_record:
+            permit.primary_action_label = 'عرض التصريح'
+            permit.primary_action_url = reverse('pest_control_permit_view', kwargs={'id': permit.id})
+        elif permit.is_issued_record:
+            permit.primary_action_label = 'عرض التصريح'
+            permit.primary_action_url = reverse(permit.detail_url_name, kwargs={'id': permit.id})
+        else:
+            permit.primary_action_label = 'متابعة الطلب'
+            permit.primary_action_url = reverse(permit.detail_url_name, kwargs={'id': permit.id})
+
         if permit.permit_type not in latest_permits:
             latest_permits[permit.permit_type] = permit
+        if permit.permit_type not in active_permits and permit.is_effective_active:
+            active_permits[permit.permit_type] = permit
 
     display_status_priority = {
         'issued': 0,
@@ -993,6 +1026,9 @@ def company_detail(request, id):
             'latest_pest_permit': latest_permits.get('pest_control'),
             'latest_vehicle_permit': latest_permits.get('pesticide_transport'),
             'latest_waste_permit': latest_permits.get('waste_disposal'),
+            'active_pest_permit': active_permits.get('pest_control'),
+            'active_vehicle_permit': active_permits.get('pesticide_transport'),
+            'active_waste_permit': active_permits.get('waste_disposal'),
             'company_permits': permits,
         },
     )

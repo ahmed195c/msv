@@ -152,6 +152,32 @@
     margin-bottom: 12px;
   }
 
+  .active-permits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+  }
+
+  .active-permit-card {
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .active-permit-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .active-permit-meta {
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
   .permit-pill {
     display: inline-flex;
     align-items: center;
@@ -753,6 +779,45 @@
       </div>
 
     <div class="section">
+      <div class="section-title">التصاريح الفعالة</div>
+      <div class="active-permits-grid">
+        <div class="active-permit-card">
+          <div class="active-permit-title">تصريح النشاط</div>
+          {% if active_pest_permit %}
+            <div class="active-permit-meta">
+              ساري حتى {{ active_pest_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
+            </div>
+            <a class="permit-link" href="{% url 'pest_control_permit_view' active_pest_permit.id %}">عرض التصريح</a>
+          {% else %}
+            <div class="active-permit-meta">لا يوجد تصريح نشاط فعّال حالياً.</div>
+          {% endif %}
+        </div>
+        <div class="active-permit-card">
+          <div class="active-permit-title">تصريح المركبة</div>
+          {% if active_vehicle_permit %}
+            <div class="active-permit-meta">
+              ساري حتى {{ active_vehicle_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
+            </div>
+            <a class="permit-link" href="{% url 'vehicle_permit_detail' active_vehicle_permit.id %}">عرض التصريح</a>
+          {% else %}
+            <div class="active-permit-meta">لا يوجد تصريح مركبة فعّال حالياً.</div>
+          {% endif %}
+        </div>
+        <div class="active-permit-card">
+          <div class="active-permit-title">تصريح التخلص من النفايات</div>
+          {% if active_waste_permit %}
+            <div class="active-permit-meta">
+              ساري حتى {{ active_waste_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
+            </div>
+            <a class="permit-link" href="{% url 'waste_permit_detail' active_waste_permit.id %}">عرض التصريح</a>
+          {% else %}
+            <div class="active-permit-meta">لا يوجد تصريح تخلص فعّال حالياً.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
       <div class="section-title">التصاريح المرتبطة</div>
       <div class="permit-statuses">
         <a class="permit-pill is-create" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">
@@ -774,6 +839,7 @@
               <th>تاريخ الإنشاء</th>
               <th>تاريخ الانتهاء</th>
               <th>رقم الدفع</th>
+              <th>النوع</th>
               <th>الحالة</th>
               <th>التفاصيل</th>
             </tr>
@@ -785,18 +851,13 @@
                 <td>{{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</td>
                 <td>{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</td>
                 <td>{{ clearance.PaymentNumber|default:"-" }}</td>
+                <td>{% if clearance.is_issued_record %}تصريح{% else %}طلب{% endif %}</td>
                 <td>{{ clearance.get_status_display }}</td>
                 <td>
-                  {% if clearance.status == "cancelled_admin" %}
+                  {% if not clearance.primary_action_label %}
                     <span class="muted">الطلب مغلق إداريًا</span>
-                  {% elif clearance.status == "issued" or clearance.status == "payment_completed" %}
-                    {% if clearance.permit_type == "pest_control" %}
-                      <a class="permit-link" href="{% url 'pest_control_permit_view' clearance.id %}">عرض التصريح</a>
-                    {% else %}
-                      <a class="permit-link" href="{% url clearance.detail_url_name clearance.id %}">عرض التصريح</a>
-                    {% endif %}
                   {% else %}
-                    <a class="permit-link" href="{% url clearance.detail_url_name clearance.id %}">متابعة الطلب</a>
+                    <a class="permit-link" href="{{ clearance.primary_action_url }}">{{ clearance.primary_action_label }}</a>
                   {% endif %}
                 </td>
               </tr>
