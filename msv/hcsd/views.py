@@ -9,6 +9,7 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from .models import (
     Company,
@@ -23,6 +24,7 @@ from .models import (
     PirmetDocument,
     PublicHealthExamRequest,
     WasteDisposalRequest,
+    WasteDisposalRequestDocument,
 )
 from .forms import StaffRegistrationForm
 
@@ -476,9 +478,9 @@ def home(request):
     needs_completion_permits = permits_qs.filter(status__in=['needs_completion', 'rejected', 'disposal_rejected']).count()
 
     status_label_map = {
-        'order_received': 'تم استلام الطلب',
+        'order_received': 'بانتظار اصدار رابط دفع التفتيش',
         'inspection_payment_pending': 'بانتظار دفع التفتيش',
-        'inspection_pending': 'بانتظار التفتيش',
+        'inspection_pending': 'جاهز للاستلام',
         'review_pending': 'بانتظار المراجعة',
         'approved': 'معتمد من المفتش',
         'needs_completion': 'نواقص بحاجة للاستكمال',
@@ -1609,11 +1611,17 @@ def engineer_certificate_request_detail(request, request_id):
 
 @login_required
 def clearance_list(request):
+    search_query = (request.GET.get('q') or '').strip()
     clearances_qs = (
         PirmetClearance.objects.filter(permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'])
         .select_related('company', 'company__enginer')
         .order_by('-dateOfCreation')
     )
+    if search_query:
+        clearances_qs = clearances_qs.filter(
+            Q(company__name__icontains=search_query)
+            | Q(company__number__icontains=search_query)
+        )
     reviews = InspectorReview.objects.filter(pirmet__in=clearances_qs).select_related('inspector', 'inspector_user')
     review_map = {review.pirmet_id: review for review in reviews}
     inspection_receive_changes = (
@@ -1642,9 +1650,41 @@ def clearance_list(request):
         if change.pirmet_id not in inspection_report_map:
             inspection_report_map[change.pirmet_id] = change
     clearances = list(clearances_qs)
+    waste_requests_qs = (
+        WasteDisposalRequest.objects.filter(permit__in=clearances_qs)
+        .select_related('inspected_by')
+        .order_by('permit_id', '-created_at', '-id')
+    )
+    latest_waste_request_map = {}
+    latest_active_waste_request_map = {}
+    for waste_request in waste_requests_qs:
+        if waste_request.permit_id not in latest_waste_request_map:
+            latest_waste_request_map[waste_request.permit_id] = waste_request
+        if (
+            waste_request.status in {'payment_pending', 'inspection_pending'}
+            and waste_request.permit_id not in latest_active_waste_request_map
+        ):
+            latest_active_waste_request_map[waste_request.permit_id] = waste_request
+
     for clearance in clearances:
         clearance.permit_label_ar = _permit_label_ar(clearance.permit_type)
         clearance.detail_url_name = _permit_detail_url_name(clearance.permit_type)
+        clearance.detail_url = reverse(clearance.detail_url_name, kwargs={'id': clearance.id})
+        if clearance.permit_type == 'waste_disposal':
+            latest_waste_request = (
+                latest_active_waste_request_map.get(clearance.id)
+                or latest_waste_request_map.get(clearance.id)
+            )
+            if latest_waste_request and clearance.status in {
+                'inspection_pending',
+                'disposal_approved',
+                'disposal_rejected',
+            }:
+                clearance.permit_label_ar = 'طلب التخلص من النفايات'
+                clearance.detail_url = reverse(
+                    'waste_disposal_request_detail',
+                    kwargs={'permit_id': clearance.id, 'request_id': latest_waste_request.id},
+                )
         company = clearance.company
         engineer = company.enginer if company else None
         engineer_phone = (engineer.phone or '').strip() if engineer else ''
@@ -1655,6 +1695,17 @@ def clearance_list(request):
         review = review_map.get(clearance.id)
         clearance.inspector_name = _inspector_review_name(review)
         clearance.inspection_assigned_user_id = review.inspector_user_id if review and review.inspector_user_id else None
+        if (
+            not clearance.inspection_assigned_user_id
+            and clearance.permit_type == 'waste_disposal'
+        ):
+            pending_waste_request = latest_active_waste_request_map.get(clearance.id)
+            if (
+                pending_waste_request
+                and pending_waste_request.status == 'inspection_pending'
+                and pending_waste_request.inspected_by_id
+            ):
+                clearance.inspection_assigned_user_id = pending_waste_request.inspected_by_id
         request_docs = _request_documents(clearance)
         clearance.request_documents_count = len(request_docs)
         clearance.has_request_documents = bool(
@@ -1665,12 +1716,26 @@ def clearance_list(request):
         clearance.inspection_receiver_name = None
         if receive_change and ':' in receive_change.notes:
             clearance.inspection_receiver_name = receive_change.notes.split(':', 1)[1].strip()
+        if (
+            not clearance.inspection_receiver_name
+            and clearance.permit_type == 'waste_disposal'
+        ):
+            pending_waste_request = latest_active_waste_request_map.get(clearance.id)
+            if pending_waste_request and pending_waste_request.inspected_by:
+                clearance.inspection_receiver_name = _display_user_name(
+                    pending_waste_request.inspected_by
+                )
         report_change = inspection_report_map.get(clearance.id)
         clearance.inspection_report_decision = (
             _inspection_report_decision_from_note(report_change.notes)
             if report_change
             else None
         )
+        if not clearance.inspection_report_decision and clearance.permit_type == 'waste_disposal':
+            if clearance.status == 'disposal_approved':
+                clearance.inspection_report_decision = 'approved'
+            elif clearance.status == 'disposal_rejected':
+                clearance.inspection_report_decision = 'rejected'
 
     finished_statuses = {
         'issued',
@@ -1718,8 +1783,8 @@ def clearance_list(request):
     )
 
     status_filter_label_map = {
-        'inspection_pending': 'بانتظار التفتيش',
-        'order_received': 'تم استلام الطلب',
+        'inspection_pending': 'جاهز للاستلام',
+        'order_received': 'بانتظار اصدار رابط دفع التفتيش',
         'inspection_payment_pending': 'بانتظار دفع التفتيش',
         'review_pending': 'بانتظار مراجعة المفتش',
         'approved': 'معتمد من المفتش',
@@ -1734,8 +1799,8 @@ def clearance_list(request):
         'disposal_rejected': 'إتلاف مرفوض',
     }
     status_section_label_map = {
-        'inspection_pending': 'طلبات بانتظار التفتيش',
-        'order_received': 'طلبات تم استلامها',
+        'inspection_pending': 'طلبات جاهزة للاستلام',
+        'order_received': 'بانتظار اصدار رابط دفع التفتيش',
         'inspection_payment_pending': 'طلبات بانتظار دفع التفتيش',
         'review_pending': 'طلبات بانتظار مراجعة المفتش',
         'approved': 'طلبات معتمدة من المفتش',
@@ -1830,6 +1895,7 @@ def clearance_list(request):
             'finished_clearances': finished_clearances,
             'active_clearance_groups': active_clearance_groups,
             'finished_clearance_groups': finished_clearance_groups,
+            'query': search_query,
             'status_filter': status_filter,
             'status_filter_label': status_filter_label,
             'status_filter_options': status_filter_options,
@@ -2160,7 +2226,12 @@ def vehicle_permit_detail(request, id):
                 old_status = pirmet.status
                 pirmet.payment_receipt = receipt
                 pirmet.payment_date = datetime.date.today()
-                pirmet.status = 'payment_completed'
+                issue_date = datetime.date.today()
+                expiry_date = _calculate_permit_expiry(issue_date)
+                pirmet.issue_date = issue_date
+                pirmet.dateOfExpiry = expiry_date
+                # New flow: after permit payment proof, issue the permit directly.
+                pirmet.status = 'issued'
                 pirmet.save()
                 _log_pirmet_change(
                     pirmet,
@@ -2168,7 +2239,7 @@ def vehicle_permit_detail(request, id):
                     request.user,
                     old_status=old_status,
                     new_status=pirmet.status,
-                    notes='Vehicle permit payment received.',
+                    notes='Vehicle permit payment received and permit issued.',
                 )
                 return redirect('vehicle_permit_detail', id=pirmet.id)
 
@@ -2383,7 +2454,12 @@ def waste_permit_detail(request, id):
                 old_status = pirmet.status
                 pirmet.payment_receipt = receipt
                 pirmet.payment_date = datetime.date.today()
-                pirmet.status = 'payment_completed'
+                issue_date = datetime.date.today()
+                expiry_date = _add_months(issue_date, 6)
+                pirmet.issue_date = issue_date
+                pirmet.dateOfExpiry = expiry_date
+                # New flow: after permit payment proof, issue the permit directly.
+                pirmet.status = 'issued'
                 pirmet.save()
                 _log_pirmet_change(
                     pirmet,
@@ -2391,13 +2467,19 @@ def waste_permit_detail(request, id):
                     request.user,
                     old_status=old_status,
                     new_status=pirmet.status,
-                    notes='Waste permit payment received.',
+                    notes='Waste permit payment received and permit issued.',
                 )
                 _log_company_change(
                     pirmet.company,
                     'waste_permit_paid',
                     request.user,
                     notes=f'تم تأكيد دفع تصريح التخلص #{pirmet.permit_no}.',
+                )
+                _log_company_change(
+                    pirmet.company,
+                    'waste_permit_issued',
+                    request.user,
+                    notes=f'تم إصدار تصريح التخلص #{pirmet.permit_no} لمدة 6 أشهر.',
                 )
                 return redirect('waste_permit_detail', id=pirmet.id)
 
@@ -2458,25 +2540,102 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
         return redirect('waste_permit_detail', id=permit.id)
 
     if request_id is None:
-        if permit.status != 'issued':
-            return redirect('waste_permit_detail', id=permit.id)
         if not _can_data_entry(request.user):
             return redirect('waste_permit_detail', id=permit.id)
-        disposal_request = WasteDisposalRequest.objects.create(permit=permit, status='payment_pending')
-        _log_company_change(
-            permit.company,
-            'waste_request_created',
-            request.user,
-            notes=f'تم إنشاء طلب التخلص رقم {disposal_request.id} للتصريح #{permit.permit_no}.',
+        active_request = (
+            permit.waste_disposal_requests.filter(status__in={'payment_pending', 'inspection_pending'})
+            .order_by('-id')
+            .first()
         )
-        return redirect('waste_disposal_request_detail', permit_id=permit.id, request_id=disposal_request.id)
+        if active_request:
+            return redirect(
+                'waste_disposal_request_detail',
+                permit_id=permit.id,
+                request_id=active_request.id,
+            )
+        if permit.status not in {'issued', 'disposal_approved', 'disposal_rejected'}:
+            return redirect('waste_permit_detail', id=permit.id)
+        review_errors = []
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            if action == 'create_request':
+                documents = request.FILES.getlist('request_documents')
+                invalid_docs = []
+                for doc in documents:
+                    ext = os.path.splitext(doc.name)[1].lower()
+                    if ext not in ALLOWED_DOC_EXTENSIONS:
+                        invalid_docs.append(doc.name)
+                if not documents:
+                    review_errors.append('يرجى إرفاق مستند واحد على الأقل قبل إنشاء طلب التخلص.')
+                if invalid_docs:
+                    review_errors.append('يُسمح فقط بملفات PDF أو صور: ' + ', '.join(invalid_docs))
+
+                if not review_errors:
+                    disposal_request = WasteDisposalRequest.objects.create(
+                        permit=permit,
+                        status='payment_pending',
+                    )
+                    for doc in documents:
+                        WasteDisposalRequestDocument.objects.create(
+                            disposal_request=disposal_request,
+                            file=doc,
+                        )
+                    _log_company_change(
+                        permit.company,
+                        'waste_request_created',
+                        request.user,
+                        notes=(
+                            f'تم إنشاء طلب التخلص رقم {disposal_request.id} للتصريح '
+                            f'#{permit.permit_no} مع {len(documents)} مستند.'
+                        ),
+                    )
+                    _log_pirmet_change(
+                        permit,
+                        'document_upload',
+                        request.user,
+                        notes=f'waste_disposal_request_documents:{disposal_request.id}:{len(documents)}',
+                    )
+                    return redirect(
+                        'waste_disposal_request_detail',
+                        permit_id=permit.id,
+                        request_id=disposal_request.id,
+                    )
+
+        return render(
+            request,
+            'hcsd/waste_disposal_request_detail.html',
+            {
+                'permit': permit,
+                'disposal_request': None,
+                'review_errors': review_errors,
+                'create_mode': True,
+                'can_create_disposal_request': _can_data_entry(request.user),
+            },
+        )
 
     disposal_request = get_object_or_404(
         WasteDisposalRequest.objects.select_related('permit', 'permit__company', 'inspected_by'),
         id=request_id,
         permit=permit,
     )
+    request_documents = list(disposal_request.documents.order_by('-uploaded_at'))
     review_errors = []
+    assigned_inspector = disposal_request.inspected_by
+    can_upload_request_documents = (
+        (_can_data_entry(request.user) or _can_admin(request.user))
+        and disposal_request.status == 'payment_pending'
+    )
+    can_receive_disposal_request = (
+        _can_inspector(request.user)
+        and disposal_request.status == 'inspection_pending'
+        and not assigned_inspector
+    )
+    can_submit_disposal_report = (
+        _can_inspector(request.user)
+        and disposal_request.status == 'inspection_pending'
+        and assigned_inspector
+        and assigned_inspector.id == request.user.id
+    )
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -2485,6 +2644,8 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 review_errors.append('ليس لديك صلاحية لإدخال رقم الدفع.')
             if disposal_request.status != 'payment_pending':
                 review_errors.append('الطلب ليس بانتظار الدفع.')
+            if not request_documents:
+                review_errors.append('لا يمكن إدخال أمر الدفع قبل إرفاق مستندات طلب التخلص.')
             reference = (request.POST.get('disposal_reference') or '').strip()
             if not reference:
                 review_errors.append('يرجى إدخال رقم أمر دفع طلب التخلص.')
@@ -2505,6 +2666,40 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 )
                 return redirect('waste_disposal_request_detail', permit_id=permit.id, request_id=disposal_request.id)
 
+        if action == 'upload_request_documents':
+            if not (_can_data_entry(request.user) or _can_admin(request.user)):
+                review_errors.append('ليس لديك صلاحية لإرفاق مستندات طلب التخلص.')
+            if disposal_request.status != 'payment_pending':
+                review_errors.append('لا يمكن إرفاق مستندات الطلب بعد بدء مرحلة التفتيش.')
+            documents = request.FILES.getlist('request_documents')
+            invalid_docs = []
+            for doc in documents:
+                ext = os.path.splitext(doc.name)[1].lower()
+                if ext not in ALLOWED_DOC_EXTENSIONS:
+                    invalid_docs.append(doc.name)
+            if not documents:
+                review_errors.append('يرجى إرفاق مستند واحد على الأقل.')
+            if invalid_docs:
+                review_errors.append('يُسمح فقط بملفات PDF أو صور: ' + ', '.join(invalid_docs))
+
+            if not review_errors:
+                for doc in documents:
+                    WasteDisposalRequestDocument.objects.create(
+                        disposal_request=disposal_request,
+                        file=doc,
+                    )
+                _log_pirmet_change(
+                    permit,
+                    'document_upload',
+                    request.user,
+                    notes=f'waste_disposal_request_documents:{disposal_request.id}:{len(documents)}',
+                )
+                return redirect(
+                    'waste_disposal_request_detail',
+                    permit_id=permit.id,
+                    request_id=disposal_request.id,
+                )
+
         if action == 'payment':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لتأكيد الدفع.')
@@ -2520,13 +2715,37 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 if ext not in ALLOWED_DOC_EXTENSIONS:
                     review_errors.append('يُسمح فقط بملفات PDF أو صور للإيصال.')
             if not review_errors:
+                old_permit_status = permit.status
                 disposal_request.disposal_payment_receipt = receipt
                 disposal_request.status = 'inspection_pending'
-                disposal_request.save(update_fields=['disposal_payment_receipt', 'status'])
+                disposal_request.inspected_by = None
+                disposal_request.save(
+                    update_fields=['disposal_payment_receipt', 'status', 'inspected_by', 'updated_at']
+                )
+                permit_update_fields = []
+                if permit.status != 'inspection_pending':
+                    permit.status = 'inspection_pending'
+                    permit_update_fields.append('status')
+                if permit.unapprovedReason:
+                    permit.unapprovedReason = None
+                    permit_update_fields.append('unapprovedReason')
+                if permit_update_fields:
+                    permit.save(update_fields=permit_update_fields)
+                InspectorReview.objects.update_or_create(
+                    pirmet=permit,
+                    defaults={
+                        'inspector': None,
+                        'inspector_user': None,
+                        'isApproved': False,
+                        'comments': 'بانتظار استلام مفتش لطلب التخلص.',
+                    },
+                )
                 _log_pirmet_change(
                     permit,
                     'status_change',
                     request.user,
+                    old_status=old_permit_status,
+                    new_status=permit.status,
                     notes=f'waste_disposal_payment_received:{disposal_request.id}',
                 )
                 _log_company_change(
@@ -2537,11 +2756,48 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 )
                 return redirect('waste_disposal_request_detail', permit_id=permit.id, request_id=disposal_request.id)
 
+        if action == 'receive_for_inspection':
+            if not _can_inspector(request.user):
+                review_errors.append('ليس لديك صلاحية لاستلام الطلب للتفتيش.')
+            if disposal_request.status != 'inspection_pending':
+                review_errors.append('الطلب ليس جاهزًا للاستلام للتفتيش.')
+            if disposal_request.inspected_by_id and disposal_request.inspected_by_id != request.user.id:
+                review_errors.append('تم استلام الطلب بواسطة مفتش آخر.')
+
+            if not review_errors:
+                if not disposal_request.inspected_by_id:
+                    disposal_request.inspected_by = request.user
+                    disposal_request.save(update_fields=['inspected_by', 'updated_at'])
+                    InspectorReview.objects.update_or_create(
+                        pirmet=permit,
+                        defaults={
+                            'inspector': None,
+                            'inspector_user': request.user,
+                            'isApproved': False,
+                            'comments': 'تم استلام طلب التخلص للتفتيش.',
+                        },
+                    )
+                    _log_pirmet_change(
+                        permit,
+                        'details_update',
+                        request.user,
+                        notes=f'inspection_received_by:{_display_user_name(request.user)}',
+                    )
+                return redirect(
+                    'waste_disposal_request_detail',
+                    permit_id=permit.id,
+                    request_id=disposal_request.id,
+                )
+
         if action == 'submit_inspection_report':
             if not _can_inspector(request.user):
                 review_errors.append('ليس لديك صلاحية لإضافة تقرير التفتيش.')
             if disposal_request.status != 'inspection_pending':
                 review_errors.append('الطلب ليس في مرحلة التفتيش.')
+            if not disposal_request.inspected_by:
+                review_errors.append('يجب استلام الطلب من قبل مفتش قبل إدخال التقرير.')
+            elif disposal_request.inspected_by_id != request.user.id:
+                review_errors.append('فقط المفتش الذي استلم الطلب يمكنه إدخال تقرير التفتيش.')
             decision = (request.POST.get('inspection_decision') or '').strip().lower()
             notes = (request.POST.get('inspection_notes') or '').strip()
             if decision not in {'approved', 'rejected'}:
@@ -2562,7 +2818,21 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 disposal_request.inspection_notes = notes or None
                 disposal_request.inspected_by = request.user
                 disposal_request.save(update_fields=['status', 'inspection_notes', 'inspected_by', 'updated_at'])
-                permit.save(update_fields=['status', 'unapprovedReason'])
+                permit_update_fields = ['status']
+                if decision == 'approved' and permit.unapprovedReason is None:
+                    pass
+                else:
+                    permit_update_fields.append('unapprovedReason')
+                permit.save(update_fields=permit_update_fields)
+                InspectorReview.objects.update_or_create(
+                    pirmet=permit,
+                    defaults={
+                        'inspector': None,
+                        'inspector_user': request.user,
+                        'isApproved': decision == 'approved',
+                        'comments': notes or ('تمت الموافقة على طلب التخلص.' if decision == 'approved' else 'تم رفض طلب التخلص.'),
+                    },
+                )
                 _log_pirmet_change(
                     permit,
                     'status_change',
@@ -2577,6 +2847,19 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                     request.user,
                     notes=f'waste_disposal_inspection:{disposal_request.id}:{decision}',
                 )
+                _log_pirmet_change(
+                    permit,
+                    'details_update',
+                    request.user,
+                    notes=f'inspection_report:{decision}',
+                )
+                if notes:
+                    _log_pirmet_change(
+                        permit,
+                        'details_update',
+                        request.user,
+                        notes=f'inspection_report_notes:{notes}',
+                    )
                 _log_company_change(
                     permit.company,
                     'waste_request_inspected',
@@ -2591,9 +2874,15 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
         {
             'permit': permit,
             'disposal_request': disposal_request,
+            'request_documents': request_documents,
             'review_errors': review_errors,
             'can_record_payment': _can_admin(request.user),
             'can_review_request': _can_inspector(request.user),
+            'can_receive_disposal_request': can_receive_disposal_request,
+            'can_submit_disposal_report': can_submit_disposal_report,
+            'can_upload_request_documents': can_upload_request_documents,
+            'assigned_inspector_name': _display_user_name(assigned_inspector) if assigned_inspector else None,
+            'create_mode': False,
         },
     )
 
@@ -2957,13 +3246,13 @@ def pest_control_permit_detail(request, id):
     )
     can_record_violation_order = (
         _can_admin(request.user)
-        and pirmet.status == 'order_received'
+        and pirmet.status == 'inspection_completed'
         and violation_required
         and not violation_order_recorded
     )
     can_record_violation_receipt = (
         _can_admin(request.user)
-        and pirmet.status == 'order_received'
+        and pirmet.status == 'inspection_completed'
         and violation_required
         and violation_order_recorded
         and not violation_receipt_recorded
@@ -2971,12 +3260,10 @@ def pest_control_permit_detail(request, id):
     can_record_inspection_payment_reference = (
         _can_admin(request.user)
         and pirmet.status in {'order_received', 'inspection_payment_pending'}
-        and (not violation_required or violation_payment_completed)
     )
     can_record_inspection_payment_receipt = (
         _can_admin(request.user)
         and pirmet.status == 'inspection_payment_pending'
-        and (not violation_required or violation_payment_completed)
     )
     can_record_permit_payment_reference = (
         _can_admin(request.user)
@@ -3170,8 +3457,8 @@ def pest_control_permit_detail(request, id):
         if action == 'save_violation_payment_order':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال بيانات مخالفة التأخير.')
-            if pirmet.status != 'order_received':
-                review_errors.append('يمكن إدخال أمر دفع المخالفة فقط قبل بدء دفع التفتيش.')
+            if pirmet.status != 'inspection_completed':
+                review_errors.append('يمكن إدخال أمر دفع المخالفة فقط بعد انتهاء التفتيش.')
             if not violation_required:
                 review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
             if violation_receipt_recorded:
@@ -3196,8 +3483,8 @@ def pest_control_permit_detail(request, id):
         if action == 'save_violation_payment_receipt':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال إيصال مخالفة التأخير.')
-            if pirmet.status != 'order_received':
-                review_errors.append('يمكن إدخال إيصال المخالفة فقط قبل بدء دفع التفتيش.')
+            if pirmet.status != 'inspection_completed':
+                review_errors.append('يمكن إدخال إيصال المخالفة فقط بعد انتهاء التفتيش.')
             if not violation_required:
                 review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
             if not (pirmet.violation_payment_order_number or '').strip():
@@ -3230,8 +3517,6 @@ def pest_control_permit_detail(request, id):
                 review_errors.append('ليس لديك صلاحية لإدخال الرقم المرجعي لدفع التفتيش.')
             if pirmet.status not in {'order_received', 'inspection_payment_pending'}:
                 review_errors.append('لا يمكن تعديل الرقم المرجعي في هذه المرحلة.')
-            if violation_required and not violation_payment_completed:
-                review_errors.append('يرجى استكمال أمر دفع المخالفة وإيصالها قبل إدخال أمر دفع التفتيش.')
 
             inspection_reference = (request.POST.get('inspection_payment_reference') or '').strip()
             if not inspection_reference:
@@ -3266,8 +3551,6 @@ def pest_control_permit_detail(request, id):
                 review_errors.append('ليس لديك صلاحية لتأكيد دفع التفتيش.')
             if pirmet.status != 'inspection_payment_pending':
                 review_errors.append('هذا الطلب ليس بانتظار دفع التفتيش.')
-            if violation_required and not violation_payment_completed:
-                review_errors.append('يرجى استكمال سداد المخالفة أولاً.')
 
             inspection_reference = (request.POST.get('inspection_payment_reference') or '').strip()
             receipt = request.FILES.get('inspection_payment_receipt')
@@ -3351,6 +3634,8 @@ def pest_control_permit_detail(request, id):
                 review_errors.append('ليس لديك صلاحية لإدخال الرقم المرجعي للدفع.')
             if pirmet.status != 'inspection_completed':
                 review_errors.append('هذا الطلب ليس في مرحلة إدخال رقم دفع التصريح.')
+            if violation_required and not violation_payment_completed:
+                review_errors.append('يرجى استكمال أمر دفع المخالفة وإيصالها قبل إدخال رقم دفع التصريح.')
 
             latest_inspection_report = (
                 PirmetChangeLog.objects.filter(
@@ -3392,6 +3677,8 @@ def pest_control_permit_detail(request, id):
                 review_errors.append('ليس لديك صلاحية لتأكيد الدفع.')
             if pirmet.status != 'payment_pending':
                 review_errors.append('هذا الطلب ليس بانتظار الدفع.')
+            if violation_required and not violation_payment_completed:
+                review_errors.append('يرجى استكمال سداد المخالفة أولاً.')
             if not (pirmet.PaymentNumber or '').strip():
                 review_errors.append('يرجى إدخال الرقم المرجعي لدفع التصريح أولاً.')
 
@@ -3410,7 +3697,8 @@ def pest_control_permit_detail(request, id):
                 old_status = pirmet.status
                 pirmet.payment_receipt = receipt
                 pirmet.payment_date = datetime.date.today()
-                pirmet.status = 'payment_completed'
+                # New flow: once payment proof is uploaded, issue the permit immediately.
+                pirmet.status = 'issued'
                 pirmet.save()
                 _log_pirmet_change(
                     pirmet,
@@ -3418,7 +3706,7 @@ def pest_control_permit_detail(request, id):
                     request.user,
                     old_status=old_status,
                     new_status=pirmet.status,
-                    notes='Payment received.',
+                    notes='Payment received and permit issued.',
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 

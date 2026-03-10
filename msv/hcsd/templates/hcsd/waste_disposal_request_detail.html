@@ -10,7 +10,11 @@
     <div class="action-bar no-print">
       <a class="back-link" href="{% url 'waste_permit_detail' id=permit.id %}">العودة لتصريح النفايات</a>
     </div>
-    <div class="permit-title permit-title--hero">طلب التخلص #{{ disposal_request.id }}</div>
+    {% if create_mode %}
+      <div class="permit-title permit-title--hero">إنشاء طلب التخلص من النفايات</div>
+    {% else %}
+      <div class="permit-title permit-title--hero">طلب التخلص #{{ disposal_request.id }}</div>
+    {% endif %}
 
     {% if review_errors %}
       <div class="alert">
@@ -19,60 +23,138 @@
       </div>
     {% endif %}
 
-    <section class="permit-section">
-      <div class="section-title">بيانات الطلب</div>
-      <div class="detail-grid">
-        <div class="detail-item"><span class="label">الشركة</span><span class="value">{{ permit.company.name }}</span></div>
-        <div class="detail-item"><span class="label">تاريخ الطلب</span><span class="value">{{ disposal_request.request_date|date:"d/m/Y" }}</span></div>
-        <div class="detail-item"><span class="label">الحالة</span><span class="value">{{ disposal_request.get_status_display }}</span></div>
-        <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ disposal_request.disposal_reference|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">ملاحظات التفتيش</span><span class="value">{{ disposal_request.inspection_notes|default:"-" }}</span></div>
-      </div>
-    </section>
-
-    {% if can_record_payment and disposal_request.status == "payment_pending" and not disposal_request.disposal_reference %}
-      <section class="permit-section no-print">
-        <div class="section-title">إدخال رقم دفع طلب التخلص</div>
-        <form method="post" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="send_payment_link">
-          <label for="disposal_reference">رقم أمر الدفع</label>
-          <input id="disposal_reference" name="disposal_reference" type="text" required>
-          <button type="submit">حفظ رقم الدفع</button>
-        </form>
+    {% if create_mode %}
+      <section class="permit-section">
+        <div class="section-title">بيانات التصريح الأساسي</div>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="label">الشركة</span><span class="value">{{ permit.company.name }}</span></div>
+          <div class="detail-item"><span class="label">رقم التصريح</span><span class="value">{{ permit.permit_no|default:"-" }}</span></div>
+          <div class="detail-item"><span class="label">تاريخ الانتهاء</span><span class="value">{{ permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span></div>
+          <div class="detail-item"><span class="label">الحالة</span><span class="value">{{ permit.get_status_display }}</span></div>
+        </div>
       </section>
-    {% endif %}
 
-    {% if can_record_payment and disposal_request.status == "payment_pending" and disposal_request.disposal_reference %}
-      <section class="permit-section no-print">
-        <div class="section-title">تأكيد دفع طلب التخلص</div>
-        <form method="post" enctype="multipart/form-data" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="payment">
-          <label for="disposal_payment_receipt">إيصال الدفع (PDF أو صورة)</label>
-          <input id="disposal_payment_receipt" name="disposal_payment_receipt" type="file" required>
-          <button type="submit">تأكيد الدفع والانتقال للتفتيش</button>
-        </form>
+      {% if can_create_disposal_request %}
+        <section class="permit-section no-print">
+          <div class="section-title">مستندات طلب التخلص (إلزامي)</div>
+          <form method="post" enctype="multipart/form-data" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_request">
+            <label for="request_documents">إرفاق المستندات (PDF أو صور)</label>
+            <input id="request_documents" name="request_documents" type="file" accept=".pdf,image/*" multiple required>
+            <button type="submit">إنشاء طلب التخلص</button>
+          </form>
+        </section>
+      {% endif %}
+    {% else %}
+      <section class="permit-section">
+        <div class="section-title">بيانات الطلب</div>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="label">الشركة</span><span class="value">{{ permit.company.name }}</span></div>
+          <div class="detail-item"><span class="label">تاريخ الطلب</span><span class="value">{{ disposal_request.request_date|date:"d/m/Y" }}</span></div>
+          <div class="detail-item"><span class="label">الحالة</span><span class="value">{{ disposal_request.get_status_display }}</span></div>
+          <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ disposal_request.disposal_reference|default:"-" }}</span></div>
+          <div class="detail-item"><span class="label">المفتش المستلم</span><span class="value">{{ assigned_inspector_name|default:"-" }}</span></div>
+          <div class="detail-item"><span class="label">ملاحظات التفتيش</span><span class="value">{{ disposal_request.inspection_notes|default:"-" }}</span></div>
+        </div>
       </section>
-    {% endif %}
 
-    {% if can_review_request and disposal_request.status == "inspection_pending" %}
-      <section class="permit-section no-print">
-        <div class="section-title">تقرير التفتيش</div>
-        <form method="post" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="submit_inspection_report">
-          <label for="inspection_decision">النتيجة</label>
-          <select id="inspection_decision" name="inspection_decision" required>
-            <option value="">-- اختيار --</option>
-            <option value="approved">معتمد</option>
-            <option value="rejected">مرفوض</option>
-          </select>
-          <label for="inspection_notes">ملاحظات التفتيش</label>
-          <textarea id="inspection_notes" name="inspection_notes" rows="4"></textarea>
-          <button type="submit">حفظ تقرير التفتيش</button>
-        </form>
+      <section class="permit-section">
+        <div class="section-title">مستندات طلب التخلص</div>
+        {% if request_documents %}
+          <div class="inspection-photos">
+            {% for doc in request_documents %}
+              {% if doc.file.url|lower|slice:"-4:" == ".pdf" %}
+                <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
+                  <span>PDF</span>
+                </a>
+              {% else %}
+                <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener">
+                  <img src="{{ doc.file.url }}" alt="مستند طلب التخلص {{ forloop.counter }}">
+                </a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <p>لا توجد مستندات مرفقة.</p>
+        {% endif %}
       </section>
+
+      {% if can_upload_request_documents and not request_documents %}
+        <section class="permit-section no-print">
+          <div class="section-title">إرفاق مستندات الطلب (إلزامي قبل الدفع)</div>
+          <form method="post" enctype="multipart/form-data" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="upload_request_documents">
+            <label for="request_documents_existing">مستندات طلب التخلص (PDF أو صور)</label>
+            <input id="request_documents_existing" name="request_documents" type="file" accept=".pdf,image/*" multiple required>
+            <button type="submit">حفظ المستندات</button>
+          </form>
+        </section>
+      {% endif %}
+
+      {% if can_record_payment and disposal_request.status == "payment_pending" and not disposal_request.disposal_reference %}
+        <section class="permit-section no-print">
+          <div class="section-title">إدخال رقم دفع طلب التخلص</div>
+          <form method="post" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send_payment_link">
+            <label for="disposal_reference">رقم أمر الدفع</label>
+            <input id="disposal_reference" name="disposal_reference" type="text" required>
+            <button type="submit">حفظ رقم الدفع</button>
+          </form>
+        </section>
+      {% endif %}
+
+      {% if can_record_payment and disposal_request.status == "payment_pending" and disposal_request.disposal_reference %}
+        <section class="permit-section no-print">
+          <div class="section-title">تأكيد دفع طلب التخلص</div>
+          <form method="post" enctype="multipart/form-data" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="payment">
+            <label for="disposal_payment_receipt">إيصال الدفع (PDF أو صورة)</label>
+            <input id="disposal_payment_receipt" name="disposal_payment_receipt" type="file" required>
+            <button type="submit">تأكيد الدفع والانتقال للتفتيش</button>
+          </form>
+        </section>
+      {% endif %}
+
+      {% if can_receive_disposal_request %}
+        <section class="permit-section no-print">
+          <div class="section-title">استلام طلب التخلص للتفتيش</div>
+          <form method="post" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="receive_for_inspection">
+            <button type="submit">استلام الطلب للتفتيش</button>
+          </form>
+        </section>
+      {% endif %}
+
+      {% if disposal_request.status == "inspection_pending" and assigned_inspector_name and not can_submit_disposal_report %}
+        <section class="permit-section no-print">
+          <div class="section-title">حالة الاستلام</div>
+          <p>تم استلام الطلب للتفتيش بواسطة المفتش: <strong>{{ assigned_inspector_name }}</strong></p>
+        </section>
+      {% endif %}
+
+      {% if can_submit_disposal_report %}
+        <section class="permit-section no-print">
+          <div class="section-title">تقرير التفتيش</div>
+          <form method="post" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="submit_inspection_report">
+            <label for="inspection_decision">النتيجة</label>
+            <select id="inspection_decision" name="inspection_decision" required>
+              <option value="">-- اختيار --</option>
+              <option value="approved">معتمد</option>
+              <option value="rejected">مرفوض</option>
+            </select>
+            <label for="inspection_notes">ملاحظات التفتيش</label>
+            <textarea id="inspection_notes" name="inspection_notes" rows="4"></textarea>
+            <button type="submit">حفظ تقرير التفتيش</button>
+          </form>
+        </section>
+      {% endif %}
     {% endif %}
   </div>
 </section>

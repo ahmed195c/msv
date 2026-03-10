@@ -273,6 +273,19 @@ class WasteDisposalRequest(models.Model):
         return f"{self.permit.company.name} - Disposal Request #{self.id}"
 
 
+class WasteDisposalRequestDocument(models.Model):
+    disposal_request = models.ForeignKey(
+        WasteDisposalRequest,
+        on_delete=models.CASCADE,
+        related_name='documents',
+    )
+    file = models.FileField(upload_to='pirmet_documents/waste_disposal_request_documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.disposal_request.permit.company.name} - Waste Request Doc #{self.id}"
+
+
 class InspectorReview(models.Model):
     pirmet = models.OneToOneField(PirmetClearance, on_delete=models.CASCADE)
     inspector = models.ForeignKey(Enginer, on_delete=models.SET_NULL, null=True)
