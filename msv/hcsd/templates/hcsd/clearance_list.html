@@ -502,8 +502,116 @@
 }
 
 @media (max-width: 640px) {
+  .cl-page {
+    padding: 14px 10px 28px;
+  }
+
+  .cl-filters {
+    border-width: 1px;
+    box-shadow: none;
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+
+  .cl-section {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    margin-bottom: 14px;
+    background: transparent;
+  }
+
+  .cl-section-head {
+    margin-bottom: 10px;
+    padding-bottom: 0;
+    border-bottom: none;
+    gap: 8px;
+  }
+
+  .cl-section-title,
+  .cl-count-badge,
+  .cl-group-label {
+    border: none;
+    box-shadow: none;
+  }
+
   .cl-cards { grid-template-columns: 1fr; }
+  .cl-cards { gap: 10px; }
+
+  .cl-card {
+    border-width: 1px;
+    box-shadow: none;
+  }
+
+  .cl-card:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--line);
+  }
+
+  .cl-card-stripe {
+    height: 3px;
+    opacity: 0.82;
+  }
+
+  .cl-card-body {
+    padding: 12px;
+    gap: 10px;
+  }
+
   .cl-row { grid-template-columns: 100px 1fr; }
+  .cl-card-date {
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  .cl-card-data {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    gap: 6px;
+  }
+
+  .cl-row {
+    grid-template-columns: 1fr;
+    background: transparent;
+    border: none;
+    gap: 4px;
+  }
+
+  .cl-lbl {
+    border: none;
+    background: transparent;
+    padding: 0;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 11.5px;
+    color: var(--ink-4);
+  }
+
+  .cl-val {
+    padding: 0;
+    font-size: 13px;
+  }
+
+  .phone-link {
+    border: none;
+    background: #edf2f7;
+    padding: 2px 9px;
+  }
+
+  .cl-card-actions {
+    border-top: none;
+    padding-top: 2px;
+  }
+
+  .action-link {
+    border-width: 1px;
+    box-shadow: none;
+  }
+
   .cl-title { font-size: 20px; }
 }
 
