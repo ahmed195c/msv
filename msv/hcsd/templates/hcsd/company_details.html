@@ -783,33 +783,33 @@
       <div class="active-permits-grid">
         <div class="active-permit-card">
           <div class="active-permit-title">تصريح النشاط</div>
-          {% if active_pest_permit %}
+          {% if display_pest_permit %}
             <div class="active-permit-meta">
-              ساري حتى {{ active_pest_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
+              ساري حتى {{ display_pest_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
             </div>
-            <a class="permit-link" href="{% url 'pest_control_permit_view' active_pest_permit.id %}">عرض التصريح</a>
+            <a class="permit-link" href="{% url 'pest_control_permit_view' display_pest_permit.id %}">عرض التصريح</a>
           {% else %}
             <div class="active-permit-meta">لا يوجد تصريح نشاط فعّال حالياً.</div>
           {% endif %}
         </div>
         <div class="active-permit-card">
           <div class="active-permit-title">تصريح المركبة</div>
-          {% if active_vehicle_permit %}
+          {% if display_vehicle_permit %}
             <div class="active-permit-meta">
-              ساري حتى {{ active_vehicle_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
+              ساري حتى {{ display_vehicle_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
             </div>
-            <a class="permit-link" href="{% url 'vehicle_permit_detail' active_vehicle_permit.id %}">عرض التصريح</a>
+            <a class="permit-link" href="{% url 'vehicle_permit_detail' display_vehicle_permit.id %}">عرض التصريح</a>
           {% else %}
             <div class="active-permit-meta">لا يوجد تصريح مركبة فعّال حالياً.</div>
           {% endif %}
         </div>
         <div class="active-permit-card">
           <div class="active-permit-title">تصريح التخلص من النفايات</div>
-          {% if active_waste_permit %}
+          {% if display_waste_permit %}
             <div class="active-permit-meta">
-              ساري حتى {{ active_waste_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
+              ساري حتى {{ display_waste_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
             </div>
-            <a class="permit-link" href="{% url 'waste_permit_detail' active_waste_permit.id %}">عرض التصريح</a>
+            <a class="permit-link" href="{% url 'waste_permit_detail' display_waste_permit.id %}">عرض التصريح</a>
           {% else %}
             <div class="active-permit-meta">لا يوجد تصريح تخلص فعّال حالياً.</div>
           {% endif %}

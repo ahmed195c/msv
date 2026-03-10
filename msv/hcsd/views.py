@@ -938,6 +938,7 @@ def company_detail(request, id):
     latest_permits = {}
     today = timezone.localdate()
     active_permits = {}
+    latest_issued_permits = {}
 
     def _is_effective_active_permit(permit):
         if permit.status == 'cancelled_admin':
@@ -975,6 +976,12 @@ def company_detail(request, id):
             latest_permits[permit.permit_type] = permit
         if permit.permit_type not in active_permits and permit.is_effective_active:
             active_permits[permit.permit_type] = permit
+        if (
+            permit.permit_type not in latest_issued_permits
+            and permit.is_issued_record
+            and permit.status != 'cancelled_admin'
+        ):
+            latest_issued_permits[permit.permit_type] = permit
 
     display_status_priority = {
         'issued': 0,
@@ -1029,6 +1036,9 @@ def company_detail(request, id):
             'active_pest_permit': active_permits.get('pest_control'),
             'active_vehicle_permit': active_permits.get('pesticide_transport'),
             'active_waste_permit': active_permits.get('waste_disposal'),
+            'display_pest_permit': active_permits.get('pest_control') or latest_issued_permits.get('pest_control'),
+            'display_vehicle_permit': active_permits.get('pesticide_transport') or latest_issued_permits.get('pesticide_transport'),
+            'display_waste_permit': active_permits.get('waste_disposal') or latest_issued_permits.get('waste_disposal'),
             'company_permits': permits,
         },
     )
