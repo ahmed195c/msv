@@ -429,6 +429,19 @@ body.is-navigating .app-main {
    RESPONSIVE
 ══════════════════════════════════════════ */
 @media (max-width: 860px) {
+  .app-chrome {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    z-index: 120;
+  }
+
+  body.app-shell {
+    padding-top: calc(var(--mobile-nav-offset, 0px) + env(safe-area-inset-top, 0px));
+  }
+
   .navbar {
     flex-wrap: wrap;
     height: auto;
@@ -694,11 +707,30 @@ body.is-navigating .app-main {
       });
     }
 
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", function () { prepTables(); normDates(); });
-    } else {
-      prepTables(); normDates();
+    function syncMobileNavOffset() {
+      var header = document.querySelector(".app-chrome");
+      if (!header) return;
+      if (!window.matchMedia("(max-width: 860px)").matches) {
+        document.body.style.removeProperty("--mobile-nav-offset");
+        return;
+      }
+      document.body.style.setProperty("--mobile-nav-offset", header.offsetHeight + "px");
     }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function () {
+        prepTables();
+        normDates();
+        syncMobileNavOffset();
+      });
+    } else {
+      prepTables();
+      normDates();
+      syncMobileNavOffset();
+    }
+
+    window.addEventListener("resize", syncMobileNavOffset);
+    window.addEventListener("load", syncMobileNavOffset);
   })();
   </script>
 </body>
