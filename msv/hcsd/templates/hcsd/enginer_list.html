@@ -1,134 +1,248 @@
 {% extends "hcsd/base.html" %}
-{% block title %}Engineers{% endblock %}
+{% block title %}قائمة المهندسين{% endblock %}
 {% block content %}
 <style>
-  .enginer-page {
+  .eng-page {
+    --ink: #304357;
+    --ink-2: #41576f;
+    --ink-3: #6f8194;
+    --paper: #ffffff;
+    --surface: #F1F4F7;
+    --surface-2: #e6ecf2;
+    --line: #d7dfe8;
+    --line-2: #bec9d5;
+    --accent: #304357;
+    --accent-dk: #26384a;
+    --ok-bg: #e1eee9;
+    --ok-fg: #2c5b49;
+    --warn-bg: #f8e8e8;
+    --warn-fg: #8b2f2f;
+    color: var(--ink);
+    direction: rtl;
     max-width: 1280px;
     margin: 0 auto;
-    padding: 20px 16px 32px;
-    font-family: "Cairo", "Noto Kufi Arabic", "Tahoma", sans-serif;
+    padding: 24px 20px 40px;
   }
 
-  .enginer-header {
+  .eng-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .eng-title {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    position: relative;
+  }
+
+  .eng-title::after {
+    content: "";
+    display: block;
+    margin-top: 4px;
+    height: 3px;
+    width: 48px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .eng-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 8px;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
-    background: #fbf9f5;
-    border: 1px solid #ded6c6;
-    border-radius: 16px;
-    padding: 14px 16px;
   }
 
-  .enginer-actions .add-link {
-    background: linear-gradient(180deg, #2b6c5a 0%, #1f5a4b 100%);
-    color: #fff;
-    padding: 9px 14px;
-    text-decoration: none;
-    border-radius: 10px;
-    font-weight: 700;
-    box-shadow: 0 8px 18px rgba(31, 90, 75, 0.18);
+  .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-  }
-
-  .enginer-filters {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr auto;
-    gap: 10px;
-    width: 100%;
-    margin-top: 6px;
-  }
-
-  .enginer-filters input,
-  .enginer-filters select {
-    width: 100%;
-    min-height: 40px;
-  }
-
-  .enginer-filters .filter-btn {
-    min-height: 40px;
-    border: 0;
-    border-radius: 10px;
-    background: linear-gradient(180deg, #2b6c5a 0%, #1f5a4b 100%);
-    color: #fff;
-    padding: 0 14px;
+    gap: 6px;
+    border: 1.5px solid var(--line-2);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink-2);
+    font-size: 13px;
     font-weight: 700;
+    min-height: 40px;
+    padding: 8px 14px;
+    text-decoration: none;
     cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
   }
 
-  .hint {
+  .btn:hover {
+    background: var(--surface-2);
+    border-color: var(--ink-3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-dk);
+    border-color: var(--accent-dk);
+  }
+
+  .btn-teal {
+    background: #1f6b56;
+    border-color: #1f6b56;
+    color: #fff;
+  }
+
+  .btn-teal:hover {
+    background: #195945;
+    border-color: #195945;
+  }
+
+  .btn-blue {
+    background: #2f5e8b;
+    border-color: #2f5e8b;
+    color: #fff;
+  }
+
+  .btn-blue:hover {
+    background: #274f75;
+    border-color: #274f75;
+  }
+
+  .eng-filters {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .eng-filter-form {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.4fr) minmax(190px, 1fr) auto;
+    gap: 12px;
+    align-items: end;
+  }
+
+  .filter-field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .filter-field label {
     font-size: 12px;
-    color: #666;
-    margin-top: 4px;
+    font-weight: 700;
+    color: var(--ink-3);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
 
-  .enginer-table {
+  .filter-field input,
+  .filter-field select {
     width: 100%;
+    min-height: 40px;
+    border: 1.5px solid var(--line-2);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    padding: 9px 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .filter-field input:focus,
+  .filter-field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.14);
+  }
+
+  .eng-section {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 18px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  .eng-table {
+    width: 100%;
+    min-width: 760px;
     border-collapse: collapse;
     background: #fff;
-    border: 1px solid #e0d9ca;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 8px 18px rgba(24, 35, 28, 0.04);
   }
 
-  .enginer-table th,
-  .enginer-table td {
-    border: 1px solid #ece6d9;
-    padding: 10px;
-    text-align: right;
-    vertical-align: top;
-  }
-
-  .enginer-table thead {
-    background: #f4f0e7;
-  }
-
-  .enginer-table thead th {
-    color: #3e433f;
-    font-size: 13px;
+  .eng-table th {
+    background: var(--surface);
+    color: var(--ink-3);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 10px 12px;
+    border-bottom: 1.5px solid var(--line-2);
     white-space: nowrap;
+    text-align: right;
   }
 
-  .enginer-table tbody tr:nth-child(even) {
-    background: #fcfbf8;
+  .eng-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+    font-weight: 500;
+    vertical-align: middle;
+    text-align: right;
+  }
+
+  .eng-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .eng-table tr:hover td {
+    background: var(--surface);
   }
 
   .badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    border: 1px solid #c7d8d2;
-    background: #e2ede9;
-    color: #1f5a4b;
     margin: 2px 4px 2px 0;
+    border-radius: 999px;
+    border: 1px solid #c2d5cc;
+    background: var(--ok-bg);
+    color: var(--ok-fg);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
   }
 
   .badge.warn {
-    background: #fff4f4;
-    border-color: #e7b4b4;
-    color: #8a1f1f;
+    border-color: #e4bcbc;
+    background: var(--warn-bg);
+    color: var(--warn-fg);
   }
 
-  .detail-link {
-    background: #1f5a4b;
-    color: #fff;
-    padding: 8px 14px;
-    text-decoration: none;
+  .eng-empty {
+    margin: 0;
+    border: 1.5px dashed var(--line-2);
     border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    min-width: 82px;
-    white-space: nowrap;
+    background: var(--surface);
+    color: var(--ink-2);
+    padding: 16px;
+    font-weight: 600;
+    text-align: center;
   }
 
   .enginer-skeleton {
@@ -136,20 +250,20 @@
     gap: 14px;
   }
 
-  .enginer-list--loading .enginer-page .enginer-runtime {
+  .enginer-list--loading .eng-page .eng-runtime {
     display: none;
   }
 
-  .enginer-list--loading .enginer-page .enginer-skeleton {
+  .enginer-list--loading .eng-page .enginer-skeleton {
     display: grid;
   }
 
   .enginer-skeleton-card {
-    border: 1px solid #e3dccd;
-    border-radius: 16px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
     background: #fff;
     padding: 14px;
-    box-shadow: 0 8px 18px rgba(24, 35, 28, 0.04);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   }
 
   .enginer-skeleton-grid {
@@ -160,7 +274,7 @@
 
   .enginer-skeleton-line {
     height: 14px;
-    border-radius: 8px;
+    border-radius: 6px;
     background: linear-gradient(100deg, #ece8de 30%, #f7f5ee 48%, #ece8de 66%);
     background-size: 220% 100%;
     animation: enginer-skeleton-shimmer 1.2s linear infinite;
@@ -178,8 +292,8 @@
   }
 
   .enginer-skeleton-table {
-    border: 1px solid #e0d9ca;
-    border-radius: 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
     background: #fff;
     padding: 12px;
     display: grid;
@@ -188,7 +302,7 @@
 
   .enginer-skeleton-row {
     height: 16px;
-    border-radius: 8px;
+    border-radius: 6px;
     background: linear-gradient(100deg, #ece8de 30%, #f7f5ee 48%, #ece8de 66%);
     background-size: 220% 100%;
     animation: enginer-skeleton-shimmer 1.2s linear infinite;
@@ -199,44 +313,47 @@
     to { background-position: -100% 0; }
   }
 
+  @media (max-width: 960px) {
+    .eng-filter-form {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .eng-filter-form .btn {
+      grid-column: 1 / -1;
+    }
+  }
+
   @media (max-width: 720px) {
-    .enginer-page {
-      padding: 16px 12px 32px;
+    .eng-page {
+      padding: 16px 12px 28px;
     }
 
-    .enginer-header {
+    .eng-header {
       flex-direction: column;
-      align-items: flex-start;
+      align-items: stretch;
     }
 
-    .enginer-actions {
+    .eng-actions {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .eng-actions .btn {
       width: 100%;
     }
 
-    .enginer-actions .add-link {
-      width: 100%;
-      text-align: center;
-      display: block;
-    }
-
-    .enginer-filters {
+    .eng-filter-form {
       grid-template-columns: 1fr;
     }
 
     .enginer-skeleton-grid {
       grid-template-columns: 1fr;
     }
-
-    .enginer-table {
-      display: block;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      border-radius: 12px;
-    }
   }
 </style>
 
-<section class="enginer-page" lang="ar" dir="rtl">
+<section class="eng-page" lang="ar" dir="rtl">
   <div class="enginer-skeleton" aria-hidden="true">
     <div class="enginer-skeleton-card">
       <div class="enginer-skeleton-line enginer-skeleton-line--title"></div>
@@ -256,92 +373,106 @@
     </div>
   </div>
 
-  <div class="enginer-runtime">
-    <div class="enginer-header">
-      <div>
-        <h1 style="margin: 0;">قائمة المهندسين</h1>
-        <form method="get" class="enginer-filters">
-          <input
-            type="text"
-            name="card_number"
-            value="{{ card_number_query }}"
-            class="w-full rounded-xl border bg-white px-4 py-2 text-sm shadow-md transition-all"
-            placeholder="ابحث برقم البطاقة"
-            inputmode="numeric"
-            autocomplete="off"
-          >
-          <select name="certification" class="w-full rounded-xl border bg-white px-4 py-2 text-sm shadow-md transition-all">
-            <option value="" {% if not certification_filter %}selected{% endif %}>اختر الشهادة</option>
-            <option value="public_health" {% if certification_filter == 'public_health' %}selected{% endif %}>شهادة الصحة العامة</option>
-            <option value="termite" {% if certification_filter == 'termite' %}selected{% endif %}>شهادة النمل الأبيض</option>
-          </select>
-          <button type="submit" class="filter-btn rounded-xl px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-px">تصفية</button>
-        </form>
-      </div>
-      <div class="enginer-actions">
+  <div class="eng-runtime">
+    <div class="eng-header">
+      <h1 class="eng-title">قائمة المهندسين</h1>
+      <div class="eng-actions">
         {% if can_view_exam_requests %}
-          <a class="add-link" style="margin-inline-start:8px;background:linear-gradient(180deg,#1e5f8c 0%,#174d72 100%);" href="{% url 'public_health_exam_request_list' %}">طلبات اختبار آفات الصحة العامة</a>
+          <a class="btn btn-blue" href="{% url 'public_health_exam_request_list' %}">طلبات اختبار آفات الصحة العامة</a>
         {% endif %}
         {% if can_create_exam_request %}
-          <a class="add-link" style="margin-inline-start:8px;background:linear-gradient(180deg,#217f60 0%,#176149 100%);" href="{% url 'engineer_certificate_request_list' %}">طلبات شهادة لمن يهمه الأمر</a>
+          <a class="btn btn-teal" href="{% url 'engineer_certificate_request_list' %}">طلبات شهادة لمن يهمه الأمر</a>
         {% endif %}
         {% if can_add_enginer %}
-          <a class="add-link" href="{% url 'enginer_add' %}">تسجيل مهندس جديد</a>
+          <a class="btn btn-primary" href="{% url 'enginer_add' %}">تسجيل مهندس جديد</a>
         {% endif %}
       </div>
     </div>
 
+    <section class="eng-filters">
+      <form method="get" class="enginer-filters eng-filter-form">
+        <div class="filter-field">
+          <label for="card_number">رقم البطاقة</label>
+          <input
+            id="card_number"
+            type="text"
+            name="card_number"
+            value="{{ card_number_query }}"
+            placeholder="ابحث برقم البطاقة"
+            inputmode="numeric"
+            autocomplete="off"
+          >
+        </div>
+        <div class="filter-field">
+          <label for="certification">نوع الشهادة</label>
+          <select id="certification" name="certification">
+            <option value="" {% if not certification_filter %}selected{% endif %}>كل الشهادات</option>
+            <option value="public_health" {% if certification_filter == 'public_health' %}selected{% endif %}>شهادة الصحة العامة</option>
+            <option value="termite" {% if certification_filter == 'termite' %}selected{% endif %}>شهادة النمل الأبيض</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">تصفية</button>
+      </form>
+    </section>
+
     {% if engineers %}
-      <table class="enginer-table">
-        <thead>
-          <tr>
-            <th>الاسم</th>
-            <th>رقم البطاقة</th>
-            <th>الهاتف</th>
-            <th>شهادت لمن يهمه الامر </th>
-            <th>الملف</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for engineer in engineers %}
-            <tr>
-              <td>{{ engineer.name }}</td>
-              <td>{{ engineer.card_number|default:"-" }}</td>
-              <td>{{ engineer.phone }}</td>
-              <td>
-                {% if engineer.public_health_cert %}
-                  {% if engineer.public_health_cert_is_expired %}
-                    <span class="badge warn">الصحة العامة - منتهية</span>
-                  {% else %}
-                    <span class="badge">الصحة العامة</span>
-                  {% endif %}
-                {% else %}
-                  <span class="badge warn">   افات الصحه العامه  </span>
-                {% endif %}
-                {% if engineer.termite_cert %}
-                  {% if engineer.termite_cert_is_expired %}
-                    <span class="badge warn">النمل الأبيض - منتهية</span>
-                  {% else %}
-                    <span class="badge">النمل الأبيض</span>
-                  {% endif %}
-                {% else %}
-                  <span class="badge warn"> نمل أبيض</span>
-                {% endif %}
-              </td>
-              <td><a class="detail-link" href="{% url 'enginer_detail' engineer.id %}">عرض</a></td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <section class="eng-section">
+        <div class="table-wrap">
+          <table class="eng-table">
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>رقم البطاقة</th>
+                <th>الهاتف</th>
+                <th>الشهادات</th>
+                <th>الملف</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for engineer in engineers %}
+                <tr>
+                  <td>{{ engineer.name }}</td>
+                  <td>{{ engineer.card_number|default:"-" }}</td>
+                  <td>{{ engineer.phone }}</td>
+                  <td>
+                    {% if engineer.public_health_cert %}
+                      {% if engineer.public_health_cert_is_expired %}
+                        <span class="badge warn">الصحة العامة - منتهية</span>
+                      {% else %}
+                        <span class="badge">الصحة العامة</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="badge warn">آفات الصحة العامة</span>
+                    {% endif %}
+                    {% if engineer.termite_cert %}
+                      {% if engineer.termite_cert_is_expired %}
+                        <span class="badge warn">النمل الأبيض - منتهية</span>
+                      {% else %}
+                        <span class="badge">النمل الأبيض</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="badge warn">النمل الأبيض</span>
+                    {% endif %}
+                  </td>
+                  <td><a class="btn btn-primary" href="{% url 'enginer_detail' engineer.id %}">عرض</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
     {% else %}
-      <p>No engineers found.</p>
+      <section class="eng-section">
+        <p class="eng-empty">لا يوجد مهندسون مطابقون للبحث.</p>
+      </section>
     {% endif %}
   </div>
 </section>
+
 <script>
   (function () {
     document.addEventListener("submit", function (event) {
-      if (!event.target.matches(".enginer-page .enginer-filters")) {
+      if (!event.target.matches(".eng-page .enginer-filters")) {
         return;
       }
       document.documentElement.classList.add("enginer-list--loading");

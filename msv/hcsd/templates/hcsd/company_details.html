@@ -1,69 +1,148 @@
 {% extends "hcsd/base.html" %}
-{% block title %}{{ company.name }} Details{% endblock %}
+{% block title %}تفاصيل الشركة{% endblock %}
 {% block content %}
 <style>
   .company-detail-page {
-    max-width: 1100px;
+    --ink: #304357;
+    --ink-2: #41576f;
+    --ink-3: #6f8194;
+    --paper: #ffffff;
+    --surface: #F1F4F7;
+    --surface-2: #e6ecf2;
+    --line: #d7dfe8;
+    --line-2: #bec9d5;
+    --accent: #304357;
+    --accent-dk: #26384a;
+    max-width: 1180px;
     margin: 0 auto;
-    padding: 22px 16px 40px;
+    padding: 24px 20px 40px;
+    direction: rtl;
+    color: var(--ink);
   }
 
   .detail-card {
-    background: #fbf9f5;
-    border: 2px solid #2a2a2a;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
-    padding: 24px;
-    font-family: "Cairo", "Noto Kufi Arabic", "Tahoma", sans-serif;
+    background: transparent;
+    padding: 0;
   }
 
   .detail-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
+  }
+
+  .detail-header h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    position: relative;
+  }
+
+  .detail-header h1::after {
+    content: "";
+    display: block;
+    margin-top: 4px;
+    height: 3px;
+    width: 48px;
+    background: var(--accent);
+    border-radius: 2px;
   }
 
   .detail-actions {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
   }
 
-  .detail-header h1 {
-    margin: 0;
-    font-size: 22px;
-  }
-
-  .back-link {
-    border: 1px solid #1f5a4b;
-    color: #1f5a4b;
+  .back-link,
+  .edit-request-btn,
+  .extension-request-btn,
+  .actions button,
+  .actions a,
+  .permit-link,
+  .upload-form button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    border-radius: 6px;
     padding: 8px 14px;
-    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
     text-decoration: none;
-    font-size: 13px;
+    cursor: pointer;
+    border: 1.5px solid var(--line-2);
+    background: var(--paper);
+    color: var(--ink-2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
   }
 
-  .edit-request-btn {
-    border: 1px solid #1f5a4b;
+  .back-link:hover,
+  .edit-request-btn:hover,
+  .extension-request-btn:hover,
+  .actions button:hover,
+  .actions a:hover,
+  .permit-link:hover,
+  .upload-form button:hover {
+    background: var(--surface-2);
+    border-color: var(--ink-3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .edit-request-btn,
+  .actions button,
+  .permit-link,
+  .upload-form button {
+    background: var(--accent);
+    border-color: var(--accent);
     color: #fff;
-    background: #1f5a4b;
-    padding: 8px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    cursor: pointer;
+  }
+
+  .edit-request-btn:hover,
+  .actions button:hover,
+  .permit-link:hover,
+  .upload-form button:hover {
+    background: var(--accent-dk);
+    border-color: var(--accent-dk);
   }
 
   .extension-request-btn {
-    border: 1px solid #c88a2d;
+    background: #b7801b;
+    border-color: #b7801b;
     color: #fff;
-    background: #c88a2d;
-    padding: 8px 14px;
-    border-radius: 999px;
+  }
+
+  .extension-request-btn:hover {
+    background: #9f6f18;
+    border-color: #9f6f18;
+  }
+
+  .section {
+    margin-top: 16px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    padding: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .section-title {
+    margin-bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    border-radius: 6px;
+    padding: 5px 14px;
     font-size: 13px;
-    cursor: pointer;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
   }
 
   .permit-statuses {
@@ -77,42 +156,44 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
-    border-radius: 999px;
+    padding: 7px 12px;
+    border-radius: 6px;
     font-size: 13px;
-    border: 1px solid transparent;
+    font-weight: 700;
+    border: 1.5px solid var(--line-2);
     text-decoration: none;
-    color: inherit;
-    background: #f4f4f4;
+    background: var(--surface);
+    color: var(--ink-2);
   }
 
   .permit-pill.is-valid {
-    background: #e3f4ec;
-    color: #1f5a4b;
-    border-color: #a9d6c1;
-    font-weight: 600;
+    background: #dfece8;
+    color: #205242;
+    border-color: #bdd3ca;
   }
 
   .permit-pill.is-missing {
-    background: #fff1dd;
-    color: #8a4a00;
-    border-color: #f0c28b;
+    background: #f7ecde;
+    color: #845317;
+    border-color: #e5cbab;
   }
 
-  .section {
-    border: 1px solid #2a2a2a;
-    padding: 14px;
-    margin-top: 16px;
+  .permit-pill.is-create {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
   }
 
-  .section-title {
-    font-weight: 700;
-    font-size: 14px;
-    display: inline-block;
-    padding: 4px 10px;
-    background: #e2ede9;
-    border: 1px solid #2a2a2a;
-    margin-bottom: 12px;
+  .permit-pill.is-create:hover {
+    background: var(--accent-dk);
+    border-color: var(--accent-dk);
+  }
+
+  .permit-pill.is-disabled {
+    background: #eef1f4;
+    color: #73808d;
+    border-color: #d2d9e1;
+    cursor: not-allowed;
   }
 
   .info-grid {
@@ -129,11 +210,12 @@
 
   .info-item .label {
     font-size: 12px;
-    color: #555;
+    color: var(--ink-3);
+    font-weight: 700;
   }
 
   .info-item .value {
-    color: #1b1b1b;
+    color: var(--ink);
     font-weight: 600;
   }
 
@@ -148,23 +230,49 @@
     gap: 6px;
   }
 
-  .company-field label {
-    font-size: 13px;
-    color: #555;
+  .company-field label,
+  .upload-form label {
+    font-size: 12px;
+    color: var(--ink-3);
+    font-weight: 700;
   }
 
   .company-field input,
   .company-field select,
-  .company-field textarea {
-    border: 1px solid #2a2a2a;
-    padding: 8px 10px;
+  .company-field textarea,
+  .upload-form input,
+  .upload-form select,
+  .upload-form textarea {
+    width: 100%;
+    border: 1.5px solid var(--line-2);
+    border-radius: 6px;
+    padding: 9px 12px;
     font-size: 14px;
-    background: #fff;
+    background: var(--surface);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .company-field input:focus,
+  .company-field select:focus,
+  .company-field textarea:focus,
+  .upload-form input:focus,
+  .upload-form select:focus,
+  .upload-form textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.14);
   }
 
   .company-field textarea {
     min-height: 90px;
     resize: vertical;
+  }
+
+  .upload-form {
+    display: grid;
+    gap: 10px;
+    max-width: 520px;
   }
 
   .checks {
@@ -183,33 +291,29 @@
     margin-top: 18px;
     display: flex;
     gap: 10px;
-  }
-
-  .actions button {
-    border: none;
-    padding: 10px 16px;
-    background: #1f5a4b;
-    color: #fff;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
+    flex-wrap: wrap;
   }
 
   .actions a {
-    padding: 10px 16px;
-    border-radius: 4px;
-    background: #494949;
+    background: #5f6974;
+    border-color: #5f6974;
     color: #fff;
-    text-decoration: none;
-    font-size: 14px;
+  }
+
+  .actions a:hover {
+    background: #505861;
+    border-color: #505861;
   }
 
   .error-box {
-    border: 1px solid #a33;
+    border: 1.5px solid #d89898;
+    border-radius: 6px;
     background: #fff4f4;
     color: #8a1f1f;
     padding: 10px 12px;
     margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 600;
   }
 
   .edit-panel[hidden] {
@@ -224,37 +328,43 @@
     width: 100%;
     border-collapse: collapse;
     background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
   }
 
-  .detail-table th,
-  .detail-table td {
-    border: 1px solid #ddd;
-    padding: 10px;
+  .detail-table th {
+    background: var(--surface);
+    color: var(--ink-3);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 10px 12px;
+    border-bottom: 1.5px solid var(--line-2);
     text-align: right;
   }
 
-  .detail-table thead {
-    background: #f4f4f4;
+  .detail-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+    font-size: 14px;
+    text-align: right;
   }
 
-  .permit-link {
-    background: #1f5a4b;
-    color: #fff;
-    padding: 6px 10px;
-    border-radius: 4px;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 13px;
+  .detail-table tr:last-child td {
+    border-bottom: none;
   }
 
   .muted {
-    color: #666;
+    color: var(--ink-3);
     font-size: 13px;
   }
 
   .edit-panel.is-active {
-    border-color: #1f5a4b;
-    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.14);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.14);
   }
 
   .timeline {
@@ -275,9 +385,9 @@
 
   .timeline-date {
     font-size: 12px;
-    color: #222;
+    color: var(--ink-2);
     text-align: left;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .timeline-track {
@@ -297,8 +407,8 @@
     width: 2px;
     background: repeating-linear-gradient(
       to bottom,
-      #1f5a4b 0,
-      #1f5a4b 6px,
+      var(--accent) 0,
+      var(--accent) 6px,
       transparent 6px,
       transparent 12px
     );
@@ -316,18 +426,17 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #f25c2a;
-    box-shadow: 0 0 0 6px rgba(242, 92, 42, 0.12);
+    background: var(--accent);
+    box-shadow: 0 0 0 6px rgba(48, 67, 87, 0.12);
     position: relative;
     z-index: 1;
   }
 
   .timeline-card {
     background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
     padding: 14px;
-    position: relative;
     text-align: right;
   }
 
@@ -335,45 +444,26 @@
     font-weight: 700;
     font-size: 14px;
     margin-bottom: 6px;
+    color: var(--ink);
   }
 
   .timeline-meta {
     font-size: 12px;
-    color: #666;
+    color: var(--ink-3);
   }
 
   .timeline-notes {
     margin-top: 8px;
     font-size: 13px;
-    color: #333;
+    color: var(--ink-2);
   }
 
-  @media (max-width: 720px) {
-    .timeline-item {
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    .timeline-date {
-      text-align: right;
-    }
-
-    .timeline-track {
-      display: none;
-    }
+  .timeline-notes a {
+    color: var(--accent);
+    font-weight: 700;
   }
 
-  @media (max-width: 980px) {
-    .detail-card {
-      padding: 20px;
-    }
-  }
-
-  @media (max-width: 680px) {
-    .detail-card {
-      padding: 18px 16px;
-    }
-
+  @media (max-width: 880px) {
     .detail-header {
       flex-direction: column;
       align-items: stretch;
@@ -382,11 +472,16 @@
     .detail-actions {
       width: 100%;
     }
+  }
+
+  @media (max-width: 720px) {
+    .company-detail-page {
+      padding: 16px 12px 28px;
+    }
 
     .detail-actions a,
     .detail-actions button {
       width: 100%;
-      justify-content: center;
     }
 
     .actions {
@@ -399,14 +494,24 @@
       text-align: center;
     }
 
-    .info-grid {
+    .timeline-item {
       grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .timeline-date {
+      text-align: right;
+    }
+
+    .timeline-track {
+      display: none;
     }
 
     .detail-table {
       display: block;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      white-space: nowrap;
     }
   }
 </style>
@@ -650,41 +755,17 @@
     <div class="section">
       <div class="section-title">التصاريح المرتبطة</div>
       <div class="permit-statuses">
-        {% if latest_pest_permit %}
-          {% if latest_pest_permit.status == "issued" or latest_pest_permit.status == "payment_completed" %}
-            <a class="permit-pill is-valid" href="{% url 'pest_control_permit_view' latest_pest_permit.id %}">
-              تصريح النشاط · عرض التصريح
-            </a>
-          {% endif %}
-          <a class="permit-pill {% if latest_pest_permit.status == "issued" or latest_pest_permit.status == "payment_completed" %}is-valid{% else %}is-missing{% endif %}" href="{% url 'pest_control_permit_detail' latest_pest_permit.id %}">
-            تصريح النشاط · متابعة الطلب
-          </a>
-        {% else %}
-          <a class="permit-pill is-missing" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">
-            تصريح النشاط · طلب جديد
-          </a>
-        {% endif %}
-
-        {% if latest_vehicle_permit %}
-          <a class="permit-pill {% if latest_vehicle_permit.status == "issued" or latest_vehicle_permit.status == "payment_completed" %}is-valid{% else %}is-missing{% endif %}" href="{% url 'vehicle_permit_detail' latest_vehicle_permit.id %}">
-            تصريح المركبة · متابعة الطلب
-          </a>
-        {% else %}
-          <a class="permit-pill is-missing" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">
-            تصريح المركبة · طلب جديد
-          </a>
-        {% endif %}
-
-        {% if latest_waste_permit %}
-          <a class="permit-pill {% if latest_waste_permit.status == "issued" or latest_waste_permit.status == "payment_completed" %}is-valid{% else %}is-missing{% endif %}" href="{% url 'waste_permit_detail' latest_waste_permit.id %}">
-            تصريح التخلص من النفايات · متابعة الطلب
-          </a>
-        {% else %}
-          <a class="permit-pill is-missing" href="{% url 'waste_permit' %}?company_id={{ company.id }}">
-            تصريح التخلص من النفايات · طلب جديد
-          </a>
-        {% endif %}
+        <a class="permit-pill is-create" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">
+          إنشاء تصريح نشاط جديد
+        </a>
+        <a class="permit-pill is-create" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">
+          إنشاء تصريح مركبة جديد
+        </a>
+        <a class="permit-pill is-create" href="{% url 'waste_permit' %}?company_id={{ company.id }}">
+          إنشاء تصريح تخلص جديد
+        </a>
       </div>
+      <p class="muted">كل الطلبات (الجديدة والقيد المتابعة والمنتهية) تظهر بالتفصيل في الجدول أدناه.</p>
       {% if company_permits %}
         <table class="detail-table">
           <thead>

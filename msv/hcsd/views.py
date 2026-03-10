@@ -935,6 +935,7 @@ def company_detail(request, id):
         .order_by('-dateOfCreation')
     )
     latest_permits = {}
+
     for permit in permits:
         permit.permit_label_ar = _permit_label_ar(permit.permit_type)
         permit.detail_url_name = _permit_detail_url_name(permit.permit_type)
