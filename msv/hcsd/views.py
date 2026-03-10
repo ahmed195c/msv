@@ -927,13 +927,14 @@ def company_detail(request, id):
                         _log_company_change(company, 'engineer_changed', request.user, notes='Engineer changed.')
                     return redirect('company_detail', id=company.id)
 
-    permits = (
+    permits_qs = (
         PirmetClearance.objects.filter(
             company=company,
             permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'],
         )
-        .order_by('-dateOfCreation')
+        .order_by('-dateOfCreation', '-id')
     )
+    permits = list(permits_qs)
     latest_permits = {}
 
     for permit in permits:
@@ -941,6 +942,30 @@ def company_detail(request, id):
         permit.detail_url_name = _permit_detail_url_name(permit.permit_type)
         if permit.permit_type not in latest_permits:
             latest_permits[permit.permit_type] = permit
+
+    display_status_priority = {
+        'issued': 0,
+        'payment_completed': 0,
+        'inspection_pending': 1,
+        'order_received': 1,
+        'inspection_payment_pending': 1,
+        'review_pending': 1,
+        'approved': 1,
+        'payment_pending': 1,
+        'inspection_completed': 1,
+        'disposal_approved': 1,
+        'needs_completion': 2,
+        'rejected': 2,
+        'disposal_rejected': 2,
+        'cancelled_admin': 3,
+    }
+    permits.sort(
+        key=lambda permit: (
+            display_status_priority.get(permit.status, 2),
+            -(permit.dateOfCreation.toordinal() if permit.dateOfCreation else 0),
+            -permit.id,
+        )
+    )
 
     logs = company.change_logs.all().order_by('-created_at')
     latest_extension = company.change_logs.filter(action='extension_requested').order_by('-created_at').first()

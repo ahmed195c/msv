@@ -774,6 +774,7 @@
               <th>تاريخ الإنشاء</th>
               <th>تاريخ الانتهاء</th>
               <th>رقم الدفع</th>
+              <th>الحالة</th>
               <th>التفاصيل</th>
             </tr>
           </thead>
@@ -784,12 +785,15 @@
                 <td>{{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</td>
                 <td>{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</td>
                 <td>{{ clearance.PaymentNumber|default:"-" }}</td>
+                <td>{{ clearance.get_status_display }}</td>
                 <td>
-                  {% if clearance.permit_type == "pest_control" %}
-                    {% if clearance.status == "issued" or clearance.status == "payment_completed" %}
+                  {% if clearance.status == "cancelled_admin" %}
+                    <span class="muted">الطلب مغلق إداريًا</span>
+                  {% elif clearance.status == "issued" or clearance.status == "payment_completed" %}
+                    {% if clearance.permit_type == "pest_control" %}
                       <a class="permit-link" href="{% url 'pest_control_permit_view' clearance.id %}">عرض التصريح</a>
                     {% else %}
-                      <a class="permit-link" href="{% url clearance.detail_url_name clearance.id %}">متابعة الطلب</a>
+                      <a class="permit-link" href="{% url clearance.detail_url_name clearance.id %}">عرض التصريح</a>
                     {% endif %}
                   {% else %}
                     <a class="permit-link" href="{% url clearance.detail_url_name clearance.id %}">متابعة الطلب</a>
