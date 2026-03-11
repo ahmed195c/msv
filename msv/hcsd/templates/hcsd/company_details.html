@@ -1,26 +1,39 @@
 {% extends "hcsd/base.html" %}
+{% load static %}
 {% block title %}تفاصيل الشركة{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
+{% endblock %}
 {% block content %}
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+
+  section.company-detail-page {
+    background: #f1f4f7;
+    min-height: 100vh;
+    padding: 32px 16px 56px;
+  }
+
   .company-detail-page {
-    --ink: #304357;
-    --ink-2: #41576f;
-    --ink-3: #6f8194;
-    --paper: #ffffff;
-    --surface: #F1F4F7;
-    --surface-2: #e6ecf2;
-    --line: #d7dfe8;
-    --line-2: #bec9d5;
-    --accent: #304357;
-    --accent-dk: #26384a;
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 24px 20px 40px;
+    --ink:        #262e3a;
+    --ink-2:      #262e3a;
+    --ink-3:      #4e5c6a;
+    --paper:      #ffffff;
+    --surface:    #f1f4f7;
+    --surface-2:  #e8ecf0;
+    --line:       #f1f4f7;
+    --accent:     #262e3a;
+    --accent-dk:  #1a2130;
+    --accent-soft:#e8ecf0;
+    --shadow:     0 2px 8px rgba(38, 46, 58, 0.08);
+    font-family: "Cairo", "Noto Kufi Arabic", "Tahoma", sans-serif;
     direction: rtl;
     color: var(--ink);
   }
 
   .detail-card {
+    max-width: 1100px;
+    margin: 0 auto;
     background: transparent;
     padding: 0;
   }
@@ -31,25 +44,19 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 4px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
   }
 
   .detail-header h1 {
     margin: 0;
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
-    letter-spacing: -0.02em;
-    position: relative;
-  }
-
-  .detail-header h1::after {
-    content: "";
-    display: block;
-    margin-top: 4px;
-    height: 3px;
-    width: 48px;
-    background: var(--accent);
-    border-radius: 2px;
+    color: var(--ink);
   }
 
   .detail-actions {
@@ -69,80 +76,61 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 38px;
-    border-radius: 6px;
-    padding: 8px 14px;
-    font-size: 13px;
-    font-weight: 700;
+    min-height: 36px;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 400;
+    font-family: inherit;
     text-decoration: none;
     cursor: pointer;
-    border: 1.5px solid var(--line-2);
-    background: var(--paper);
-    color: var(--ink-2);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    border: 2px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    transition: background 0.12s;
   }
 
   .back-link:hover,
-  .edit-request-btn:hover,
-  .extension-request-btn:hover,
-  .actions button:hover,
-  .actions a:hover,
-  .permit-link:hover,
-  .upload-form button:hover {
-    background: var(--surface-2);
-    border-color: var(--ink-3);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
+  .actions a:hover { background: var(--surface-2); }
 
   .edit-request-btn,
-  .actions button,
   .permit-link,
-  .upload-form button {
+  .upload-form button,
+  .actions button {
     background: var(--accent);
     border-color: var(--accent);
     color: #fff;
   }
-
   .edit-request-btn:hover,
-  .actions button:hover,
   .permit-link:hover,
-  .upload-form button:hover {
-    background: var(--accent-dk);
-    border-color: var(--accent-dk);
-  }
+  .upload-form button:hover,
+  .actions button:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
 
   .extension-request-btn {
-    background: #b7801b;
-    border-color: #b7801b;
-    color: #fff;
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--ink);
   }
-
-  .extension-request-btn:hover {
-    background: #9f6f18;
-    border-color: #9f6f18;
-  }
+  .extension-request-btn:hover { background: var(--surface-2); }
 
   .section {
-    margin-top: 16px;
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
+    margin-top: 12px;
+    border: 2px solid var(--line);
+    border-radius: 4px;
     background: var(--paper);
-    padding: 16px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    padding: 20px;
   }
 
   .section-title {
-    margin-bottom: 12px;
-    display: inline-flex;
-    align-items: center;
-    min-height: 32px;
-    border-radius: 6px;
-    padding: 5px 14px;
+    margin-bottom: 14px;
+    display: inline-block;
+    padding: 4px 12px;
     font-size: 13px;
     font-weight: 700;
-    color: #fff;
-    background: var(--ink);
+    color: var(--ink-3);
+    background: var(--surface);
+    border: 2px solid var(--line);
+    border-radius: 4px;
   }
 
   .permit-statuses {
@@ -159,22 +147,22 @@
   }
 
   .active-permit-card {
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
+    border: 2px solid var(--line);
+    border-radius: 4px;
     background: var(--surface);
-    padding: 12px;
+    padding: 14px;
     display: grid;
     gap: 8px;
   }
 
   .active-permit-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--ink);
   }
 
   .active-permit-meta {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--ink-3);
   }
 
@@ -182,56 +170,45 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 700;
-    border: 1.5px solid var(--line-2);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    border: 2px solid var(--line);
     text-decoration: none;
+    cursor: pointer;
+    transition: background 0.12s;
     background: var(--surface);
-    color: var(--ink-2);
-  }
-
-  .permit-pill.is-valid {
-    background: #dfece8;
-    color: #205242;
-    border-color: #bdd3ca;
-  }
-
-  .permit-pill.is-missing {
-    background: #f7ecde;
-    color: #845317;
-    border-color: #e5cbab;
+    color: var(--ink);
   }
 
   .permit-pill.is-create {
     background: var(--accent);
-    color: #fff;
     border-color: var(--accent);
+    color: #fff;
+    font-weight: 700;
   }
-
-  .permit-pill.is-create:hover {
-    background: var(--accent-dk);
-    border-color: var(--accent-dk);
-  }
+  .permit-pill.is-create:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
 
   .permit-pill.is-disabled {
-    background: #eef1f4;
-    color: #73808d;
-    border-color: #d2d9e1;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 
   .info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px 16px;
+    gap: 10px;
   }
 
   .info-item {
     display: grid;
-    gap: 4px;
+    gap: 6px;
     font-size: 14px;
+    border: 2px solid var(--line);
+    border-radius: 4px;
+    padding: 10px 12px;
+    background: var(--surface);
   }
 
   .info-item .label {
@@ -243,6 +220,7 @@
   .info-item .value {
     color: var(--ink);
     font-weight: 600;
+    font-size: 14px;
   }
 
   .company-grid {
@@ -270,11 +248,12 @@
   .upload-form select,
   .upload-form textarea {
     width: 100%;
-    border: 1.5px solid var(--line-2);
-    border-radius: 6px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
     padding: 9px 12px;
     font-size: 14px;
-    background: var(--surface);
+    font-family: inherit;
+    background: #fff;
     color: var(--ink);
     outline: none;
     transition: border-color 0.15s, box-shadow 0.15s;
@@ -287,7 +266,7 @@
   .upload-form select:focus,
   .upload-form textarea:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.14);
+    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.12);
   }
 
   .company-field textarea {
@@ -301,18 +280,6 @@
     max-width: 520px;
   }
 
-  .checks {
-    display: grid;
-    gap: 8px;
-  }
-
-  .check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-  }
-
   .actions {
     margin-top: 18px;
     display: flex;
@@ -320,42 +287,26 @@
     flex-wrap: wrap;
   }
 
-  .actions a {
-    background: #5f6974;
-    border-color: #5f6974;
-    color: #fff;
-  }
-
-  .actions a:hover {
-    background: #505861;
-    border-color: #505861;
-  }
-
   .error-box {
-    border: 1.5px solid #d89898;
-    border-radius: 6px;
-    background: #fff4f4;
-    color: #8a1f1f;
+    border: 1px solid rgba(31, 90, 75, 0.25);
+    border-radius: 10px;
+    background: #fff8f2;
+    color: #6b3010;
     padding: 10px 12px;
     margin-bottom: 10px;
     font-size: 13px;
     font-weight: 600;
   }
 
-  .edit-panel[hidden] {
-    display: none;
-  }
-
-  .extension-panel[hidden] {
-    display: none;
-  }
+  .edit-panel[hidden],
+  .extension-panel[hidden] { display: none; }
 
   .detail-table {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
     overflow: hidden;
   }
 
@@ -364,10 +315,8 @@
     color: var(--ink-3);
     font-size: 11px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
     padding: 10px 12px;
-    border-bottom: 1.5px solid var(--line-2);
+    border-bottom: 1px solid var(--line);
     text-align: right;
   }
 
@@ -379,18 +328,14 @@
     text-align: right;
   }
 
-  .detail-table tr:last-child td {
-    border-bottom: none;
-  }
+  .detail-table tr:last-child td { border-bottom: none; }
+  .detail-table tr:hover td { background: var(--surface); }
 
-  .muted {
-    color: var(--ink-3);
-    font-size: 13px;
-  }
+  .muted { color: var(--ink-3); font-size: 13px; }
 
   .edit-panel.is-active {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.14);
+    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.12);
   }
 
   .timeline {
@@ -453,15 +398,15 @@
     height: 10px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 0 6px rgba(48, 67, 87, 0.12);
+    box-shadow: 0 0 0 6px rgba(31, 90, 75, 0.12);
     position: relative;
     z-index: 1;
   }
 
   .timeline-card {
     background: #fff;
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
     padding: 14px;
     text-align: right;
   }
@@ -489,61 +434,340 @@
     font-weight: 700;
   }
 
-  @media (max-width: 880px) {
-    .detail-header {
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .badge-active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid rgba(31, 90, 75, 0.3);
+  }
+
+  .badge-expired {
+    background: #f0ede7;
+    color: var(--ink-3);
+    border: 1px solid var(--line);
+  }
+
+  .active-permit-card.is-active {
+    border-color: rgba(31, 90, 75, 0.4);
+    background: linear-gradient(180deg, #f4faf7 0%, #ecf5f0 100%);
+  }
+
+  .active-permit-card.is-empty {
+    border-style: dashed;
+    opacity: 0.82;
+  }
+
+  @media (max-width: 720px) {
+    section.company-detail-page { padding: 16px 12px 32px; }
+    .detail-header { flex-direction: column; align-items: stretch; }
+    .detail-actions a, .detail-actions button { width: 100%; }
+    .actions { flex-direction: column; }
+    .actions button, .actions a { width: 100%; text-align: center; }
+    .timeline-item { grid-template-columns: 1fr; gap: 8px; }
+    .timeline-date { text-align: right; }
+    .timeline-track { display: none; }
+    .detail-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+    .active-permits-grid { grid-template-columns: 1fr; }
+  }
+</style>
+<style>
+  section.company-detail-page {
+    min-height: 100vh;
+    padding: 20px 10px 36px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(241, 244, 247, 0.86)),
+      #f1f4f7;
+  }
+
+  .company-detail-page {
+    --pd-ink: #304357;
+    --pd-ink-2: #455c75;
+    --pd-ink-3: #6f8297;
+    --pd-paper: #ffffff;
+    --pd-surface: #f1f4f7;
+    --pd-surface-2: #e8eef4;
+    --pd-line: #d4dce5;
+    --pd-line-2: #bcc8d5;
+    --pd-accent: #304357;
+    --pd-accent-dark: #26384a;
+    --pd-danger: #8c2f2f;
+    --pd-radius: 8px;
+    --pd-shadow: 0 10px 24px rgba(48, 67, 87, 0.08);
+    background: transparent;
+    color: var(--pd-ink);
+    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+  }
+
+  .detail-card {
+    max-width: 1160px;
+    margin: 0 auto;
+    background: var(--pd-paper);
+    border: 1.5px solid var(--pd-line);
+    border-radius: var(--pd-radius);
+    box-shadow: var(--pd-shadow);
+    padding: 18px;
+  }
+
+  .detail-header {
+    margin-bottom: 14px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    display: grid;
+    gap: 10px;
+  }
+
+  .detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .detail-header h1 {
+    margin: 0;
+    width: 100%;
+    text-align: center;
+    font-size: clamp(22px, 2.5vw, 30px);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.01em;
+    padding: 10px 12px;
+    border: 1.5px solid var(--pd-accent);
+    border-radius: 6px;
+    background: linear-gradient(180deg, #3a4f66 0%, #304357 100%);
+  }
+
+  .detail-header h1::after {
+    display: none;
+  }
+
+  .back-link,
+  .edit-request-btn,
+  .extension-request-btn,
+  .actions button,
+  .actions a,
+  .permit-link,
+  .upload-form button,
+  .permit-pill {
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1.5px solid var(--pd-line-2);
+    background: var(--pd-paper);
+    color: var(--pd-ink);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .back-link:hover,
+  .actions a:hover {
+    background: var(--pd-surface-2);
+    border-color: var(--pd-ink-3);
+    color: var(--pd-ink);
+  }
+
+  .edit-request-btn,
+  .extension-request-btn,
+  .actions button,
+  .permit-link,
+  .upload-form button,
+  .permit-pill.is-create {
+    background: var(--pd-accent);
+    border-color: var(--pd-accent);
+    color: #fff;
+  }
+
+  .edit-request-btn:hover,
+  .extension-request-btn:hover,
+  .actions button:hover,
+  .permit-link:hover,
+  .upload-form button:hover,
+  .permit-pill.is-create:hover {
+    background: var(--pd-accent-dark);
+    border-color: var(--pd-accent-dark);
+    color: #fff;
+  }
+
+  .section {
+    margin-top: 14px;
+    border: 1.5px solid var(--pd-line);
+    border-radius: 6px;
+    background: #fff;
+    padding: 12px;
+    box-shadow: none;
+  }
+
+  .section-title {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1.5px solid var(--pd-accent);
+    background: var(--pd-accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .info-item,
+  .active-permit-card,
+  .timeline-card {
+    border: 1.5px solid var(--pd-line);
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .info-item .label,
+  .active-permit-meta,
+  .timeline-meta,
+  .muted,
+  .company-field label,
+  .upload-form label {
+    color: var(--pd-ink-3);
+  }
+
+  .info-item .value,
+  .active-permit-title,
+  .timeline-title {
+    color: var(--pd-ink);
+  }
+
+  .detail-table th {
+    background: var(--pd-accent);
+    color: #fff;
+    border: 1.5px solid var(--pd-accent-dark);
+  }
+
+  .detail-table td {
+    border: 1.5px solid var(--pd-line);
+    background: #fff;
+    color: var(--pd-ink);
+  }
+
+  .detail-table tr:nth-child(even) td {
+    background: #f9fbfd;
+  }
+
+  .badge {
+    border-radius: 6px;
+    border: 1.5px solid var(--pd-line-2);
+  }
+
+  .badge-active {
+    background: #edf7f2;
+    color: #1a5233;
+    border-color: #8fc5a7;
+  }
+
+  .badge-expired {
+    background: #fdf0ea;
+    color: #7a2c0d;
+    border-color: #d9ab95;
+  }
+
+  .company-field input,
+  .company-field select,
+  .company-field textarea,
+  .upload-form input,
+  .upload-form select,
+  .upload-form textarea {
+    width: 100%;
+    min-height: 42px;
+    border: 1.5px solid var(--pd-line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--pd-ink);
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  .company-field textarea,
+  .upload-form textarea {
+    min-height: 110px;
+    resize: vertical;
+  }
+
+  .company-field input:focus,
+  .company-field select:focus,
+  .company-field textarea:focus,
+  .upload-form input:focus,
+  .upload-form select:focus,
+  .upload-form textarea:focus {
+    outline: none;
+    border-color: var(--pd-accent);
+    box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.12);
+  }
+
+  .company-field input[disabled],
+  .company-field select[disabled],
+  .company-field textarea[disabled] {
+    background: var(--pd-surface);
+    color: var(--pd-ink-2);
+    border-color: var(--pd-line);
+    opacity: 1;
+  }
+
+  .error-box {
+    border: 1.5px solid #d9ab95;
+    border-radius: 6px;
+    background: #fdf0ea;
+    color: #7a2c0d;
+  }
+
+  .timeline-dot {
+    background: var(--pd-accent);
+    box-shadow: 0 0 0 4px rgba(48, 67, 87, 0.12);
+  }
+
+  .timeline-track::before {
+    background: var(--pd-line);
+  }
+
+  @media (max-width: 720px) {
+    section.company-detail-page {
+      padding: 16px 12px 32px;
+    }
+
+    .detail-card {
+      padding: 14px;
+    }
+
+    .detail-actions {
       flex-direction: column;
       align-items: stretch;
     }
 
-    .detail-actions {
-      width: 100%;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .company-detail-page {
-      padding: 16px 12px 28px;
-    }
-
     .detail-actions a,
-    .detail-actions button {
-      width: 100%;
-    }
-
-    .actions {
-      flex-direction: column;
-    }
-
+    .detail-actions button,
+    .actions a,
     .actions button,
-    .actions a {
+    .permit-pill {
       width: 100%;
-      text-align: center;
-    }
-
-    .timeline-item {
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    .timeline-date {
-      text-align: right;
-    }
-
-    .timeline-track {
-      display: none;
-    }
-
-    .detail-table {
-      display: block;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      white-space: nowrap;
+      justify-content: center;
     }
   }
 </style>
 
-<section class="company-detail-page" lang="ar" dir="rtl">
-  <div class="detail-card">
+<section class="permit-page company-detail-page" lang="ar" dir="rtl">
+  <div class="permit-card detail-card">
     <div class="detail-header">
       <h1>بيانات الشركة</h1>
       <div class="detail-actions">
@@ -778,86 +1002,158 @@
         {% endif %}
       </div>
 
+    {# ═══ التصاريح السارية ═══ #}
     <div class="section">
-      <div class="section-title">التصاريح الفعالة</div>
+      <div class="section-title">التصاريح السارية</div>
       <div class="active-permits-grid">
-        <div class="active-permit-card">
+
+        <div class="active-permit-card {% if active_pest_permit %}is-active{% else %}is-empty{% endif %}">
           <div class="active-permit-title">تصريح النشاط</div>
-          {% if display_pest_permit %}
-            <div class="active-permit-meta">
-              ساري حتى {{ display_pest_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
-            </div>
-            <a class="permit-link" href="{% url 'pest_control_permit_view' display_pest_permit.id %}">عرض التصريح</a>
+          {% if active_pest_permit %}
+            <div><span class="badge badge-active">ساري</span></div>
+            <div class="active-permit-meta">ينتهي: {{ active_pest_permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
+            <a class="permit-link" href="{% url 'pest_control_permit_view' active_pest_permit.id %}">عرض التصريح</a>
           {% else %}
-            <div class="active-permit-meta">لا يوجد تصريح نشاط فعّال حالياً.</div>
+            <div class="active-permit-meta">لا يوجد تصريح ساري حالياً</div>
+            <a class="permit-pill is-create" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">إنشاء تصريح جديد</a>
           {% endif %}
         </div>
-        <div class="active-permit-card">
+
+        <div class="active-permit-card {% if active_vehicle_permit %}is-active{% else %}is-empty{% endif %}">
           <div class="active-permit-title">تصريح المركبة</div>
-          {% if display_vehicle_permit %}
-            <div class="active-permit-meta">
-              ساري حتى {{ display_vehicle_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
-            </div>
-            <a class="permit-link" href="{% url 'vehicle_permit_detail' display_vehicle_permit.id %}">عرض التصريح</a>
+          {% if active_vehicle_permit %}
+            <div><span class="badge badge-active">ساري</span></div>
+            <div class="active-permit-meta">ينتهي: {{ active_vehicle_permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
+            <a class="permit-link" href="{% url 'vehicle_permit_detail' active_vehicle_permit.id %}">عرض التصريح</a>
           {% else %}
-            <div class="active-permit-meta">لا يوجد تصريح مركبة فعّال حالياً.</div>
+            <div class="active-permit-meta">لا يوجد تصريح ساري حالياً</div>
+            <a class="permit-pill is-create" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">إنشاء تصريح جديد</a>
           {% endif %}
         </div>
-        <div class="active-permit-card">
+
+        <div class="active-permit-card {% if active_waste_permit %}is-active{% else %}is-empty{% endif %}">
           <div class="active-permit-title">تصريح التخلص من النفايات</div>
-          {% if display_waste_permit %}
-            <div class="active-permit-meta">
-              ساري حتى {{ display_waste_permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}
-            </div>
-            <a class="permit-link" href="{% url 'waste_permit_detail' display_waste_permit.id %}">عرض التصريح</a>
+          {% if active_waste_permit %}
+            <div><span class="badge badge-active">ساري</span></div>
+            <div class="active-permit-meta">ينتهي: {{ active_waste_permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
+            <a class="permit-link" href="{% url 'waste_permit_detail' active_waste_permit.id %}">عرض التصريح</a>
           {% else %}
-            <div class="active-permit-meta">لا يوجد تصريح تخلص فعّال حالياً.</div>
+            <div class="active-permit-meta">لا يوجد تصريح ساري حالياً</div>
+            <a class="permit-pill is-create" href="{% url 'waste_permit' %}?company_id={{ company.id }}">إنشاء تصريح جديد</a>
           {% endif %}
         </div>
+
       </div>
     </div>
 
+    {# ═══ الطلبات قيد التنفيذ ═══ #}
     <div class="section">
-      <div class="section-title">التصاريح المرتبطة</div>
-      <div class="permit-statuses">
-        <a class="permit-pill is-create" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">
-          إنشاء تصريح نشاط جديد
-        </a>
-        <a class="permit-pill is-create" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">
-          إنشاء تصريح مركبة جديد
-        </a>
-        <a class="permit-pill is-create" href="{% url 'waste_permit' %}?company_id={{ company.id }}">
-          إنشاء تصريح تخلص جديد
-        </a>
-      </div>
-      <p class="muted">كل الطلبات (الجديدة والقيد المتابعة والمنتهية) تظهر بالتفصيل في الجدول أدناه.</p>
-      {% if company_permits %}
+      <div class="section-title">الطلبات قيد التنفيذ</div>
+      {% if pending_permits_list %}
         <table class="detail-table">
           <thead>
             <tr>
               <th>نوع التصريح</th>
               <th>تاريخ الإنشاء</th>
-              <th>تاريخ الانتهاء</th>
               <th>رقم الدفع</th>
-              <th>النوع</th>
               <th>الحالة</th>
-              <th>التفاصيل</th>
+              <th>تفاصيل</th>
             </tr>
           </thead>
           <tbody>
-            {% for clearance in company_permits %}
+            {% for permit in pending_permits_list %}
               <tr>
-                <td>{{ clearance.permit_label_ar }}</td>
-                <td>{{ clearance.dateOfCreation|date:"d/m/Y"|default:"-" }}</td>
-                <td>{{ clearance.dateOfExpiry|date:"d/m/Y"|default:"-" }}</td>
-                <td>{{ clearance.PaymentNumber|default:"-" }}</td>
-                <td>{% if clearance.is_issued_record %}تصريح{% else %}طلب{% endif %}</td>
-                <td>{{ clearance.get_status_display }}</td>
+                <td>{{ permit.permit_label_ar }}</td>
+                <td>{{ permit.dateOfCreation|date:"d/m/Y"|default:"-" }}</td>
+                <td>{{ permit.PaymentNumber|default:"-" }}</td>
+                <td>{{ permit.status_label_ar }}</td>
                 <td>
-                  {% if not clearance.primary_action_label %}
-                    <span class="muted">الطلب مغلق إداريًا</span>
+                  <a class="permit-link" href="{{ permit.primary_action_url }}">متابعة الطلب</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted">لا توجد طلبات جارية حالياً.</p>
+      {% endif %}
+    </div>
+
+    {# ═══ أرشيف التصاريح المصدرة ═══ #}
+    <div class="section">
+      <div class="section-title">أرشيف التصاريح المصدرة</div>
+      {% if issued_archive %}
+        <table class="detail-table">
+          <thead>
+            <tr>
+              <th>نوع التصريح</th>
+              <th>رقم التصريح</th>
+              <th>تاريخ الإصدار</th>
+              <th>تاريخ الانتهاء</th>
+              <th>الحالة</th>
+              <th>تفاصيل</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for permit in issued_archive %}
+              <tr>
+                <td>{{ permit.permit_label_ar }}</td>
+                <td>{{ permit.permit_no|default:"-" }}</td>
+                <td>{{ permit.issue_date|date:"d/m/Y"|default:"-" }}</td>
+                <td>{{ permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}</td>
+                <td>
+                  {% if permit.is_effective_active %}
+                    <span class="badge badge-active">ساري</span>
                   {% else %}
-                    <a class="permit-link" href="{{ clearance.primary_action_url }}">{{ clearance.primary_action_label }}</a>
+                    <span class="badge badge-expired">منتهي</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a class="permit-link" href="{{ permit.primary_action_url }}">عرض التصريح</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted">لم يصدر أي تصريح بعد.</p>
+      {% endif %}
+    </div>
+
+    {# ═══ أرشيف المهل ═══ #}
+    <div class="section">
+      <div class="section-title">أرشيف المهل</div>
+      {% if extension_logs %}
+        <table class="detail-table">
+          <thead>
+            <tr>
+              <th>نوع المهلة</th>
+              <th>من تاريخ</th>
+              <th>إلى تاريخ</th>
+              <th>الحالة</th>
+              <th>بواسطة</th>
+              <th>المستند</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ext in extension_logs %}
+              <tr>
+                <td>{{ ext.notes|default:"-" }}</td>
+                <td>{{ ext.extension_start_date|date:"d/m/Y"|default:"-" }}</td>
+                <td>{{ ext.extension_end_date|date:"d/m/Y"|default:"-" }}</td>
+                <td>
+                  {% if ext.is_active %}
+                    <span class="badge badge-active">سارية</span>
+                  {% else %}
+                    <span class="badge badge-expired">منتهية</span>
+                  {% endif %}
+                </td>
+                <td>{{ ext.changed_by.username|default:"-" }}</td>
+                <td>
+                  {% if ext.attachment %}
+                    <a class="permit-link" href="{{ ext.attachment.url }}" target="_blank" rel="noopener">فتح المستند</a>
+                  {% else %}
+                    -
                   {% endif %}
                 </td>
               </tr>
@@ -865,7 +1161,49 @@
           </tbody>
         </table>
       {% else %}
-        <p class="muted">لا توجد تصاريح مرتبطة بهذه الشركة.</p>
+        <p class="muted">لا توجد مهل مسجلة.</p>
+      {% endif %}
+    </div>
+
+    {# ═══ أرشيف طلبات التأمين ═══ #}
+    <div class="section">
+      <div class="section-title">أرشيف طلبات التأمين</div>
+      {% if can_manage_requirement_insurance %}
+        <div class="permit-statuses">
+          <a class="permit-pill is-create" href="{% url 'requirement_insurance_create' %}?company_id={{ company.id }}">إنشاء طلب تأمين جديد</a>
+        </div>
+      {% endif %}
+      {% if requirement_insurance_requests %}
+        <table class="detail-table">
+          <thead>
+            <tr>
+              <th>رقم الطلب</th>
+              <th>المدة</th>
+              <th>تاريخ الإنشاء</th>
+              <th>بداية التغطية</th>
+              <th>نهاية التغطية</th>
+              <th>الحالة</th>
+              <th>تفاصيل</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for insurance_request in requirement_insurance_requests %}
+              <tr>
+                <td>{{ insurance_request.id }}</td>
+                <td>{{ insurance_request.get_duration_months_display }}</td>
+                <td>{{ insurance_request.created_at|date:"d/m/Y" }}</td>
+                <td>{{ insurance_request.start_date|date:"d/m/Y"|default:"-" }}</td>
+                <td>{{ insurance_request.end_date|date:"d/m/Y"|default:"-" }}</td>
+                <td>{{ insurance_request.get_status_display }}</td>
+                <td>
+                  <a class="permit-link" href="{% url 'requirement_insurance_request_detail' insurance_request.id %}">متابعة الطلب</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted">لا توجد طلبات تأمين مسجلة.</p>
       {% endif %}
     </div>
 
@@ -905,6 +1243,14 @@
                     تم تأكيد دفع طلب التخلص
                   {% elif log.action == "waste_request_inspected" %}
                     تم اعتماد/رفض طلب التخلص بعد التفتيش
+                  {% elif log.action == "requirements_followup_needed" %}
+                    تم تسجيل اشتراطات واجبة الاستيفاء بعد التفتيش
+                  {% elif log.action == "requirements_insurance_created" %}
+                    تم إنشاء طلب تأمين لاستيفاء الشروط
+                  {% elif log.action == "requirements_insurance_paid" %}
+                    تم دفع تأمين استيفاء الشروط
+                  {% elif log.action == "requirements_insurance_refunded" %}
+                    تم استرداد تأمين استيفاء الشروط
                   {% else %}
                     {{ log.action }}
                   {% endif %}

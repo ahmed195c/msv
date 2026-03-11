@@ -1,0 +1,87 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}طلب تأمين استيفاء الشروط{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pest_control_activity_permit.css' %}">
+{% endblock %}
+{% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+  <form class="permit-card" method="post" autocomplete="off">
+    {% csrf_token %}
+
+    <header class="permit-header">
+      <div class="municipality">
+        <div class="logo-box">
+          <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+        </div>
+        <div class="municipality-text">
+          <div class="title">بلدية مدينة الشارقة</div>
+          <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+          <div class="sub">قسم رقابة وتنظيم النفايات</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="permit-title">طلب تأمين استيفاء الشروط</div>
+
+    {% if form_errors %}
+      <div class="alert">
+        <strong>يرجى تصحيح التالي:</strong>
+        <ul class="alert-list">
+          {% for error in form_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <section class="permit-section">
+      <div class="section-title">بيانات الشركة</div>
+      <div class="permit-grid">
+        <div class="field">
+          <label for="company_id">اختيار الشركة المسجلة</label>
+          <select id="company_id" name="company_id" required>
+            <option value="">-- اختيار --</option>
+            {% for c in companies %}
+              <option value="{{ c.id }}"
+                {% if c.id == selected_company_id or form_data.company_id == c.id|stringformat:"s" %}selected{% endif %}>
+                {{ c.name }} - {{ c.number }}
+              </option>
+            {% endfor %}
+          </select>
+          <div class="hint">اختر الشركة التي تريد إنشاء طلب التأمين لها.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">بيانات التأمين</div>
+      <div class="permit-grid">
+        <div class="field">
+          <label for="duration_months">مدة التأمين</label>
+          <select id="duration_months" name="duration_months" required>
+            <option value="1" {% if not form_data or form_data.duration_months == "1" %}selected{% endif %}>شهر واحد</option>
+            <option value="3" {% if form_data.duration_months == "3" %}selected{% endif %}>3 أشهر</option>
+            <option value="6" {% if form_data.duration_months == "6" %}selected{% endif %}>6 أشهر</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label for="requirements_notes">ملاحظات الاشتراطات <span style="font-weight:400;color:var(--muted)">(اختياري)</span></label>
+          <textarea id="requirements_notes" name="requirements_notes" rows="4"
+            placeholder="تفاصيل الاشتراطات أو سبب إنشاء طلب التأمين">{{ form_data.requirements_notes|default:'' }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <div class="permit-actions">
+      <button type="submit">إنشاء الطلب</button>
+      {% if back_company_id %}
+        <a class="secondary" href="{% url 'company_detail' back_company_id %}">العودة إلى الشركة</a>
+      {% else %}
+        <a class="secondary" href="{% url 'company_list' %}">العودة إلى قائمة الشركات</a>
+      {% endif %}
+    </div>
+
+  </form>
+</section>
+{% endblock %}

@@ -127,6 +127,7 @@ class PirmetClearance(models.Model):
         ('issued', 'Issued'),
         ('inspection_pending', 'Inspection Pending'),
         ('inspection_completed', 'Inspection Completed'),
+        ('closed_requirements_pending', 'Closed - Requirements Pending'),
         ('cancelled_admin', 'Cancelled Administratively'),
         ('disposal_approved', 'Disposal Approved'),
         ('disposal_rejected', 'Disposal Rejected'),
@@ -173,6 +174,11 @@ class PirmetClearance(models.Model):
     violation_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     violation_payment_receipt = models.FileField(
         upload_to='pirmet_documents/violation_receipts/', null=True, blank=True
+    )
+    inspection_requires_insurance = models.BooleanField(default=False)
+    insurance_payment_order_number = models.CharField(max_length=100, null=True, blank=True)
+    insurance_payment_receipt = models.FileField(
+        upload_to='pirmet_documents/insurance_receipts/', null=True, blank=True
     )
     request_email = models.EmailField(null=True, blank=True)
     request_documents_bundle = models.FileField(
@@ -554,6 +560,10 @@ class CompanyChangeLog(models.Model):
         ('updated', 'Updated'),
         ('engineer_changed', 'Engineer Changed'),
         ('extension_requested', 'Extension Requested'),
+        ('requirements_followup_needed', 'Requirements Follow-up Needed'),
+        ('requirements_insurance_created', 'Requirements Insurance Created'),
+        ('requirements_insurance_paid', 'Requirements Insurance Paid'),
+        ('requirements_insurance_refunded', 'Requirements Insurance Refunded'),
     ]
 
     company = models.ForeignKey(
@@ -598,3 +608,65 @@ class PirmetChangeLog(models.Model):
 
     def __str__(self):
         return f"{self.pirmet.company.name} - {self.change_type}"
+
+
+class RequirementInsuranceRequest(models.Model):
+    STATUS_CHOICES = [
+        ('created', 'تم إنشاء الطلب'),
+        ('payment_order_recorded', 'تم إدخال أمر دفع التأمين'),
+        ('active', 'تم دفع التأمين'),
+        ('refunded', 'تم استرداد التأمين'),
+        ('cancelled', 'مغلق'),
+    ]
+    DURATION_CHOICES = [
+        (1, 'شهر واحد'),
+        (3, '3 أشهر'),
+        (6, '6 أشهر'),
+    ]
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name='requirement_insurance_requests',
+    )
+    related_permit = models.ForeignKey(
+        PirmetClearance,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='requirement_insurance_requests',
+    )
+    duration_months = models.PositiveSmallIntegerField(choices=DURATION_CHOICES)
+    requirements_notes = models.TextField(blank=True)
+    payment_order_number = models.CharField(max_length=100, null=True, blank=True)
+    payment_receipt = models.FileField(
+        upload_to='requirement_insurance/payment_receipts/',
+        null=True,
+        blank=True,
+    )
+    payment_received_at = models.DateTimeField(null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    refund_reference_number = models.CharField(max_length=100, null=True, blank=True)
+    refund_receipt = models.FileField(
+        upload_to='requirement_insurance/refund_receipts/',
+        null=True,
+        blank=True,
+    )
+    refunded_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='created')
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='requirement_insurance_requests_created',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+
+    def __str__(self):
+        return f"{self.company.name} - Requirement Insurance #{self.id}"

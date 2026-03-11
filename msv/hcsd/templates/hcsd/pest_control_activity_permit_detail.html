@@ -201,6 +201,37 @@
       padding: 8px 10px;
     }
 
+    /* Status color variants */
+    .status-badge--pending {
+      border-color: #b07d10;
+      background: #fef9ec;
+      color: #7a5500;
+    }
+
+    .status-badge--active {
+      border-color: #1f6b3e;
+      background: #edf7f2;
+      color: #1a5233;
+    }
+
+    .status-badge--issued {
+      border-color: #155e2e;
+      background: #d4f5e2;
+      color: #0e3d1d;
+    }
+
+    .status-badge--warning {
+      border-color: #9c3a12;
+      background: #fdf0ea;
+      color: #7a2c0d;
+    }
+
+    .status-badge--closed {
+      border-color: #5a5a5a;
+      background: #f2f2f2;
+      color: #3d3d3d;
+    }
+
     .permit-section {
       margin-top: 14px;
       border: 1.5px solid var(--pd-line);
@@ -627,49 +658,47 @@
         </div>
         <div class="meta-item meta-item--status">
           <span class="label">الحالة الحالية</span>
-          <span class="status-badge">
-            {% if pirmet.status == "order_received" %}
-              {% if violation_required and not violation_order_recorded %}
-                إدخال أمر دفع مخالفة التأخير
-              {% elif violation_required and violation_order_recorded and not violation_receipt_recorded %}
-                إدخال إيصال دفع مخالفة التأخير
+          {% if pirmet.status == "issued" %}
+            <span class="status-badge status-badge--issued">تم إصدار التصريح</span>
+          {% elif pirmet.status == "cancelled_admin" %}
+            <span class="status-badge status-badge--closed">تم إغلاق الطلب</span>
+          {% elif pirmet.status == "closed_requirements_pending" %}
+            <span class="status-badge status-badge--closed">تم إغلاق الطلب - اشتراطات واجبة الاستيفاء</span>
+          {% elif pirmet.status == "needs_completion" %}
+            <span class="status-badge status-badge--warning">تم إنهاء الطلب - غير معتمد</span>
+          {% elif pirmet.status == "inspection_completed" %}
+            {% if inspection_report_decision == "approved" %}
+              {% if violation_required and not violation_payment_completed %}
+                <span class="status-badge status-badge--warning">تم إنهاء التفتيش - بانتظار سداد المخالفة</span>
               {% else %}
-                إدخال رقم امر الدفع الموحد - التفتيش
+                <span class="status-badge status-badge--active">تم إنهاء التفتيش - معتمد</span>
               {% endif %}
-            {% elif pirmet.status == "inspection_payment_pending" %}
-              إدخال إيصال دفع التفتيش
-            {% elif pirmet.status == "review_pending" %}
-              بانتظار مراجعة المفتش
-            {% elif pirmet.status == "needs_completion" %}
-              نواقص بحاجة للاستكمال
-            {% elif pirmet.status == "approved" %}
-              تم الاعتماد من المفتش
-            {% elif pirmet.status == "payment_pending" %}
-              بانتظار دفع التصريح
-            {% elif pirmet.status == "payment_completed" %}
-              تم استلام الدفع
-            {% elif pirmet.status == "inspection_pending" %}
-              {% if inspection_receiver_name %}
-                تم استلام الطلب للتفتيش من المفتش {{ inspection_receiver_name }}
-              {% else %}
-                جاهز للاستلام
-              {% endif %}
-            {% elif pirmet.status == "inspection_completed" %}
-              {% if inspection_report_decision == "approved" %}
-                تم إنهاء التفتيش - معتمد
-              {% elif inspection_report_decision == "rejected" %}
-                تم إنهاء التفتيش - غير معتمد
-              {% else %}
-                تم إنهاء التفتيش
-              {% endif %}
-            {% elif pirmet.status == "issued" %}
-              تم إصدار التصريح
-            {% elif pirmet.status == "cancelled_admin" %}
-            تم اغلاق الطلب 
+            {% elif inspection_report_decision == "rejected" %}
+              <span class="status-badge status-badge--warning">تم إنهاء التفتيش - غير معتمد</span>
             {% else %}
-              {{ pirmet.get_status_display }}
+              <span class="status-badge status-badge--active">تم إنهاء التفتيش</span>
             {% endif %}
-          </span>
+          {% elif pirmet.status == "payment_pending" %}
+            <span class="status-badge status-badge--pending">بانتظار دفع التصريح</span>
+          {% elif pirmet.status == "payment_completed" %}
+            <span class="status-badge status-badge--active">تم استلام الدفع</span>
+          {% elif pirmet.status == "approved" %}
+            <span class="status-badge status-badge--active">تم الاعتماد من المفتش</span>
+          {% elif pirmet.status == "inspection_pending" %}
+            {% if inspection_receiver_name %}
+              <span class="status-badge status-badge--active">تم استلام الطلب - {{ inspection_receiver_name }}</span>
+            {% else %}
+              <span class="status-badge status-badge--pending">جاهز للاستلام</span>
+            {% endif %}
+          {% elif pirmet.status == "inspection_payment_pending" %}
+            <span class="status-badge status-badge--pending">إدخال إيصال دفع التفتيش</span>
+          {% elif pirmet.status == "order_received" %}
+            <span class="status-badge status-badge--pending">إدخال رقم أمر الدفع الموحد - التفتيش</span>
+          {% elif pirmet.status == "review_pending" %}
+            <span class="status-badge status-badge--pending">بانتظار مراجعة المفتش</span>
+          {% else %}
+            <span class="status-badge">{{ pirmet.get_status_display }}</span>
+          {% endif %}
         </div>
       </div>
     </header>
@@ -751,7 +780,7 @@
       </div>
       <div class="detail-grid" style="margin-top: 12px;">
         <div class="detail-item">
-          <span class="label">رقم تواصل  </span>
+          <span class="label">رقم تواصل المهندس</span>
           <span class="value">
             {% if can_record_payment %}
               <span class="js-read-value">{{ pirmet.company.enginer.phone|default:"-" }}</span>
@@ -845,6 +874,8 @@
             <span class="value">
               {% if inspection_report_decision == "approved" %}
                 معتمد
+              {% elif inspection_report_decision == "requirements_required" %}
+                اشتراطات واجبة الاستيفاء
               {% else %}
                 غير معتمد
               {% endif %}
@@ -862,20 +893,6 @@
       </section>
     {% endif %}
 
-    {% if can_complete_missing and pirmet.status == "needs_completion" %}
-      <section class="permit-section no-print">
-        <div class="section-title">إعادة التفتيش لاستيفاء الشروط</div>
-        <form method="post" enctype="multipart/form-data" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="complete_missing">
-          <label for="completion_notes">ملاحظات استيفاء النواقص</label>
-          <textarea id="completion_notes" name="completion_notes" rows="3" placeholder="تم استيفاء النواقص المطلوبة وجاهز لإعادة التفتيش"></textarea>
-          <label for="completion_documents">إرفاق مستندات الاستيفاء (اختياري)</label>
-          <input id="completion_documents" name="documents" type="file" accept=".pdf,image/*" multiple>
-          <button type="submit">تحويل الطلب إلى إعادة التفتيش</button>
-        </form>
-      </section>
-    {% endif %}
 
     {% if request_documents %}
       <section class="permit-section" id="request-documents">
@@ -919,7 +936,7 @@
       </section>
     {% endif %}
 
-    {% if violation_required or violation_order_recorded or violation_receipt_recorded %}
+    {% if pirmet.status == "inspection_completed" and violation_required or violation_order_recorded or violation_receipt_recorded %}
       <section class="permit-section">
         <div class="section-title">بيانات مخالفة التأخير</div>
         <div class="detail-grid">
@@ -959,6 +976,49 @@
               {% endif %}
             </span>
           </div>
+        </div>
+      </section>
+    {% endif %}
+
+    {% if requirements_required or inspection_report_decision == "requirements_required" or pirmet.status == "closed_requirements_pending" %}
+      <section class="permit-section">
+        <div class="section-title">اشتراطات واجبة الاستيفاء</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">قرار المفتش</span>
+            <span class="value">اشتراطات واجبة الاستيفاء</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">ملاحظات التفتيش</span>
+            <span class="value">{{ inspection_report_notes|default:"-" }}</span>
+          </div>
+          {% if insurance_requests %}
+            <div class="detail-item">
+              <span class="label">طلبات التأمين المرتبطة</span>
+              <span class="value">
+                {% for ins in insurance_requests %}
+                  <a href="{% url 'requirement_insurance_request_detail' ins.id %}" style="display:block; margin-bottom:4px;">
+                    طلب #{{ ins.id }}
+                    —
+                    {% if ins.status == "created" %}بانتظار أمر الدفع
+                    {% elif ins.status == "payment_order_recorded" %}بانتظار إيصال الدفع
+                    {% elif ins.status == "active" %}ساري
+                    {% elif ins.status == "refunded" %}تم الاسترداد
+                    {% elif ins.status == "cancelled" %}مغلق
+                    {% else %}{{ ins.status }}{% endif %}
+                  </a>
+                {% endfor %}
+              </span>
+            </div>
+          {% else %}
+            <div class="detail-item">
+              <span class="label">حالة طلب التأمين</span>
+              <span class="value">
+                لم يُنشأ طلب تأمين بعد —
+                <a href="{% url 'company_detail' pirmet.company.id %}">اذهب لصفحة الشركة لإنشاء طلب</a>
+              </span>
+            </div>
+          {% endif %}
         </div>
       </section>
     {% endif %}
@@ -1215,22 +1275,12 @@
       </section>
     {% endif %}
 
-    {% if can_review_pirmet and pirmet.status == "inspection_pending" and not inspection_receiver_name %}
+    {% if can_receive_inspection_request %}
       <section class="permit-section no-print">
-        <div class="section-title">استلام الطلب للتفتيش</div>
-        <form method="post" class="review-form">
+        <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="receive_for_inspection">
-          <label for="inspector_id">المفتش</label>
-          <select id="inspector_id" name="inspector_id" required>
-            <option value="">-- اختيار المفتش --</option>
-            {% for inspector_user in inspector_users %}
-              <option value="{{ inspector_user.id }}" {% if request.user.id == inspector_user.id %}selected{% endif %}>
-                {{ inspector_user.get_full_name|default:inspector_user.username }}
-              </option>
-            {% endfor %}
-          </select>
-          <button type="submit">استلام الطلب للتفتيش</button>
+          <button type="submit" style="width:100%;padding:12px 16px;font-size:15px;font-weight:700;font-family:inherit;background:var(--pd-accent);color:#fff;border:none;border-radius:10px;cursor:pointer;">استلام الطلب</button>
         </form>
       </section>
     {% endif %}
@@ -1245,6 +1295,7 @@
           <select id="inspection_decision" name="inspection_decision" required>
             <option value="">-- اختيار --</option>
             <option value="approved">معتمد</option>
+            <option value="requirements_required">اشتراطات واجبة الاستيفاء</option>
             <option value="rejected">غير معتمد</option>
           </select>
           <label for="inspection_report_notes">ملاحظات التفتيش</label>
@@ -1279,7 +1330,7 @@
       </section>
     {% endif %}
 
-    {% if can_record_payment and pirmet.status != "issued" and pirmet.status != "cancelled_admin" %}
+    {% if show_admin_close_form %}
       <section class="permit-section no-print">
         <div class="section-title">إغلاق </div>
         <form method="post" class="review-form">

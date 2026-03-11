@@ -1,0 +1,188 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}الورك فلو{% endblock %}
+{% block extra_css %}
+  <style>
+    .workflow-page {
+      --wf-ink: #304357;
+      --wf-ink-2: #5d7186;
+      --wf-paper: #ffffff;
+      --wf-surface: #f1f4f7;
+      --wf-line: #d4dce5;
+      --wf-accent: #304357;
+      --wf-accent-dark: #26384a;
+      padding: 20px 10px 36px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(241, 244, 247, 0.9)),
+        var(--wf-surface);
+      min-height: calc(100vh - 58px);
+      direction: rtl;
+      color: var(--wf-ink);
+      font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+    }
+
+    .workflow-shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      gap: 14px;
+    }
+
+    .workflow-hero,
+    .workflow-card {
+      background: var(--wf-paper);
+      border: 1.5px solid var(--wf-line);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(48, 67, 87, 0.08);
+      padding: 16px;
+    }
+
+    .workflow-hero {
+      background: linear-gradient(180deg, #3a4f66 0%, #304357 100%);
+      color: #fff;
+      border-color: var(--wf-accent);
+    }
+
+    .workflow-title {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 3vw, 34px);
+      font-weight: 800;
+    }
+
+    .workflow-subtitle {
+      margin: 0;
+      color: rgba(255,255,255,0.86);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .workflow-section-title {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1.5px solid var(--wf-accent);
+      background: var(--wf-accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .workflow-notes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .workflow-note {
+      border: 1.5px solid var(--wf-line);
+      border-radius: 6px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .workflow-note strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--wf-ink);
+      font-size: 13px;
+    }
+
+    .workflow-note span {
+      color: var(--wf-ink-2);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .workflow-diagram-wrap {
+      overflow: auto;
+      border: 1.5px solid var(--wf-line);
+      border-radius: 6px;
+      background: #fbfcfd;
+      padding: 10px;
+    }
+
+    .mermaid {
+      min-width: 1100px;
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      .workflow-page {
+        padding: 16px 12px 32px;
+      }
+
+      .workflow-hero,
+      .workflow-card {
+        padding: 14px;
+      }
+
+      .mermaid {
+        min-width: 980px;
+      }
+    }
+  </style>
+{% endblock %}
+{% block content %}
+<section class="workflow-page" lang="ar" dir="rtl">
+  <div class="workflow-shell">
+    <section class="workflow-hero">
+      <h1 class="workflow-title">ورك فلو النظام</h1>
+      <p class="workflow-subtitle">هذا المخطط يوضح مسارات الطلبات الرئيسية داخل النظام من بداية الطلب حتى الإصدار أو الإغلاق أو التحويل إلى طلبات مرتبطة مثل طلب التخلص أو تأمين استيفاء الشروط.</p>
+    </section>
+
+    <section class="workflow-card">
+      <div class="workflow-section-title">المخطط</div>
+      <div class="workflow-diagram-wrap">
+        <div class="mermaid">{{ mermaid_diagram }}</div>
+      </div>
+    </section>
+
+    <section class="workflow-card">
+      <div class="workflow-section-title">ملاحظات مهمة</div>
+      <div class="workflow-notes">
+        <div class="workflow-note">
+          <strong>تصريح النشاط</strong>
+          <span>يمر عبر دفع التفتيش ثم استلام المفتش ثم تقرير التفتيش، وبعد الاعتماد ينتقل إلى دفع المخالفة إن وجدت ثم دفع التصريح ثم الإصدار.</span>
+        </div>
+        <div class="workflow-note">
+          <strong>اشتراطات واجبة الاستيفاء</strong>
+          <span>إذا قرر المفتش وجود اشتراطات واجبة الاستيفاء، يتم إغلاق الطلب وإنشاء طلب تأمين منفصل من صفحة الشركة.</span>
+        </div>
+        <div class="workflow-note">
+          <strong>تصريح التخلص</strong>
+          <span>بعد إصدار تصريح التخلص يمكن إنشاء طلبات التخلص، وطلبات التخلص نفسها تظهر للمفتشين كطلبات جاهزة للاستلام بعد دفعها.</span>
+        </div>
+        <div class="workflow-note">
+          <strong>المفتش</strong>
+          <span>المفتش يرى فقط الطلبات الجاهزة للاستلام أو المستلمة منه، ويدخل التقرير من صفحة الطلب نفسها.</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    securityLevel: 'loose',
+    themeVariables: {
+      primaryColor: '#eaf0f6',
+      primaryTextColor: '#304357',
+      primaryBorderColor: '#304357',
+      lineColor: '#5d7186',
+      secondaryColor: '#ffffff',
+      tertiaryColor: '#f1f4f7',
+      fontFamily: 'IBM Plex Sans Arabic, Tahoma, sans-serif',
+      clusterBkg: '#ffffff',
+      clusterBorder: '#d4dce5'
+    },
+    flowchart: {
+      htmlLabels: true,
+      curve: 'basis'
+    }
+  });
+</script>
+{% endblock %}

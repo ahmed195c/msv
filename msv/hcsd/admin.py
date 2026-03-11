@@ -8,6 +8,7 @@ from .models import (
     PirmetDocument,
     PirmetChangeLog,
     PesticideTransportPermit,
+    RequirementInsuranceRequest,
     WasteDisposalPermit,
 )
 
@@ -22,3 +23,4 @@ admin.site.register(InspectorReview)
 admin.site.register(PirmetChangeLog)
 admin.site.register(PesticideTransportPermit)
 admin.site.register(WasteDisposalPermit)
+admin.site.register(RequirementInsuranceRequest)

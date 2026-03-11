@@ -1,0 +1,487 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}طلب تأمين استيفاء الشروط #{{ insurance_request.id }}{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
+  <style>
+    .permit-page {
+      --pd-ink: #304357;
+      --pd-ink-2: #455c75;
+      --pd-ink-3: #6f8297;
+      --pd-paper: #ffffff;
+      --pd-surface: #f1f4f7;
+      --pd-surface-2: #e8eef4;
+      --pd-line: #d4dce5;
+      --pd-line-2: #bcc8d5;
+      --pd-accent: #304357;
+      --pd-accent-dark: #26384a;
+      --pd-radius: 8px;
+      --pd-shadow: 0 10px 24px rgba(48, 67, 87, 0.08);
+      padding: 20px 10px 36px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)),
+        var(--pd-surface);
+      direction: rtl;
+    }
+
+    .permit-card {
+      max-width: 1160px;
+      margin: 0 auto;
+      background: var(--pd-paper);
+      border: 1.5px solid var(--pd-line);
+      border-radius: var(--pd-radius);
+      box-shadow: var(--pd-shadow);
+      padding: 18px;
+      color: var(--pd-ink);
+      font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+    }
+
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px;
+      border: 1.5px solid var(--pd-line-2);
+      border-radius: 6px;
+      background: var(--pd-paper);
+      color: var(--pd-ink);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .back-link:hover {
+      background: var(--pd-surface-2);
+      border-color: var(--pd-ink-3);
+    }
+
+    .permit-title--hero {
+      margin: 4px 0 14px;
+      font-size: clamp(20px, 2.5vw, 28px);
+      font-weight: 800;
+      text-align: center;
+      border: 1.5px solid var(--pd-accent);
+      border-radius: 6px;
+      background: linear-gradient(180deg, #3a4f66 0%, #304357 100%);
+      color: #fff;
+      letter-spacing: -0.01em;
+      padding: 10px 12px;
+    }
+
+    .permit-header {
+      border-bottom: 1.5px solid var(--pd-line);
+      padding-bottom: 14px;
+      margin-bottom: 4px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .municipality {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--pd-surface);
+      border: 1.5px solid var(--pd-line);
+      border-radius: 6px;
+      min-width: 280px;
+      flex: 1 1 320px;
+    }
+
+    .logo-box {
+      width: 72px;
+      height: 72px;
+      border-radius: 6px;
+      border: 1.5px solid var(--pd-line);
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .municipality-text .title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--pd-ink);
+      margin-bottom: 2px;
+    }
+
+    .municipality-text .sub {
+      font-size: 12px;
+      color: var(--pd-ink-3);
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .meta-grid {
+      flex: 2 1 420px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      padding: 10px;
+      border: 1.5px solid var(--pd-line);
+      border-radius: 6px;
+      background: var(--pd-surface);
+    }
+
+    .meta-item {
+      display: grid;
+      gap: 6px;
+      border: 1.5px solid var(--pd-line);
+      border-radius: 6px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .meta-item .label {
+      font-size: 11px;
+      color: var(--pd-ink-3);
+      font-weight: 700;
+    }
+
+    .meta-item .value {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--pd-ink);
+      word-break: break-word;
+    }
+
+    .meta-item--status {
+      grid-column: 1 / -1;
+    }
+
+    .status-badge {
+      display: block;
+      border: 1.5px solid var(--pd-accent);
+      border-radius: 6px;
+      background: #edf2f7;
+      color: var(--pd-accent);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 10px;
+    }
+
+    .permit-section {
+      margin-top: 14px;
+      border: 1.5px solid var(--pd-line);
+      border-radius: 6px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .section-title {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1.5px solid var(--pd-accent);
+      background: var(--pd-accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .detail-item {
+      display: grid;
+      gap: 6px;
+      border: 1.5px solid var(--pd-line);
+      border-radius: 6px;
+      background: var(--pd-surface);
+      padding: 9px 10px;
+      min-height: 68px;
+    }
+
+    .detail-item .label {
+      font-size: 11px;
+      color: var(--pd-ink-3);
+      font-weight: 700;
+    }
+
+    .detail-item .value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--pd-ink);
+      word-break: break-word;
+    }
+
+    .detail-item .value a {
+      color: var(--pd-accent);
+      font-weight: 800;
+      text-decoration: none;
+      border-bottom: 1px dotted var(--pd-accent);
+    }
+
+    .detail-item--wide {
+      grid-column: 1 / -1;
+    }
+
+    .review-form {
+      display: grid;
+      gap: 8px;
+      max-width: 520px;
+    }
+
+    .review-form label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--pd-ink-2);
+    }
+
+    .review-form input,
+    .review-form select,
+    .review-form textarea {
+      width: 100%;
+      border: 1.5px solid var(--pd-line-2);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--pd-ink);
+      font-size: 13px;
+      font-family: inherit;
+      padding: 9px 10px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .review-form input:focus,
+    .review-form select:focus,
+    .review-form textarea:focus {
+      border-color: var(--pd-accent);
+      box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.14);
+    }
+
+    .review-form button {
+      border: 1.5px solid var(--pd-accent);
+      border-radius: 6px;
+      background: var(--pd-accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 9px 16px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      justify-self: start;
+    }
+
+    .review-form button:hover {
+      background: var(--pd-accent-dark);
+      border-color: var(--pd-accent-dark);
+    }
+
+    .alert {
+      border: 1.5px solid #d8a7a7;
+      border-radius: 6px;
+      background: #fff3f3;
+      color: #8c2f2f;
+      padding: 10px 12px;
+      margin: 12px 0 0;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .alert-list {
+      margin: 8px 0 0;
+      padding-right: 18px;
+      display: grid;
+      gap: 4px;
+    }
+
+    @media (max-width: 720px) {
+      .permit-page { padding: 14px 0 24px; }
+      .permit-card { padding: 12px; border-radius: 0; border-left: 0; border-right: 0; }
+      .action-bar { flex-direction: column; align-items: stretch; }
+      .back-link { width: 100%; }
+      .permit-header { flex-direction: column; }
+      .municipality { min-width: 0; }
+      .meta-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .detail-grid { grid-template-columns: 1fr; }
+      .logo-box { width: 60px; height: 60px; }
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+    }
+  </style>
+{% endblock %}
+{% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+  <div class="permit-card">
+
+    <div class="action-bar no-print">
+      <a class="back-link" href="{% url 'company_detail' insurance_request.company.id %}">العودة إلى صفحة الشركة</a>
+    </div>
+
+    <div class="permit-title--hero">طلب تأمين استيفاء الشروط #{{ insurance_request.id }}</div>
+
+    <header class="permit-header">
+      <div class="municipality">
+        <div class="logo-box">
+          <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+        </div>
+        <div class="municipality-text">
+          <div class="title">بلدية مدينة الشارقة</div>
+          <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+          <div class="sub">قسم رقابة وتنظيم النفايات</div>
+        </div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="label">الشركة</span>
+          <span class="value">{{ insurance_request.company.name }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">مدة التأمين</span>
+          <span class="value">{{ insurance_request.get_duration_months_display }}</span>
+        </div>
+        <div class="meta-item meta-item--status">
+          <span class="label">الحالة الحالية</span>
+          <span class="status-badge">{{ insurance_request.get_status_display }}</span>
+        </div>
+      </div>
+    </header>
+
+    {% if errors %}
+      <div class="alert">
+        <strong>تعذر حفظ التحديث:</strong>
+        <ul class="alert-list">
+          {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <section class="permit-section">
+      <div class="section-title">بيانات الطلب</div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="label">تاريخ الإنشاء</span>
+          <span class="value">{{ insurance_request.created_at|date:"d/m/Y" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">بداية التغطية</span>
+          <span class="value">{{ insurance_request.start_date|date:"d/m/Y"|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">نهاية التغطية</span>
+          <span class="value">{{ insurance_request.end_date|date:"d/m/Y"|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">أمر دفع التأمين</span>
+          <span class="value">{{ insurance_request.payment_order_number|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">مرجع الاسترداد</span>
+          <span class="value">{{ insurance_request.refund_reference_number|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">طلب النشاط المرتبط</span>
+          <span class="value">
+            {% if insurance_request.related_permit %}
+              <a href="{% url 'pest_control_permit_detail' insurance_request.related_permit.id %}">طلب #{{ insurance_request.related_permit.id }}</a>
+            {% else %}-{% endif %}
+          </span>
+        </div>
+        {% if insurance_request.requirements_notes %}
+          <div class="detail-item detail-item--wide">
+            <span class="label">الملاحظات</span>
+            <span class="value">{{ insurance_request.requirements_notes }}</span>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="permit-section">
+      <div class="section-title">المرفقات</div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="label">إيصال دفع التأمين</span>
+          <span class="value">
+            {% if insurance_request.payment_receipt %}
+              <a href="{{ insurance_request.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
+            {% else %}-{% endif %}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">مستند استرداد التأمين</span>
+          <span class="value">
+            {% if insurance_request.refund_receipt %}
+              <a href="{{ insurance_request.refund_receipt.url }}" target="_blank" rel="noopener">فتح المستند</a>
+            {% else %}-{% endif %}
+          </span>
+        </div>
+      </div>
+    </section>
+
+    {% if can_manage and insurance_request.status != 'refunded' and insurance_request.status != 'cancelled' and not insurance_request.payment_order_number %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال أمر دفع التأمين</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_payment_order">
+          <label for="payment_order_number">رقم أمر دفع التأمين</label>
+          <input id="payment_order_number" name="payment_order_number" type="text" placeholder="أدخل رقم الأمر" required>
+          <button type="submit">حفظ أمر الدفع</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_manage and insurance_request.status != 'refunded' and insurance_request.status != 'cancelled' and insurance_request.payment_order_number and not insurance_request.payment_receipt %}
+      <section class="permit-section no-print">
+        <div class="section-title">تأكيد دفع التأمين</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_payment_receipt">
+          <label for="payment_receipt">إيصال دفع التأمين (PDF أو صورة)</label>
+          <input id="payment_receipt" name="payment_receipt" type="file" accept=".pdf,image/*" required>
+          <button type="submit">حفظ إيصال الدفع</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_manage and insurance_request.status == 'active' %}
+      <section class="permit-section no-print">
+        <div class="section-title">استرداد التأمين</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_refund">
+          <label for="refund_reference_number">مرجع الاسترداد <span style="font-weight:400;color:var(--pd-ink-3)">(اختياري)</span></label>
+          <input id="refund_reference_number" name="refund_reference_number" type="text" placeholder="رقم مرجع الاسترداد">
+          <label for="refund_receipt">مستند أو إيصال الاسترداد</label>
+          <input id="refund_receipt" name="refund_receipt" type="file" accept=".pdf,image/*" required>
+          <button type="submit">تأكيد استرداد التأمين</button>
+        </form>
+      </section>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

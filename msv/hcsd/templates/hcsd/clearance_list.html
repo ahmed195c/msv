@@ -344,6 +344,7 @@
 .st-payment-completed       { background: var(--s-paid);      color: #1a5c35; }
 .st-issued                  { background: var(--s-issued-bg); color: var(--s-issued-fg); }
 .st-inspection-pending      { background: var(--s-inspect);   color: var(--s-inspect-fg); }
+.st-inspection-received     { background: #d6e0ea;            color: #304357; }
 .st-inspection-completed    { background: var(--s-done);      color: #1a4a5c; }
 .st-disposal-approved       { background: var(--s-dis-ok);    color: #1a5c35; }
 .st-disposal-rejected       { background: var(--s-dis-no);    color: var(--danger); }
@@ -718,7 +719,7 @@
                   {% elif clearance.status == 'payment_pending' %}stripe-payment
                   {% elif clearance.status == 'payment_completed' %}stripe-paid
                   {% elif clearance.status == 'issued' %}stripe-issued
-                  {% elif clearance.status == 'inspection_pending' %}stripe-inspect
+                  {% elif clearance.status == 'inspection_pending' or clearance.status_key == 'inspection_received' %}stripe-inspect
                   {% elif clearance.status == 'inspection_completed' %}stripe-done
                   {% elif clearance.status == 'disposal_approved' %}stripe-dis-ok
                   {% elif clearance.status == 'disposal_rejected' %}stripe-dis-no
@@ -737,8 +738,10 @@
                       {% elif clearance.status == 'payment_pending' %}st-payment-pending
                       {% elif clearance.status == 'payment_completed' %}st-payment-completed
                       {% elif clearance.status == 'issued' %}st-issued
+                      {% elif clearance.status_key == 'inspection_received' %}st-inspection-received
                       {% elif clearance.status == 'inspection_pending' %}st-inspection-pending
                       {% elif clearance.status == 'inspection_completed' %}st-inspection-completed
+                      {% elif clearance.status == 'closed_requirements_pending' %}st-needs-completion
                       {% elif clearance.status == 'disposal_approved' %}st-disposal-approved
                       {% elif clearance.status == 'disposal_rejected' %}st-disposal-rejected
                       {% else %}st-fallback{% endif %}">
@@ -746,12 +749,14 @@
                       {% elif clearance.status == 'inspection_payment_pending' %}بانتظار دفع التفتيش
                       {% elif clearance.status == 'review_pending' %}بانتظار المراجعة
                       {% elif clearance.status == 'approved' %}معتمد
-                      {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}نواقص
+                      {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}غير معتمد
                       {% elif clearance.status == 'payment_pending' %}بانتظار دفع التصريح
                       {% elif clearance.status == 'payment_completed' %}تم استلام الدفع
                       {% elif clearance.status == 'issued' %}تم الإصدار
+                      {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
                       {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
                       {% elif clearance.status == 'inspection_completed' %}تم التفتيش
+                      {% elif clearance.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
                       {% elif clearance.status == 'disposal_approved' %}إتلاف معتمد
                       {% elif clearance.status == 'disposal_rejected' %}إتلاف مرفوض
                       {% else %}{{ clearance.get_status_display }}{% endif %}
@@ -779,17 +784,19 @@
                           {% elif clearance.status == 'inspection_payment_pending' %}تم إرسال رابط دفع التفتيش وبانتظار الدفع
                           {% elif clearance.status == 'review_pending' %}بانتظار مراجعة المفتش
                           {% elif clearance.status == 'approved' %}تم الاعتماد من المفتش{% if clearance.inspector_name %} {{ clearance.inspector_name }}{% endif %}
-                          {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}نواقص بحاجة للاستكمال
+                          {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}تم إنهاء الطلب - غير معتمد
                           {% elif clearance.status == 'payment_pending' %}بانتظار دفع التصريح
                           {% elif clearance.status == 'payment_completed' %}تم استلام الدفع
                           {% elif clearance.status == 'issued' %}تم إصدار التصريح
-                          {% elif clearance.status == 'inspection_pending' %}{% if clearance.inspection_receiver_name %}تم استلام الطلب للتفتيش من المفتش {{ clearance.inspection_receiver_name }}{% else %}جاهز للاستلام{% endif %}
+                          {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
+                          {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
                           {% elif clearance.status == 'inspection_completed' %}{% if clearance.inspection_report_decision == 'approved' %}تم التفتيش - معتمد{% elif clearance.inspection_report_decision == 'rejected' %}تم التفتيش - غير معتمد{% else %}تم التفتيش{% endif %}
+                          {% elif clearance.status == 'closed_requirements_pending' %}تم إغلاق الطلب - اشتراطات واجبة الاستيفاء
                           {% elif clearance.status == 'disposal_approved' %}تمت الموافقة على الإتلاف
                           {% elif clearance.status == 'disposal_rejected' %}تم رفض الإتلاف
                           {% else %}{{ clearance.get_status_display }}{% endif %}
                         </span>
-                        {% if clearance.unapprovedReason and clearance.status == 'needs_completion' or clearance.unapprovedReason and clearance.status == 'rejected' %}
+                        {% if clearance.unapprovedReason and clearance.status == 'needs_completion' or clearance.unapprovedReason and clearance.status == 'rejected' or clearance.unapprovedReason and clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'rejected' %}
                           <span class="hint-text hint-error">{{ clearance.unapprovedReason }}</span>
                         {% endif %}
                         {% if clearance.permit_type != 'pesticide_transport' and clearance.inspection_payment_link %}
@@ -824,6 +831,7 @@
     {% endif %}
   </div>
 
+  {% if show_finished_section %}
   <div class="cl-section" style="border-style: dashed;">
     <div class="cl-section-head">
       <h2 class="cl-section-title finished">طلبات منتهية</h2>
@@ -903,6 +911,7 @@
       <div class="cl-empty">لا توجد طلبات منتهية حالياً</div>
     {% endif %}
   </div>
+  {% endif %}
 
 </section>
 {% endblock %}

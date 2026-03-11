@@ -4,8 +4,19 @@ from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('workflow/', views.workflow_diagram, name='workflow_diagram'),
     path('companies/', views.company_list, name='company_list'),
     path('company_detail/<int:id>/', views.company_detail, name='company_detail'),
+    path(
+        'company_detail/requirements-insurance/<int:request_id>/',
+        views.requirement_insurance_request_detail,
+        name='requirement_insurance_request_detail',
+    ),
+    path(
+        'permits/requirements-insurance/',
+        views.requirement_insurance_create,
+        name='requirement_insurance_create',
+    ),
     path('add_company/', views.add_company, name='add_company'),
     path('extensions/followup/', views.extension_followup, name='extension_followup'),
     path('enginers/', views.enginer_list, name='enginer_list'),

@@ -173,7 +173,7 @@
           <span class="status-badge">
             {% if pirmet.status == "inspection_pending" %}
               {% if inspection_receiver_name %}
-                تم استلام الطلب للتفتيش من المفتش {{ inspection_receiver_name }}
+                تم استلام الطلب - {{ inspection_receiver_name }}
               {% else %}
                 جاهز للاستلام
               {% endif %}
@@ -186,7 +186,7 @@
                 تم إنهاء التفتيش
               {% endif %}
             {% elif pirmet.status == "needs_completion" %}
-              نواقص بحاجة للاستكمال
+              تم إنهاء الطلب - غير معتمد
             {% elif pirmet.status == "payment_pending" %}
               بانتظار دفع التصريح
             {% elif pirmet.status == "payment_completed" %}
@@ -277,22 +277,33 @@
       </section>
     {% endif %}
 
-    {% if can_review_pirmet and pirmet.status == "inspection_pending" %}
+    {% if can_receive_inspection_request %}
       <section class="permit-section no-print">
         <div class="section-title">استلام الطلب للتفتيش</div>
         <form method="post" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="receive_for_inspection">
-          <label for="inspector_id">المفتش</label>
+          <button type="submit">استلام الطلب للتفتيش</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_reassign_inspector %}
+      <section class="permit-section no-print">
+        <div class="section-title">تغيير المفتش المستلم</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="receive_for_inspection">
+          <label for="inspector_id">المفتش الجديد</label>
           <select id="inspector_id" name="inspector_id" required>
             <option value="">-- اختيار المفتش --</option>
             {% for inspector_user in inspector_users %}
-              <option value="{{ inspector_user.id }}" {% if request.user.id == inspector_user.id %}selected{% endif %}>
+              <option value="{{ inspector_user.id }}" {% if assigned_inspector_id == inspector_user.id %}selected{% endif %}>
                 {{ inspector_user.get_full_name|default:inspector_user.username }}
               </option>
             {% endfor %}
           </select>
-          <button type="submit">استلام الطلب للتفتيش</button>
+          <button type="submit">حفظ تغيير المفتش</button>
         </form>
       </section>
     {% endif %}
