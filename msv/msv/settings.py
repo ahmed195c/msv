@@ -117,6 +117,7 @@ if DB_ENGINE in {'postgres', 'postgresql'}:
             'HOST': os.getenv('DJANGO_DB_HOST', '127.0.0.1'),
             'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
             'CONN_MAX_AGE': int(os.getenv('DJANGO_DB_CONN_MAX_AGE', '60')),
+            'CONN_HEALTH_CHECKS': os.getenv('DJANGO_DB_CONN_HEALTH_CHECKS', '1').strip().lower() not in {'0', 'false', 'no'},
         }
     }
 else:
