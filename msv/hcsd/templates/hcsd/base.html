@@ -603,9 +603,6 @@ body.is-navigating .app-main {
           <a class="{% if request.resolver_match.url_name == 'clearance_list' %}is-active{% endif %}"
              href="{% url 'clearance_list' %}">متابعة الطلبات</a>
 
-          <a class="{% if request.resolver_match.url_name == 'workflow_diagram' %}is-active{% endif %}"
-             href="{% url 'workflow_diagram' %}">الورك فلو</a>
-
           <a class="{% if request.resolver_match.url_name == 'extension_followup' %}is-active{% endif %}"
              href="{% url 'extension_followup' %}">متابعة المهل</a>
         </div>

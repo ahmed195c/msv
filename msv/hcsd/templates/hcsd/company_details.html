@@ -248,15 +248,15 @@
   .upload-form select,
   .upload-form textarea {
     width: 100%;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 9px 12px;
+    border: 2px solid var(--line);
+    border-radius: 4px;
+    padding: 8px 12px;
     font-size: 14px;
     font-family: inherit;
-    background: #fff;
+    background: var(--paper);
     color: var(--ink);
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.12s;
   }
 
   .company-field input:focus,
@@ -266,7 +266,6 @@
   .upload-form select:focus,
   .upload-form textarea:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.12);
   }
 
   .company-field textarea {
@@ -283,19 +282,18 @@
   .actions {
     margin-top: 18px;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
   }
 
   .error-box {
-    border: 1px solid rgba(31, 90, 75, 0.25);
-    border-radius: 10px;
-    background: #fff8f2;
-    color: #6b3010;
+    border: 2px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink-3);
     padding: 10px 12px;
     margin-bottom: 10px;
     font-size: 13px;
-    font-weight: 600;
   }
 
   .edit-panel[hidden],
@@ -304,26 +302,26 @@
   .detail-table {
     width: 100%;
     border-collapse: collapse;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 12px;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 4px;
     overflow: hidden;
   }
 
   .detail-table th {
     background: var(--surface);
     color: var(--ink-3);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     padding: 10px 12px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 2px solid var(--line);
     text-align: right;
   }
 
   .detail-table td {
     padding: 11px 12px;
-    border-bottom: 1px solid var(--line);
-    color: var(--ink-2);
+    border-bottom: 2px solid var(--line);
+    color: var(--ink);
     font-size: 14px;
     text-align: right;
   }
@@ -333,10 +331,7 @@
 
   .muted { color: var(--ink-3); font-size: 13px; }
 
-  .edit-panel.is-active {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.12);
-  }
+  .edit-panel.is-active { border-color: var(--accent); }
 
   .timeline {
     --timeline-date-col: 90px;
@@ -356,7 +351,7 @@
 
   .timeline-date {
     font-size: 12px;
-    color: var(--ink-2);
+    color: var(--ink-3);
     text-align: left;
     font-weight: 700;
   }
@@ -376,37 +371,26 @@
     top: calc(-1 * var(--timeline-gap) / 2);
     bottom: calc(-1 * var(--timeline-gap) / 2);
     width: 2px;
-    background: repeating-linear-gradient(
-      to bottom,
-      var(--accent) 0,
-      var(--accent) 6px,
-      transparent 6px,
-      transparent 12px
-    );
+    background: var(--line);
   }
 
-  .timeline-item:first-child .timeline-track::before {
-    top: 0;
-  }
-
-  .timeline-item:last-child .timeline-track::before {
-    bottom: 0;
-  }
+  .timeline-item:first-child .timeline-track::before { top: 0; }
+  .timeline-item:last-child .timeline-track::before { bottom: 0; }
 
   .timeline-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 0 6px rgba(31, 90, 75, 0.12);
+    box-shadow: 0 0 0 5px var(--surface-2);
     position: relative;
     z-index: 1;
   }
 
   .timeline-card {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 12px;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 4px;
     padding: 14px;
     text-align: right;
   }
@@ -438,26 +422,26 @@
     display: inline-flex;
     align-items: center;
     padding: 3px 10px;
-    border-radius: 99px;
+    border-radius: 4px;
     font-size: 12px;
     font-weight: 700;
   }
 
   .badge-active {
-    background: var(--accent-soft);
-    color: var(--accent);
-    border: 1px solid rgba(31, 90, 75, 0.3);
+    background: var(--surface);
+    color: var(--ink);
+    border: 2px solid var(--line);
   }
 
   .badge-expired {
-    background: #f0ede7;
+    background: var(--surface);
     color: var(--ink-3);
-    border: 1px solid var(--line);
+    border: 2px solid var(--line);
   }
 
   .active-permit-card.is-active {
-    border-color: rgba(31, 90, 75, 0.4);
-    background: linear-gradient(180deg, #f4faf7 0%, #ecf5f0 100%);
+    border-color: var(--accent);
+    background: var(--paper);
   }
 
   .active-permit-card.is-empty {
