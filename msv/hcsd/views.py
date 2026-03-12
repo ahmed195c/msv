@@ -3042,6 +3042,18 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
             action = request.POST.get('action')
             if action == 'create_request':
                 documents = request.FILES.getlist('request_documents')
+                waste_classification = request.POST.get('waste_classification', 'hazardous')
+                waste_type = request.POST.get('waste_type', 'empty_pesticide_containers')
+                material_state = request.POST.get('material_state', 'solid')
+                valid_classifications = {c[0] for c in WasteDisposalRequest.WASTE_CLASSIFICATION_CHOICES}
+                valid_types = {c[0] for c in WasteDisposalRequest.WASTE_TYPE_CHOICES}
+                valid_states = {c[0] for c in WasteDisposalRequest.MATERIAL_STATE_CHOICES}
+                if waste_classification not in valid_classifications:
+                    waste_classification = 'hazardous'
+                if waste_type not in valid_types:
+                    waste_type = 'empty_pesticide_containers'
+                if material_state not in valid_states:
+                    material_state = 'solid'
                 invalid_docs = []
                 for doc in documents:
                     ext = os.path.splitext(doc.name)[1].lower()
@@ -3056,6 +3068,9 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                     disposal_request = WasteDisposalRequest.objects.create(
                         permit=permit,
                         status='payment_pending',
+                        waste_classification=waste_classification,
+                        waste_type=waste_type,
+                        material_state=material_state,
                     )
                     for doc in documents:
                         WasteDisposalRequestDocument.objects.create(

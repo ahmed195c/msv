@@ -239,7 +239,7 @@ class WasteDisposalPermit(models.Model):
     project_type = models.CharField(max_length=120, null=True, blank=True)
     contractors = models.CharField(max_length=150, null=True, blank=True)
     employee_number = models.CharField(max_length=50, null=True, blank=True)
-
+    
     def __str__(self):
         return f"{self.pirmet.company.name} - Waste Details"
 
@@ -253,10 +253,47 @@ class WasteDisposalRequest(models.Model):
         ('completed', 'Completed'),
     ]
 
+    WASTE_CLASSIFICATION_CHOICES = [
+        ('hazardous', 'المخلفات الخطرة'),
+        ('non_hazardous', 'المخلفات الغير خطرة'),
+    ]
+
+    WASTE_TYPE_CHOICES = [
+        ('empty_pesticide_containers', 'عبوات مبيدات فارغة'),
+        ('general_waste', 'نفايات عامة'),
+        ('sorted_dry_waste', 'نفايات جافة مفرزة'),
+        ('green_waste', 'المخلفات الخضراء'),
+        ('tires', 'إطارات'),
+        ('commercial_industrial_waste', 'المخلفات التجارية والصناعية'),
+        ('wood', 'خشب'),
+        ('liquid_waste', 'النفايات السائلة'),
+        ('construction_demolition_waste', 'مخلفات الهدم والبناء'),
+    ]
+
+    MATERIAL_STATE_CHOICES = [
+        ('solid', 'صلبة'),
+        ('gas', 'غازية'),
+    ]
+
     permit = models.ForeignKey(
         PirmetClearance,
         on_delete=models.CASCADE,
         related_name='waste_disposal_requests',
+    )
+    waste_classification = models.CharField(
+        max_length=20,
+        choices=WASTE_CLASSIFICATION_CHOICES,
+        default='hazardous',
+    )
+    waste_type = models.CharField(
+        max_length=40,
+        choices=WASTE_TYPE_CHOICES,
+        default='empty_pesticide_containers',
+    )
+    material_state = models.CharField(
+        max_length=10,
+        choices=MATERIAL_STATE_CHOICES,
+        default='solid',
     )
     request_date = models.DateField(auto_now_add=True)
     disposal_reference = models.CharField(max_length=100, null=True, blank=True)

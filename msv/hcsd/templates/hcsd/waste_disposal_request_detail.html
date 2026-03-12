@@ -256,10 +256,36 @@
 
       {% if can_create_disposal_request %}
         <section class="permit-section no-print">
-          <div class="section-title">مستندات طلب التخلص (إلزامي)</div>
+          <div class="section-title">بيانات التخلص</div>
           <form method="post" enctype="multipart/form-data" class="review-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="create_request">
+
+            <label for="waste_classification">تصنيف النفايات</label>
+            <select id="waste_classification" name="waste_classification" required>
+              <option value="hazardous">المخلفات الخطرة</option>
+              <option value="non_hazardous">المخلفات الغير خطرة</option>
+            </select>
+
+            <label for="waste_type">أنواع النفايات</label>
+            <select id="waste_type" name="waste_type" required>
+              <option value="empty_pesticide_containers">عبوات مبيدات فارغة</option>
+              <option value="general_waste">نفايات عامة</option>
+              <option value="sorted_dry_waste">نفايات جافة مفرزة</option>
+              <option value="green_waste">المخلفات الخضراء</option>
+              <option value="tires">إطارات</option>
+              <option value="commercial_industrial_waste">المخلفات التجارية والصناعية</option>
+              <option value="wood">خشب</option>
+              <option value="liquid_waste">النفايات السائلة</option>
+              <option value="construction_demolition_waste">مخلفات الهدم والبناء</option>
+            </select>
+
+            <label for="material_state">حالة المادة</label>
+            <select id="material_state" name="material_state" required>
+              <option value="solid">صلبة</option>
+              <option value="gas">غازية</option>
+            </select>
+
             <label for="request_documents">إرفاق المستندات (PDF أو صور)</label>
             <input id="request_documents" name="request_documents" type="file" accept=".pdf,image/*" multiple required>
             <button type="submit">إنشاء طلب التخلص</button>
@@ -273,6 +299,9 @@
           <div class="detail-item"><span class="label">الشركة</span><span class="value">{{ permit.company.name }}</span></div>
           <div class="detail-item"><span class="label">تاريخ الطلب</span><span class="value">{{ disposal_request.request_date|date:"d/m/Y" }}</span></div>
           <div class="detail-item"><span class="label">الحالة</span><span class="value">{{ disposal_request.get_status_display }}</span></div>
+          <div class="detail-item"><span class="label">تصنيف النفايات</span><span class="value">{{ disposal_request.get_waste_classification_display }}</span></div>
+          <div class="detail-item"><span class="label">أنواع النفايات</span><span class="value">{{ disposal_request.get_waste_type_display }}</span></div>
+          <div class="detail-item"><span class="label">حالة المادة</span><span class="value">{{ disposal_request.get_material_state_display }}</span></div>
           <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ disposal_request.disposal_reference|default:"-" }}</span></div>
           <div class="detail-item"><span class="label">المفتش المستلم</span><span class="value">{{ assigned_inspector_name|default:"-" }}</span></div>
           <div class="detail-item"><span class="label">ملاحظات التفتيش</span><span class="value">{{ disposal_request.inspection_notes|default:"-" }}</span></div>
