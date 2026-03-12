@@ -2602,15 +2602,15 @@ def vehicle_permit_detail(request, id):
                         locked_review = (
                             InspectorReview.objects.select_for_update()
                             .filter(pirmet=locked_pirmet)
-                            .select_related('inspector_user')
+                            .only('id', 'inspector_user_id')
                             .first()
                         )
-                        locked_inspector_user = locked_review.inspector_user if locked_review else None
+                        locked_inspector_user_id = locked_review.inspector_user_id if locked_review else None
                         if (
                             _can_inspector(request.user)
                             and not _can_admin(request.user)
-                            and locked_inspector_user
-                            and locked_inspector_user.id != request.user.id
+                            and locked_inspector_user_id
+                            and locked_inspector_user_id != request.user.id
                         ):
                             review_errors.append('تم استلام الطلب بواسطة مفتش آخر.')
                         else:
@@ -4345,11 +4345,11 @@ def pest_control_permit_detail(request, id):
                         locked_review = (
                             InspectorReview.objects.select_for_update()
                             .filter(pirmet=locked_pirmet)
-                            .select_related('inspector_user')
+                            .only('id', 'inspector_user_id')
                             .first()
                         )
-                        locked_inspector_user = locked_review.inspector_user if locked_review else None
-                        if locked_inspector_user and locked_inspector_user.id != request.user.id:
+                        locked_inspector_user_id = locked_review.inspector_user_id if locked_review else None
+                        if locked_inspector_user_id and locked_inspector_user_id != request.user.id:
                             review_errors.append('تم استلام الطلب بواسطة مفتش آخر.')
                         else:
                             InspectorReview.objects.update_or_create(
