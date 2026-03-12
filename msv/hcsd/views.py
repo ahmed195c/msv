@@ -4237,27 +4237,51 @@ def pest_control_permit_detail(request, id):
                 review_errors.append('هذا الطلب ليس في مرحلة الاعتماد النهائي.')
             if inspection_report_decision != 'approved':
                 review_errors.append('لا يمكن الاعتماد النهائي قبل اعتماد تقرير التفتيش.')
+            head_decision = (request.POST.get('head_decision') or '').strip()
+            if head_decision not in {'approved', 'rejected'}:
+                review_errors.append('يرجى اختيار قرار الاعتماد النهائي.')
             head_remarks = (request.POST.get('head_remarks') or '').strip()
+            if head_decision == 'rejected' and not head_remarks:
+                review_errors.append('يرجى كتابة سبب الرفض.')
 
             if not review_errors:
                 old_status = pirmet.status
-                pirmet.status = 'head_approved'
-                pirmet.save(update_fields=['status'])
-                _log_pirmet_change(
-                    pirmet,
-                    'status_change',
-                    request.user,
-                    old_status=old_status,
-                    new_status=pirmet.status,
-                    notes='Head of section final approval.',
-                )
-                if head_remarks:
+                if head_decision == 'approved':
+                    pirmet.status = 'head_approved'
+                    pirmet.save(update_fields=['status'])
                     _log_pirmet_change(
                         pirmet,
-                        'details_update',
+                        'status_change',
                         request.user,
-                        notes=f'head_remarks:{head_remarks}',
+                        old_status=old_status,
+                        new_status=pirmet.status,
+                        notes='Head of section final approval.',
                     )
+                    if head_remarks:
+                        _log_pirmet_change(
+                            pirmet,
+                            'details_update',
+                            request.user,
+                            notes=f'head_remarks:{head_remarks}',
+                        )
+                else:
+                    pirmet.status = 'cancelled_admin'
+                    pirmet.save(update_fields=['status'])
+                    _log_pirmet_change(
+                        pirmet,
+                        'status_change',
+                        request.user,
+                        old_status=old_status,
+                        new_status=pirmet.status,
+                        notes='Head of section rejected - request closed.',
+                    )
+                    if head_remarks:
+                        _log_pirmet_change(
+                            pirmet,
+                            'details_update',
+                            request.user,
+                            notes=f'head_remarks:{head_remarks}',
+                        )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
         if action == 'send_payment_link':

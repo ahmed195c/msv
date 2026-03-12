@@ -1077,77 +1077,6 @@
       </section>
     {% endif %}
 
-    {% if can_record_violation_order %}
-      <section class="permit-section no-print">
-        <div class="section-title">إدخال أمر دفع مخالفة التأخير</div>
-        <form method="post" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="save_violation_payment_order">
-          <div class="detail-grid" style="margin-bottom: 14px;">
-            <div class="detail-item">
-              <span class="label">أشهر التأخير بعد الشهر الأول</span>
-              <span class="value">{{ delay_months_after_grace }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">قيمة المخالفة</span>
-              <span class="value">{{ violation_amount_due }} درهم</span>
-            </div>
-          </div>
-          <label for="violation_payment_order_number">رقم أمر دفع المخالفة</label>
-          <input
-            id="violation_payment_order_number"
-            name="violation_payment_order_number"
-            type="text"
-            value="{{ pirmet.violation_payment_order_number|default:'' }}"
-            required
-          >
-          <button type="submit">حفظ رقم أمر المخالفة</button>
-        </form>
-      </section>
-    {% endif %}
-
-    {% if can_record_violation_receipt %}
-      <section class="permit-section no-print">
-        <div class="section-title">إدخال إيصال دفع مخالفة التأخير</div>
-        <form method="post" enctype="multipart/form-data" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="save_violation_payment_receipt">
-          <div class="upload-stack">
-            <div class="upload-card">
-              <div class="upload-card-head">
-                <span>إيصال دفع المخالفة</span>
-                <span class="upload-card-note">PDF أو صورة</span>
-              </div>
-              <label class="upload-dropzone js-dropzone" for="violation_payment_receipt">
-                <span class="upload-dropzone-icon">⇪</span>
-                <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
-                <span class="upload-dropzone-sub">يدعم PDF / JPG / PNG</span>
-              </label>
-              <input
-                id="violation_payment_receipt"
-                name="violation_payment_receipt"
-                type="file"
-                accept=".pdf,image/*"
-                required
-                class="upload-hidden-input js-file-input"
-              >
-              <div class="upload-file-chip js-file-chip" aria-live="polite">
-                <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
-                <span class="upload-file-chip-size js-file-size"></span>
-              </div>
-            </div>
-          </div>
-          {% if pirmet.violation_payment_receipt %}
-            <p class="helper-text">
-              الإيصال الحالي:
-              <a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">عرض الإيصال</a>
-            </p>
-          {% endif %}
-          <button type="submit">حفظ إيصال المخالفة</button>
-        </form>
-      </section>
-    {% endif %}
-
     {% if can_record_inspection_payment_reference %}
       <section class="permit-section no-print">
         <div class="section-title">إدخال رقم امر الدفع الموحد - التفتيش</div>
@@ -1239,9 +1168,86 @@
         <form method="post" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="head_approve">
-          <label for="head_remarks">تعليق (اختياري)</label>
+          <label for="head_decision">القرار</label>
+          <select id="head_decision" name="head_decision" required>
+            <option value="">-- اختيار --</option>
+            <option value="approved">اعتماد</option>
+            <option value="rejected">رفض وإغلاق الطلب</option>
+          </select>
+          <label for="head_remarks">تعليق / سبب الرفض</label>
           <textarea id="head_remarks" name="head_remarks" rows="3"></textarea>
-          <button type="submit">اعتماد نهائي</button>
+          <button type="submit">حفظ القرار</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_violation_order %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال أمر دفع مخالفة التأخير</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_violation_payment_order">
+          <div class="detail-grid" style="margin-bottom: 14px;">
+            <div class="detail-item">
+              <span class="label">أشهر التأخير بعد الشهر الأول</span>
+              <span class="value">{{ delay_months_after_grace }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">قيمة المخالفة</span>
+              <span class="value">{{ violation_amount_due }} درهم</span>
+            </div>
+          </div>
+          <label for="violation_payment_order_number">رقم أمر دفع المخالفة</label>
+          <input
+            id="violation_payment_order_number"
+            name="violation_payment_order_number"
+            type="text"
+            value="{{ pirmet.violation_payment_order_number|default:'' }}"
+            required
+          >
+          <button type="submit">حفظ رقم أمر المخالفة</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if can_record_violation_receipt %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال إيصال دفع مخالفة التأخير</div>
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_violation_payment_receipt">
+          <div class="upload-stack">
+            <div class="upload-card">
+              <div class="upload-card-head">
+                <span>إيصال دفع المخالفة</span>
+                <span class="upload-card-note">PDF أو صورة</span>
+              </div>
+              <label class="upload-dropzone js-dropzone" for="violation_payment_receipt">
+                <span class="upload-dropzone-icon">⇪</span>
+                <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
+                <span class="upload-dropzone-sub">يدعم PDF / JPG / PNG</span>
+              </label>
+              <input
+                id="violation_payment_receipt"
+                name="violation_payment_receipt"
+                type="file"
+                accept=".pdf,image/*"
+                required
+                class="upload-hidden-input js-file-input"
+              >
+              <div class="upload-file-chip js-file-chip" aria-live="polite">
+                <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
+                <span class="upload-file-chip-size js-file-size"></span>
+              </div>
+            </div>
+          </div>
+          {% if pirmet.violation_payment_receipt %}
+            <p class="helper-text">
+              الإيصال الحالي:
+              <a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">عرض الإيصال</a>
+            </p>
+          {% endif %}
+          <button type="submit">حفظ إيصال المخالفة</button>
         </form>
       </section>
     {% endif %}
