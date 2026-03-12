@@ -298,6 +298,7 @@
 .stripe-issued      { background: #304357; }
 .stripe-inspect     { background: #304357; }
 .stripe-done        { background: #4a8aac; }
+.stripe-head        { background: #7c5bbf; }
 .stripe-dis-ok      { background: #4a9a6e; }
 .stripe-dis-no      { background: #c94a4a; }
 
@@ -346,6 +347,8 @@
 .st-inspection-pending      { background: var(--s-inspect);   color: var(--s-inspect-fg); }
 .st-inspection-received     { background: #d6e0ea;            color: #304357; }
 .st-inspection-completed    { background: var(--s-done);      color: #1a4a5c; }
+.st-head-approval-needed    { background: #ede8f7;            color: #4a2a8f; }
+.st-head-approved           { background: #7c5bbf;            color: #ffffff; }
 .st-disposal-approved       { background: var(--s-dis-ok);    color: #1a5c35; }
 .st-disposal-rejected       { background: var(--s-dis-no);    color: var(--danger); }
 .st-fallback                { background: var(--surface-2);   color: var(--ink-2); }
@@ -720,7 +723,9 @@
                   {% elif clearance.status == 'payment_completed' %}stripe-paid
                   {% elif clearance.status == 'issued' %}stripe-issued
                   {% elif clearance.status == 'inspection_pending' or clearance.status_key == 'inspection_received' %}stripe-inspect
+                  {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}stripe-head
                   {% elif clearance.status == 'inspection_completed' %}stripe-done
+                  {% elif clearance.status == 'head_approved' %}stripe-head
                   {% elif clearance.status == 'disposal_approved' %}stripe-dis-ok
                   {% elif clearance.status == 'disposal_rejected' %}stripe-dis-no
                   {% else %}{% endif %}">
@@ -740,7 +745,9 @@
                       {% elif clearance.status == 'issued' %}st-issued
                       {% elif clearance.status_key == 'inspection_received' %}st-inspection-received
                       {% elif clearance.status == 'inspection_pending' %}st-inspection-pending
+                      {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}st-head-approval-needed
                       {% elif clearance.status == 'inspection_completed' %}st-inspection-completed
+                      {% elif clearance.status == 'head_approved' %}st-head-approved
                       {% elif clearance.status == 'closed_requirements_pending' %}st-needs-completion
                       {% elif clearance.status == 'disposal_approved' %}st-disposal-approved
                       {% elif clearance.status == 'disposal_rejected' %}st-disposal-rejected
@@ -755,7 +762,9 @@
                       {% elif clearance.status == 'issued' %}تم الإصدار
                       {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
                       {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
+                      {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}بانتظار الاعتماد النهائي
                       {% elif clearance.status == 'inspection_completed' %}تم التفتيش
+                      {% elif clearance.status == 'head_approved' %}الاعتماد النهائي
                       {% elif clearance.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
                       {% elif clearance.status == 'disposal_approved' %}إتلاف معتمد
                       {% elif clearance.status == 'disposal_rejected' %}إتلاف مرفوض
@@ -790,7 +799,9 @@
                           {% elif clearance.status == 'issued' %}تم إصدار التصريح
                           {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
                           {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
-                          {% elif clearance.status == 'inspection_completed' %}{% if clearance.inspection_report_decision == 'approved' %}تم التفتيش - معتمد{% elif clearance.inspection_report_decision == 'rejected' %}تم التفتيش - غير معتمد{% else %}تم التفتيش{% endif %}
+                          {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}تم التفتيش - بانتظار الاعتماد النهائي
+                          {% elif clearance.status == 'inspection_completed' %}{% if clearance.inspection_report_decision == 'rejected' %}تم التفتيش - غير معتمد{% else %}تم التفتيش{% endif %}
+                          {% elif clearance.status == 'head_approved' %}تم الاعتماد النهائي - بانتظار إدخال رقم الدفع
                           {% elif clearance.status == 'closed_requirements_pending' %}تم إغلاق الطلب - اشتراطات واجبة الاستيفاء
                           {% elif clearance.status == 'disposal_approved' %}تمت الموافقة على الإتلاف
                           {% elif clearance.status == 'disposal_rejected' %}تم رفض الإتلاف

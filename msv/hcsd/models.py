@@ -127,6 +127,7 @@ class PirmetClearance(models.Model):
         ('issued', 'Issued'),
         ('inspection_pending', 'Inspection Pending'),
         ('inspection_completed', 'Inspection Completed'),
+        ('head_approved', 'Head of Section Approved'),
         ('closed_requirements_pending', 'Closed - Requirements Pending'),
         ('cancelled_admin', 'Cancelled Administratively'),
         ('disposal_approved', 'Disposal Approved'),

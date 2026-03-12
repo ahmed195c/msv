@@ -678,6 +678,8 @@
             {% else %}
               <span class="status-badge status-badge--active">تم إنهاء التفتيش</span>
             {% endif %}
+          {% elif pirmet.status == "head_approved" %}
+            <span class="status-badge status-badge--active">الاعتماد النهائي</span>
           {% elif pirmet.status == "payment_pending" %}
             <span class="status-badge status-badge--pending">بانتظار دفع التصريح</span>
           {% elif pirmet.status == "payment_completed" %}
@@ -884,6 +886,10 @@
           <div class="detail-item">
             <span class="label">المفتش</span>
             <span class="value">{{ inspection_report_by|default:"-" }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">تاريخ إدخال التقرير</span>
+            <span class="value">{{ inspection_report_date|date:"Y-m-d"|default:"-" }}</span>
           </div>
           <div class="detail-item">
             <span class="label">الملاحظات</span>
@@ -1193,6 +1199,49 @@
             </div>
           </div>
           <button type="submit">حفظ الإيصال</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if pirmet.status == "head_approved" or head_approved_by %}
+      <section class="permit-section">
+        <div class="section-title">الاعتماد النهائي</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">الحالة</span>
+            <span class="value">تم الاعتماد النهائي</span>
+          </div>
+          {% if head_approved_by %}
+          <div class="detail-item">
+            <span class="label">اعتمد بواسطة</span>
+            <span class="value">{{ head_approved_by }}</span>
+          </div>
+          {% endif %}
+          {% if head_approved_date %}
+          <div class="detail-item">
+            <span class="label">تاريخ الاعتماد</span>
+            <span class="value">{{ head_approved_date|date:"Y-m-d" }}</span>
+          </div>
+          {% endif %}
+          {% if head_remarks %}
+          <div class="detail-item">
+            <span class="label">التعليق</span>
+            <span class="value">{{ head_remarks }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if can_head_approve %}
+      <section class="permit-section no-print">
+        <div class="section-title">الاعتماد النهائي</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="head_approve">
+          <label for="head_remarks">تعليق (اختياري)</label>
+          <textarea id="head_remarks" name="head_remarks" rows="3"></textarea>
+          <button type="submit">اعتماد نهائي</button>
         </form>
       </section>
     {% endif %}

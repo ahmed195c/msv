@@ -45,14 +45,17 @@ GROUP_NAME_ALIASES = {
     'admin': ['admin', 'Administration'],
     'inspector': ['inspector', 'Inspector'],
     'data_entry': ['data_entry', 'Data Entry'],
+    'head': ['head', 'Head'],
 }
 ROLE_CAPABILITIES = {
     # Admin keeps full operational capabilities.
-    'admin': {'admin', 'inspect', 'data_entry'},
+    'admin': {'admin', 'inspect', 'data_entry', 'head_approve'},
     # Inspector handles inspection intake/reports only.
     'inspector': {'inspect'},
     # Data entry handles data-entry workflows.
     'data_entry': {'data_entry'},
+    # Head of section performs final permit approval.
+    'head': {'head_approve'},
 }
 INSPECTION_REPORT_PHOTO_PREFIX = 'inspection_report_photo_'
 VEHICLE_INSPECTION_REPORT_PHOTO_PREFIX = 'vehicle_inspection_report_photo_'
@@ -177,6 +180,10 @@ def _role_is_data_entry(user):
     return user.is_authenticated and _has_any_group(user, GROUP_NAME_ALIASES['data_entry'])
 
 
+def _role_is_head(user):
+    return user.is_authenticated and _has_any_group(user, GROUP_NAME_ALIASES['head'])
+
+
 def _user_roles(user):
     if not getattr(user, 'is_authenticated', False):
         return set()
@@ -190,6 +197,8 @@ def _user_roles(user):
         roles.add('inspector')
     if _role_is_data_entry(user):
         roles.add('data_entry')
+    if _role_is_head(user):
+        roles.add('head')
     setattr(user, '_hcsd_roles_cache', roles)
     return roles
 
@@ -211,6 +220,10 @@ def _can_inspector(user):
 
 def _can_data_entry(user):
     return _has_capability(user, 'data_entry')
+
+
+def _can_head(user):
+    return _has_capability(user, 'head_approve')
 
 
 def _can_create_exam_request(user):
@@ -566,17 +579,30 @@ def home(request):
     )
     total_permits = permits_qs.count()
     issued_permits = permits_qs.filter(status='issued').count()
-    pending_permits = permits_qs.filter(
-        status__in=[
-            'order_received',
-            'inspection_payment_pending',
-            'inspection_pending',
-            'review_pending',
-            'payment_pending',
-            'payment_completed',
-            'disposal_approved',
-        ]
-    ).count()
+    pending_permits = (
+        permits_qs.filter(
+            status__in=[
+                'order_received',
+                'inspection_payment_pending',
+                'inspection_pending',
+                'review_pending',
+                'payment_pending',
+                'payment_completed',
+                'disposal_approved',
+                'head_approved',
+                'inspection_completed',
+            ]
+        )
+        .exclude(
+            status='inspection_completed',
+            unapprovedReason__isnull=False,
+        )
+        .exclude(
+            status='inspection_completed',
+            unapprovedReason='',
+        )
+        .count()
+    )
     needs_completion_permits = permits_qs.filter(
         Q(status__in=['needs_completion', 'rejected', 'disposal_rejected', 'closed_requirements_pending'])
         | (Q(status='inspection_completed') & ~Q(unapprovedReason__isnull=True) & ~Q(unapprovedReason=''))
@@ -592,6 +618,7 @@ def home(request):
         'payment_pending': 'بانتظار دفع التصريح',
         'payment_completed': 'تم استلام الدفع',
         'issued': 'تم إصدار التصريح',
+        'head_approved': 'الاعتماد النهائي',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
         'cancelled_admin': 'موقوف إداريًا',
         'disposal_approved': 'إتلاف معتمد',
@@ -1074,6 +1101,7 @@ def company_detail(request, id):
         'issued': 'تم إصدار التصريح',
         'inspection_pending': 'جاهز للاستلام',
         'inspection_completed': 'تم إنهاء التفتيش',
+        'head_approved': 'الاعتماد النهائي',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
         'cancelled_admin': 'مغلق إداريًا',
         'disposal_approved': 'إتلاف معتمد',
@@ -1121,6 +1149,7 @@ def company_detail(request, id):
         'approved': 1,
         'payment_pending': 1,
         'inspection_completed': 1,
+        'head_approved': 1,
         'disposal_approved': 1,
         'needs_completion': 2,
         'closed_requirements_pending': 2,
@@ -2171,14 +2200,23 @@ def clearance_list(request):
 
     finished_statuses = {
         'issued',
-        'inspection_completed',
         'closed_requirements_pending',
         'cancelled_admin',
         'disposal_approved',
         'disposal_rejected',
     }
-    active_clearances = [item for item in clearances if item.status not in finished_statuses]
-    finished_clearances = [item for item in clearances if item.status in finished_statuses]
+    active_clearances = []
+    finished_clearances = []
+    for _item in clearances:
+        if _item.status in finished_statuses:
+            finished_clearances.append(_item)
+        elif (
+            _item.status == 'inspection_completed'
+            and _item.inspection_report_decision != 'approved'
+        ):
+            finished_clearances.append(_item)
+        else:
+            active_clearances.append(_item)
     inspector_scope_only = _can_inspector(request.user) and not _can_admin(request.user)
     if inspector_scope_only:
         inspector_visible_statuses = {'inspection_pending', 'inspection_received'}
@@ -2525,6 +2563,9 @@ def vehicle_permit_detail(request, id):
         if latest_inspection_report
         else None
     )
+    inspection_report_date = (
+        latest_inspection_report.created_at if latest_inspection_report else None
+    )
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -2615,7 +2656,7 @@ def vehicle_permit_detail(request, id):
             if not review_errors:
                 old_status = pirmet.status
                 if decision == 'approved':
-                    pirmet.status = 'payment_pending'
+                    pirmet.status = 'inspection_completed'
                     if pirmet.unapprovedReason:
                         pirmet.unapprovedReason = None
                     pirmet.save(update_fields=['status', 'unapprovedReason'])
@@ -2664,15 +2705,25 @@ def vehicle_permit_detail(request, id):
         if action == 'send_payment_link':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال رقم الدفع.')
-            if pirmet.status != 'payment_pending':
+            if pirmet.status != 'inspection_completed':
                 review_errors.append('هذا الطلب ليس بانتظار إدخال رقم دفع التصريح.')
             payment_number = (request.POST.get('payment_number') or '').strip()
             if not payment_number:
                 review_errors.append('يرجى إدخال رقم أمر دفع تصريح المركبة.')
 
             if not review_errors:
+                old_status = pirmet.status
                 pirmet.PaymentNumber = payment_number
-                pirmet.save(update_fields=['PaymentNumber'])
+                pirmet.status = 'payment_pending'
+                pirmet.save(update_fields=['PaymentNumber', 'status'])
+                _log_pirmet_change(
+                    pirmet,
+                    'status_change',
+                    request.user,
+                    old_status=old_status,
+                    new_status=pirmet.status,
+                    notes='Vehicle permit payment number entered.',
+                )
                 _log_pirmet_change(
                     pirmet,
                     'details_update',
@@ -2767,6 +2818,7 @@ def vehicle_permit_detail(request, id):
             'review_errors': review_errors,
             'request_documents': _request_documents(pirmet),
             'inspection_report_decision': inspection_report_decision,
+            'inspection_report_date': inspection_report_date,
             'inspection_report_notes': inspection_report_notes,
             'inspection_report_photos': _vehicle_inspection_report_photo_docs(pirmet),
             'inspection_receiver_name': inspection_receiver_name,
@@ -3708,6 +3760,7 @@ def pest_control_permit_detail(request, id):
             Q(notes__startswith='inspection_received_by:')
             | Q(notes__startswith='inspection_report:')
             | Q(notes__startswith='inspection_report_notes:')
+            | Q(notes__startswith='head_remarks:')
         )
         .select_related('changed_by')
         .order_by('-created_at')
@@ -3720,6 +3773,9 @@ def pest_control_permit_detail(request, id):
     )
     latest_inspection_report_notes_log = next(
         (l for l in _inspection_detail_logs if l.notes.startswith('inspection_report_notes:')), None
+    )
+    latest_head_remarks_log = next(
+        (l for l in _inspection_detail_logs if l.notes.startswith('head_remarks:')), None
     )
 
     inspection_receiver_name = None
@@ -3735,9 +3791,33 @@ def pest_control_permit_detail(request, id):
         if latest_inspection_report and latest_inspection_report.changed_by
         else None
     )
+    inspection_report_date = (
+        latest_inspection_report.created_at if latest_inspection_report else None
+    )
     inspection_report_notes = None
     if latest_inspection_report_notes_log and ':' in latest_inspection_report_notes_log.notes:
         inspection_report_notes = latest_inspection_report_notes_log.notes.split(':', 1)[1].strip()
+    head_remarks = None
+    if latest_head_remarks_log and ':' in latest_head_remarks_log.notes:
+        head_remarks = latest_head_remarks_log.notes.split(':', 1)[1].strip()
+    head_approval_log = (
+        PirmetChangeLog.objects.filter(
+            pirmet=pirmet,
+            change_type='status_change',
+            new_status='head_approved',
+        )
+        .select_related('changed_by')
+        .order_by('-created_at')
+        .first()
+    )
+    head_approved_by = (
+        _display_user_name(head_approval_log.changed_by)
+        if head_approval_log and head_approval_log.changed_by
+        else None
+    )
+    head_approved_date = (
+        head_approval_log.created_at if head_approval_log else None
+    )
 
     assigned_review = InspectorReview.objects.filter(pirmet=pirmet).select_related(
         'inspector', 'inspector_user'
@@ -3820,10 +3900,14 @@ def pest_control_permit_detail(request, id):
         _can_admin(request.user)
         and pirmet.status == 'inspection_payment_pending'
     )
-    can_record_permit_payment_reference = (
+    can_head_approve = (
         _can_admin(request.user)
         and pirmet.status == 'inspection_completed'
         and inspection_report_decision == 'approved'
+    )
+    can_record_permit_payment_reference = (
+        _can_admin(request.user)
+        and pirmet.status == 'head_approved'
         and (not violation_required or violation_payment_completed)
     )
     show_admin_close_form = (
@@ -4146,16 +4230,43 @@ def pest_control_permit_detail(request, id):
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
+        if action == 'head_approve':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية للاعتماد النهائي.')
+            if pirmet.status != 'inspection_completed':
+                review_errors.append('هذا الطلب ليس في مرحلة الاعتماد النهائي.')
+            if inspection_report_decision != 'approved':
+                review_errors.append('لا يمكن الاعتماد النهائي قبل اعتماد تقرير التفتيش.')
+            head_remarks = (request.POST.get('head_remarks') or '').strip()
+
+            if not review_errors:
+                old_status = pirmet.status
+                pirmet.status = 'head_approved'
+                pirmet.save(update_fields=['status'])
+                _log_pirmet_change(
+                    pirmet,
+                    'status_change',
+                    request.user,
+                    old_status=old_status,
+                    new_status=pirmet.status,
+                    notes='Head of section final approval.',
+                )
+                if head_remarks:
+                    _log_pirmet_change(
+                        pirmet,
+                        'details_update',
+                        request.user,
+                        notes=f'head_remarks:{head_remarks}',
+                    )
+                return redirect('pest_control_permit_detail', id=pirmet.id)
+
         if action == 'send_payment_link':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال الرقم المرجعي للدفع.')
-            if pirmet.status != 'inspection_completed':
+            if pirmet.status != 'head_approved':
                 review_errors.append('هذا الطلب ليس في مرحلة إدخال رقم دفع التصريح.')
             if violation_required and not violation_payment_completed:
                 review_errors.append('يرجى استكمال أمر دفع المخالفة وإيصالها قبل إدخال رقم دفع التصريح.')
-
-            if inspection_report_decision != 'approved':
-                review_errors.append('لا يمكن إدخال رقم الدفع قبل اعتماد تقرير التفتيش.')
             payment_number = (request.POST.get('payment_number') or '').strip()
             if not payment_number:
                 review_errors.append('يرجى إدخال الرقم المرجعي لدفع التصريح.')
@@ -4528,6 +4639,7 @@ def pest_control_permit_detail(request, id):
             'inspection_receiver_name': inspection_receiver_name,
             'inspection_report_decision': inspection_report_decision,
             'inspection_report_by': inspection_report_by,
+            'inspection_report_date': inspection_report_date,
             'inspection_report_notes': inspection_report_notes,
             'inspection_report_photos': _inspection_report_photo_docs(pirmet),
             'request_documents': _request_documents(pirmet),
@@ -4551,6 +4663,10 @@ def pest_control_permit_detail(request, id):
             'can_record_violation_receipt': can_record_violation_receipt,
             'can_record_inspection_payment_reference': can_record_inspection_payment_reference,
             'can_record_inspection_payment_receipt': can_record_inspection_payment_receipt,
+            'can_head_approve': can_head_approve,
+            'head_remarks': head_remarks,
+            'head_approved_by': head_approved_by,
+            'head_approved_date': head_approved_date,
             'can_record_permit_payment_reference': can_record_permit_payment_reference,
             'show_admin_close_form': show_admin_close_form,
             'can_review_pirmet': _can_inspector(request.user),
