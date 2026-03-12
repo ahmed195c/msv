@@ -1818,8 +1818,6 @@ def engineer_certificate_request_list(request):
                 form_error = 'يرجى اختيار مهندس صحيح.'
             elif certificate_type not in {'public_health', 'termite'}:
                 form_error = 'يرجى اختيار نوع الشهادة.'
-            elif not _enginer_has_passed_for_certificate(enginer, certificate_type):
-                form_error = 'لا يمكن تقديم الطلب: المهندس لا يملك نتيجة نجاح مثبتة لهذا النوع.'
             else:
                 active_request_exists = EngineerCertificateRequest.objects.filter(
                     enginer=enginer,
@@ -2011,6 +2009,13 @@ def engineer_certificate_request_detail(request, request_id):
         can_manage_certificate_requests
         and certificate_request.status == 'payment_received'
     )
+    no_pass_warning = (
+        can_issue_certificate
+        and not _enginer_has_passed_for_certificate(
+            certificate_request.enginer,
+            certificate_request.certificate_type,
+        )
+    )
     certificate_expiry_date, certificate_is_expired = _certificate_expiry(certificate_request.certificate_issue_date)
 
     return render(
@@ -2023,6 +2028,7 @@ def engineer_certificate_request_detail(request, request_id):
             'can_set_payment_order_number': can_set_payment_order_number,
             'can_record_certificate_payment': can_record_certificate_payment,
             'can_issue_certificate': can_issue_certificate,
+            'no_pass_warning': no_pass_warning,
             'certificate_expiry_date': certificate_expiry_date,
             'certificate_is_expired': certificate_is_expired,
         },
