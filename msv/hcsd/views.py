@@ -881,11 +881,7 @@ def add_company(request):
         owner_phone = (request.POST.get('owner_phone') or '').strip()
         email = (request.POST.get('email') or '').strip()
         business_activity_text = (request.POST.get('business_activity') or '').strip()
-        pest_control_type = (request.POST.get('pest_control_type') or '').strip()
         enginer_id = _parse_int(request.POST.get('enginer'))
-        enginer_ids = _parse_int_list(request.POST.getlist('enginers'))
-        if enginer_id and enginer_id not in enginer_ids:
-            enginer_ids.insert(0, enginer_id)
 
         form_data = {
             'name': name,
@@ -897,15 +893,12 @@ def add_company(request):
             'email': email,
             'business_activity': business_activity_text,
             'enginer_id': str(enginer_id) if enginer_id else '',
-            'enginer_ids': [str(i) for i in enginer_ids],
         }
 
         if not _can_data_entry(request.user):
             error = 'ليس لديك صلاحية لإضافة الشركات.'
         elif not name or not number or not address:
             error = 'يرجى إدخال اسم الشركة ورقم الرخصة والعنوان.'
-        elif not pest_control_type:
-            error = 'يرجى اختيار نوع المكافحة.'
 
         trade_license_exp = _parse_date(trade_license_exp_value)
         if trade_license_exp_value and not trade_license_exp:
@@ -917,19 +910,13 @@ def add_company(request):
             if not enginer:
                 error = 'يرجى اختيار مهندس صحيح.'
 
-        selected_engineers = []
-        if enginer_ids:
-            selected_engineers = list(Enginer.objects.filter(id__in=enginer_ids))
-            if len(selected_engineers) != len(enginer_ids):
-                error = 'يرجى اختيار مهندسين صحيحين.'
-        if not error and enginer:
-            error = _validate_engineer_for_type(enginer, pest_control_type) or ''
-        if not error:
-            for engineer_item in selected_engineers:
-                validation_error = _validate_engineer_for_type(engineer_item, pest_control_type)
-                if validation_error:
-                    error = validation_error
-                    break
+        # تحديد نوع المكافحة تلقائياً من شهادات المهندس
+        if enginer and enginer.has_termite_cert:
+            pest_control_type = 'termite_control'
+        elif enginer and enginer.has_public_health_cert:
+            pest_control_type = 'public_health_pest_control'
+        else:
+            pest_control_type = 'public_health_pest_control'
 
         if not error:
             company = Company.objects.create(
@@ -944,8 +931,6 @@ def add_company(request):
                 pest_control_type=pest_control_type,
                 enginer=enginer,
             )
-            if selected_engineers:
-                company.engineers.set(selected_engineers)
             create_notes = 'Company created.'
             if not enginer:
                 create_notes = 'Company created without engineer (new company pending inspection/setup).'
@@ -958,7 +943,6 @@ def add_company(request):
         {
             'engineers': engineers,
             'form_data': form_data,
-            'selected_pest_control_type': request.POST.get('pest_control_type') or '',
             'error': error,
         },
     )

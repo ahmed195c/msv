@@ -269,55 +269,22 @@
         </div>
 
         <div class="co-card">
-          <span class="co-card-title">التصنيف والمهندس</span>
+          <span class="co-card-title">المهندس</span>
           <div class="co-card-body">
-
-            <!-- نوع المكافحة + المهندس الرئيسي -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-              <div class="co-field">
-                <label>نوع المكافحة <span style="color:#e05;">*</span></label>
-                <select name="pest_control_type" required>
-                  <option value="">اختيار نوع المكافحة</option>
-                  <option value="public_health_pest_control" {% if selected_pest_control_type == "public_health_pest_control" %}selected{% endif %}>مكافحة آفات الصحة العامة</option>
-                  <option value="termite_control" {% if selected_pest_control_type == "termite_control" %}selected{% endif %}>مكافحة النمل الأبيض</option>
-                  <option value="grain_pests" {% if selected_pest_control_type == "grain_pests" %}selected{% endif %}>مكافحة آفات الحبوب</option>
-                </select>
-              </div>
-              <div class="co-field">
-                <label>المهندس الرئيسي <span style="color:var(--ink-3);font-weight:400;">(اختياري)</span></label>
-                <select name="enginer">
-                  <option value="">— بدون مهندس حالياً —</option>
-                  {% for engineer in engineers %}
-                    <option
-                      value="{{ engineer.id }}"
-                      data-public="{{ engineer.has_public_health_cert|yesno:'1,0' }}"
-                      data-termite="{{ engineer.has_termite_cert|yesno:'1,0' }}"
-                      {% if form_data.enginer_id == engineer.id|stringformat:"s" %}selected{% endif %}
-                    >{{ engineer.name }}{% if engineer.has_public_health_cert %}{% if engineer.has_termite_cert %} — نمل أبيض{% else %} — صحة عامة{% endif %}{% else %} — غير مكتمل{% endif %}</option>
-                  {% endfor %}
-                </select>
-                <small class="co-muted">يتم فلترة المهندسين تلقائياً حسب نوع المكافحة.</small>
-              </div>
-            </div>
-
-            <!-- مهندسون إضافيون -->
             <div class="co-field">
-              <label>مهندسون إضافيون <span style="color:var(--ink-3);font-weight:400;">(اختياري)</span></label>
-              <input class="eng-check-search" type="text" placeholder="ابحث عن مهندس..." id="engSearchInput">
-              <div class="eng-check-grid" id="engCheckGrid">
+              <label>المهندس <span style="color:var(--ink-3);font-weight:400;">(اختياري)</span></label>
+              <select name="enginer">
+                <option value="">— بدون مهندس حالياً —</option>
                 {% for engineer in engineers %}
-                <label class="eng-check-item{% if engineer.id|stringformat:'s' in form_data.enginer_ids %} checked{% endif %}" data-eng-name="{{ engineer.name }}">
-                  <input type="checkbox" name="enginers" value="{{ engineer.id }}"
-                    {% if engineer.id|stringformat:"s" in form_data.enginer_ids %}checked{% endif %}>
-                  <span>{{ engineer.name }}</span>
-                </label>
+                  <option
+                    value="{{ engineer.id }}"
+                    {% if form_data.enginer_id == engineer.id|stringformat:"s" %}selected{% endif %}
+                  >{{ engineer.name }}{% if engineer.has_public_health_cert %}{% if engineer.has_termite_cert %} — نمل أبيض + صحة عامة{% else %} — صحة عامة{% endif %}{% else %} — غير مكتمل{% endif %}</option>
                 {% endfor %}
-              </div>
-              <small class="co-muted">حدد المهندسين الإضافيين المرتبطين بالشركة.</small>
+              </select>
+              <small class="co-muted">نوع المكافحة يُحدَّد تلقائياً من شهادات المهندس. يمكن تركه فارغاً وإضافته لاحقاً.</small>
             </div>
-
             <div class="co-notice">يمكن إنشاء الشركة بدون مهندس وإضافته لاحقاً بعد التفتيش الأولي.</div>
-
           </div>
         </div>
 
@@ -331,64 +298,4 @@
 
   </div>
 </section>
-<script>
-  (function () {
-    const typeSelect = document.querySelector('select[name="pest_control_type"]');
-    const engSelect  = document.querySelector('select[name="enginer"]');
-    if (!typeSelect || !engSelect) return;
-
-    const options     = Array.from(engSelect.options).filter(o => o.value);
-    const typeOptions = Array.from(typeSelect.options).filter(o => o.value);
-
-    const applyFilter = () => {
-      const type = typeSelect.value;
-      options.forEach(opt => {
-        const hasPublic  = opt.dataset.public  === '1';
-        const hasTermite = opt.dataset.termite === '1';
-        const allow = type === 'termite_control' ? hasTermite : hasPublic;
-        opt.disabled = !allow;
-        if (!allow && opt.selected) engSelect.value = '';
-      });
-    };
-
-    const filterTypesByEngineer = () => {
-      const selected = engSelect.options[engSelect.selectedIndex];
-      if (!selected || !selected.value) { typeOptions.forEach(o => o.disabled = false); return; }
-      const hasPublic  = selected.dataset.public  === '1';
-      const hasTermite = selected.dataset.termite === '1';
-      typeOptions.forEach(opt => {
-        opt.disabled = opt.value === 'termite_control' ? !hasTermite : !hasPublic;
-      });
-      if (typeSelect.value && typeSelect.options[typeSelect.selectedIndex].disabled) typeSelect.value = '';
-      if (!typeSelect.value) {
-        if (hasTermite) typeSelect.value = 'termite_control';
-        else if (hasPublic) typeSelect.value = 'public_health_pest_control';
-      }
-    };
-
-    typeSelect.addEventListener('change', applyFilter);
-    engSelect.addEventListener('change', () => { filterTypesByEngineer(); applyFilter(); });
-    filterTypesByEngineer();
-    applyFilter();
-
-    // checkbox checked class
-    document.querySelectorAll('.eng-check-item input[type="checkbox"]').forEach(cb => {
-      cb.addEventListener('change', () => {
-        cb.closest('.eng-check-item').classList.toggle('checked', cb.checked);
-      });
-    });
-
-    // search filter
-    const searchInput = document.getElementById('engSearchInput');
-    if (searchInput) {
-      searchInput.addEventListener('input', () => {
-        const q = searchInput.value.trim().toLowerCase();
-        document.querySelectorAll('.eng-check-item').forEach(item => {
-          const name = (item.dataset.engName || '').toLowerCase();
-          item.style.display = name.includes(q) ? '' : 'none';
-        });
-      });
-    }
-  })();
-</script>
 {% endblock %}
