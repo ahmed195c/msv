@@ -273,13 +273,17 @@
           <div class="co-card-body">
             <div class="co-field">
               <label>المهندس <span style="color:var(--ink-3);font-weight:400;">(اختياري)</span></label>
-              <select name="enginer">
-                <option value="">— بدون مهندس حالياً —</option>
+              <input class="eng-check-search" type="text" id="engFilterInput" placeholder="ابحث بالاسم أو رقم البطاقة أو رقم الهوية...">
+              <select name="enginer" id="engSelect" size="6" style="min-height:160px;">
+                <option value="">— بدون مهندس —</option>
                 {% for engineer in engineers %}
                   <option
                     value="{{ engineer.id }}"
+                    data-name="{{ engineer.name }}"
+                    data-card="{{ engineer.card_number|default:'' }}"
+                    data-national="{{ engineer.national_or_unified_number|default:'' }}"
                     {% if form_data.enginer_id == engineer.id|stringformat:"s" %}selected{% endif %}
-                  >{{ engineer.name }}{% if engineer.has_public_health_cert %}{% if engineer.has_termite_cert %} — نمل أبيض + صحة عامة{% else %} — صحة عامة{% endif %}{% else %} — غير مكتمل{% endif %}</option>
+                  >{{ engineer.name }}{% if engineer.card_number %} ({{ engineer.card_number }}){% endif %}{% if engineer.has_public_health_cert %}{% if engineer.has_termite_cert %} — نمل أبيض + صحة عامة{% else %} — صحة عامة{% endif %}{% else %} — غير مكتمل{% endif %}</option>
                 {% endfor %}
               </select>
               <small class="co-muted">نوع المكافحة يُحدَّد تلقائياً من شهادات المهندس. يمكن تركه فارغاً وإضافته لاحقاً.</small>
@@ -298,4 +302,21 @@
 
   </div>
 </section>
+<script>
+  (function () {
+    const filterInput = document.getElementById('engFilterInput');
+    const engSelect   = document.getElementById('engSelect');
+    if (!filterInput || !engSelect) return;
+    const allOptions = Array.from(engSelect.options).filter(o => o.value);
+    filterInput.addEventListener('input', function () {
+      const q = this.value.trim().toLowerCase();
+      allOptions.forEach(opt => {
+        const name     = (opt.dataset.name     || '').toLowerCase();
+        const card     = (opt.dataset.card     || '').toLowerCase();
+        const national = (opt.dataset.national || '').toLowerCase();
+        opt.hidden = q !== '' && !name.includes(q) && !card.includes(q) && !national.includes(q);
+      });
+    });
+  })();
+</script>
 {% endblock %}
