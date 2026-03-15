@@ -96,6 +96,52 @@
   }
   .co-field textarea { min-height: 90px; resize: vertical; }
   .co-field select[multiple] { min-height: 140px; }
+
+  /* engineer checkboxes */
+  .eng-check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+  }
+  .eng-check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color .12s, background .12s;
+    font-size: 13px;
+    color: var(--ink-2);
+    user-select: none;
+  }
+  .eng-check-item:hover { border-color: var(--line-2); background: var(--surface-2); }
+  .eng-check-item input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; }
+  .eng-check-item.checked { border-color: var(--accent); background: var(--surface-2); color: var(--ink); font-weight: 700; }
+  .eng-check-search {
+    width: 100%;
+    min-height: 38px;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ink);
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color .15s;
+    margin-bottom: 6px;
+  }
+  .eng-check-search:focus { border-color: var(--accent); }
   .co-field input:focus,
   .co-field select:focus,
   .co-field textarea:focus {
@@ -225,10 +271,11 @@
         <div class="co-card">
           <span class="co-card-title">التصنيف والمهندس</span>
           <div class="co-card-body">
-            <div class="co-notice">يمكن إنشاء شركة جديدة بدون مهندس حالياً. سيتم استكمال المهندس لاحقاً بعد التفتيش الأولي للشركة.</div>
-            <div class="co-grid">
+
+            <!-- نوع المكافحة + المهندس الرئيسي -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
               <div class="co-field">
-                <label>نوع المكافحة</label>
+                <label>نوع المكافحة <span style="color:#e05;">*</span></label>
                 <select name="pest_control_type" required>
                   <option value="">اختيار نوع المكافحة</option>
                   <option value="public_health_pest_control" {% if selected_pest_control_type == "public_health_pest_control" %}selected{% endif %}>مكافحة آفات الصحة العامة</option>
@@ -237,37 +284,40 @@
                 </select>
               </div>
               <div class="co-field">
-                <label>المهندس (اختياري)</label>
+                <label>المهندس الرئيسي <span style="color:var(--ink-3);font-weight:400;">(اختياري)</span></label>
                 <select name="enginer">
-                  <option value="">بدون مهندس حالياً</option>
+                  <option value="">— بدون مهندس حالياً —</option>
                   {% for engineer in engineers %}
                     <option
                       value="{{ engineer.id }}"
                       data-public="{{ engineer.has_public_health_cert|yesno:'1,0' }}"
                       data-termite="{{ engineer.has_termite_cert|yesno:'1,0' }}"
                       {% if form_data.enginer_id == engineer.id|stringformat:"s" %}selected{% endif %}
-                    >
-                      {{ engineer.name }}
-                      {% if engineer.has_public_health_cert %}
-                        {% if engineer.has_termite_cert %}(معتمد نمل أبيض){% else %}(معتمد صحة عامة){% endif %}
-                      {% else %}(غير مكتمل الشهادات){% endif %}
-                    </option>
+                    >{{ engineer.name }}{% if engineer.has_public_health_cert %}{% if engineer.has_termite_cert %} — نمل أبيض{% else %} — صحة عامة{% endif %}{% else %} — غير مكتمل{% endif %}</option>
                   {% endfor %}
                 </select>
-                <small class="co-muted">عند اختيار مهندس، يتم التحقق من الشهادات حسب نوع المكافحة.</small>
-              </div>
-              <div class="co-field">
-                <label>مهندسون إضافيون (اختياري)</label>
-                <select name="enginers" multiple>
-                  {% for engineer in engineers %}
-                    <option value="{{ engineer.id }}" {% if engineer.id|stringformat:"s" in form_data.enginer_ids %}selected{% endif %}>
-                      {{ engineer.name }}
-                    </option>
-                  {% endfor %}
-                </select>
-                <small class="co-muted">يمكن اختيار أكثر من مهندس (Ctrl/Cmd + Click).</small>
+                <small class="co-muted">يتم فلترة المهندسين تلقائياً حسب نوع المكافحة.</small>
               </div>
             </div>
+
+            <!-- مهندسون إضافيون -->
+            <div class="co-field">
+              <label>مهندسون إضافيون <span style="color:var(--ink-3);font-weight:400;">(اختياري)</span></label>
+              <input class="eng-check-search" type="text" placeholder="ابحث عن مهندس..." id="engSearchInput">
+              <div class="eng-check-grid" id="engCheckGrid">
+                {% for engineer in engineers %}
+                <label class="eng-check-item{% if engineer.id|stringformat:'s' in form_data.enginer_ids %} checked{% endif %}" data-eng-name="{{ engineer.name }}">
+                  <input type="checkbox" name="enginers" value="{{ engineer.id }}"
+                    {% if engineer.id|stringformat:"s" in form_data.enginer_ids %}checked{% endif %}>
+                  <span>{{ engineer.name }}</span>
+                </label>
+                {% endfor %}
+              </div>
+              <small class="co-muted">حدد المهندسين الإضافيين المرتبطين بالشركة.</small>
+            </div>
+
+            <div class="co-notice">يمكن إنشاء الشركة بدون مهندس وإضافته لاحقاً بعد التفتيش الأولي.</div>
+
           </div>
         </div>
 
@@ -320,6 +370,25 @@
     engSelect.addEventListener('change', () => { filterTypesByEngineer(); applyFilter(); });
     filterTypesByEngineer();
     applyFilter();
+
+    // checkbox checked class
+    document.querySelectorAll('.eng-check-item input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        cb.closest('.eng-check-item').classList.toggle('checked', cb.checked);
+      });
+    });
+
+    // search filter
+    const searchInput = document.getElementById('engSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+        document.querySelectorAll('.eng-check-item').forEach(item => {
+          const name = (item.dataset.engName || '').toLowerCase();
+          item.style.display = name.includes(q) ? '' : 'none';
+        });
+      });
+    }
   })();
 </script>
 {% endblock %}
