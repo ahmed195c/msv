@@ -1,340 +1,323 @@
 {% extends "hcsd/base.html" %}
-{% block title %}Add Company{% endblock %}
-{% block content %}
+{% block title %}إضافة شركة جديدة{% endblock %}
+{% block extra_css %}
 <style>
-  .company-form-page {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 20px 16px 40px;
+  .co-page {
+    --ink:       #304357;
+    --ink-2:     #455c75;
+    --ink-3:     #6f8297;
+    --paper:     #ffffff;
+    --surface:   #f1f4f7;
+    --surface-2: #e8eef4;
+    --line:      #d4dce5;
+    --line-2:    #bcc8d5;
+    --accent:    #304357;
+    --accent-dk: #26384a;
+    --radius:    8px;
+    --shadow:    0 10px 24px rgba(48,67,87,.08);
+    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+    direction: rtl;
+    color: var(--ink);
+    padding: 20px 16px 48px;
+    background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(241,244,247,.86)), var(--surface);
+    min-height: 100vh;
   }
 
-  .company-card {
-    background: #fbf9f5;
-    border: 2px solid #2a2a2a;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
-    padding: 24px;
-    font-family: "Cairo", "Noto Kufi Arabic", "Tahoma", sans-serif;
-  }
+  .co-wrap { max-width: 960px; margin: 0 auto; display: grid; gap: 14px; }
 
-  .company-header {
+  /* hero */
+  .co-hero {
+    background: linear-gradient(160deg,#3a4f66 0%,#304357 55%,#26384a 100%);
+    border-radius: var(--radius);
+    padding: 20px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 16px;
+    box-shadow: var(--shadow);
   }
-
-  .company-header h1 {
-    margin: 0;
-    font-size: 22px;
-  }
-
-  .company-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 14px 18px;
-  }
-
-  .company-field {
-    display: grid;
-    gap: 6px;
-  }
-
-  .company-field label {
+  .co-hero h1 { margin: 0; font-size: clamp(16px,2vw,22px); font-weight: 800; color: #fff; }
+  .co-hero-btn {
+    color: #c8d8e8;
     font-size: 13px;
-    color: #555;
-  }
-
-  .company-field input,
-  .company-field select,
-  .company-field textarea {
-    border: 1px solid #2a2a2a;
-    padding: 8px 10px;
-    font-size: 14px;
-    background: #fff;
-  }
-
-  .company-field textarea {
-    min-height: 90px;
-    resize: vertical;
-  }
-
-  .muted {
-    font-size: 12px;
-    color: #666;
-  }
-
-  .company-section {
-    border: 1px solid #2a2a2a;
-    padding: 14px;
-    margin-top: 16px;
-  }
-
-  .section-title {
     font-weight: 700;
+    text-decoration: none;
+    border: 1.5px solid rgba(255,255,255,.25);
+    border-radius: 6px;
+    padding: 7px 14px;
+    transition: background .15s;
+  }
+  .co-hero-btn:hover { background: rgba(255,255,255,.1); }
+
+  /* card */
+  .co-card {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .co-card-title {
+    display: block;
+    padding: 11px 16px;
+    border-bottom: 1.5px solid var(--line);
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .co-card-body { padding: 20px; display: grid; gap: 20px; }
+
+  /* grid */
+  .co-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+
+  .co-field { display: grid; gap: 6px; }
+  .co-field.full { grid-column: 1 / -1; }
+  .co-field label { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+
+  .co-field input[type="text"],
+  .co-field input[type="email"],
+  .co-field input[type="date"],
+  .co-field select,
+  .co-field textarea {
+    width: 100%;
+    min-height: 42px;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ink);
+    padding: 10px 12px;
+    font-family: inherit;
     font-size: 14px;
-    display: inline-block;
-    padding: 4px 10px;
-    background: #e2ede9;
-    border: 1px solid #2a2a2a;
-    margin-bottom: 12px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .co-field textarea { min-height: 90px; resize: vertical; }
+  .co-field select[multiple] { min-height: 140px; }
+  .co-field input:focus,
+  .co-field select:focus,
+  .co-field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(48,67,87,.12);
   }
 
-  .checks {
-    display: grid;
-    gap: 8px;
+  .co-muted { font-size: 11px; color: var(--ink-3); line-height: 1.5; }
+
+  .co-notice {
+    background: #fffbeb;
+    border: 1.5px solid #fbbf24;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #78350f;
   }
 
-  .check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
+  .co-error {
+    color: #7a2c0d;
+    background: #fdf0ea;
+    border: 1.5px solid #d9ab95;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 700;
   }
 
-  .actions {
-    margin-top: 18px;
+  /* actions */
+  .co-actions {
     display: flex;
     gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
   }
-
-  .actions button {
+  .co-btn-submit {
+    min-height: 42px;
+    padding: 10px 24px;
+    background: var(--accent);
+    color: #fff;
     border: none;
-    padding: 10px 16px;
-    background: #1f5a4b;
-    color: #fff;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
     cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
+    transition: background .15s;
   }
-
-  .actions a {
-    padding: 10px 16px;
-    border-radius: 4px;
-    background: #494949;
-    color: #fff;
+  .co-btn-submit:hover { background: var(--accent-dk); }
+  .co-btn-cancel {
+    color: var(--ink-3);
     text-decoration: none;
-    font-size: 14px;
-  }
-
-  .notice {
-    margin: 12px 0 0;
-    padding: 10px 12px;
-    border: 1px solid #c9b46b;
-    background: #fff8dc;
-    color: #5f4b00;
     font-size: 13px;
+    font-weight: 700;
   }
 
-  .error-box {
-    border: 1px solid #a33;
-    background: #fff4f4;
-    color: #8a1f1f;
-    padding: 10px 12px;
-    margin-top: 8px;
-  }
-
-  @media (max-width: 680px) {
-    .company-form-page {
-      padding: 16px 12px 32px;
-    }
-
-    .company-card {
-      padding: 18px 16px;
-    }
-
-    .actions {
-      flex-direction: column;
-    }
-
-    .actions button,
-    .actions a {
-      width: 100%;
-      text-align: center;
-    }
+  @media (max-width: 600px) {
+    .co-grid { grid-template-columns: 1fr; }
+    .co-actions { flex-direction: column; align-items: stretch; }
   }
 </style>
+{% endblock %}
+{% block content %}
+<section class="co-page" lang="ar" dir="rtl">
+  <div class="co-wrap">
 
-<section class="company-form-page" lang="ar" dir="rtl">
-  <div class="company-card">
-    <div class="company-header">
+    <div class="co-hero">
       <h1>إضافة شركة جديدة</h1>
-      <a href="{% url 'company_list' %}" class="nav-ghost" style="border-color: #1f5a4b; color: #1f5a4b;">العودة إلى قائمة الشركات</a>
+      <a class="co-hero-btn" href="{% url 'company_list' %}">← قائمة الشركات</a>
     </div>
 
     {% if error %}
-      <div class="error-box">{{ error }}</div>
+    <div class="co-error">{{ error }}</div>
     {% endif %}
 
     <form method="POST">
       {% csrf_token %}
 
-      <div class="company-section">
-        <div class="section-title">بيانات الشركة</div>
-        <div class="company-grid">
-          <div class="company-field">
-            <label>الاسم التجاري</label>
-            <input type="text" name="name" value="{{ form_data.name|default:'' }}" required>
-          </div>
-          <div class="company-field">
-            <label>رقم الرخصة التجارية</label>
-            <input type="text" name="number" value="{{ form_data.number|default:'' }}" required>
-          </div>
-          <div class="company-field">
-            <label>تاريخ انتهاء الرخصة التجارية</label>
-            <input type="date" name="trade_license_exp" value="{{ form_data.trade_license_exp|default:'' }}">
-          </div>
-          <div class="company-field">
-            <label>عنوان الشركة</label>
-            <input type="text" name="address" value="{{ form_data.address|default:'' }}" required>
-          </div>
-          <div class="company-field">
-            <label>رقم الهاتف الأرضي</label>
-            <input type="text" name="landline" value="{{ form_data.landline|default:'' }}">
-          </div>
-          <div class="company-field">
-            <label>رقم هاتف المالك</label>
-            <input type="text" name="owner_phone" value="{{ form_data.owner_phone|default:'' }}">
-          </div>
-          <div class="company-field">
-            <label>البريد الإلكتروني</label>
-            <input type="email" name="email" value="{{ form_data.email|default:'' }}">
-          </div>
-        </div>
-      </div>
+      <div style="display:grid;gap:14px;">
 
-      <div class="company-section">
-        <div class="section-title">أنشطة الرخصة</div>
-        <div class="company-grid">
-          <div class="company-field">
-            <label for="business_activity">تفاصيل الأنشطة</label>
-            <textarea id="business_activity" name="business_activity" rows="3">{{ form_data.business_activity|default:'' }}</textarea>
+        <div class="co-card">
+          <span class="co-card-title">بيانات الشركة</span>
+          <div class="co-card-body">
+            <div class="co-grid">
+              <div class="co-field">
+                <label>الاسم التجاري</label>
+                <input type="text" name="name" value="{{ form_data.name|default:'' }}" required>
+              </div>
+              <div class="co-field">
+                <label>رقم الرخصة التجارية</label>
+                <input type="text" name="number" value="{{ form_data.number|default:'' }}" required>
+              </div>
+              <div class="co-field">
+                <label>تاريخ انتهاء الرخصة التجارية</label>
+                <input type="date" name="trade_license_exp" value="{{ form_data.trade_license_exp|default:'' }}">
+              </div>
+              <div class="co-field">
+                <label>عنوان الشركة</label>
+                <input type="text" name="address" value="{{ form_data.address|default:'' }}" required>
+              </div>
+              <div class="co-field">
+                <label>رقم الهاتف الأرضي</label>
+                <input type="text" name="landline" value="{{ form_data.landline|default:'' }}">
+              </div>
+              <div class="co-field">
+                <label>رقم هاتف المالك</label>
+                <input type="text" name="owner_phone" value="{{ form_data.owner_phone|default:'' }}">
+              </div>
+              <div class="co-field">
+                <label>البريد الإلكتروني</label>
+                <input type="email" name="email" value="{{ form_data.email|default:'' }}">
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="company-section">
-        <div class="section-title">التصنيف والمهندس</div>
-        <div class="notice">
-          يمكن إنشاء شركة جديدة بدون مهندس حالياً. سيتم استكمال المهندس لاحقاً بعد التفتيش الأولي للشركة.
-        </div>
-        <div class="company-grid">
-          <div class="company-field">
-            <label>نوع المكافحة</label>
-            <select name="pest_control_type" required>
-              <option value="">اختيار نوع المكافحة</option>
-              <option value="public_health_pest_control" {% if selected_pest_control_type == "public_health_pest_control" %}selected{% endif %}>مكافحة آفات الصحة العامة</option>
-              <option value="termite_control" {% if selected_pest_control_type == "termite_control" %}selected{% endif %}>مكافحة النمل الأبيض</option>
-              <option value="grain_pests" {% if selected_pest_control_type == "grain_pests" %}selected{% endif %}>مكافحة آفات الحبوب</option>
-            </select>
-          </div>
-          <div class="company-field">
-            <label>المهندس (اختياري للشركات الجديدة)</label>
-            <select name="enginer">
-              <option value="">بدون مهندس حالياً</option>
-              {% for engineer in engineers %}
-                <option
-                  value="{{ engineer.id }}"
-                  data-public="{{ engineer.has_public_health_cert|yesno:'1,0' }}"
-                  data-termite="{{ engineer.has_termite_cert|yesno:'1,0' }}"
-                  {% if form_data.enginer_id == engineer.id|stringformat:"s" %}selected{% endif %}
-                >
-                  {{ engineer.name }}
-                  {% if engineer.has_public_health_cert %}
-                    {% if engineer.has_termite_cert %}(معتمد نمل أبيض){% else %}(معتمد صحة عامة){% endif %}
-                  {% else %}
-                    (غير مكتمل الشهادات)
-                  {% endif %}
-                </option>
-              {% endfor %}
-            </select>
-            <small class="muted">يمكن تركه فارغاً للشركة الجديدة. عند اختيار مهندس، يتم التحقق من الشهادات حسب نوع المكافحة.</small>
-          </div>
-          <div class="company-field">
-            <label>مهندسون إضافيون (اختياري)</label>
-            <select name="enginers" multiple size="6">
-              {% for engineer in engineers %}
-                <option
-                  value="{{ engineer.id }}"
-                  {% if engineer.id|stringformat:"s" in form_data.enginer_ids %}selected{% endif %}
-                >
-                  {{ engineer.name }}
-                </option>
-              {% endfor %}
-            </select>
-            <small class="muted">يمكن اختيار أكثر من مهندس بنفس الوقت (Ctrl/Cmd + Click).</small>
+        <div class="co-card">
+          <span class="co-card-title">أنشطة الرخصة</span>
+          <div class="co-card-body">
+            <div class="co-field">
+              <label>تفاصيل الأنشطة</label>
+              <textarea name="business_activity">{{ form_data.business_activity|default:'' }}</textarea>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="actions">
-        <button type="submit">حفظ الشركة</button>
-        <a href="{% url 'company_list' %}">إلغاء</a>
+        <div class="co-card">
+          <span class="co-card-title">التصنيف والمهندس</span>
+          <div class="co-card-body">
+            <div class="co-notice">يمكن إنشاء شركة جديدة بدون مهندس حالياً. سيتم استكمال المهندس لاحقاً بعد التفتيش الأولي للشركة.</div>
+            <div class="co-grid">
+              <div class="co-field">
+                <label>نوع المكافحة</label>
+                <select name="pest_control_type" required>
+                  <option value="">اختيار نوع المكافحة</option>
+                  <option value="public_health_pest_control" {% if selected_pest_control_type == "public_health_pest_control" %}selected{% endif %}>مكافحة آفات الصحة العامة</option>
+                  <option value="termite_control" {% if selected_pest_control_type == "termite_control" %}selected{% endif %}>مكافحة النمل الأبيض</option>
+                  <option value="grain_pests" {% if selected_pest_control_type == "grain_pests" %}selected{% endif %}>مكافحة آفات الحبوب</option>
+                </select>
+              </div>
+              <div class="co-field">
+                <label>المهندس (اختياري)</label>
+                <select name="enginer">
+                  <option value="">بدون مهندس حالياً</option>
+                  {% for engineer in engineers %}
+                    <option
+                      value="{{ engineer.id }}"
+                      data-public="{{ engineer.has_public_health_cert|yesno:'1,0' }}"
+                      data-termite="{{ engineer.has_termite_cert|yesno:'1,0' }}"
+                      {% if form_data.enginer_id == engineer.id|stringformat:"s" %}selected{% endif %}
+                    >
+                      {{ engineer.name }}
+                      {% if engineer.has_public_health_cert %}
+                        {% if engineer.has_termite_cert %}(معتمد نمل أبيض){% else %}(معتمد صحة عامة){% endif %}
+                      {% else %}(غير مكتمل الشهادات){% endif %}
+                    </option>
+                  {% endfor %}
+                </select>
+                <small class="co-muted">عند اختيار مهندس، يتم التحقق من الشهادات حسب نوع المكافحة.</small>
+              </div>
+              <div class="co-field">
+                <label>مهندسون إضافيون (اختياري)</label>
+                <select name="enginers" multiple>
+                  {% for engineer in engineers %}
+                    <option value="{{ engineer.id }}" {% if engineer.id|stringformat:"s" in form_data.enginer_ids %}selected{% endif %}>
+                      {{ engineer.name }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <small class="co-muted">يمكن اختيار أكثر من مهندس (Ctrl/Cmd + Click).</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="co-actions">
+          <button type="submit" class="co-btn-submit">حفظ الشركة</button>
+          <a class="co-btn-cancel" href="{% url 'company_list' %}">إلغاء والعودة للقائمة</a>
+        </div>
+
       </div>
     </form>
+
   </div>
 </section>
 <script>
   (function () {
     const typeSelect = document.querySelector('select[name="pest_control_type"]');
-    const engSelect = document.querySelector('select[name="enginer"]');
-    if (!typeSelect || !engSelect) {
-      return;
-    }
+    const engSelect  = document.querySelector('select[name="enginer"]');
+    if (!typeSelect || !engSelect) return;
 
-    const options = Array.from(engSelect.options).filter((opt) => opt.value);
-    const typeOptions = Array.from(typeSelect.options).filter((opt) => opt.value);
+    const options     = Array.from(engSelect.options).filter(o => o.value);
+    const typeOptions = Array.from(typeSelect.options).filter(o => o.value);
 
     const applyFilter = () => {
       const type = typeSelect.value;
-      options.forEach((opt) => {
-        const hasPublic = opt.dataset.public === '1';
+      options.forEach(opt => {
+        const hasPublic  = opt.dataset.public  === '1';
         const hasTermite = opt.dataset.termite === '1';
         const allow = type === 'termite_control' ? hasTermite : hasPublic;
         opt.disabled = !allow;
-        if (!allow && opt.selected) {
-          engSelect.value = '';
-        }
+        if (!allow && opt.selected) engSelect.value = '';
       });
     };
 
     const filterTypesByEngineer = () => {
       const selected = engSelect.options[engSelect.selectedIndex];
-      if (!selected || !selected.value) {
-        typeOptions.forEach((opt) => {
-          opt.disabled = false;
-        });
-        return;
-      }
-      const hasPublic = selected.dataset.public === '1';
+      if (!selected || !selected.value) { typeOptions.forEach(o => o.disabled = false); return; }
+      const hasPublic  = selected.dataset.public  === '1';
       const hasTermite = selected.dataset.termite === '1';
-      typeOptions.forEach((opt) => {
-        if (opt.value === 'termite_control') {
-          opt.disabled = !hasTermite;
-        } else {
-          opt.disabled = !hasPublic;
-        }
+      typeOptions.forEach(opt => {
+        opt.disabled = opt.value === 'termite_control' ? !hasTermite : !hasPublic;
       });
-      if (typeSelect.value && typeSelect.options[typeSelect.selectedIndex].disabled) {
-        typeSelect.value = '';
-      }
+      if (typeSelect.value && typeSelect.options[typeSelect.selectedIndex].disabled) typeSelect.value = '';
       if (!typeSelect.value) {
-        if (hasTermite) {
-          typeSelect.value = 'termite_control';
-        } else if (hasPublic) {
-          typeSelect.value = 'public_health_pest_control';
-        }
+        if (hasTermite) typeSelect.value = 'termite_control';
+        else if (hasPublic) typeSelect.value = 'public_health_pest_control';
       }
     };
 
-    typeSelect.addEventListener('change', () => {
-      applyFilter();
-    });
-    engSelect.addEventListener('change', () => {
-      filterTypesByEngineer();
-      applyFilter();
-    });
+    typeSelect.addEventListener('change', applyFilter);
+    engSelect.addEventListener('change', () => { filterTypesByEngineer(); applyFilter(); });
     filterTypesByEngineer();
     applyFilter();
   })();
