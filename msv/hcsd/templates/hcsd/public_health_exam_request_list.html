@@ -1,427 +1,546 @@
 {% extends "hcsd/base.html" %}
-{% block title %}طلبات اختبار آفات الصحة العامة{% endblock %}
-{% block content %}
+{% load static %}
+{% block title %}طلبات اختبار الصحة العامة{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
 <style>
   .exam-page {
+    --ink:       #304357;
+    --ink-2:     #455c75;
+    --ink-3:     #6f8297;
+    --paper:     #ffffff;
+    --surface:   #f1f4f7;
+    --surface-2: #e8eef4;
+    --line:      #d4dce5;
+    --accent:    #304357;
+    --accent-dk: #26384a;
+    --radius:    8px;
+    --shadow:    0 10px 24px rgba(48,67,87,.08);
+
+    padding: 20px 10px 48px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.5), rgba(241,244,247,.86)),
+      var(--surface);
+    direction: rtl;
+    font-family: "IBM Plex Sans Arabic","Tahoma",sans-serif;
+    color: var(--ink);
+  }
+
+  .exam-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
     display: grid;
     gap: 14px;
   }
-  .exam-title {
-    margin: 0;
-    font-size: 24px;
-  }
-  .exam-card {
-    border: 1px solid var(--line-soft);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.75);
-    padding: 14px;
-    box-shadow: var(--shadow-soft);
-  }
-  .exam-grid-2, .exam-grid-3 {
-    display: grid;
-    gap: 10px;
-  }
-  .exam-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .exam-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .exam-form {
-    display: grid;
-    gap: 10px;
-  }
-  .exam-attempt-preview {
-    border: 1px solid rgba(31, 90, 75, 0.2);
-    border-radius: 12px;
-    background: linear-gradient(180deg, #ffffff 0%, #f4faf7 100%);
-    padding: 10px 12px;
-    display: grid;
-    gap: 4px;
-  }
-  .exam-attempt-title {
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--ink-900);
-  }
-  .exam-attempt-subtitle {
-    font-size: 12px;
-    color: var(--ink-600);
-  }
-  .exam-error {
-    color: #b42318;
-    margin: 0;
-    font-weight: 700;
-  }
-  .exam-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    text-decoration: none;
-    background: linear-gradient(180deg, var(--teal-600) 0%, var(--teal-700) 100%);
+
+  /* ── Hero ── */
+  .exam-hero {
+    background: linear-gradient(160deg,#3a4f66 0%,#304357 55%,#26384a 100%);
+    border-radius: var(--radius);
+    padding: 18px 22px;
     color: #fff;
-    padding: 10px 14px;
-    font-weight: 700;
-  }
-  .exam-table th,
-  .exam-table td {
-    text-align: right;
-  }
-  .upload-box {
-    border: 1px solid var(--line-soft);
-    border-radius: 14px;
-    background: linear-gradient(180deg, #fff 0%, #fbf8f2 100%);
-    overflow: hidden;
-  }
-  .upload-box-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(44, 67, 80, 0.14);
-    background: rgba(255, 255, 255, .85);
+    gap: 14px;
+    flex-wrap: wrap;
+    box-shadow: 0 8px 24px rgba(48,67,87,.22);
   }
-  .upload-box-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ink-900);
+  .exam-hero h1 { margin: 0 0 4px; font-size: clamp(17px,2vw,21px); font-weight: 800; letter-spacing: -.02em; }
+  .exam-hero p  { margin: 0; font-size: 12.5px; opacity: .7; }
+
+  .hero-btn {
+    display: inline-flex; align-items: center;
+    padding: 8px 16px; border-radius: 6px;
+    font-size: 12.5px; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    border: 1.5px solid rgba(255,255,255,.2);
+    background: rgba(255,255,255,.12); color: #fff;
+    transition: background .15s;
   }
-  .upload-box-tag {
-    font-size: 11px;
-    color: var(--ink-500);
+  .hero-btn:hover { background: rgba(255,255,255,.22); }
+
+  /* ── Card ── */
+  .exam-card {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
   }
-  .upload-box-body {
-    padding: 12px;
-    display: grid;
-    gap: 10px;
+
+  .card-head {
+    padding: 12px 16px;
+    border-bottom: 1.5px solid var(--line);
+    background: var(--surface);
+    font-size: 13px; font-weight: 800;
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
-  .upload-native {
-    position: absolute;
-    width: 1px;
-    height: 1px;
+
+  .card-body { padding: 16px; }
+
+  /* ── Form ── */
+  .exam-form { display: grid; gap: 12px; }
+
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  .form-field { display: grid; gap: 5px; }
+  .form-field label { font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    padding: 9px 12px;
+    font-size: 13.5px; font-family: inherit;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(48,67,87,.12);
+  }
+
+  .btn-primary {
+    padding: 10px 22px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: var(--radius);
+    font-size: 13.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s;
+  }
+  .btn-primary:hover { background: var(--accent-dk); }
+
+  /* ── Attempt preview ── */
+  .attempt-preview {
+    background: #f0fdf4;
+    border: 1.5px solid #86efac;
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    display: grid; gap: 3px;
+  }
+  .attempt-preview-title { font-size: 13.5px; font-weight: 800; color: #065f46; }
+  .attempt-preview-fee   { font-size: 12px; color: #047857; }
+
+  /* ── Upload ── */
+  .upload-box {
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-    padding: 0;
-    margin: -1px;
+  }
+  .upload-box-head {
+    padding: 9px 14px;
+    border-bottom: 1.5px solid var(--line);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-size: 12px; font-weight: 700; color: var(--ink);
+  }
+  .upload-box-tag { font-size: 11px; color: var(--ink-3); }
+  .upload-box-body { padding: 12px; }
+  .upload-native {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0,0,0,0);
+    white-space: nowrap; border: 0; padding: 0; margin: -1px;
   }
   .upload-drop {
-    display: grid;
-    place-items: center;
-    min-height: 112px;
-    border: 1.5px dashed rgba(31, 90, 75, 0.25);
-    border-radius: 12px;
-    background:
-      radial-gradient(160px 80px at 85% 15%, rgba(31, 90, 75, 0.03), transparent 70%),
-      radial-gradient(120px 70px at 12% 88%, rgba(200, 138, 45, 0.06), transparent 75%),
-      #fff;
-    cursor: pointer;
-    text-align: center;
-    padding: 12px;
-    transition: border-color .15s ease, transform .12s ease, background .15s ease;
+    display: grid; place-items: center;
+    min-height: 100px;
+    border: 1.5px dashed var(--line-2, #bcc8d5);
+    border-radius: 6px;
+    background: var(--surface);
+    cursor: pointer; text-align: center; padding: 12px;
+    transition: border-color .15s, background .15s;
   }
-  .upload-drop:hover {
-    border-color: rgba(31, 90, 75, 0.45);
-    transform: translateY(-1px);
+  .upload-drop:hover, .upload-drop.drag-over {
+    border-color: var(--accent);
+    background: var(--surface-2);
   }
-  .upload-drop.drag-over {
-    border-color: rgba(31, 90, 75, 0.65);
-    background: linear-gradient(180deg, #f3faf7 0%, #edf6f2 100%);
-    box-shadow: inset 0 0 0 2px rgba(31, 90, 75, 0.06);
-  }
-  .upload-drop-inner {
-    display: grid;
-    gap: 8px;
-    justify-items: center;
-  }
+  .upload-drop-inner { display: grid; gap: 6px; justify-items: center; }
   .upload-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 999px;
+    width: 34px; height: 34px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--surface-2);
+    border: 1.5px solid var(--line);
+    font-size: 16px;
+  }
+  .upload-text    { font-size: 13px; color: var(--ink); font-weight: 600; }
+  .upload-subtext { font-size: 11px; color: var(--ink-3); }
+  .upload-pill {
+    display: none; align-items: center; gap: 8px;
+    border: 1.5px solid var(--line); background: var(--surface);
+    color: var(--ink-2); border-radius: 6px;
+    padding: 7px 12px; font-size: 12px; margin-top: 8px;
+  }
+  .upload-pill.show { display: inline-flex; }
+
+  .form-error {
+    background: #fef2f2; border: 1.5px solid #fecaca;
+    border-radius: var(--radius); padding: 10px 14px;
+    color: #b91c1c; font-size: 13px; font-weight: 700;
+  }
+
+  /* ── Filter ── */
+  .filter-form {
     display: grid;
-    place-items: center;
-    background: linear-gradient(180deg, #eef5f1 0%, #e2ede9 100%);
-    color: var(--teal-700);
-    border: 1px solid #c9dbd3;
-    font-size: 17px;
-    line-height: 1;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 12px; align-items: end;
   }
-  .upload-text {
-    font-size: 13px;
-    color: var(--ink-900);
-    font-weight: 600;
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+  .exam-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .exam-table thead th {
+    background: var(--surface); color: var(--ink-3);
+    font-size: 11.5px; font-weight: 700;
+    padding: 10px 14px;
+    border-bottom: 1.5px solid var(--line);
+    white-space: nowrap; text-align: right;
   }
-  .upload-subtext {
-    font-size: 11px;
-    color: var(--ink-500);
+  .exam-table tbody tr { border-bottom: 1px solid var(--line); transition: background .1s; }
+  .exam-table tbody tr:last-child { border-bottom: none; }
+  .exam-table tbody tr:hover { background: var(--surface); }
+  .exam-table td { padding: 11px 14px; vertical-align: middle; text-align: right; color: var(--ink); }
+
+  .eng-name { font-weight: 800; color: var(--accent); }
+
+  /* ── Status badges ── */
+  .sbadge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 11.5px; font-weight: 700; white-space: nowrap;
   }
-  .upload-file-pill {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-    border: 1px solid #d2e0da;
-    background: #edf5f1;
-    color: #214d42;
-    border-radius: 10px;
-    padding: 8px 10px;
-    font-size: 12px;
+  .sbadge::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .sb-submitted        { background:#eff6ff; color:#1e40af; border:1.5px solid #bfdbfe; }
+  .sb-submitted::before { background:#3b82f6; }
+  .sb-approved         { background:#f0fdf4; color:#065f46; border:1.5px solid #86efac; }
+  .sb-approved::before  { background:#059669; }
+  .sb-payment          { background:#fff7ed; color:#9a3412; border:1.5px solid #fed7aa; }
+  .sb-payment::before   { background:#f97316; }
+  .sb-scheduled        { background:#f5f3ff; color:#5b21b6; border:1.5px solid #ddd6fe; }
+  .sb-scheduled::before { background:#7c3aed; }
+  .sb-completed        { background:#f0fdf4; color:#065f46; border:1.5px solid #6ee7b7; }
+  .sb-completed::before { background:#10b981; }
+  .sb-rejected         { background:#fef2f2; color:#b91c1c; border:1.5px solid #fecaca; }
+  .sb-rejected::before  { background:#ef4444; }
+
+  .view-btn {
+    display: inline-flex; align-items: center;
+    padding: 6px 14px; border-radius: 6px;
+    background: var(--accent); color: #fff;
+    text-decoration: none; font-size: 12px; font-weight: 700;
+    white-space: nowrap; transition: background .15s;
   }
-  .upload-file-pill.show {
-    display: inline-flex;
+  .view-btn:hover { background: var(--accent-dk); }
+
+  .table-empty {
+    padding: 36px 16px; text-align: center;
+    color: var(--ink-3); font-size: 13.5px; font-weight: 600;
   }
-  .upload-file-name {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+
+  .count-badge {
+    font-size: 12px; font-weight: 700; color: var(--ink-3);
+    background: var(--paper); border: 1.5px solid var(--line);
+    border-radius: 20px; padding: 2px 10px;
   }
-  @media (max-width: 900px) {
-    .exam-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  @media (max-width: 860px) {
+    .form-row-2, .form-row-3 { grid-template-columns: 1fr; }
+    .filter-form { grid-template-columns: 1fr 1fr; }
   }
-  @media (max-width: 640px) {
-    .exam-grid-2, .exam-grid-3 { grid-template-columns: 1fr; }
+  @media (max-width: 560px) {
+    .filter-form { grid-template-columns: 1fr; }
+    .exam-hero   { flex-direction: column; align-items: flex-start; }
   }
 </style>
+{% endblock %}
 
+{% block content %}
 <section class="exam-page" lang="ar" dir="rtl">
-  <h1 class="exam-title">طلبات اختبار آفات الصحة العامة</h1>
+  <div class="exam-wrap">
 
-  {% if can_create %}
+    {# ── Hero ── #}
+    <div class="exam-hero">
+      <div>
+        <h1>طلبات اختبار الصحة العامة</h1>
+        <p>إدارة طلبات اختبار آفات الصحة العامة للمهندسين</p>
+      </div>
+      <a class="hero-btn" href="{% url 'enginer_list' %}">← المهندسون</a>
+    </div>
+
+    {# ── Create form ── #}
+    {% if can_create %}
     <div class="exam-card">
-      <form method="post" enctype="multipart/form-data" class="exam-form">
-        {% csrf_token %}
-        <div class="exam-grid-2">
-          <select id="enginer_id" name="enginer_id" required>
-            <option value="">اختر المهندس</option>
-            {% for eng in engineers %}
-              <option value="{{ eng.id }}" {% if prefilled_enginer_id == eng.id %}selected{% endif %}>{{ eng.name }} (بطاقة: {{ eng.card_number|default:"-" }})</option>
-            {% endfor %}
-          </select>
-          <select id="company_id" name="company_id">
-            <option value="">اختر الشركة (اختياري)</option>
-            {% for c in companies %}
-              <option value="{{ c.id }}">{{ c.name }} - رخصة {{ c.number }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="exam-attempt-preview" id="attempt-preview" hidden>
-          <span class="exam-attempt-title" id="attempt-preview-title">المحاولة القادمة: -</span>
-          <span class="exam-attempt-subtitle" id="attempt-preview-fee">رسوم الاختبار: -</span>
-        </div>
-        <div class="exam-grid-3">
-          <input type="date" name="request_submission_date" placeholder="تاريخ تقديم الطلب">
-          <input type="text" name="unified_identity_number" placeholder="الرقم الموحد / رقم الهوية">
-        </div>
-        <div class="exam-grid-3">
-          <input type="text" name="phone_number" placeholder="رقم الهاتف">
-          <select name="exam_language">
-            <option value="">لغة الاختبار</option>
-            <option value="عربي">عربي</option>
-            <option value="إنجليزي">إنجليزي</option>
-          </select>
-          <select name="exam_type">
-            <option value="">نوع الاختبار</option>
-            <option value="اختبار عام">اختبار عام</option>
-            <option value="نمل أبيض">نمل أبيض</option>
-          </select>
-        </div>
-        <div class="exam-grid-3">
-          <input type="text" name="qualified_technician_name" placeholder="اسم الفني المؤهل">
-        </div>
-        <div class="upload-box">
-          <div class="upload-box-head">
-            <div class="upload-box-title">مرفقات الطلب</div>
-            <div class="upload-box-tag">PDF / JPG / PNG</div>
-          </div>
-          <div class="upload-box-body">
-            <input class="upload-native" id="request_document" type="file" name="request_document" required accept=".pdf,.png,.jpg,.jpeg">
-            <label class="upload-drop" for="request_document" id="request-document-drop">
-              <span class="upload-drop-inner">
-                <span class="upload-icon">⇪</span>
-                <span class="upload-text">اضغط لاختيار الملف أو اسحبه هنا</span>
-                <span class="upload-subtext">سيتم رفع المستند مع الطلب مباشرة</span>
-              </span>
-            </label>
-            <div class="upload-file-pill" id="request-document-pill">
-              <strong>الملف:</strong>
-              <span class="upload-file-name" id="request-document-name">—</span>
+      <div class="card-head">طلب جديد</div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" class="exam-form">
+          {% csrf_token %}
+
+          {% if form_error %}
+            <div class="form-error">{{ form_error }}</div>
+          {% endif %}
+
+          <div class="form-row-2">
+            <div class="form-field">
+              <label for="enginer_id">المهندس</label>
+              <select id="enginer_id" name="enginer_id" required>
+                <option value="">اختر المهندس</option>
+                {% for eng in engineers %}
+                  <option value="{{ eng.id }}" {% if prefilled_enginer_id == eng.id %}selected{% endif %}>
+                    {{ eng.name }} (بطاقة: {{ eng.card_number|default:"-" }})
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="company_id">الشركة (اختياري)</label>
+              <select id="company_id" name="company_id">
+                <option value="">اختر الشركة</option>
+                {% for c in companies %}
+                  <option value="{{ c.id }}">{{ c.name }} — رخصة {{ c.number }}</option>
+                {% endfor %}
+              </select>
             </div>
           </div>
-        </div>
-        <textarea name="request_notes" rows="3" placeholder="ملاحظات الطلب (اختياري)"></textarea>
-        <button type="submit">تقديم طلب جديد</button>
-        {% if form_error %}<p class="exam-error">{{ form_error }}</p>{% endif %}
-      </form>
-    </div>
-  {% endif %}
 
-  <div class="exam-card">
-    <form method="get" class="exam-form">
-      <div class="exam-grid-3">
-        <input type="text" name="card_number" value="{{ card_number_query }}" placeholder="فلترة برقم البطاقة">
-        <select name="status">
-          <option value="">كل الحالات</option>
-          <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>بانتظار الاعتماد</option>
-          <option value="inspector_approved" {% if status_filter == 'inspector_approved' %}selected{% endif %}>تم الاعتماد</option>
-          <option value="payment_pending" {% if status_filter == 'payment_pending' %}selected{% endif %}>بانتظار الدفع</option>
-          <option value="scheduled" {% if status_filter == 'scheduled' %}selected{% endif %}>تم حجز الموعد</option>
-          <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>مكتمل</option>
-          <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>مرفوض</option>
-        </select>
-        <button type="submit">تصفية</button>
+          <div class="attempt-preview" id="attempt-preview" hidden>
+            <div class="attempt-preview-title" id="attempt-preview-title">—</div>
+            <div class="attempt-preview-fee"   id="attempt-preview-fee">—</div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-field">
+              <label for="req_date">تاريخ تقديم الطلب</label>
+              <input id="req_date" type="date" name="request_submission_date" value="{% now "Y-m-d" %}">
+            </div>
+            <div class="form-field">
+              <label for="unified_id">الرقم الموحد / رقم الهوية</label>
+              <input id="unified_id" type="text" name="unified_identity_number" placeholder="رقم الهوية">
+            </div>
+            <div class="form-field">
+              <label for="phone">رقم الهاتف</label>
+              <input id="phone" type="text" name="phone_number" placeholder="05xxxxxxxx">
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-field">
+              <label for="exam_lang">لغة الاختبار</label>
+              <select id="exam_lang" name="exam_language">
+                <option value="">اختر اللغة</option>
+                <option value="عربي">عربي</option>
+                <option value="إنجليزي">إنجليزي</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="exam_type">نوع الاختبار</label>
+              <select id="exam_type" name="exam_type">
+                <option value="">اختر النوع</option>
+                <option value="اختبار عام">اختبار عام</option>
+                <option value="نمل أبيض">نمل أبيض</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="upload-box">
+            <div class="upload-box-head">
+              <span>مرفقات الطلب</span>
+              <span class="upload-box-tag">PDF / JPG / PNG</span>
+            </div>
+            <div class="upload-box-body">
+              <input class="upload-native" id="req_doc" type="file" name="request_document" required accept=".pdf,.png,.jpg,.jpeg">
+              <label class="upload-drop" for="req_doc" id="req-doc-drop">
+                <span class="upload-drop-inner">
+                  <span class="upload-icon">⇪</span>
+                  <span class="upload-text">اضغط لاختيار الملف أو اسحبه هنا</span>
+                  <span class="upload-subtext">PDF أو صورة</span>
+                </span>
+              </label>
+              <div class="upload-pill" id="req-doc-pill">
+                <strong>الملف:</strong>
+                <span id="req-doc-name">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="req_notes">ملاحظات (اختياري)</label>
+            <textarea id="req_notes" name="request_notes" rows="2" placeholder="ملاحظات إضافية"></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary">تقديم الطلب</button>
+        </form>
       </div>
-    </form>
+    </div>
+    {% endif %}
 
-    <table class="exam-table no-mobile-cards">
-      <thead>
-        <tr>
-          <th>المهندس</th>
-          <th>رقم البطاقة</th>
-          <th>عدد مرات الخضوع</th>
-          <th>رسوم الاختبار</th>
-          <th>الحالة</th>
-          <th>الإجراء</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for req in requests %}
-          <tr>
-            <td>{{ req.enginer.name }}</td>
-            <td>{{ req.enginer.card_number|default:"-" }}</td>
-            <td>{{ req.attempt_number }}</td>
-            <td>{{ req.exam_fee }}</td>
-            <td>{{ req.get_status_display }}</td>
-            <td><a class="exam-action" href="{% url 'public_health_exam_request_detail' req.id %}">عرض</a></td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="6">لا توجد طلبات حالياً.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    {# ── Table ── #}
+    <div class="exam-card">
+      <div class="card-head">
+        <span>قائمة الطلبات</span>
+      </div>
+      <div class="card-body">
+        <form method="get" class="filter-form" style="margin-bottom:16px;">
+          <div class="form-field">
+            <label for="f_card">رقم البطاقة</label>
+            <input id="f_card" type="text" name="card_number" value="{{ card_number_query }}" placeholder="ابحث برقم البطاقة" autocomplete="off">
+          </div>
+          <div class="form-field">
+            <label for="f_status">الحالة</label>
+            <select id="f_status" name="status">
+              <option value="">كل الحالات</option>
+              <option value="submitted"         {% if status_filter == 'submitted' %}selected{% endif %}>بانتظار الاعتماد</option>
+              <option value="inspector_approved" {% if status_filter == 'inspector_approved' %}selected{% endif %}>تم الاعتماد</option>
+              <option value="payment_pending"   {% if status_filter == 'payment_pending' %}selected{% endif %}>بانتظار الدفع</option>
+              <option value="scheduled"         {% if status_filter == 'scheduled' %}selected{% endif %}>تم حجز الموعد</option>
+              <option value="completed"         {% if status_filter == 'completed' %}selected{% endif %}>مكتمل</option>
+              <option value="rejected"          {% if status_filter == 'rejected' %}selected{% endif %}>مرفوض</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary" style="align-self:end;">بحث</button>
+        </form>
+
+        <div class="table-wrap">
+          <table class="exam-table">
+            <thead>
+              <tr>
+                <th>المهندس</th>
+                <th>رقم البطاقة</th>
+                <th>المحاولة</th>
+                <th>رسوم الاختبار</th>
+                <th>الحالة</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in requests %}
+                <tr>
+                  <td><span class="eng-name">{{ req.enginer.name }}</span></td>
+                  <td style="color:var(--ink-2); font-variant-numeric:tabular-nums;">{{ req.enginer.card_number|default:"—" }}</td>
+                  <td style="color:var(--ink-2);">{{ req.attempt_number }}</td>
+                  <td style="color:var(--ink-2);">{{ req.exam_fee }}</td>
+                  <td>
+                    {% if req.status == 'submitted' %}
+                      <span class="sbadge sb-submitted">بانتظار الاعتماد</span>
+                    {% elif req.status == 'inspector_approved' %}
+                      <span class="sbadge sb-approved">تم الاعتماد</span>
+                    {% elif req.status == 'payment_pending' %}
+                      <span class="sbadge sb-payment">بانتظار الدفع</span>
+                    {% elif req.status == 'scheduled' %}
+                      <span class="sbadge sb-scheduled">تم حجز الموعد</span>
+                    {% elif req.status == 'completed' %}
+                      <span class="sbadge sb-completed">مكتمل</span>
+                    {% elif req.status == 'rejected' %}
+                      <span class="sbadge sb-rejected">مرفوض</span>
+                    {% else %}
+                      <span class="sbadge" style="background:var(--surface);border:1.5px solid var(--line);color:var(--ink-3);">{{ req.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a class="view-btn" href="{% url 'public_health_exam_request_detail' req.id %}">عرض</a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6" class="table-empty">لا توجد طلبات مطابقة.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
 {{ engineer_company_map|json_script:"engineer-company-map" }}
-{{ engineer_next_attempt_map|json_script:"engineer-next-attempt-map" }}
-{{ engineer_next_fee_map|json_script:"engineer-next-fee-map" }}
+{{ engineer_attempt_map|json_script:"engineer-attempt-map" }}
+{{ engineer_fee_map|json_script:"engineer-fee-map" }}
+{{ engineer_data_map|json_script:"engineer-data-map" }}
 <script>
-  (function () {
-    var engineerSelect = document.getElementById('enginer_id');
-    var companySelect = document.getElementById('company_id');
-    var attemptPreview = document.getElementById('attempt-preview');
-    var attemptPreviewTitle = document.getElementById('attempt-preview-title');
-    var attemptPreviewFee = document.getElementById('attempt-preview-fee');
-    var companyMapNode = document.getElementById('engineer-company-map');
-    var attemptMapNode = document.getElementById('engineer-next-attempt-map');
-    var feeMapNode = document.getElementById('engineer-next-fee-map');
-    if (!engineerSelect || !companySelect || !companyMapNode) return;
+(function () {
+  var engineerSelect  = document.getElementById('enginer_id');
+  var examTypeSelect  = document.getElementById('exam_type');
+  var companySelect   = document.getElementById('company_id');
+  var attemptPreview  = document.getElementById('attempt-preview');
+  var previewTitle    = document.getElementById('attempt-preview-title');
+  var previewFee      = document.getElementById('attempt-preview-fee');
+  if (!engineerSelect) return;
 
-    var engineerCompanyMap = {};
-    var engineerNextAttemptMap = {};
-    var engineerNextFeeMap = {};
-    try {
-      engineerCompanyMap = JSON.parse(companyMapNode.textContent || '{}');
-    } catch (e) {
-      engineerCompanyMap = {};
-    }
-    try {
-      engineerNextAttemptMap = JSON.parse((attemptMapNode && attemptMapNode.textContent) || '{}');
-    } catch (e) {
-      engineerNextAttemptMap = {};
-    }
-    try {
-      engineerNextFeeMap = JSON.parse((feeMapNode && feeMapNode.textContent) || '{}');
-    } catch (e) {
-      engineerNextFeeMap = {};
-    }
+  var companyMap  = {};
+  var attemptMap  = {};
+  var feeMap      = {};
+  var dataMap     = {};
+  try { companyMap  = JSON.parse(document.getElementById('engineer-company-map').textContent || '{}'); } catch(e) {}
+  try { attemptMap  = JSON.parse(document.getElementById('engineer-attempt-map').textContent || '{}'); } catch(e) {}
+  try { feeMap      = JSON.parse(document.getElementById('engineer-fee-map').textContent || '{}'); } catch(e) {}
+  try { dataMap     = JSON.parse(document.getElementById('engineer-data-map').textContent || '{}'); } catch(e) {}
 
-    function attemptLabel(attemptNumber) {
-      if (attemptNumber === 1) return 'المحاولة الأولى';
-      if (attemptNumber === 2) return 'المحاولة الثانية';
-      if (attemptNumber === 3) return 'المحاولة الثالثة';
-      return 'المحاولة رقم ' + String(attemptNumber);
-    }
+  function attemptLabel(n) {
+    var labels = ['', 'الأولى', 'الثانية', 'الثالثة'];
+    return labels[n] ? 'المحاولة ' + labels[n] : 'المحاولة رقم ' + n;
+  }
 
-    function updateAttemptPreview() {
-      if (!attemptPreview || !attemptPreviewTitle || !attemptPreviewFee) return;
-      var engineerId = engineerSelect.value;
-      if (!engineerId) {
-        attemptPreview.hidden = true;
-        return;
-      }
-      var attempt = parseInt(engineerNextAttemptMap[engineerId], 10);
-      var fee = engineerNextFeeMap[engineerId];
-      if (!attempt || isNaN(attempt)) {
-        attemptPreview.hidden = true;
-        return;
-      }
+  function fillField(id, value) {
+    var el = document.getElementById(id);
+    if (el && value) el.value = value;
+  }
+
+  function update() {
+    var id       = engineerSelect.value;
+    var examType = examTypeSelect ? examTypeSelect.value : '';
+    if (!id) { attemptPreview.hidden = true; return; }
+
+    // Attempt preview — per exam type
+    var typeAttempts = attemptMap[id];
+    var typeFees     = feeMap[id];
+    var attempt = (typeAttempts && examType && typeAttempts[examType] !== undefined)
+                  ? parseInt(typeAttempts[examType], 10) : NaN;
+    if (!examType || !attempt || isNaN(attempt)) { attemptPreview.hidden = true; }
+    else {
       attemptPreview.hidden = false;
-      attemptPreviewTitle.textContent = 'هذا ' + attemptLabel(attempt) + ' للمهندس.';
-      if (fee !== undefined && fee !== null && fee !== '') {
-        attemptPreviewFee.textContent = 'رسوم الاختبار لهذه المحاولة: ' + String(fee);
-      } else {
-        attemptPreviewFee.textContent = 'رسوم الاختبار: -';
-      }
+      previewTitle.textContent = 'هذه ' + attemptLabel(attempt) + ' للمهندس في هذا النوع.';
+      var fee = (typeFees && typeFees[examType] !== undefined) ? typeFees[examType] : '';
+      previewFee.textContent = (fee !== undefined && fee !== null && fee !== '') ? 'رسوم الاختبار: ' + fee : 'رسوم الاختبار: —';
     }
 
-    function autoSelectCompanyForEngineer() {
-      var engineerId = engineerSelect.value;
-      if (!engineerId) return;
-      var mappedCompanyId = engineerCompanyMap[engineerId];
-      if (mappedCompanyId) {
-        companySelect.value = String(mappedCompanyId);
-      }
+    // Auto-select company
+    if (companySelect && companyMap[id]) companySelect.value = String(companyMap[id]);
+
+    // Auto-fill engineer fields
+    var eng = dataMap[id];
+    if (eng) {
+      fillField('unified_id', eng.national_number);
+      fillField('phone', eng.phone);
     }
+  }
 
-    engineerSelect.addEventListener('change', function () {
-      autoSelectCompanyForEngineer();
-      updateAttemptPreview();
-    });
-    autoSelectCompanyForEngineer();
-    updateAttemptPreview();
-  })();
+  engineerSelect.addEventListener('change', update);
+  if (examTypeSelect) examTypeSelect.addEventListener('change', update);
+  update();
+})();
 
-  (function () {
-    var input = document.getElementById('request_document');
-    var drop = document.getElementById('request-document-drop');
-    var pill = document.getElementById('request-document-pill');
-    var name = document.getElementById('request-document-name');
-    if (!input || !drop || !pill || !name) return;
+(function () {
+  var input = document.getElementById('req_doc');
+  var drop  = document.getElementById('req-doc-drop');
+  var pill  = document.getElementById('req-doc-pill');
+  var name  = document.getElementById('req-doc-name');
+  if (!input || !drop) return;
 
-    function refreshFileName() {
-      var file = (input.files && input.files[0]) ? input.files[0] : null;
-      if (!file) {
-        pill.classList.remove('show');
-        name.textContent = '—';
-        return;
-      }
-      pill.classList.add('show');
-      name.textContent = file.name || 'file';
-    }
-
-    ['dragenter', 'dragover'].forEach(function (evt) {
-      drop.addEventListener(evt, function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        drop.classList.add('drag-over');
-      });
-    });
-    ['dragleave', 'drop'].forEach(function (evt) {
-      drop.addEventListener(evt, function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        drop.classList.remove('drag-over');
-      });
-    });
-
-    drop.addEventListener('drop', function (e) {
-      if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
-      input.files = e.dataTransfer.files;
-      refreshFileName();
-    });
-
-    input.addEventListener('change', refreshFileName);
-    refreshFileName();
-  })();
+  function sync() {
+    var f = input.files && input.files[0];
+    if (f) { pill.classList.add('show'); name.textContent = f.name; }
+    else   { pill.classList.remove('show'); name.textContent = '—'; }
+  }
+  input.addEventListener('change', sync);
+  ['dragenter','dragover'].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.add('drag-over'); }); });
+  ['dragleave','drop'].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.remove('drag-over'); }); });
+  drop.addEventListener('drop', function(e) {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) { input.files = e.dataTransfer.files; sync(); }
+  });
+})();
 </script>
 {% endblock %}

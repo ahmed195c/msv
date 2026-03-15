@@ -6,195 +6,237 @@
 {% endblock %}
 {% block content %}
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-
-  section.company-detail-page {
-    background: #f1f4f7;
-    min-height: 100vh;
-    padding: 32px 16px 56px;
-  }
-
+  /* ── CSS variables ── */
   .company-detail-page {
-    --ink:        #262e3a;
-    --ink-2:      #262e3a;
-    --ink-3:      #4e5c6a;
-    --paper:      #ffffff;
-    --surface:    #f1f4f7;
-    --surface-2:  #e8ecf0;
-    --line:       #f1f4f7;
-    --accent:     #262e3a;
-    --accent-dk:  #1a2130;
-    --accent-soft:#e8ecf0;
-    --shadow:     0 2px 8px rgba(38, 46, 58, 0.08);
-    font-family: "Cairo", "Noto Kufi Arabic", "Tahoma", sans-serif;
+    --ink:       #304357;
+    --ink-2:     #455c75;
+    --ink-3:     #6f8297;
+    --paper:     #ffffff;
+    --surface:   #f1f4f7;
+    --surface-2: #e8eef4;
+    --line:      #d4dce5;
+    --line-2:    #bcc8d5;
+    --accent:    #304357;
+    --accent-dk: #26384a;
+    --radius:    8px;
+    --shadow:    0 10px 24px rgba(48,67,87,.08);
+    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
     direction: rtl;
     color: var(--ink);
   }
 
-  .detail-card {
-    max-width: 1100px;
-    margin: 0 auto;
-    background: transparent;
-    padding: 0;
+  section.company-detail-page {
+    min-height: 100vh;
+    padding: 24px 16px 56px;
+    background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(241,244,247,.86)), var(--surface);
   }
 
-  .detail-header {
+  /* ── layout wrapper ── */
+  .company-wrap {
+    max-width: 1160px;
+    margin: 0 auto;
+    display: grid;
+    gap: 14px;
+  }
+
+  /* ── hero bar ── */
+  .company-hero {
+    background: linear-gradient(160deg,#3a4f66 0%,#304357 55%,#26384a 100%);
+    border-radius: var(--radius);
+    padding: 20px 24px;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
-    background: var(--paper);
-    border: 2px solid var(--line);
-    border-radius: 4px;
-    padding: 18px 20px;
+    gap: 14px;
     box-shadow: var(--shadow);
   }
 
-  .detail-header h1 {
+  .company-hero h1 {
     margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--ink);
+    font-size: clamp(18px, 2.2vw, 26px);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.01em;
   }
 
-  .detail-actions {
+  .hero-actions {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
   }
 
-  .back-link,
-  .edit-request-btn,
-  .extension-request-btn,
-  .actions button,
-  .actions a,
+  /* ── blocked warning ── */
+  .blocked-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fffbeb;
+    color: #78350f;
+    border: 1.5px solid #fbbf24;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-weight: 700;
+    font-size: 13.5px;
+  }
+
+  .blocked-notice .notice-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ── engineer leave notice ── */
+  .leave-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #fffbeb;
+    color: #78350f;
+    border: 1.5px solid #fbbf24;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+
+  .leave-notice .leave-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .leave-notice .leave-title {
+    font-weight: 800;
+    font-size: 13.5px;
+    color: #5c3d00;
+    margin-bottom: 4px;
+  }
+
+  .leave-notice .leave-meta {
+    font-size: 12.5px;
+    color: #7a5200;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+
+  .leave-notice .leave-meta a {
+    color: #5c3d00;
+    font-weight: 700;
+  }
+
+  /* ── buttons ── */
+  .btn-primary,
+  .btn-ghost,
   .permit-link,
+  .permit-pill.is-create,
+  .actions button,
   .upload-form button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 36px;
-    border-radius: 4px;
+    min-height: 38px;
     padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 400;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
     font-family: inherit;
     text-decoration: none;
     cursor: pointer;
-    border: 2px solid var(--line);
-    background: var(--surface);
-    color: var(--ink);
-    transition: background 0.12s;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    border: 1.5px solid transparent;
+    white-space: nowrap;
   }
 
-  .back-link:hover,
-  .actions a:hover { background: var(--surface-2); }
-
-  .edit-request-btn,
+  .btn-primary,
   .permit-link,
-  .upload-form button,
-  .actions button {
+  .permit-pill.is-create,
+  .upload-form button {
     background: var(--accent);
     border-color: var(--accent);
     color: #fff;
   }
-  .edit-request-btn:hover,
-  .permit-link:hover,
-  .upload-form button:hover,
-  .actions button:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
 
-  .extension-request-btn {
+  .btn-primary:hover,
+  .permit-link:hover,
+  .permit-pill.is-create:hover,
+  .upload-form button:hover {
+    background: var(--accent-dk);
+    border-color: var(--accent-dk);
+    color: #fff;
+  }
+
+  .btn-ghost {
     background: var(--surface);
     border-color: var(--line);
     color: var(--ink);
   }
-  .extension-request-btn:hover { background: var(--surface-2); }
 
-  .section {
-    margin-top: 12px;
-    border: 2px solid var(--line);
-    border-radius: 4px;
-    background: var(--paper);
-    padding: 20px;
-  }
-
-  .section-title {
-    margin-bottom: 14px;
-    display: inline-block;
-    padding: 4px 12px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ink-3);
-    background: var(--surface);
-    border: 2px solid var(--line);
-    border-radius: 4px;
-  }
-
-  .permit-statuses {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-
-  .active-permits-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 10px;
-  }
-
-  .active-permit-card {
-    border: 2px solid var(--line);
-    border-radius: 4px;
-    background: var(--surface);
-    padding: 14px;
-    display: grid;
-    gap: 8px;
-  }
-
-  .active-permit-title {
-    font-size: 14px;
-    font-weight: 700;
+  .btn-ghost:hover {
+    background: var(--surface-2);
+    border-color: var(--line-2);
     color: var(--ink);
   }
 
-  .active-permit-meta {
-    font-size: 13px;
-    color: var(--ink-3);
-  }
+  .actions button { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .actions button:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+  .actions a { background: var(--surface); border: 1.5px solid var(--line); color: var(--ink); border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 700; font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; min-height: 38px; }
+  .actions a:hover { background: var(--surface-2); border-color: var(--line-2); }
 
+  /* ── permit pill (ghost variant) ── */
   .permit-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 6px;
+    font-size: 13px;
     font-family: inherit;
-    border: 2px solid var(--line);
+    font-weight: 700;
+    border: 1.5px solid var(--line);
     text-decoration: none;
     cursor: pointer;
-    transition: background 0.12s;
+    transition: background 0.15s;
     background: var(--surface);
     color: var(--ink);
   }
-
-  .permit-pill.is-create {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    font-weight: 700;
-  }
-  .permit-pill.is-create:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
 
   .permit-pill.is-disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
 
+  /* ── section card ── */
+  .section {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .section-title {
+    padding: 11px 16px;
+    border-bottom: 1.5px solid var(--line);
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink);
+    display: block;
+  }
+
+  .section-body {
+    padding: 16px;
+  }
+
+  /* sub-section (nested) */
+  .section .section {
+    box-shadow: none;
+    margin-top: 16px;
+  }
+
+  /* ── info grid ── */
   .info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -202,27 +244,36 @@
   }
 
   .info-item {
-    display: grid;
-    gap: 6px;
-    font-size: 14px;
-    border: 2px solid var(--line);
-    border-radius: 4px;
-    padding: 10px 12px;
     background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: grid;
+    gap: 4px;
   }
 
   .info-item .label {
-    font-size: 12px;
-    color: var(--ink-3);
+    font-size: 11px;
     font-weight: 700;
+    color: var(--ink-3);
   }
 
   .info-item .value {
-    color: var(--ink);
-    font-weight: 600;
     font-size: 14px;
+    font-weight: 800;
+    color: var(--ink);
   }
 
+  .info-item .value a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .info-item .value a:hover {
+    text-decoration: underline;
+  }
+
+  /* ── company edit form grid ── */
   .company-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -248,15 +299,23 @@
   .upload-form select,
   .upload-form textarea {
     width: 100%;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 9px 12px;
-    font-size: 14px;
-    font-family: inherit;
+    min-height: 42px;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
     background: #fff;
     color: var(--ink);
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
     outline: none;
     transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .company-field textarea,
+  .upload-form textarea {
+    min-height: 110px;
+    resize: vertical;
   }
 
   .company-field input:focus,
@@ -266,12 +325,16 @@
   .upload-form select:focus,
   .upload-form textarea:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.12);
+    box-shadow: 0 0 0 3px rgba(48,67,87,.12);
   }
 
-  .company-field textarea {
-    min-height: 90px;
-    resize: vertical;
+  .company-field input[disabled],
+  .company-field select[disabled],
+  .company-field textarea[disabled] {
+    background: var(--surface);
+    color: var(--ink-2);
+    border-color: var(--line);
+    opacity: 1;
   }
 
   .upload-form {
@@ -280,6 +343,7 @@
     max-width: 520px;
   }
 
+  /* ── actions row ── */
   .actions {
     margin-top: 18px;
     display: flex;
@@ -287,26 +351,143 @@
     flex-wrap: wrap;
   }
 
+  /* ── error / notice boxes ── */
   .error-box {
-    border: 1px solid rgba(31, 90, 75, 0.25);
-    border-radius: 10px;
-    background: #fff8f2;
-    color: #6b3010;
+    border: 1.5px solid #d9ab95;
+    border-radius: 6px;
+    background: #fdf0ea;
+    color: #7a2c0d;
     padding: 10px 12px;
     margin-bottom: 10px;
     font-size: 13px;
     font-weight: 600;
   }
 
+  .notice-box {
+    border: 1.5px solid #fbbf24;
+    border-radius: 6px;
+    background: #fffbeb;
+    color: #78350f;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .close-ext-form {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .close-ext-form .close-field {
+    flex: 1;
+    min-width: 200px;
+    display: grid;
+    gap: 4px;
+  }
+
+  .close-ext-form label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-3);
+  }
+
+  .close-ext-form input {
+    width: 100%;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+    box-sizing: border-box;
+    min-height: 42px;
+  }
+
+  .close-ext-form input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(48,67,87,.12);
+  }
+
+  .btn-green {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 20px;
+    background: #059669;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 13.5px;
+    cursor: pointer;
+    white-space: nowrap;
+    min-height: 42px;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+
+  .btn-green:hover { background: #047857; }
+
+  /* ── panels (hidden states) ── */
   .edit-panel[hidden],
   .extension-panel[hidden] { display: none; }
 
+  .edit-panel.is-active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(48,67,87,.12);
+  }
+
+  /* ── active permits grid ── */
+  .active-permits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .active-permit-card {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    border-top: 3px solid var(--line);
+    padding: 14px;
+    display: grid;
+    gap: 10px;
+    box-shadow: var(--shadow);
+  }
+
+  .active-permit-card.is-active {
+    border-top-color: #059669;
+  }
+
+  .active-permit-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  .active-permit-meta {
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+
+  /* ── permit statuses row ── */
+  .permit-statuses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  /* ── tables ── */
   .detail-table {
     width: 100%;
     border-collapse: collapse;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 12px;
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
     overflow: hidden;
   }
 
@@ -316,13 +497,13 @@
     font-size: 11px;
     font-weight: 700;
     padding: 10px 12px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1.5px solid var(--line);
     text-align: right;
   }
 
   .detail-table td {
     padding: 11px 12px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1.5px solid var(--line);
     color: var(--ink-2);
     font-size: 14px;
     text-align: right;
@@ -331,13 +512,33 @@
   .detail-table tr:last-child td { border-bottom: none; }
   .detail-table tr:hover td { background: var(--surface); }
 
-  .muted { color: var(--ink-3); font-size: 13px; }
-
-  .edit-panel.is-active {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.12);
+  /* ── badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1.5px solid var(--line-2);
   }
 
+  .badge-active {
+    background: #edf7f2;
+    color: #1a5233;
+    border-color: #8fc5a7;
+  }
+
+  .badge-expired {
+    background: #fdf0ea;
+    color: #7a2c0d;
+    border-color: #d9ab95;
+  }
+
+  /* ── muted text ── */
+  .muted { color: var(--ink-3); font-size: 13px; }
+
+  /* ── timeline ── */
   .timeline {
     --timeline-date-col: 90px;
     --timeline-track-col: 22px;
@@ -385,30 +586,26 @@
     );
   }
 
-  .timeline-item:first-child .timeline-track::before {
-    top: 0;
-  }
-
-  .timeline-item:last-child .timeline-track::before {
-    bottom: 0;
-  }
+  .timeline-item:first-child .timeline-track::before { top: 0; }
+  .timeline-item:last-child .timeline-track::before { bottom: 0; }
 
   .timeline-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 0 6px rgba(31, 90, 75, 0.12);
+    box-shadow: 0 0 0 4px rgba(48,67,87,.12);
     position: relative;
     z-index: 1;
   }
 
   .timeline-card {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 12px;
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
     padding: 14px;
     text-align: right;
+    box-shadow: var(--shadow);
   }
 
   .timeline-title {
@@ -434,384 +631,84 @@
     font-weight: 700;
   }
 
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    border-radius: 99px;
-    font-size: 12px;
-    font-weight: 700;
-  }
-
-  .badge-active {
-    background: var(--accent-soft);
-    color: var(--accent);
-    border: 1px solid rgba(31, 90, 75, 0.3);
-  }
-
-  .badge-expired {
-    background: #f0ede7;
-    color: var(--ink-3);
-    border: 1px solid var(--line);
-  }
-
-  .active-permit-card.is-active {
-    border-color: rgba(31, 90, 75, 0.4);
-    background: linear-gradient(180deg, #f4faf7 0%, #ecf5f0 100%);
-  }
-
-  .active-permit-card.is-empty {
-    border-style: dashed;
-    opacity: 0.82;
-  }
-
+  /* ── responsive ── */
   @media (max-width: 720px) {
     section.company-detail-page { padding: 16px 12px 32px; }
-    .detail-header { flex-direction: column; align-items: stretch; }
-    .detail-actions a, .detail-actions button { width: 100%; }
-    .actions { flex-direction: column; }
-    .actions button, .actions a { width: 100%; text-align: center; }
+    .company-hero { flex-direction: column; align-items: stretch; }
+    .company-hero h1 { text-align: center; }
+    .hero-actions { flex-direction: column; }
+    .hero-actions a, .hero-actions button { width: 100%; justify-content: center; }
+    .active-permits-grid { grid-template-columns: 1fr; }
     .timeline-item { grid-template-columns: 1fr; gap: 8px; }
     .timeline-date { text-align: right; }
     .timeline-track { display: none; }
     .detail-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
-    .active-permits-grid { grid-template-columns: 1fr; }
-  }
-</style>
-<style>
-  section.company-detail-page {
-    min-height: 100vh;
-    padding: 20px 10px 36px;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(241, 244, 247, 0.86)),
-      #f1f4f7;
-  }
-
-  .company-detail-page {
-    --pd-ink: #304357;
-    --pd-ink-2: #455c75;
-    --pd-ink-3: #6f8297;
-    --pd-paper: #ffffff;
-    --pd-surface: #f1f4f7;
-    --pd-surface-2: #e8eef4;
-    --pd-line: #d4dce5;
-    --pd-line-2: #bcc8d5;
-    --pd-accent: #304357;
-    --pd-accent-dark: #26384a;
-    --pd-danger: #8c2f2f;
-    --pd-radius: 8px;
-    --pd-shadow: 0 10px 24px rgba(48, 67, 87, 0.08);
-    background: transparent;
-    color: var(--pd-ink);
-    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
-  }
-
-  .detail-card {
-    max-width: 1160px;
-    margin: 0 auto;
-    background: var(--pd-paper);
-    border: 1.5px solid var(--pd-line);
-    border-radius: var(--pd-radius);
-    box-shadow: var(--pd-shadow);
-    padding: 18px;
-  }
-
-  .detail-header {
-    margin-bottom: 14px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    display: grid;
-    gap: 10px;
-  }
-
-  .detail-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .detail-header h1 {
-    margin: 0;
-    width: 100%;
-    text-align: center;
-    font-size: clamp(22px, 2.5vw, 30px);
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.01em;
-    padding: 10px 12px;
-    border: 1.5px solid var(--pd-accent);
-    border-radius: 6px;
-    background: linear-gradient(180deg, #3a4f66 0%, #304357 100%);
-  }
-
-  .detail-header h1::after {
-    display: none;
-  }
-
-  .back-link,
-  .edit-request-btn,
-  .extension-request-btn,
-  .actions button,
-  .actions a,
-  .permit-link,
-  .upload-form button,
-  .permit-pill {
-    min-height: 38px;
-    padding: 8px 14px;
-    border-radius: 6px;
-    border: 1.5px solid var(--pd-line-2);
-    background: var(--pd-paper);
-    color: var(--pd-ink);
-    font-size: 13px;
-    font-weight: 700;
-    font-family: inherit;
-    text-decoration: none;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-  }
-
-  .back-link:hover,
-  .actions a:hover {
-    background: var(--pd-surface-2);
-    border-color: var(--pd-ink-3);
-    color: var(--pd-ink);
-  }
-
-  .edit-request-btn,
-  .extension-request-btn,
-  .actions button,
-  .permit-link,
-  .upload-form button,
-  .permit-pill.is-create {
-    background: var(--pd-accent);
-    border-color: var(--pd-accent);
-    color: #fff;
-  }
-
-  .edit-request-btn:hover,
-  .extension-request-btn:hover,
-  .actions button:hover,
-  .permit-link:hover,
-  .upload-form button:hover,
-  .permit-pill.is-create:hover {
-    background: var(--pd-accent-dark);
-    border-color: var(--pd-accent-dark);
-    color: #fff;
-  }
-
-  .section {
-    margin-top: 14px;
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    background: #fff;
-    padding: 12px;
-    box-shadow: none;
-  }
-
-  .section-title {
-    display: inline-flex;
-    align-items: center;
-    margin-bottom: 12px;
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1.5px solid var(--pd-accent);
-    background: var(--pd-accent);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 800;
-  }
-
-  .info-item,
-  .active-permit-card,
-  .timeline-card {
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    background: #fff;
-    box-shadow: none;
-  }
-
-  .info-item .label,
-  .active-permit-meta,
-  .timeline-meta,
-  .muted,
-  .company-field label,
-  .upload-form label {
-    color: var(--pd-ink-3);
-  }
-
-  .info-item .value,
-  .active-permit-title,
-  .timeline-title {
-    color: var(--pd-ink);
-  }
-
-  .detail-table th {
-    background: var(--pd-accent);
-    color: #fff;
-    border: 1.5px solid var(--pd-accent-dark);
-  }
-
-  .detail-table td {
-    border: 1.5px solid var(--pd-line);
-    background: #fff;
-    color: var(--pd-ink);
-  }
-
-  .detail-table tr:nth-child(even) td {
-    background: #f9fbfd;
-  }
-
-  .badge {
-    border-radius: 6px;
-    border: 1.5px solid var(--pd-line-2);
-  }
-
-  .badge-active {
-    background: #edf7f2;
-    color: #1a5233;
-    border-color: #8fc5a7;
-  }
-
-  .badge-expired {
-    background: #fdf0ea;
-    color: #7a2c0d;
-    border-color: #d9ab95;
-  }
-
-  .company-field input,
-  .company-field select,
-  .company-field textarea,
-  .upload-form input,
-  .upload-form select,
-  .upload-form textarea {
-    width: 100%;
-    min-height: 42px;
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    background: #fff;
-    color: var(--pd-ink);
-    padding: 10px 12px;
-    font-family: inherit;
-    font-size: 14px;
-    box-sizing: border-box;
-  }
-
-  .company-field textarea,
-  .upload-form textarea {
-    min-height: 110px;
-    resize: vertical;
-  }
-
-  .company-field input:focus,
-  .company-field select:focus,
-  .company-field textarea:focus,
-  .upload-form input:focus,
-  .upload-form select:focus,
-  .upload-form textarea:focus {
-    outline: none;
-    border-color: var(--pd-accent);
-    box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.12);
-  }
-
-  .company-field input[disabled],
-  .company-field select[disabled],
-  .company-field textarea[disabled] {
-    background: var(--pd-surface);
-    color: var(--pd-ink-2);
-    border-color: var(--pd-line);
-    opacity: 1;
-  }
-
-  .error-box {
-    border: 1.5px solid #d9ab95;
-    border-radius: 6px;
-    background: #fdf0ea;
-    color: #7a2c0d;
-  }
-
-  .timeline-dot {
-    background: var(--pd-accent);
-    box-shadow: 0 0 0 4px rgba(48, 67, 87, 0.12);
-  }
-
-  .timeline-track::before {
-    background: var(--pd-line);
-  }
-
-  @media (max-width: 720px) {
-    section.company-detail-page {
-      padding: 16px 12px 32px;
-    }
-
-    .detail-card {
-      padding: 14px;
-    }
-
-    .detail-actions {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .detail-actions a,
-    .detail-actions button,
-    .actions a,
-    .actions button,
-    .permit-pill {
-      width: 100%;
-      justify-content: center;
-    }
+    .actions { flex-direction: column; }
+    .actions button, .actions a { width: 100%; text-align: center; justify-content: center; }
   }
 </style>
 
-<section class="permit-page company-detail-page" lang="ar" dir="rtl">
-  <div class="permit-card detail-card">
-    <div class="detail-header">
-      <h1>بيانات الشركة</h1>
-      <div class="detail-actions">
-        <a class="back-link" href="{% url 'company_list' %}">العودة إلى قائمة الشركات</a>
+<section class="company-detail-page" lang="ar" dir="rtl">
+  <div class="company-wrap">
+
+    {# ── Hero bar ── #}
+    <div class="company-hero">
+      <h1>{{ company.name }}</h1>
+      <div class="hero-actions">
+        <a class="btn-ghost" href="{% url 'company_list' %}">العودة إلى قائمة الشركات</a>
         {% if can_edit_company %}
-          <button type="button" class="edit-request-btn" data-request-edit>طلب تعديل</button>
+          <button type="button" class="btn-primary" data-request-edit>طلب تعديل</button>
         {% endif %}
         {% if can_request_extension %}
-          <button type="button" class="extension-request-btn" data-request-extension>طلب مهلة</button>
+          <button type="button" class="btn-ghost" data-request-extension>طلب مهلة</button>
         {% endif %}
       </div>
     </div>
 
+    {# ── Blocked warning ── #}
+    {% if company_blocked %}
+    <div class="blocked-notice">
+      <span class="notice-icon">⚠</span>
+      <span>هذه الشركة موقوفة بسبب مهلة نشطة — لا يمكن إنشاء أي تصاريح جديدة حتى يتم إغلاق المهلة من قسم "أرشيف المهل" أدناه.</span>
+    </div>
+    {% endif %}
+
+    {# ── Extension panel (hidden unless error) ── #}
     <div class="section extension-panel" data-extension-panel {% if not extension_error %}hidden{% endif %}>
-      <div class="section-title">تقديم طلب مهلة</div>
-      {% if extension_notice %}
-        <div class="error-box" style="background:#fff8dc;color:#6b5200;border-color:#e2cb83;">{{ extension_notice }}</div>
-      {% endif %}
-      {% if extension_error %}
-        <div class="error-box">{{ extension_error }}</div>
-      {% endif %}
-      {% if can_request_extension %}
-        <form method="POST" enctype="multipart/form-data" class="upload-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="request_extension">
-          <label>نوع المهلة</label>
-          <input type="text" name="extension_type" placeholder="مثال: تجديد تصريح المركبة / النشاط / التخلص / المؤهل العلمي" required>
-          <label>تاريخ بداية المهلة</label>
-          <input type="date" name="extension_start_date" required>
-          <label>تاريخ نهاية المهلة</label>
-          <input type="date" name="extension_end_date" required>
-          <label>المستند المرفق (PDF أو صورة)</label>
-          <input type="file" name="extension_document" accept=".pdf,image/*" required>
-          <button type="submit">حفظ طلب المهلة</button>
-        </form>
-      {% else %}
-        <p class="muted">تقديم المهلة متاح لموظفي الإدخال أو الإدارة فقط.</p>
-      {% endif %}
+      <span class="section-title">تقديم طلب مهلة</span>
+      <div class="section-body">
+        {% if extension_notice %}
+          <div class="notice-box">{{ extension_notice }}</div>
+        {% endif %}
+        {% if extension_error %}
+          <div class="error-box">{{ extension_error }}</div>
+        {% endif %}
+        {% if can_request_extension %}
+          <form method="POST" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="request_extension">
+            <label>نوع المهلة</label>
+            <input type="text" name="extension_type" placeholder="مثال: تجديد تصريح المركبة / النشاط / التخلص / المؤهل العلمي" required>
+            <label>تاريخ بداية المهلة</label>
+            <input type="date" name="extension_start_date" required>
+            <label>تاريخ نهاية المهلة</label>
+            <input type="date" name="extension_end_date" required>
+            <label>المستند المرفق (PDF أو صورة)</label>
+            <input type="file" name="extension_document" accept=".pdf,image/*" required>
+            <button type="submit">حفظ طلب المهلة</button>
+          </form>
+        {% else %}
+          <p class="muted">تقديم المهلة متاح لموظفي الإدخال أو الإدارة فقط.</p>
+        {% endif %}
+      </div>
     </div>
 
-      <div class="section">
-        <div class="section-title">معلومات الشركة</div>
+    {# ── معلومات الشركة ── #}
+    <div class="section">
+      <span class="section-title">معلومات الشركة</span>
+      <div class="section-body">
         {% if can_edit_company %}
-          <p class="muted">هذا القسم للعرض فقط. للتعديل اضغط "طلب تعديل" وسيتم نقلك مباشرة إلى نموذج التعديل.</p>
+          <p class="muted" style="margin-bottom:12px;">هذا القسم للعرض فقط. للتعديل اضغط "طلب تعديل" وسيتم نقلك مباشرة إلى نموذج التعديل.</p>
         {% endif %}
         <div class="info-grid">
           <div class="info-item">
@@ -862,14 +759,41 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="section">
-        <div class="section-title">المهندس المسؤول</div>
+    {# ── المهندس المسؤول ── #}
+    <div class="section">
+      <span class="section-title">المهندس المسؤول</span>
+      <div class="section-body">
+
+        {% if engineer_active_leave %}
+          <div class="leave-notice">
+            <span class="leave-icon">🏖</span>
+            <div>
+              <div class="leave-title">المهندس المسؤول في إجازة حالياً</div>
+              <div class="leave-meta">
+                <span>من: <strong>{{ engineer_active_leave.start_date|date:"d/m/Y" }}</strong></span>
+                {% if engineer_active_leave.expected_return_date %}
+                  <span>عودة متوقعة: <strong>{{ engineer_active_leave.expected_return_date|date:"d/m/Y" }}</strong></span>
+                {% endif %}
+                {% if engineer_active_leave.substitute %}
+                  <span>البديل: <strong><a href="{% url 'enginer_detail' engineer_active_leave.substitute.id %}">{{ engineer_active_leave.substitute.name }}</a></strong></span>
+                {% else %}
+                  <span>لا يوجد مهندس بديل مسجل</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
         {% if company.enginer %}
           <div class="info-grid">
             <div class="info-item">
               <span class="label">الاسم</span>
-              <span class="value">{{ company.enginer.name }}</span>
+              <span class="value">
+                <a href="{% url 'enginer_detail' company.enginer.id %}">{{ company.enginer.name }}</a>
+                {% if engineer_active_leave %}<span style="font-size:11px;color:#92400e;font-weight:700;"> (في إجازة)</span>{% endif %}
+              </span>
             </div>
             <div class="info-item">
               <span class="label">البريد الإلكتروني</span>
@@ -883,6 +807,7 @@
         {% else %}
           <p class="muted">لا يوجد مهندس مرتبط.</p>
         {% endif %}
+
         {% if company.engineers.all %}
           <div class="info-item" style="margin-top:10px;">
             <span class="label">كل المهندسين المرتبطين</span>
@@ -893,10 +818,14 @@
             </span>
           </div>
         {% endif %}
-      </div>
 
-      <div class="section edit-panel" data-edit-panel {% if not error %}hidden{% endif %}>
-        <div class="section-title">تعديل بيانات الشركة</div>
+      </div>
+    </div>
+
+    {# ── تعديل بيانات الشركة (edit panel, hidden unless error) ── #}
+    <div class="section edit-panel" data-edit-panel {% if not error %}hidden{% endif %}>
+      <span class="section-title">تعديل بيانات الشركة</span>
+      <div class="section-body">
         {% if error %}
           <div class="error-box">{{ error }}</div>
         {% endif %}
@@ -934,60 +863,64 @@
               </div>
             </div>
 
-            <div class="section" style="margin-top: 16px;">
-              <div class="section-title">أنشطة الرخصة</div>
-              <div class="company-grid">
-                <div class="company-field">
-                  <label for="business_activity">تفاصيل الأنشطة</label>
-                  <textarea id="business_activity" name="business_activity" rows="3" disabled data-editable>{{ form_data.business_activity|default:'' }}</textarea>
+            <div class="section" style="margin-top:16px;">
+              <span class="section-title">أنشطة الرخصة</span>
+              <div class="section-body">
+                <div class="company-grid">
+                  <div class="company-field">
+                    <label for="business_activity">تفاصيل الأنشطة</label>
+                    <textarea id="business_activity" name="business_activity" rows="3" disabled data-editable>{{ form_data.business_activity|default:'' }}</textarea>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div class="section" style="margin-top: 16px;">
-              <div class="section-title">التصنيف والمهندس</div>
-              <div class="company-grid">
-                <div class="company-field">
-                  <label>نوع المكافحة</label>
-                  <select name="pest_control_type" required disabled data-editable>
-                    <option value="">اختيار نوع المكافحة</option>
-                    <option value="public_health_pest_control" {% if selected_pest_control_type == "public_health_pest_control" %}selected{% endif %}>مكافحة آفات الصحة العامة</option>
-                    <option value="termite_control" {% if selected_pest_control_type == "termite_control" %}selected{% endif %}>مكافحة النمل الأبيض</option>
-                    <option value="grain_pests" {% if selected_pest_control_type == "grain_pests" %}selected{% endif %}>مكافحة آفات الحبوب</option>
-                  </select>
-                </div>
-                <div class="company-field">
-                  <label>المهندس</label>
-                  <select name="enginer" required disabled data-editable>
-                    <option value="">اختيار مهندس</option>
-                    {% for engineer in engineers %}
-                      <option
-                        value="{{ engineer.id }}"
-                        data-public="{{ engineer.has_public_health_cert|yesno:'1,0' }}"
-                        data-termite="{{ engineer.has_termite_cert|yesno:'1,0' }}"
-                        {% if form_data.enginer_id == engineer.id|stringformat:"s" %}selected{% endif %}
-                      >
-                        {{ engineer.name }}
-                        {% if engineer.has_public_health_cert %}
-                          {% if engineer.has_termite_cert %}(معتمد نمل أبيض){% else %}(معتمد صحة عامة){% endif %}
-                        {% else %}
-                          (غير مكتمل الشهادات)
-                        {% endif %}
-                      </option>
-                    {% endfor %}
-                  </select>
-                  <small class="muted">لا يظهر للاختيار إلا المهندس الذي أكمل الشهادات المطلوبة.</small>
-                </div>
-                <div class="company-field">
-                  <label>مهندسون إضافيون</label>
-                  <select name="enginers" multiple size="6" disabled data-editable>
-                    {% for engineer in engineers %}
-                      <option value="{{ engineer.id }}" {% if engineer.id|stringformat:"s" in form_data.enginer_ids %}selected{% endif %}>
-                        {{ engineer.name }}
-                      </option>
-                    {% endfor %}
-                  </select>
-                  <small class="muted">يمكن اختيار أكثر من مهندس بنفس الوقت (Ctrl/Cmd + Click).</small>
+            <div class="section" style="margin-top:16px;">
+              <span class="section-title">التصنيف والمهندس</span>
+              <div class="section-body">
+                <div class="company-grid">
+                  <div class="company-field">
+                    <label>نوع المكافحة</label>
+                    <select name="pest_control_type" required disabled data-editable>
+                      <option value="">اختيار نوع المكافحة</option>
+                      <option value="public_health_pest_control" {% if selected_pest_control_type == "public_health_pest_control" %}selected{% endif %}>مكافحة آفات الصحة العامة</option>
+                      <option value="termite_control" {% if selected_pest_control_type == "termite_control" %}selected{% endif %}>مكافحة النمل الأبيض</option>
+                      <option value="grain_pests" {% if selected_pest_control_type == "grain_pests" %}selected{% endif %}>مكافحة آفات الحبوب</option>
+                    </select>
+                  </div>
+                  <div class="company-field">
+                    <label>المهندس</label>
+                    <select name="enginer" required disabled data-editable>
+                      <option value="">اختيار مهندس</option>
+                      {% for engineer in engineers %}
+                        <option
+                          value="{{ engineer.id }}"
+                          data-public="{{ engineer.has_public_health_cert|yesno:'1,0' }}"
+                          data-termite="{{ engineer.has_termite_cert|yesno:'1,0' }}"
+                          {% if form_data.enginer_id == engineer.id|stringformat:"s" %}selected{% endif %}
+                        >
+                          {{ engineer.name }}
+                          {% if engineer.has_public_health_cert %}
+                            {% if engineer.has_termite_cert %}(معتمد نمل أبيض){% else %}(معتمد صحة عامة){% endif %}
+                          {% else %}
+                            (غير مكتمل الشهادات)
+                          {% endif %}
+                        </option>
+                      {% endfor %}
+                    </select>
+                    <small class="muted">لا يظهر للاختيار إلا المهندس الذي أكمل الشهادات المطلوبة.</small>
+                  </div>
+                  <div class="company-field">
+                    <label>مهندسون إضافيون</label>
+                    <select name="enginers" multiple size="6" disabled data-editable>
+                      {% for engineer in engineers %}
+                        <option value="{{ engineer.id }}" {% if engineer.id|stringformat:"s" in form_data.enginer_ids %}selected{% endif %}>
+                          {{ engineer.name }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                    <small class="muted">يمكن اختيار أكثر من مهندس بنفس الوقت (Ctrl/Cmd + Click).</small>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1001,287 +934,332 @@
           <p class="muted">التعديل متاح للإدارة فقط.</p>
         {% endif %}
       </div>
+    </div>
 
-    {# ═══ التصاريح السارية ═══ #}
+    {# ── التصاريح السارية ── #}
     <div class="section">
-      <div class="section-title">التصاريح السارية</div>
-      <div class="active-permits-grid">
+      <span class="section-title">التصاريح السارية</span>
+      <div class="section-body">
+        <div class="active-permits-grid">
 
-        <div class="active-permit-card {% if active_pest_permit %}is-active{% else %}is-empty{% endif %}">
-          <div class="active-permit-title">تصريح النشاط</div>
-          {% if active_pest_permit %}
-            <div><span class="badge badge-active">ساري</span></div>
-            <div class="active-permit-meta">ينتهي: {{ active_pest_permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
-            <a class="permit-link" href="{% url 'pest_control_permit_view' active_pest_permit.id %}">عرض التصريح</a>
-          {% else %}
-            <div class="active-permit-meta">لا يوجد تصريح ساري حالياً</div>
-            <a class="permit-pill is-create" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">إنشاء تصريح جديد</a>
-          {% endif %}
-        </div>
+          <div class="active-permit-card {% if active_pest_permit %}is-active{% endif %}">
+            <div class="active-permit-title">تصريح النشاط</div>
+            {% if active_pest_permit %}
+              <div><span class="badge badge-active">ساري</span></div>
+              <div class="active-permit-meta">ينتهي: {{ active_pest_permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
+              <a class="permit-link" href="{% url 'pest_control_permit_view' active_pest_permit.id %}">عرض التصريح</a>
+            {% elif latest_pest_permit %}
+              <div><span class="badge badge-expired">منتهي</span></div>
+              <div class="active-permit-meta">انتهى: {{ latest_pest_permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
+              <a class="permit-link" href="{% url 'pest_control_permit_view' latest_pest_permit.id %}">عرض التصريح</a>
+              <a class="permit-pill is-create" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">إنشاء تصريح جديد</a>
+            {% else %}
+              <div class="active-permit-meta">لا يوجد تصريح ساري حالياً</div>
+              <a class="permit-pill is-create" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">إنشاء تصريح جديد</a>
+            {% endif %}
+          </div>
 
-        <div class="active-permit-card {% if active_vehicle_permit %}is-active{% else %}is-empty{% endif %}">
-          <div class="active-permit-title">تصريح المركبة</div>
-          {% if active_vehicle_permit %}
-            <div><span class="badge badge-active">ساري</span></div>
-            <div class="active-permit-meta">ينتهي: {{ active_vehicle_permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
-            <a class="permit-link" href="{% url 'vehicle_permit_detail' active_vehicle_permit.id %}">عرض التصريح</a>
-          {% else %}
-            <div class="active-permit-meta">لا يوجد تصريح ساري حالياً</div>
-            <a class="permit-pill is-create" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">إنشاء تصريح جديد</a>
-          {% endif %}
-        </div>
+          <div class="active-permit-card {% if active_vehicle_permit %}is-active{% endif %}">
+            <div class="active-permit-title">تصريح المركبة</div>
+            {% if active_vehicle_permit %}
+              <div><span class="badge badge-active">ساري</span></div>
+              <div class="active-permit-meta">ينتهي: {{ active_vehicle_permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
+              <a class="permit-link" href="{% url 'vehicle_permit_detail' active_vehicle_permit.id %}">عرض التصريح</a>
+            {% else %}
+              <div class="active-permit-meta">لا يوجد تصريح ساري حالياً</div>
+              <a class="permit-pill is-create" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">إنشاء تصريح جديد</a>
+            {% endif %}
+          </div>
 
-        <div class="active-permit-card {% if active_waste_permit %}is-active{% else %}is-empty{% endif %}">
-          <div class="active-permit-title">تصريح التخلص من النفايات</div>
-          {% if active_waste_permit %}
-            <div><span class="badge badge-active">ساري</span></div>
-            <div class="active-permit-meta">ينتهي: {{ active_waste_permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
-            <a class="permit-link" href="{% url 'waste_permit_detail' active_waste_permit.id %}">عرض التصريح</a>
-          {% else %}
-            <div class="active-permit-meta">لا يوجد تصريح ساري حالياً</div>
-            <a class="permit-pill is-create" href="{% url 'waste_permit' %}?company_id={{ company.id }}">إنشاء تصريح جديد</a>
-          {% endif %}
+          <div class="active-permit-card {% if active_waste_permit %}is-active{% endif %}">
+            <div class="active-permit-title">تصريح التخلص من النفايات</div>
+            {% if active_waste_permit %}
+              <div><span class="badge badge-active">ساري</span></div>
+              <div class="active-permit-meta">ينتهي: {{ active_waste_permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
+              <a class="permit-link" href="{% url 'waste_permit_detail' active_waste_permit.id %}">عرض التصريح</a>
+            {% else %}
+              <div class="active-permit-meta">لا يوجد تصريح ساري حالياً</div>
+              <a class="permit-pill is-create" href="{% url 'waste_permit' %}?company_id={{ company.id }}">إنشاء تصريح جديد</a>
+            {% endif %}
+          </div>
+
         </div>
+      </div>
+    </div>
+
+    {# ── الطلبات قيد التنفيذ ── #}
+    <div class="section">
+      <span class="section-title">الطلبات قيد التنفيذ</span>
+      <div class="section-body">
+        {% if pending_permits_list %}
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th>نوع التصريح</th>
+                <th>تاريخ الإنشاء</th>
+                <th>رقم الدفع</th>
+                <th>الحالة</th>
+                <th>تفاصيل</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for permit in pending_permits_list %}
+                <tr>
+                  <td>{{ permit.permit_label_ar }}</td>
+                  <td>{{ permit.dateOfCreation|date:"d/m/Y"|default:"-" }}</td>
+                  <td>{{ permit.PaymentNumber|default:"-" }}</td>
+                  <td>{{ permit.status_label_ar }}</td>
+                  <td>
+                    <a class="permit-link" href="{{ permit.primary_action_url }}">متابعة الطلب</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="muted">لا توجد طلبات جارية حالياً.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── أرشيف التصاريح المصدرة ── #}
+    <div class="section">
+      <span class="section-title">أرشيف التصاريح المصدرة</span>
+      <div class="section-body">
+        {% if issued_archive %}
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th>نوع التصريح</th>
+                <th>رقم التصريح</th>
+                <th>تاريخ الإصدار</th>
+                <th>تاريخ الانتهاء</th>
+                <th>الحالة</th>
+                <th>تفاصيل</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for permit in issued_archive %}
+                <tr>
+                  <td>{{ permit.permit_label_ar }}</td>
+                  <td>{{ permit.permit_no|default:"-" }}</td>
+                  <td>{{ permit.issue_date|date:"d/m/Y"|default:"-" }}</td>
+                  <td>{{ permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}</td>
+                  <td>
+                    {% if permit.is_effective_active %}
+                      <span class="badge badge-active">ساري</span>
+                    {% else %}
+                      <span class="badge badge-expired">منتهي</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a class="permit-link" href="{{ permit.primary_action_url }}">عرض التصريح</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="muted">لم يصدر أي تصريح بعد.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── أرشيف المهل ── #}
+    <div class="section">
+      <span class="section-title">أرشيف المهل</span>
+      <div class="section-body">
+
+        {% if company_blocked %}
+          <div class="notice-box">
+            ⚠ هذه الشركة موقوفة حالياً بسبب مهلة نشطة — لا يمكن إنشاء تصاريح جديدة حتى يتم إغلاق المهلة.
+          </div>
+          {% if can_edit_company %}
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="close_extension">
+              <div class="close-ext-form">
+                <div class="close-field">
+                  <label>ملاحظة الإغلاق (اختياري)</label>
+                  <input type="text" name="close_notes" placeholder="تم استيفاء الشروط...">
+                </div>
+                <button type="submit" class="btn-green">إغلاق المهلة ✓</button>
+              </div>
+            </form>
+          {% endif %}
+        {% endif %}
+
+        {% if extension_error %}
+          <div class="error-box">{{ extension_error }}</div>
+        {% endif %}
+
+        {% if extension_logs %}
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th>نوع المهلة</th>
+                <th>من تاريخ</th>
+                <th>إلى تاريخ</th>
+                <th>الحالة</th>
+                <th>بواسطة</th>
+                <th>المستند</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ext in extension_logs %}
+                <tr>
+                  <td>{{ ext.notes|default:"-" }}</td>
+                  <td>{{ ext.extension_start_date|date:"d/m/Y"|default:"-" }}</td>
+                  <td>{{ ext.extension_end_date|date:"d/m/Y"|default:"-" }}</td>
+                  <td>
+                    {% if ext.is_active %}
+                      <span class="badge badge-active">سارية</span>
+                    {% else %}
+                      <span class="badge badge-expired">منتهية أو مغلقة</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ ext.changed_by.username|default:"-" }}</td>
+                  <td>
+                    {% if ext.attachment %}
+                      <a class="permit-link" href="{{ ext.attachment.url }}" target="_blank" rel="noopener">فتح المستند</a>
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="muted">لا توجد مهل مسجلة.</p>
+        {% endif %}
 
       </div>
     </div>
 
-    {# ═══ الطلبات قيد التنفيذ ═══ #}
+    {# ── أرشيف طلبات التأمين ── #}
     <div class="section">
-      <div class="section-title">الطلبات قيد التنفيذ</div>
-      {% if pending_permits_list %}
-        <table class="detail-table">
-          <thead>
-            <tr>
-              <th>نوع التصريح</th>
-              <th>تاريخ الإنشاء</th>
-              <th>رقم الدفع</th>
-              <th>الحالة</th>
-              <th>تفاصيل</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for permit in pending_permits_list %}
+      <span class="section-title">أرشيف طلبات التأمين</span>
+      <div class="section-body">
+        {% if can_manage_requirement_insurance %}
+          <div class="permit-statuses">
+            <a class="permit-pill is-create" href="{% url 'requirement_insurance_create' %}?company_id={{ company.id }}">إنشاء طلب تأمين جديد</a>
+          </div>
+        {% endif %}
+        {% if requirement_insurance_requests %}
+          <table class="detail-table">
+            <thead>
               <tr>
-                <td>{{ permit.permit_label_ar }}</td>
-                <td>{{ permit.dateOfCreation|date:"d/m/Y"|default:"-" }}</td>
-                <td>{{ permit.PaymentNumber|default:"-" }}</td>
-                <td>{{ permit.status_label_ar }}</td>
-                <td>
-                  <a class="permit-link" href="{{ permit.primary_action_url }}">متابعة الطلب</a>
-                </td>
+                <th>رقم الطلب</th>
+                <th>المدة</th>
+                <th>تاريخ الإنشاء</th>
+                <th>بداية التغطية</th>
+                <th>نهاية التغطية</th>
+                <th>الحالة</th>
+                <th>تفاصيل</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p class="muted">لا توجد طلبات جارية حالياً.</p>
-      {% endif %}
+            </thead>
+            <tbody>
+              {% for insurance_request in requirement_insurance_requests %}
+                <tr>
+                  <td>{{ insurance_request.id }}</td>
+                  <td>{{ insurance_request.get_duration_months_display }}</td>
+                  <td>{{ insurance_request.created_at|date:"d/m/Y" }}</td>
+                  <td>{{ insurance_request.start_date|date:"d/m/Y"|default:"-" }}</td>
+                  <td>{{ insurance_request.end_date|date:"d/m/Y"|default:"-" }}</td>
+                  <td>{{ insurance_request.get_status_display }}</td>
+                  <td>
+                    <a class="permit-link" href="{% url 'requirement_insurance_request_detail' insurance_request.id %}">متابعة الطلب</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="muted">لا توجد طلبات تأمين مسجلة.</p>
+        {% endif %}
+      </div>
     </div>
 
-    {# ═══ أرشيف التصاريح المصدرة ═══ #}
+    {# ── سجل الشركة ── #}
     <div class="section">
-      <div class="section-title">أرشيف التصاريح المصدرة</div>
-      {% if issued_archive %}
-        <table class="detail-table">
-          <thead>
-            <tr>
-              <th>نوع التصريح</th>
-              <th>رقم التصريح</th>
-              <th>تاريخ الإصدار</th>
-              <th>تاريخ الانتهاء</th>
-              <th>الحالة</th>
-              <th>تفاصيل</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for permit in issued_archive %}
-              <tr>
-                <td>{{ permit.permit_label_ar }}</td>
-                <td>{{ permit.permit_no|default:"-" }}</td>
-                <td>{{ permit.issue_date|date:"d/m/Y"|default:"-" }}</td>
-                <td>{{ permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}</td>
-                <td>
-                  {% if permit.is_effective_active %}
-                    <span class="badge badge-active">ساري</span>
-                  {% else %}
-                    <span class="badge badge-expired">منتهي</span>
-                  {% endif %}
-                </td>
-                <td>
-                  <a class="permit-link" href="{{ permit.primary_action_url }}">عرض التصريح</a>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p class="muted">لم يصدر أي تصريح بعد.</p>
-      {% endif %}
-    </div>
-
-    {# ═══ أرشيف المهل ═══ #}
-    <div class="section">
-      <div class="section-title">أرشيف المهل</div>
-      {% if extension_logs %}
-        <table class="detail-table">
-          <thead>
-            <tr>
-              <th>نوع المهلة</th>
-              <th>من تاريخ</th>
-              <th>إلى تاريخ</th>
-              <th>الحالة</th>
-              <th>بواسطة</th>
-              <th>المستند</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for ext in extension_logs %}
-              <tr>
-                <td>{{ ext.notes|default:"-" }}</td>
-                <td>{{ ext.extension_start_date|date:"d/m/Y"|default:"-" }}</td>
-                <td>{{ ext.extension_end_date|date:"d/m/Y"|default:"-" }}</td>
-                <td>
-                  {% if ext.is_active %}
-                    <span class="badge badge-active">سارية</span>
-                  {% else %}
-                    <span class="badge badge-expired">منتهية</span>
-                  {% endif %}
-                </td>
-                <td>{{ ext.changed_by.username|default:"-" }}</td>
-                <td>
-                  {% if ext.attachment %}
-                    <a class="permit-link" href="{{ ext.attachment.url }}" target="_blank" rel="noopener">فتح المستند</a>
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p class="muted">لا توجد مهل مسجلة.</p>
-      {% endif %}
-    </div>
-
-    {# ═══ أرشيف طلبات التأمين ═══ #}
-    <div class="section">
-      <div class="section-title">أرشيف طلبات التأمين</div>
-      {% if can_manage_requirement_insurance %}
-        <div class="permit-statuses">
-          <a class="permit-pill is-create" href="{% url 'requirement_insurance_create' %}?company_id={{ company.id }}">إنشاء طلب تأمين جديد</a>
-        </div>
-      {% endif %}
-      {% if requirement_insurance_requests %}
-        <table class="detail-table">
-          <thead>
-            <tr>
-              <th>رقم الطلب</th>
-              <th>المدة</th>
-              <th>تاريخ الإنشاء</th>
-              <th>بداية التغطية</th>
-              <th>نهاية التغطية</th>
-              <th>الحالة</th>
-              <th>تفاصيل</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for insurance_request in requirement_insurance_requests %}
-              <tr>
-                <td>{{ insurance_request.id }}</td>
-                <td>{{ insurance_request.get_duration_months_display }}</td>
-                <td>{{ insurance_request.created_at|date:"d/m/Y" }}</td>
-                <td>{{ insurance_request.start_date|date:"d/m/Y"|default:"-" }}</td>
-                <td>{{ insurance_request.end_date|date:"d/m/Y"|default:"-" }}</td>
-                <td>{{ insurance_request.get_status_display }}</td>
-                <td>
-                  <a class="permit-link" href="{% url 'requirement_insurance_request_detail' insurance_request.id %}">متابعة الطلب</a>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p class="muted">لا توجد طلبات تأمين مسجلة.</p>
-      {% endif %}
-    </div>
-
-    <div class="section">
-      <div class="section-title">سجل الشركة</div>
-      {% if logs %}
-        <div class="timeline">
-          {% for log in logs %}
-            <div class="timeline-item">
-              <div class="timeline-date">{{ log.created_at|date:"d/m/Y" }}</div>
-              <div class="timeline-track">
-                <span class="timeline-dot"></span>
-              </div>
-              <div class="timeline-card">
-                <div class="timeline-title">
-                  {% if log.action == "created" %}
-                    تم إنشاء سجل الشركة
-                  {% elif log.action == "updated" %}
-                    تم تعديل بيانات الشركة
-                  {% elif log.action == "engineer_changed" %}
-                    تم تغيير المهندس المسؤول
-                  {% elif log.action == "extension_requested" %}
-                    تم طلب مهلة
-                  {% elif log.action == "waste_permit_created" %}
-                    تم إنشاء تصريح التخلص من النفايات
-                  {% elif log.action == "waste_permit_payment_reference" %}
-                    تم تسجيل رقم دفع تصريح التخلص
-                  {% elif log.action == "waste_permit_paid" %}
-                    تم تأكيد دفع تصريح التخلص
-                  {% elif log.action == "waste_permit_issued" %}
-                    تم إصدار تصريح التخلص من النفايات
-                  {% elif log.action == "waste_request_created" %}
-                    تم إنشاء طلب التخلص
-                  {% elif log.action == "waste_request_payment_reference" %}
-                    تم تسجيل رقم دفع طلب التخلص
-                  {% elif log.action == "waste_request_paid" %}
-                    تم تأكيد دفع طلب التخلص
-                  {% elif log.action == "waste_request_inspected" %}
-                    تم اعتماد/رفض طلب التخلص بعد التفتيش
-                  {% elif log.action == "requirements_followup_needed" %}
-                    تم تسجيل اشتراطات واجبة الاستيفاء بعد التفتيش
-                  {% elif log.action == "requirements_insurance_created" %}
-                    تم إنشاء طلب تأمين لاستيفاء الشروط
-                  {% elif log.action == "requirements_insurance_paid" %}
-                    تم دفع تأمين استيفاء الشروط
-                  {% elif log.action == "requirements_insurance_refunded" %}
-                    تم استرداد تأمين استيفاء الشروط
-                  {% else %}
-                    {{ log.action }}
-                  {% endif %}
+      <span class="section-title">سجل الشركة</span>
+      <div class="section-body">
+        {% if logs %}
+          <div class="timeline">
+            {% for log in logs %}
+              <div class="timeline-item">
+                <div class="timeline-date">{{ log.created_at|date:"d/m/Y" }}</div>
+                <div class="timeline-track">
+                  <span class="timeline-dot"></span>
                 </div>
-                <div class="timeline-meta">
-                  {{ log.created_at|date:"H:i" }}
-                  {% if log.changed_by %}
-                    · بواسطة {{ log.changed_by.username }}
-                  {% else %}
-                    · بواسطة النظام
-                  {% endif %}
-                </div>
-                {% if log.notes %}
-                  <div class="timeline-notes">{{ log.notes }}</div>
-                {% endif %}
-                {% if log.action == "extension_requested" and log.extension_start_date and log.extension_end_date %}
-                  <div class="timeline-notes">المدة: {{ log.extension_start_date|date:"d/m/Y" }} إلى {{ log.extension_end_date|date:"d/m/Y" }}</div>
-                {% endif %}
-                {% if log.attachment %}
-                  <div class="timeline-notes">
-                    <a href="{{ log.attachment.url }}" target="_blank" rel="noopener">فتح المستند المرفق</a>
+                <div class="timeline-card">
+                  <div class="timeline-title">
+                    {% if log.action == "created" %}
+                      تم إنشاء سجل الشركة
+                    {% elif log.action == "updated" %}
+                      تم تعديل بيانات الشركة
+                    {% elif log.action == "engineer_changed" %}
+                      تم تغيير المهندس المسؤول
+                    {% elif log.action == "extension_requested" %}
+                      تم طلب مهلة
+                    {% elif log.action == "waste_permit_created" %}
+                      تم إنشاء تصريح التخلص من النفايات
+                    {% elif log.action == "waste_permit_payment_reference" %}
+                      تم تسجيل رقم دفع تصريح التخلص
+                    {% elif log.action == "waste_permit_paid" %}
+                      تم تأكيد دفع تصريح التخلص
+                    {% elif log.action == "waste_permit_issued" %}
+                      تم إصدار تصريح التخلص من النفايات
+                    {% elif log.action == "waste_request_created" %}
+                      تم إنشاء طلب التخلص
+                    {% elif log.action == "waste_request_payment_reference" %}
+                      تم تسجيل رقم دفع طلب التخلص
+                    {% elif log.action == "waste_request_paid" %}
+                      تم تأكيد دفع طلب التخلص
+                    {% elif log.action == "waste_request_inspected" %}
+                      تم اعتماد/رفض طلب التخلص بعد التفتيش
+                    {% elif log.action == "requirements_followup_needed" %}
+                      تم تسجيل اشتراطات واجبة الاستيفاء بعد التفتيش
+                    {% elif log.action == "requirements_insurance_created" %}
+                      تم إنشاء طلب تأمين لاستيفاء الشروط
+                    {% elif log.action == "requirements_insurance_paid" %}
+                      تم دفع تأمين استيفاء الشروط
+                    {% elif log.action == "requirements_insurance_refunded" %}
+                      تم استرداد تأمين استيفاء الشروط
+                    {% else %}
+                      {{ log.action }}
+                    {% endif %}
                   </div>
-                {% endif %}
+                  <div class="timeline-meta">
+                    {{ log.created_at|date:"H:i" }}
+                    {% if log.changed_by %}
+                      · بواسطة {{ log.changed_by.username }}
+                    {% else %}
+                      · بواسطة النظام
+                    {% endif %}
+                  </div>
+                  {% if log.notes %}
+                    <div class="timeline-notes">{{ log.notes }}</div>
+                  {% endif %}
+                  {% if log.action == "extension_requested" and log.extension_start_date and log.extension_end_date %}
+                    <div class="timeline-notes">المدة: {{ log.extension_start_date|date:"d/m/Y" }} إلى {{ log.extension_end_date|date:"d/m/Y" }}</div>
+                  {% endif %}
+                  {% if log.attachment %}
+                    <div class="timeline-notes">
+                      <a href="{{ log.attachment.url }}" target="_blank" rel="noopener">فتح المستند المرفق</a>
+                    </div>
+                  {% endif %}
+                </div>
               </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="muted">لا توجد تحديثات مسجلة بعد.</p>
-      {% endif %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="muted">لا توجد تحديثات مسجلة بعد.</p>
+        {% endif %}
+      </div>
     </div>
+
   </div>
 </section>
 <script>

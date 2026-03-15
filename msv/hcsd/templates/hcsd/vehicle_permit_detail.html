@@ -2,19 +2,222 @@
 {% load static %}
 {% block title %}متابعة تصريح المركبة{% endblock %}
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
   <style>
-    .upload-stack {
-      display: grid;
-      gap: 12px;
+    /* ── Page shell ── */
+    .permit-page {
+      --pd-ink:        #304357;
+      --pd-ink-2:      #455c75;
+      --pd-ink-3:      #6f8297;
+      --pd-paper:      #ffffff;
+      --pd-surface:    #f1f4f7;
+      --pd-surface-2:  #e8eef4;
+      --pd-line:       #d4dce5;
+      --pd-line-2:     #bcc8d5;
+      --pd-accent:     #304357;
+      --pd-accent-dark:#26384a;
+      --pd-danger:     #8c2f2f;
+      --pd-radius:     8px;
+      --pd-shadow:     0 10px 24px rgba(48,67,87,0.08);
+      padding: 20px 10px 36px;
+      background: linear-gradient(180deg,rgba(255,255,255,0.5),rgba(241,244,247,0.86)),var(--pd-surface);
+      direction: rtl;
     }
 
-    .upload-card {
-      border: 1px solid var(--line, #d8cfbf);
-      border-radius: 14px;
-      background: linear-gradient(180deg, #fff, #fbf8f2);
+    /* ── Card ── */
+    .permit-card {
+      max-width: 1160px;
+      margin: 0 auto;
+      background: var(--pd-paper);
+      border: 1.5px solid var(--pd-line);
+      border-radius: var(--pd-radius);
+      box-shadow: var(--pd-shadow);
+      padding: 18px;
+      color: var(--pd-ink);
+      font-family: "IBM Plex Sans Arabic","Tahoma",sans-serif;
+    }
+
+    /* ── Hero bar ── */
+    .hero-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: linear-gradient(160deg,#3a4f66 0%,#304357 55%,#26384a 100%);
+      border-radius: 6px 6px 0 0;
+      margin: -18px -18px 18px;
+      color: #fff;
+    }
+    .hero-left  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .hero-center { flex: 1; text-align: center; }
+    .hero-right { display: flex; align-items: center; gap: 8px; }
+    .hero-title {
+      font-size: clamp(15px,1.8vw,20px);
+      font-weight: 800;
+    }
+    .hero-btn {
+      color: #c8d8e8;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 6px;
+      padding: 6px 12px;
+      transition: background .15s;
+    }
+    .hero-btn:hover { background: rgba(255,255,255,0.1); }
+    .hero-btn--print { background: rgba(255,255,255,0.15); }
+
+    /* ── Status badges ── */
+    .hero-status {
+      display: inline-block;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+    .hero-status--default  { background: rgba(255,255,255,0.15); color: #e0eaf4; border: 1.5px solid rgba(255,255,255,0.2); }
+    .hero-status--pending  { background: #fef3c7; color: #78350f; border: 1.5px solid #fcd34d; }
+    .hero-status--info     { background: #dbeafe; color: #1e3a5f; border: 1.5px solid #93c5fd; }
+    .hero-status--issued   { background: #d4f5e2; color: #0e3d1d; border: 1.5px solid #155e2e; }
+    .hero-status--warning  { background: #fff7ed; color: #7c2d12; border: 1.5px solid #fed7aa; }
+    .hero-status--closed   { background: #f1f5f9; color: #475569; border: 1.5px solid #cbd5e1; }
+
+    /* ── Permit header (logo + meta) ── */
+    .permit-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1.5px solid var(--pd-line);
+      margin-bottom: 14px;
+    }
+    .municipality { display: flex; align-items: center; gap: 12px; }
+    .logo-box img { height: 64px; width: auto; display: block; }
+    .municipality-text .title { font-weight: 800; font-size: 15px; color: var(--pd-ink); }
+    .municipality-text .sub   { font-size: 12px; color: var(--pd-ink-3); margin-top: 2px; }
+    .meta-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .meta-item {
+      display: grid;
+      gap: 3px;
+      min-width: 150px;
+    }
+    .meta-item .label { font-size: 11px; color: var(--pd-ink-3); font-weight: 700; }
+    .meta-item .value { font-size: 14px; font-weight: 700; color: var(--pd-ink); }
+
+    /* ── Alert ── */
+    .alert {
+      background: #fef2f2;
+      border: 1.5px solid #f5c6cb;
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: #8c1f1f;
+      margin-bottom: 14px;
+    }
+    .alert-list { margin: 6px 0 0 0; padding-right: 18px; }
+    .alert-list li { margin-bottom: 3px; font-size: 13px; }
+
+    /* ── Sections ── */
+    .permit-section {
+      margin-top: 14px;
+      border: 1.5px solid var(--pd-line);
+      border-radius: 6px;
+      background: #fff;
       padding: 12px;
-      box-shadow: 0 8px 20px rgba(30, 70, 52, 0.06);
+    }
+    .section-title {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: var(--pd-accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    /* ── Detail grid ── */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+      gap: 10px;
+    }
+    .detail-item {
+      display: grid;
+      gap: 5px;
+      border: 1.5px solid var(--pd-line);
+      border-radius: 6px;
+      background: var(--pd-surface);
+      padding: 9px 10px;
+    }
+    .detail-item .label { font-size: 11px; color: var(--pd-ink-3); font-weight: 700; }
+    .detail-item .value { font-size: 14px; font-weight: 700; color: var(--pd-ink); word-break: break-word; }
+
+    /* ── Documents ── */
+    .documents { display: flex; flex-direction: column; gap: 6px; }
+    .documents a {
+      color: var(--pd-accent);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .documents a:hover { text-decoration: underline; }
+
+    /* ── Review forms ── */
+    .review-form { display: grid; gap: 10px; }
+    .review-form label { font-size: 12px; font-weight: 700; color: var(--pd-ink-3); }
+    .review-form input,
+    .review-form select,
+    .review-form textarea {
+      width: 100%;
+      border: 1.5px solid var(--pd-line-2);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13.5px;
+      font-family: inherit;
+      color: var(--pd-ink);
+      background: #fff;
+      box-sizing: border-box;
+    }
+    .review-form input:focus,
+    .review-form select:focus,
+    .review-form textarea:focus {
+      border-color: var(--pd-accent);
+      outline: none;
+    }
+    .review-form button {
+      background: var(--pd-accent);
+      border: none;
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .15s;
+    }
+    .review-form button:hover { background: var(--pd-accent-dark); }
+
+    /* ── Upload cards ── */
+    .upload-stack { display: grid; gap: 12px; }
+
+    .upload-card {
+      border: 1.5px solid var(--pd-line);
+      border-radius: 10px;
+      background: var(--pd-surface);
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(48,67,87,0.06);
     }
 
     .upload-card-head {
@@ -24,11 +227,11 @@
       gap: 10px;
       margin-bottom: 8px;
       font-weight: 700;
-      color: #1f5b46;
+      color: var(--pd-ink);
     }
 
     .upload-card-note {
-      color: var(--muted, #6a746d);
+      color: var(--pd-ink-3);
       font-size: 12px;
       font-weight: 500;
     }
@@ -38,9 +241,9 @@
       gap: 8px;
       place-items: center;
       min-height: 120px;
-      border: 2px dashed #b9ccb8;
-      border-radius: 12px;
-      background: #f8fbf7;
+      border: 2px dashed var(--pd-line-2);
+      border-radius: 8px;
+      background: #fff;
       cursor: pointer;
       text-align: center;
       padding: 14px;
@@ -48,13 +251,13 @@
     }
 
     .upload-dropzone:hover {
-      border-color: #2b6b55;
-      background: #f2f8f4;
+      border-color: var(--pd-accent);
+      background: var(--pd-surface-2);
     }
 
     .upload-dropzone.is-dragover {
-      border-color: #1e6c4f;
-      background: #edf6ef;
+      border-color: var(--pd-accent-dark);
+      background: var(--pd-surface-2);
       transform: translateY(-1px);
     }
 
@@ -64,19 +267,20 @@
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: rgba(34, 104, 76, 0.08);
-      color: #22684c;
-      font-size: 18px;
+      background: rgba(48,67,87,0.10);
+      color: var(--pd-accent);
+      font-size: 14px;
+      font-weight: 800;
       line-height: 1;
     }
 
     .upload-dropzone-title {
       font-weight: 700;
-      color: #21352d;
+      color: var(--pd-ink);
     }
 
     .upload-dropzone-sub {
-      color: var(--muted, #6a746d);
+      color: var(--pd-ink-3);
       font-size: 12px;
     }
 
@@ -98,27 +302,25 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      border: 1px solid #d6e3d5;
-      background: #f4faf5;
-      border-radius: 10px;
+      border: 1.5px solid var(--pd-line);
+      background: var(--pd-surface-2);
+      border-radius: 8px;
       padding: 8px 10px;
       font-size: 13px;
     }
 
-    .upload-file-chip.is-visible {
-      display: flex;
-    }
+    .upload-file-chip.is-visible { display: flex; }
 
     .upload-file-chip-name {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #24483d;
+      color: var(--pd-ink);
       font-weight: 600;
     }
 
     .upload-file-chip-size {
-      color: var(--muted, #6a746d);
+      color: var(--pd-ink-3);
       white-space: nowrap;
       font-size: 12px;
     }
@@ -130,24 +332,69 @@
     }
 
     @media (max-width: 720px) {
-      .upload-grid-two {
-        grid-template-columns: 1fr;
-      }
-      .upload-dropzone {
-        min-height: 104px;
-      }
+      .upload-grid-two { grid-template-columns: 1fr; }
+      .upload-dropzone { min-height: 104px; }
+      .permit-header { flex-direction: column; }
     }
   </style>
 {% endblock %}
 {% block content %}
 <section class="permit-page" lang="ar" dir="rtl">
   <div class="permit-card">
-    <div class="action-bar no-print">
-      <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
+
+    <!-- ── Hero bar ── -->
+    <div class="hero-bar no-print">
+      <div class="hero-left">
+        <a href="{% url 'clearance_list' %}" class="hero-btn">← العودة</a>
+        {% if pirmet.status == "issued" %}
+          <a href="{% url 'vehicle_permit_print' pirmet.id %}" target="_blank" class="hero-btn hero-btn--print">طباعة التصريح</a>
+        {% endif %}
+      </div>
+      <div class="hero-center">
+        <div class="hero-title">تصريح المركبة — {{ pirmet.company.name }}</div>
+      </div>
+      <div class="hero-right">
+        {% if pirmet.status == "order_received" or pirmet.status == "inspection_pending" %}
+          <span class="hero-status hero-status--pending">
+            {% if pirmet.status == "inspection_pending" %}
+              {% if inspection_receiver_name %}
+                تم استلام الطلب - {{ inspection_receiver_name }}
+              {% else %}
+                جاهز للاستلام
+              {% endif %}
+            {% else %}
+              {{ pirmet.get_status_display }}
+            {% endif %}
+          </span>
+        {% elif pirmet.status == "inspection_completed" or pirmet.status == "payment_pending" or pirmet.status == "payment_completed" %}
+          <span class="hero-status hero-status--info">
+            {% if pirmet.status == "inspection_completed" %}
+              {% if inspection_report_decision == "approved" %}
+                تم إنهاء التفتيش - معتمد
+              {% elif inspection_report_decision == "rejected" %}
+                تم إنهاء التفتيش - غير معتمد
+              {% else %}
+                تم إنهاء التفتيش
+              {% endif %}
+            {% elif pirmet.status == "payment_pending" %}
+              بانتظار دفع التصريح
+            {% elif pirmet.status == "payment_completed" %}
+              تم استلام الدفع
+            {% endif %}
+          </span>
+        {% elif pirmet.status == "issued" %}
+          <span class="hero-status hero-status--issued">تم إصدار التصريح</span>
+        {% elif pirmet.status == "needs_completion" %}
+          <span class="hero-status hero-status--warning">تم إنهاء الطلب - غير معتمد</span>
+        {% elif pirmet.status == "cancelled_admin" %}
+          <span class="hero-status hero-status--closed">{{ pirmet.get_status_display }}</span>
+        {% else %}
+          <span class="hero-status hero-status--default">{{ pirmet.get_status_display }}</span>
+        {% endif %}
+      </div>
     </div>
 
-    <div class="permit-title permit-title--hero">متابعة تصريح المركبة</div>
-
+    <!-- ── Permit header (logo + meta) ── -->
     <header class="permit-header">
       <div class="municipality">
         <div class="logo-box">
@@ -168,9 +415,9 @@
           <span class="label">نوع التصريح</span>
           <span class="value">تصريح المركبة للشركات</span>
         </div>
-        <div class="meta-item meta-item--status">
+        <div class="meta-item">
           <span class="label">الحالة الحالية</span>
-          <span class="status-badge">
+          <span class="value">
             {% if pirmet.status == "inspection_pending" %}
               {% if inspection_receiver_name %}
                 تم استلام الطلب - {{ inspection_receiver_name }}
@@ -201,6 +448,7 @@
       </div>
     </header>
 
+    <!-- ── Errors ── -->
     {% if review_errors %}
       <div class="alert">
         <strong>يرجى تصحيح التالي:</strong>
@@ -212,6 +460,7 @@
       </div>
     {% endif %}
 
+    <!-- ── Request data ── -->
     <section class="permit-section">
       <div class="section-title">بيانات الطلب</div>
       <div class="detail-grid">
@@ -224,6 +473,7 @@
       </div>
     </section>
 
+    <!-- ── Company data ── -->
     <section class="permit-section">
       <div class="section-title">بيانات الشركة</div>
       <div class="detail-grid">
@@ -234,6 +484,7 @@
       </div>
     </section>
 
+    <!-- ── Vehicle data ── -->
     <section class="permit-section">
       <div class="section-title">بيانات المركبة</div>
       <div class="detail-grid">
@@ -245,6 +496,7 @@
       </div>
     </section>
 
+    <!-- ── Request documents ── -->
     {% if request_documents %}
       <section class="permit-section">
         <div class="section-title">مستندات الطلب</div>
@@ -256,6 +508,7 @@
       </section>
     {% endif %}
 
+    <!-- ── Inspection result ── -->
     {% if inspection_report_decision %}
       <section class="permit-section">
         <div class="section-title">نتيجة التفتيش</div>
@@ -267,6 +520,7 @@
       </section>
     {% endif %}
 
+    <!-- ── Inspection photos ── -->
     {% if inspection_report_photos %}
       <section class="permit-section">
         <div class="section-title">صور من التفتيش</div>
@@ -278,6 +532,7 @@
       </section>
     {% endif %}
 
+    <!-- ── Action: receive for inspection ── -->
     {% if can_receive_inspection_request %}
       <section class="permit-section no-print">
         <div class="section-title">استلام الطلب للتفتيش</div>
@@ -289,6 +544,7 @@
       </section>
     {% endif %}
 
+    <!-- ── Action: reassign inspector ── -->
     {% if can_reassign_inspector %}
       <section class="permit-section no-print">
         <div class="section-title">تغيير المفتش المستلم</div>
@@ -309,6 +565,7 @@
       </section>
     {% endif %}
 
+    <!-- ── Action: submit inspection report ── -->
     {% if can_submit_inspection_report %}
       <section class="permit-section no-print">
         <div class="section-title">إدخال تقرير التفتيش</div>
@@ -336,6 +593,7 @@
       </section>
     {% endif %}
 
+    <!-- ── Action: record payment number ── -->
     {% if can_record_payment and pirmet.status == "inspection_completed" and not pirmet.PaymentNumber %}
       <section class="permit-section no-print">
         <div class="section-title">إدخال رقم دفع تصريح المركبة</div>
@@ -347,9 +605,9 @@
           <button type="submit">حفظ رقم الدفع</button>
         </form>
       </section>
-
     {% endif %}
 
+    <!-- ── Action: upload payment receipt ── -->
     {% if can_record_payment and pirmet.status == "payment_pending" and pirmet.PaymentNumber %}
       <section class="permit-section no-print">
         <div class="section-title">إدخال إثبات دفع تصريح المركبة</div>
@@ -409,6 +667,7 @@
       </section>
     {% endif %}
 
+    <!-- ── Action: issue permit ── -->
     {% if can_record_payment and pirmet.status == "payment_completed" %}
       <section class="permit-section no-print">
         <div class="section-title">إصدار تصريح المركبة</div>
@@ -419,6 +678,7 @@
         </form>
       </section>
     {% endif %}
+
   </div>
 </section>
 <script>

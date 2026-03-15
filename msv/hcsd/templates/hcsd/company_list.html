@@ -1,439 +1,331 @@
 {% extends "hcsd/base.html" %}
+{% load static %}
 {% block title %}قائمة الشركات{% endblock %}
-{% block content %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
 <style>
   .company-page {
-    --ink: #304357;
-    --ink-2: #41576f;
-    --ink-3: #6f8194;
-    --paper: #ffffff;
-    --surface: #F1F4F7;
-    --surface-2: #e6ecf2;
-    --line: #d7dfe8;
-    --line-2: #bec9d5;
-    --accent: #304357;
+    --ink:       #304357;
+    --ink-2:     #455c75;
+    --ink-3:     #6f8297;
+    --paper:     #ffffff;
+    --surface:   #f1f4f7;
+    --surface-2: #e8eef4;
+    --line:      #d4dce5;
+    --line-2:    #bcc8d5;
+    --accent:    #304357;
     --accent-dk: #26384a;
-    color: var(--ink);
+    --radius:    8px;
+    --shadow:    0 10px 24px rgba(48,67,87,.08);
+
+    padding: 20px 10px 48px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.5), rgba(241,244,247,.86)),
+      var(--surface);
     direction: rtl;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 24px 20px 40px;
-  }
-
-  .cl-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 18px;
-  }
-
-  .cl-title {
-    margin: 0;
-    font-size: 26px;
-    font-weight: 700;
+    font-family: "IBM Plex Sans Arabic","Tahoma",sans-serif;
     color: var(--ink);
-    letter-spacing: -0.02em;
-    position: relative;
   }
 
-  .cl-title::after {
-    content: "";
-    display: block;
-    margin-top: 4px;
-    height: 3px;
-    width: 48px;
-    background: var(--accent);
-    border-radius: 2px;
+  .company-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    gap: 14px;
   }
 
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border: 1.5px solid var(--line-2);
-    border-radius: 6px;
-    background: var(--paper);
-    color: var(--ink-2);
-    font-weight: 700;
-    font-size: 13px;
-    padding: 9px 16px;
-    text-decoration: none;
-    cursor: pointer;
-    min-height: 40px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-  }
-
-  .btn:hover {
-    background: var(--surface-2);
-    border-color: var(--ink-3);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .btn-primary {
-    background: var(--accent);
-    border-color: var(--accent);
+  /* ── Hero ── */
+  .company-hero {
+    background: linear-gradient(160deg,#3a4f66 0%,#304357 55%,#26384a 100%);
+    border-radius: var(--radius);
+    padding: 18px 22px;
     color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+    box-shadow: 0 8px 24px rgba(48,67,87,.22);
   }
+  .company-hero h1 { margin: 0 0 4px; font-size: clamp(18px,2.2vw,22px); font-weight: 800; letter-spacing: -.02em; }
+  .company-hero p  { margin: 0; font-size: 12.5px; opacity: .7; }
 
-  .btn-primary:hover {
-    background: var(--accent-dk);
-    border-color: var(--accent-dk);
+  .hero-btn {
+    display: inline-flex; align-items: center;
+    padding: 8px 16px; border-radius: 6px;
+    font-size: 12.5px; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    border: 1.5px solid rgba(255,255,255,.2);
+    background: rgba(255,255,255,.12); color: #fff;
+    transition: background .15s;
   }
+  .hero-btn:hover { background: rgba(255,255,255,.22); }
+  .hero-btn.primary {
+    background: rgba(255,255,255,.95); color: var(--accent);
+    border-color: transparent;
+  }
+  .hero-btn.primary:hover { background: #fff; }
 
-  .cl-filters {
+  /* ── Filter card ── */
+  .filter-card {
     background: var(--paper);
     border: 1.5px solid var(--line);
-    border-radius: 8px;
-    padding: 16px 18px;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 16px;
   }
 
   .company-filter-form {
     display: grid;
-    grid-template-columns: minmax(220px, 1.8fr) minmax(180px, 1fr) auto auto;
+    grid-template-columns: 1.6fr 1fr auto auto;
     gap: 12px;
     align-items: end;
   }
 
-  .filter-field {
-    display: grid;
-    gap: 6px;
-  }
-
-  .filter-field label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ink-3);
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-
+  .filter-field { display: grid; gap: 5px; }
+  .filter-field label { font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
   .filter-field input,
   .filter-field select {
-    width: 100%;
-    border: 1.5px solid var(--line-2);
-    border-radius: 6px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
     background: var(--surface);
     color: var(--ink);
-    padding: 10px 13px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    padding: 9px 12px;
+    font-size: 13.5px; font-family: inherit;
+    transition: border-color .15s, box-shadow .15s;
   }
-
   .filter-field input:focus,
   .filter-field select:focus {
+    outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.14);
+    box-shadow: 0 0 0 3px rgba(48,67,87,.12);
   }
 
-  .cl-active-filter {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 12px;
-    padding: 5px 12px;
-    border-radius: 6px;
-    background: #eaf0f6;
-    border: 1px solid #c4d2df;
-    color: var(--accent);
-    font-size: 12px;
-    font-weight: 700;
+  .filter-submit {
+    padding: 9px 20px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: var(--radius);
+    font-size: 13.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s; white-space: nowrap;
   }
+  .filter-submit:hover { background: var(--accent-dk); }
 
-  .cl-active-filter::before {
-    content: "⬤";
-    font-size: 6px;
+  .filter-reset {
+    padding: 9px 16px;
+    background: var(--surface); color: var(--ink-2);
+    border: 1.5px solid var(--line); border-radius: var(--radius);
+    font-size: 13.5px; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    display: inline-flex; align-items: center;
+    transition: background .15s;
   }
+  .filter-reset:hover { background: var(--surface-2); }
 
-  .cl-section {
+  .active-filter-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 10px;
+    padding: 4px 12px; border-radius: 20px;
+    background: var(--surface-2); border: 1.5px solid var(--line);
+    color: var(--ink-2); font-size: 12px; font-weight: 700;
+  }
+  .active-filter-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+
+  /* ── Table card ── */
+  .table-card {
     background: var(--paper);
     border: 1.5px solid var(--line);
-    border-radius: 8px;
-    padding: 18px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
   }
 
-  .table-wrap {
-    overflow-x: auto;
+  .table-card-head {
+    padding: 11px 16px;
+    border-bottom: 1.5px solid var(--line);
+    background: var(--surface);
+    font-size: 13px; font-weight: 800; color: var(--ink);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
+
+  .table-count {
+    font-size: 12px; font-weight: 700; color: var(--ink-3);
+    background: var(--paper); border: 1.5px solid var(--line);
+    border-radius: 20px; padding: 2px 10px;
+  }
+
+  .table-wrap { overflow-x: auto; }
 
   .company-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 620px;
-    background: #fff;
+    width: 100%; border-collapse: collapse; font-size: 13.5px;
+  }
+  .company-table thead th {
+    background: var(--surface); color: var(--ink-3);
+    font-size: 11.5px; font-weight: 700;
+    padding: 10px 14px;
+    border-bottom: 1.5px solid var(--line);
+    white-space: nowrap; text-align: right;
+  }
+  .company-table tbody tr { border-bottom: 1px solid var(--line); transition: background .1s; }
+  .company-table tbody tr:last-child { border-bottom: none; }
+  .company-table tbody tr:hover { background: var(--surface); }
+  .company-table td { padding: 12px 14px; vertical-align: middle; text-align: right; color: var(--ink); }
+
+  .company-name { font-weight: 800; font-size: 14px; color: var(--accent); }
+  .company-num  { font-size: 13px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+  .view-btn {
+    display: inline-flex; align-items: center;
+    padding: 7px 16px; border-radius: 6px;
+    background: var(--accent); color: #fff;
+    text-decoration: none; font-size: 12.5px; font-weight: 700;
+    white-space: nowrap; transition: background .15s;
+  }
+  .view-btn:hover { background: var(--accent-dk); }
+
+  .table-empty {
+    padding: 40px 16px; text-align: center;
+    color: var(--ink-3); font-size: 13.5px; font-weight: 600;
   }
 
-  .company-table th {
-    background: var(--surface);
-    color: var(--ink-3);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 10px 12px;
-    border-bottom: 1.5px solid var(--line-2);
-    white-space: nowrap;
-  }
-
-  .company-table td {
-    padding: 12px;
-    border-bottom: 1px solid var(--line);
-    color: var(--ink-2);
-    font-weight: 500;
-    vertical-align: middle;
-  }
-
-  .company-table tr:last-child td {
-    border-bottom: none;
-  }
-
-  .company-table tr:hover td {
-    background: var(--surface);
-  }
-
-  .details-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 76px;
-  }
-
+  /* ── Pagination ── */
   .pagination-wrap {
-    margin: 14px 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1.5px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap;
   }
-
-  .pagination-info {
-    font-size: 13px;
-    color: var(--ink-3);
-  }
-
-  .pagination-links {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
+  .pagination-info { font-size: 12.5px; color: var(--ink-3); font-weight: 600; }
+  .pagination-links { display: flex; gap: 6px; flex-wrap: wrap; }
   .pagination-links a,
   .pagination-links span {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 38px;
-    padding: 7px 10px;
-    border-radius: 6px;
-    border: 1.5px solid var(--line-2);
-    background: #fff;
-    color: var(--ink-2);
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 34px; padding: 6px 10px;
+    border-radius: 6px; border: 1.5px solid var(--line);
+    background: var(--paper); color: var(--ink-2);
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    transition: background .12s;
   }
-
+  .pagination-links a:hover { background: var(--surface); }
   .pagination-links .is-active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    font-weight: 700;
+    background: var(--accent); border-color: var(--accent);
+    color: #fff; font-weight: 700;
   }
 
-  .cl-empty {
-    margin: 0;
-    border: 1.5px dashed var(--line-2);
-    border-radius: 8px;
-    background: var(--surface);
-    color: var(--ink-2);
-    padding: 16px;
-    font-weight: 600;
-  }
+  /* ── Skeleton ── */
+  .company-skeleton { display: none; gap: 14px; }
+  .company-list--loading .company-page .company-runtime { display: none; }
+  .company-list--loading .company-page .company-skeleton { display: grid; }
 
-  .company-skeleton {
-    display: none;
-    gap: 14px;
+  .skeleton-card {
+    background: var(--paper); border: 1.5px solid var(--line);
+    border-radius: var(--radius); padding: 16px;
+    box-shadow: var(--shadow);
   }
-
-  .company-list--loading .company-page .company-runtime {
-    display: none;
-  }
-
-  .company-list--loading .company-page .company-skeleton {
-    display: grid;
-  }
-
-  .company-skeleton-card {
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
-    background: #fff;
-    padding: 14px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  .company-skeleton-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-  }
-
-  .company-skeleton-line {
-    height: 14px;
-    border-radius: 6px;
-    background: linear-gradient(100deg, #ece8de 30%, #f7f5ee 48%, #ece8de 66%);
+  .skeleton-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px; margin-top: 12px; }
+  .skeleton-line {
+    height: 14px; border-radius: 6px;
+    background: linear-gradient(100deg,#e8eef4 30%,#f1f4f7 48%,#e8eef4 66%);
     background-size: 220% 100%;
-    animation: company-skeleton-shimmer 1.2s linear infinite;
+    animation: shimmer 1.2s linear infinite;
   }
+  .skeleton-line.tall  { height: 40px; }
+  .skeleton-line.title { height: 20px; width: 40%; margin-bottom: 4px; }
+  .skeleton-table { background: var(--paper); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; box-shadow: var(--shadow); }
+  .skeleton-row   { height: 16px; border-radius: 6px; background: linear-gradient(100deg,#e8eef4 30%,#f1f4f7 48%,#e8eef4 66%); background-size: 220% 100%; animation: shimmer 1.2s linear infinite; }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 
-  .company-skeleton-line--title {
-    width: 35%;
-    height: 18px;
-    margin-bottom: 10px;
+  @media (max-width: 860px) {
+    .company-filter-form { grid-template-columns: 1fr 1fr; }
+    .filter-submit, .filter-reset { grid-column: span 1; }
   }
-
-  .company-skeleton-line--input {
-    width: 100%;
-    height: 40px;
-  }
-
-  .company-skeleton-table {
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
-    background: #fff;
-    padding: 12px;
-    display: grid;
-    gap: 8px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  .company-skeleton-row {
-    height: 16px;
-    border-radius: 6px;
-    background: linear-gradient(100deg, #ece8de 30%, #f7f5ee 48%, #ece8de 66%);
-    background-size: 220% 100%;
-    animation: company-skeleton-shimmer 1.2s linear infinite;
-  }
-
-  @keyframes company-skeleton-shimmer {
-    from {
-      background-position: 100% 0;
-    }
-    to {
-      background-position: -100% 0;
-    }
-  }
-
-  @media (max-width: 900px) {
-    .company-filter-form {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .company-page {
-      padding: 16px 12px 28px;
-    }
-
-    .cl-header {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .cl-header .btn {
-      width: 100%;
-    }
-
-    .company-filter-form {
-      grid-template-columns: 1fr;
-    }
-
-    .company-filter-form .btn {
-      width: 100%;
-    }
+  @media (max-width: 540px) {
+    .company-filter-form { grid-template-columns: 1fr; }
+    .company-hero { flex-direction: column; align-items: flex-start; }
   }
 </style>
+{% endblock %}
 
+{% block content %}
 <section class="company-page" lang="ar" dir="rtl">
+
+  {# Skeleton #}
   <div class="company-skeleton" aria-hidden="true">
-    <div class="company-skeleton-card">
-      <div class="company-skeleton-line company-skeleton-line--title"></div>
-      <div class="company-skeleton-grid">
-        <div class="company-skeleton-line company-skeleton-line--input"></div>
-        <div class="company-skeleton-line company-skeleton-line--input"></div>
-        <div class="company-skeleton-line company-skeleton-line--input"></div>
-        <div class="company-skeleton-line company-skeleton-line--input"></div>
+    <div class="skeleton-card">
+      <div class="skeleton-line title"></div>
+      <div class="skeleton-grid">
+        <div class="skeleton-line tall"></div>
+        <div class="skeleton-line tall"></div>
+        <div class="skeleton-line tall"></div>
+        <div class="skeleton-line tall"></div>
       </div>
     </div>
-    <div class="company-skeleton-table">
-      <div class="company-skeleton-row"></div>
-      <div class="company-skeleton-row"></div>
-      <div class="company-skeleton-row"></div>
-      <div class="company-skeleton-row"></div>
-      <div class="company-skeleton-row"></div>
-      <div class="company-skeleton-row"></div>
+    <div class="skeleton-table">
+      {% for i in "123456" %}<div class="skeleton-row"></div>{% endfor %}
     </div>
   </div>
 
-  <div class="company-runtime">
-    <div class="cl-header">
-      <h1 class="cl-title">قائمة الشركات</h1>
+  <div class="company-wrap company-runtime">
+
+    {# ── Hero ── #}
+    <div class="company-hero">
+      <div>
+        <h1>قائمة الشركات</h1>
+        <p>إدارة الشركات المسجلة وتصاريحها</p>
+      </div>
       {% if can_add_company %}
-        <a class="btn btn-primary" href="{% url 'add_company' %}">إضافة شركة جديدة</a>
+        <a class="hero-btn primary" href="{% url 'add_company' %}">+ شركة جديدة</a>
       {% endif %}
     </div>
 
-    <section class="cl-filters">
+    {# ── Filter card ── #}
+    <div class="filter-card">
       <form class="company-filter-form filters" method="get">
         <div class="filter-field">
           <label for="q">بحث</label>
-          <input type="text" id="q" name="q" value="{{ query }}" placeholder="ابحث بالاسم أو رقم الرخصة">
+          <input type="text" id="q" name="q" value="{{ query }}" placeholder="ابحث بالاسم أو رقم الرخصة" autocomplete="off">
         </div>
         <div class="filter-field">
           <label for="status">الحالة</label>
           <select id="status" name="status">
-            <option value="all" {% if status_filter == "all" %}selected{% endif %}>الكل</option>
-            <option value="extension" {% if status_filter == "extension" %}selected{% endif %}>مهلة</option>
-            <option value="suspended" {% if status_filter == "suspended" %}selected{% endif %}>موقوفة</option>
+            <option value="all"             {% if status_filter == "all" %}selected{% endif %}>كل الشركات</option>
+            <option value="extension"       {% if status_filter == "extension" %}selected{% endif %}>مهلة</option>
+            <option value="suspended"       {% if status_filter == "suspended" %}selected{% endif %}>موقوفة</option>
             <option value="expired_permits" {% if status_filter == "expired_permits" %}selected{% endif %}>تصاريح منتهية</option>
           </select>
         </div>
-        <button class="btn btn-primary" type="submit">تطبيق</button>
-        <a class="btn" href="{% url 'company_list' %}">إعادة ضبط</a>
+        <button class="filter-submit" type="submit">بحث</button>
+        <a class="filter-reset" href="{% url 'company_list' %}">إعادة ضبط</a>
       </form>
       {% if status_filter != "all" %}
-        <div class="cl-active-filter">فلتر نشط: {{ status_filter }}</div>
+        <div class="active-filter-tag">فلتر نشط: {{ status_filter }}</div>
       {% endif %}
-    </section>
+    </div>
 
-    {% if page_obj %}
-      <div class="pagination-wrap">
-        <div class="pagination-info">
-          عرض {{ company_rows|length }} من {{ total_companies }} شركة · صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}
-        </div>
-        <div class="pagination-links">
-          {% if page_obj.has_previous %}
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page=1">الأولى</a>
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">السابق</a>
-          {% endif %}
-          <span class="is-active">{{ page_obj.number }}</span>
-          {% if page_obj.has_next %}
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">التالي</a>
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.paginator.num_pages }}">الأخيرة</a>
-          {% endif %}
-        </div>
+    {# ── Table ── #}
+    <div class="table-card">
+      <div class="table-card-head">
+        <span>الشركات</span>
+        <span class="table-count">{{ total_companies }} شركة</span>
       </div>
-    {% endif %}
 
-    {% if company_rows %}
-      <section class="cl-section">
+      {% if company_rows %}
+        {% if page_obj %}
+          <div class="pagination-wrap">
+            <div class="pagination-info">
+              عرض {{ company_rows|length }} من {{ total_companies }} · صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}
+            </div>
+            <div class="pagination-links">
+              {% if page_obj.has_previous %}
+                <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page=1">الأولى</a>
+                <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">السابق</a>
+              {% endif %}
+              <span class="is-active">{{ page_obj.number }}</span>
+              {% if page_obj.has_next %}
+                <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">التالي</a>
+                <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.paginator.num_pages }}">الأخيرة</a>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
         <div class="table-wrap">
           <table class="company-table">
             <thead>
@@ -441,83 +333,73 @@
                 <th>اسم الشركة</th>
                 <th>رقم الرخصة</th>
                 <th>انتهاء الرخصة</th>
-                <th>التفاصيل</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {% for row in company_rows %}
                 <tr>
-                  <td>{{ row.company.name }}</td>
-                  <td>{{ row.company.number }}</td>
-                  <td>{{ row.trade_expiry|date:"d/m/Y"|default:"-" }}</td>
-                  <td>
-                    <a class="btn btn-primary details-link" href="{% url 'company_detail' row.company.id %}">عرض</a>
-                  </td>
+                  <td><span class="company-name">{{ row.company.name }}</span></td>
+                  <td><span class="company-num">{{ row.company.number }}</span></td>
+                  <td style="color:var(--ink-2);">{{ row.trade_expiry|date:"d/m/Y"|default:"—" }}</td>
+                  <td><a class="view-btn" href="{% url 'company_detail' row.company.id %}">عرض</a></td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-      </section>
 
-      {% if page_obj %}
-        <div class="pagination-wrap">
-          <div class="pagination-info">
-            عرض {{ company_rows|length }} من {{ total_companies }} شركة · صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}
+        {% if page_obj and page_obj.paginator.num_pages > 1 %}
+          <div class="pagination-wrap">
+            <div class="pagination-info">
+              صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}
+            </div>
+            <div class="pagination-links">
+              {% if page_obj.has_previous %}
+                <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page=1">الأولى</a>
+                <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">السابق</a>
+              {% endif %}
+              <span class="is-active">{{ page_obj.number }}</span>
+              {% if page_obj.has_next %}
+                <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">التالي</a>
+                <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.paginator.num_pages }}">الأخيرة</a>
+              {% endif %}
+            </div>
           </div>
-          <div class="pagination-links">
-            {% if page_obj.has_previous %}
-              <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page=1">الأولى</a>
-              <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">السابق</a>
-            {% endif %}
-            <span class="is-active">{{ page_obj.number }}</span>
-            {% if page_obj.has_next %}
-              <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">التالي</a>
-              <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.paginator.num_pages }}">الأخيرة</a>
-            {% endif %}
-          </div>
-        </div>
-      {% endif %}
-    {% else %}
-      <section class="cl-section">
-        <p class="cl-empty">
+        {% endif %}
+
+      {% else %}
+        <div class="table-empty">
           {% if status_filter == "suspended" %}
             لا توجد شركة موقوفة.
           {% elif status_filter == "extension" %}
             لا توجد شركة على قيد مهلة.
           {% elif status_filter == "expired_permits" %}
-            لا توجد شركة بدون تصاريح سارية.
+            لا توجد شركة بتصاريح منتهية.
           {% else %}
-            لا توجد شركات مطابقة.
+            لا توجد شركات مطابقة للبحث.
           {% endif %}
-        </p>
-      </section>
-    {% endif %}
+        </div>
+      {% endif %}
+
+    </div>
+
   </div>
 </section>
 
 <script>
-  (function () {
-    document.addEventListener("submit", function (event) {
-      if (!event.target.matches(".company-page .filters")) {
-        return;
-      }
+(function () {
+  document.addEventListener("submit", function (e) {
+    if (e.target.matches(".company-page .filters"))
       document.documentElement.classList.add("company-list--loading");
-    });
-
-    document.addEventListener("click", function (event) {
-      var link = event.target.closest(".company-page .pagination-links a, .company-page .filters a");
-      if (!link) {
-        return;
-      }
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-        return;
-      }
-      if (typeof event.button === "number" && event.button !== 0) {
-        return;
-      }
-      document.documentElement.classList.add("company-list--loading");
-    });
-  })();
+  });
+  document.addEventListener("click", function (e) {
+    var link = e.target.closest(".company-page .pagination-links a, .company-page .filters a");
+    if (!link) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (typeof e.button === "number" && e.button !== 0) return;
+    document.documentElement.classList.add("company-list--loading");
+  });
+})();
 </script>
 {% endblock %}

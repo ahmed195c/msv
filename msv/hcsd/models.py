@@ -401,6 +401,39 @@ class EnginerStatusLog(models.Model):
         return f"{self.enginer.name} - {self.action}"
 
 
+class EngineerLeave(models.Model):
+    """Records an engineer's leave period with optional substitute assignment."""
+
+    engineer = models.ForeignKey(
+        Enginer, on_delete=models.CASCADE, related_name='leaves'
+    )
+    substitute = models.ForeignKey(
+        Enginer,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='substitute_for',
+    )
+    start_date = models.DateField()
+    expected_return_date = models.DateField(null=True, blank=True)
+    actual_return_date = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='engineer_leaves_created'
+    )
+    closed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='engineer_leaves_closed'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def is_active(self):
+        return self.actual_return_date is None
+
+    def __str__(self):
+        return f"{self.engineer.name} - إجازة من {self.start_date}"
+
+
 class PublicHealthExamRequest(models.Model):
     STATUS_CHOICES = [
         ('submitted', 'بانتظار الاعتماد'),
@@ -495,14 +528,17 @@ class PublicHealthExamRequest(models.Model):
         return 1000
 
     @classmethod
-    def next_attempt_number(cls, enginer):
+    def next_attempt_number(cls, enginer, exam_type=None):
         if not enginer:
             return 1
-        return cls.objects.filter(enginer=enginer).count() + 1
+        qs = cls.objects.filter(enginer=enginer)
+        if exam_type:
+            qs = qs.filter(exam_type=exam_type)
+        return qs.count() + 1
 
     def save(self, *args, **kwargs):
         if not self.attempt_number:
-            self.attempt_number = self.next_attempt_number(self.enginer)
+            self.attempt_number = self.next_attempt_number(self.enginer, exam_type=self.exam_type)
         if not self.exam_fee:
             self.exam_fee = self.fee_for_attempt(self.attempt_number)
         if not self.request_submission_date:
@@ -598,16 +634,25 @@ class CompanyChangeLog(models.Model):
         ('updated', 'Updated'),
         ('engineer_changed', 'Engineer Changed'),
         ('extension_requested', 'Extension Requested'),
+        ('extension_closed', 'Extension Closed'),
         ('requirements_followup_needed', 'Requirements Follow-up Needed'),
         ('requirements_insurance_created', 'Requirements Insurance Created'),
         ('requirements_insurance_paid', 'Requirements Insurance Paid'),
         ('requirements_insurance_refunded', 'Requirements Insurance Refunded'),
+        ('waste_permit_created', 'Waste Permit Created'),
+        ('waste_permit_payment_reference', 'Waste Permit Payment Reference'),
+        ('waste_permit_paid', 'Waste Permit Paid'),
+        ('waste_permit_issued', 'Waste Permit Issued'),
+        ('waste_request_created', 'Waste Request Created'),
+        ('waste_request_payment_reference', 'Waste Request Payment Reference'),
+        ('waste_request_paid', 'Waste Request Paid'),
+        ('waste_request_inspected', 'Waste Request Inspected'),
     ]
 
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, related_name='change_logs'
     )
-    action = models.CharField(max_length=40, choices=ACTION_CHOICES)
+    action = models.CharField(max_length=60, choices=ACTION_CHOICES)
     notes = models.TextField(blank=True)
     changed_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True

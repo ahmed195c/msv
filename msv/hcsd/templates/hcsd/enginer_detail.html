@@ -1,864 +1,827 @@
 {% extends "hcsd/base.html" %}
+{% load static %}
 {% block title %}{{ enginer.name }}{% endblock %}
-{% block content %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
 <style>
-  .enginer-page {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 18px 16px 40px;
-  }
+  /* ══════════════════════════════════════════
+     Page shell
+  ══════════════════════════════════════════ */
+  .eng-detail-page {
+    --ink:       #304357;
+    --ink-2:     #455c75;
+    --ink-3:     #6f8297;
+    --paper:     #ffffff;
+    --surface:   #f1f4f7;
+    --surface-2: #e8eef4;
+    --line:      #d4dce5;
+    --line-2:    #bcc8d5;
+    --accent:    #304357;
+    --accent-dk: #26384a;
+    --radius:    8px;
+    --shadow:    0 10px 24px rgba(48,67,87,.08);
 
-  .enginer-card {
+    padding: 20px 10px 48px;
     background:
-      radial-gradient(240px 180px at 12% 8%, rgba(31, 90, 75, 0.08), transparent 72%),
-      radial-gradient(220px 170px at 88% 14%, rgba(200, 138, 45, 0.10), transparent 72%),
-      linear-gradient(180deg, #fffdf8 0%, #f6f2ea 100%);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    box-shadow: var(--shadow);
-    padding: 24px;
-    font-family: "Cairo", "Noto Kufi Arabic", "Tahoma", sans-serif;
-  }
-
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e9e0d5;
-  }
-
-  .header h1 {
-    margin: 0;
-    font-size: 24px;
+      linear-gradient(180deg, rgba(255,255,255,.5), rgba(241,244,247,.86)),
+      var(--surface);
+    direction: rtl;
+    font-family: "IBM Plex Sans Arabic","Tahoma",sans-serif;
     color: var(--ink);
   }
 
-  .back-link {
-    border: 1px solid #c7d8d2;
-    color: var(--accent);
-    background: linear-gradient(180deg, #ffffff 0%, #f7fbf9 100%);
-    padding: 8px 14px;
-    border-radius: 999px;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 700;
-    box-shadow: 0 4px 10px rgba(31, 90, 75, 0.08);
+  .eng-detail-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    gap: 14px;
   }
 
-  .header-actions {
+  /* ── Hero ── */
+  .eng-hero {
+    background: linear-gradient(160deg,#3a4f66 0%,#304357 55%,#26384a 100%);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    color: #fff;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 14px;
     flex-wrap: wrap;
+    box-shadow: 0 8px 24px rgba(48,67,87,.22);
   }
 
-  .exam-request-link {
-    border: 1px solid rgba(30, 95, 140, 0.26);
+  .eng-hero-left { display: flex; align-items: center; gap: 16px; }
+
+  .eng-hero-name {
+    margin: 0 0 4px;
+    font-size: clamp(17px,2vw,22px);
+    font-weight: 800;
+    letter-spacing: -.02em;
+  }
+
+  .eng-hero-sub {
+    font-size: 12.5px;
+    opacity: .7;
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+
+  .eng-hero-right {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 700; white-space: nowrap;
+  }
+  .hero-badge::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .hb-active  { background:rgba(5,150,105,.2);  color:#6ee7b7; border:1.5px solid rgba(5,150,105,.35); }
+  .hb-active::before  { background:#34d399; }
+  .hb-leave   { background:rgba(251,191,36,.18); color:#fcd34d; border:1.5px solid rgba(251,191,36,.35); }
+  .hb-leave::before   { background:#fbbf24; }
+  .hb-warn    { background:rgba(239,68,68,.2);   color:#fca5a5; border:1.5px solid rgba(239,68,68,.35); }
+  .hb-warn::before    { background:#f87171; }
+
+  .hero-action-btn {
+    display: inline-flex; align-items: center;
+    padding: 7px 14px; border-radius: 6px;
+    font-size: 12.5px; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    border: 1.5px solid rgba(255,255,255,.2);
+    background: rgba(255,255,255,.1);
     color: #fff;
-    background: linear-gradient(180deg, #1e5f8c 0%, #174d72 100%);
-    padding: 8px 14px;
-    border-radius: 999px;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 700;
-    box-shadow: 0 6px 14px rgba(21, 67, 95, 0.2);
+    transition: background .15s;
+  }
+  .hero-action-btn:hover { background: rgba(255,255,255,.18); }
+  .hero-back-btn {
+    background: rgba(255,255,255,.08);
+    border-color: rgba(255,255,255,.15);
   }
 
-  .section {
-    border: 1px solid var(--line);
-    background: rgba(255,255,255,0.92);
-    border-radius: 14px;
-    padding: 14px;
-    margin-top: 16px;
+  /* ── Cards ── */
+  .eng-card {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
   }
 
-  .section-title {
-    font-weight: 700;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 10px;
-    background: linear-gradient(180deg, #edf5f1 0%, #e2ede9 100%);
-    border: 1px solid #c8dad3;
-    border-radius: 999px;
-    color: var(--accent);
-    margin-bottom: 12px;
+  .card-head {
+    padding: 11px 16px;
+    border-bottom: 1.5px solid var(--line);
+    background: var(--surface);
+    font-size: 13px; font-weight: 800;
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
 
+  .card-body { padding: 14px 16px; }
+
+  /* ── Info grid ── */
   .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px 16px;
+    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+    gap: 10px;
   }
 
   .info-item {
-    display: grid;
-    gap: 4px;
-    font-size: 14px;
-    border: 1px solid #ece4d8;
-    border-radius: 12px;
-    background: linear-gradient(180deg, #fff 0%, #fcfaf5 100%);
-    padding: 10px;
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    padding: 13px 15px;
+    display: grid; gap: 5px;
   }
 
-  .info-item .label {
-    font-size: 12px;
-    color: var(--muted);
-    font-weight: 700;
+  .info-label {
+    font-size: 11.5px; font-weight: 700;
+    color: var(--ink-3);
   }
 
-  .info-item .value {
+  .info-value {
+    font-size: 15px; font-weight: 800;
     color: var(--ink);
-    font-weight: 600;
     word-break: break-word;
+    letter-spacing: -0.01em;
   }
 
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    border: 1px solid #c7d8d2;
-    background: #e2ede9;
-    color: #1f5a4b;
-    margin-inline-end: 6px;
-    margin-bottom: 6px;
+  /* ── Cert pills ── */
+  .cert-row {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 12px;
   }
 
-  .badge.warn {
-    background: #fff4f4;
-    border-color: #e7b4b4;
-    color: #8a1f1f;
+  .cert-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 700;
   }
+  .cert-pill::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
 
-  .upload-form {
+  .cp-ok   { background:#f0fdf4; color:#065f46; border:1.5px solid #86efac; }
+  .cp-ok::before   { background:#059669; }
+  .cp-warn { background:#fff3cd; color:#7c5e00; border:1.5px solid #ffc107; }
+  .cp-warn::before { background:#f59e0b; }
+  .cp-miss { background:#fef2f2; color:#b91c1c; border:1.5px solid #fecaca; }
+  .cp-miss::before { background:#ef4444; }
+
+  /* ── Cert detail cards ── */
+  .cert-cards {
     display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
     gap: 12px;
   }
 
-  .upload-form label {
-    font-size: 13px;
-    color: var(--muted);
-    font-weight: 700;
-  }
-
-  .upload-form input[type="file"] {
-    border: 1px solid var(--line);
-    padding: 10px 12px;
-    background: #fff;
-    border-radius: 12px;
-  }
-
-  .upload-box {
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    background: linear-gradient(180deg, #fff 0%, #fbf8f2 100%);
+  .cert-card {
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
     overflow: hidden;
   }
 
-  .upload-box-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 10px 12px;
-    border-bottom: 1px solid #ebe2d6;
-    background: rgba(255,255,255,.8);
-  }
-
-  .upload-box-title {
-    font-size: 12px;
-    font-weight: 700;
+  .cert-card-head {
+    padding: 9px 14px;
+    background: var(--surface);
+    border-bottom: 1.5px solid var(--line);
+    font-size: 12.5px; font-weight: 800;
     color: var(--ink);
+    display: flex; align-items: center; justify-content: space-between;
   }
 
-  .upload-box-tag {
-    font-size: 11px;
-    color: var(--muted);
+  .cert-card-body {
+    padding: 12px 14px;
+    display: grid; gap: 6px;
+    font-size: 13px; color: var(--ink-2);
   }
 
-  .upload-box-body {
-    padding: 12px;
+  .cert-open-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 6px;
+    background: var(--accent); color: #fff;
+    text-decoration: none; font-size: 12px; font-weight: 700;
+  }
+
+  /* ── Upload ── */
+  .upload-grid {
     display: grid;
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+    gap: 14px;
+    margin-bottom: 14px;
   }
+
+  .upload-zone {
+    border: 1.5px dashed var(--line-2);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 8px;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: var(--surface-2);
+  }
+  .upload-zone-icon {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1.5px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: var(--ink-3);
+  }
+  .upload-zone-label { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .upload-zone-sub   { font-size: 11.5px; color: var(--ink-3); }
 
   .upload-native {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-    padding: 0;
-    margin: -1px;
-  }
-
-  .upload-drop {
-    display: grid;
-    place-items: center;
-    min-height: 112px;
-    border: 1.5px dashed rgba(31, 90, 75, 0.25);
-    border-radius: 12px;
-    background:
-      radial-gradient(160px 80px at 85% 15%, rgba(31, 90, 75, 0.03), transparent 70%),
-      radial-gradient(120px 70px at 12% 88%, rgba(200, 138, 45, 0.06), transparent 75%),
-      #fff;
-    cursor: pointer;
-    text-align: center;
-    padding: 12px;
-    transition: border-color .15s ease, transform .12s ease, background .15s ease;
-  }
-
-  .upload-drop:hover {
-    border-color: rgba(31, 90, 75, 0.45);
-    transform: translateY(-1px);
-  }
-
-  .upload-drop.drag-over {
-    border-color: rgba(31, 90, 75, 0.65);
-    background: linear-gradient(180deg, #f3faf7 0%, #edf6f2 100%);
-    box-shadow: inset 0 0 0 2px rgba(31, 90, 75, 0.06);
-  }
-
-  .upload-drop-inner {
-    display: grid;
-    gap: 8px;
-    justify-items: center;
-  }
-
-  .upload-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 999px;
-    display: grid;
-    place-items: center;
-    background: linear-gradient(180deg, #eef5f1 0%, #e2ede9 100%);
-    color: var(--accent);
-    border: 1px solid #c9dbd3;
-    font-size: 17px;
-    line-height: 1;
-  }
-
-  .upload-text {
-    font-size: 13px;
-    color: var(--ink);
-    font-weight: 600;
-  }
-
-  .upload-subtext {
-    font-size: 11px;
-    color: var(--muted);
-  }
-
-  .upload-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
+    position: absolute; width:1px; height:1px;
+    overflow:hidden; clip:rect(0,0,0,0);
+    white-space:nowrap; border:0; padding:0; margin:-1px;
   }
 
   .upload-file-pill {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-    flex: 1 1 auto;
-    border: 1px solid #d2e0da;
-    background: #edf5f1;
-    color: #214d42;
-    border-radius: 10px;
-    padding: 8px 10px;
-    font-size: 12px;
+    display: none; align-items: center; gap: 8px;
+    background: var(--surface-2); border: 1.5px solid var(--line);
+    border-radius: 6px; padding: 6px 10px;
+    font-size: 12px; color: var(--ink-2);
+    margin-top: 6px;
+  }
+  .upload-file-pill.show { display: inline-flex; }
+  .upload-file-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
+
+  .upload-submit-btn {
+    padding: 10px 24px;
+    background: var(--accent);
+    color: #fff; border: none;
+    border-radius: var(--radius);
+    font-size: 14px; font-weight: 800;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s;
+  }
+  .upload-submit-btn:hover { background: var(--accent-dk); }
+
+  /* ── Error / alerts ── */
+  .alert-error {
+    background: #fef2f2; border: 1.5px solid #fecaca;
+    color: #b91c1c; border-radius: var(--radius);
+    padding: 11px 14px; font-size: 13px; font-weight: 600;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .alert-error::before { content:'⚠'; font-size:15px; flex-shrink:0; }
+
+  /* ── Leave ── */
+  .leave-alert {
+    background: #fff8e1; border: 1.5px solid #fbc02d;
+    border-radius: var(--radius);
+    padding: 14px 16px; margin-bottom: 14px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .leave-alert-icon { font-size: 22px; flex-shrink: 0; }
+  .leave-alert-title { font-weight: 800; font-size: 13.5px; color: #5c3d00; margin-bottom: 5px; }
+  .leave-alert-meta  { font-size: 12.5px; color: #7a5200; display: flex; flex-wrap: wrap; gap: 5px 14px; }
+
+  .leave-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px,1fr));
+    gap: 12px; margin-bottom: 14px;
+  }
+  .leave-field { display: grid; gap: 5px; }
+  .leave-field.full { grid-column: 1/-1; }
+  .leave-field label { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+  .leave-field input,
+  .leave-field select,
+  .leave-field textarea {
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    font-size: 13.5px; font-family: inherit;
+    background: var(--paper); color: var(--ink);
+    transition: border-color .15s;
+  }
+  .leave-field input:focus,
+  .leave-field select:focus,
+  .leave-field textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(48,67,87,.1);
   }
 
-  .upload-file-pill.show {
-    display: inline-flex;
+  .leave-btn {
+    padding: 10px 22px; border: none; border-radius: var(--radius);
+    font-weight: 700; font-size: 13.5px;
+    cursor: pointer; font-family: inherit; transition: opacity .15s;
   }
+  .leave-btn:hover { opacity: .88; }
+  .leave-btn.orange { background: #d97706; color: #fff; }
+  .leave-btn.green  { background: #059669; color: #fff; }
 
-  .upload-file-name {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  /* ── Leave history table ── */
+  .leave-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .leave-table th {
+    background: var(--surface); color: var(--ink-3);
+    font-size: 11.5px; font-weight: 700;
+    padding: 9px 12px; border-bottom: 1.5px solid var(--line);
+    text-align: right; white-space: nowrap;
   }
-
-  .upload-actions {
-    display: flex;
-    gap: 8px;
-    margin-inline-start: auto;
-  }
-
-  .upload-btn {
-    border: 1px solid var(--line);
-    background: #fff;
-    color: var(--ink);
-    border-radius: 999px;
-    min-height: 32px;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .upload-btn.muted {
-    color: var(--muted);
-    background: #f4f0e8;
-  }
-
-  .upload-form button {
-    border: none;
-    padding: 10px 16px;
-    background: linear-gradient(180deg, #2b6c5a 0%, #1f5a4b 100%);
-    color: #fff;
-    cursor: pointer;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 700;
-    box-shadow: 0 8px 18px rgba(31, 90, 75, 0.18);
-  }
-
-  .error-box {
-    border: 1px solid #d9b0b0;
-    background: #fff4f4;
-    color: #8a1f1f;
-    border-radius: 12px;
+  .leave-table td {
     padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink); vertical-align: middle;
   }
+  .leave-table tr:last-child td { border-bottom: none; }
+  .leave-table tr:hover td { background: var(--surface); }
 
-  .timeline {
-    --timeline-date-col: 132px;
-    --timeline-gap: 28px;
-    --timeline-line-x: calc(var(--timeline-date-col) + (var(--timeline-gap) / 2));
-    --timeline-dot-size: 14px;
+  .ls-active { display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;background:#fff8e1;color:#92400e;border:1.5px solid #fcd34d; }
+  .ls-closed { display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;background:#f0fdf4;color:#065f46;border:1.5px solid #86efac; }
+
+  /* ── Timeline (logs) ── */
+  .log-list { display: grid; gap: 0; }
+
+  .log-item {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 0;
     position: relative;
-    display: grid;
-    gap: 22px;
-    margin-top: 10px;
   }
 
-  .timeline::before {
-    content: "";
-    position: absolute;
-    inset-inline-start: calc(var(--timeline-line-x) - 1px);
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background:
-      repeating-linear-gradient(
-        to bottom,
-        #1f5a4b 0 6px,
-        transparent 6px 12px
-      );
-    opacity: 0.95;
+  .log-item + .log-item { border-top: 1px solid var(--line); }
+
+  .log-date {
+    padding: 12px 10px 12px 0;
+    font-size: 11.5px; font-weight: 700;
+    color: var(--ink-3); white-space: nowrap;
+    border-left: 2px solid var(--line);
+    text-align: left;
   }
 
-  .timeline-item {
-    display: grid;
-    grid-template-columns: var(--timeline-date-col) minmax(0, 1fr);
-    gap: var(--timeline-gap);
-    align-items: start;
+  .log-body {
+    padding: 12px 0 12px 14px;
   }
 
-  .timeline-date {
-    font-size: 12px;
-    color: var(--muted);
-    text-align: right;
-    font-weight: 700;
-    padding-top: 10px;
-    white-space: nowrap;
-  }
+  .log-title { font-size: 13.5px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+  .log-meta  { font-size: 11.5px; color: var(--ink-3); }
 
-  .timeline-card {
-    background: linear-gradient(180deg, #fff 0%, #fcfaf5 100%);
-    border: 1px solid #e8e0d4;
-    border-radius: 14px;
-    padding: 14px;
-    position: relative;
-    box-shadow: 0 8px 18px rgba(18, 28, 22, 0.04);
-  }
-
-  .timeline-card::before {
-    content: "";
-    position: absolute;
-    inset-inline-end: calc((var(--timeline-gap) * -1) + ((var(--timeline-gap) - var(--timeline-dot-size)) / 2));
-    top: 20px;
-    width: var(--timeline-dot-size);
-    height: var(--timeline-dot-size);
-    background: #ef6b3b;
-    border-radius: 50%;
-    box-shadow:
-      0 0 0 5px rgba(239, 107, 59, 0.16),
-      0 0 0 10px rgba(31, 90, 75, 0.06);
-    border: 2px solid #fff;
-  }
-
-  .timeline-title {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 6px;
-    color: #1f1f1f;
-  }
-
-  .timeline-meta {
-    font-size: 12px;
-    color: var(--muted);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    line-height: 1.5;
-  }
-
-  .timeline-meta .dot {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: #a29a8f;
-    display: inline-block;
-  }
-
-  .timeline-meta .actor {
-    color: #3d372f;
-    font-weight: 600;
-  }
-
-  .timeline-meta .relative {
-    color: var(--muted);
-  }
-
-  .timeline-notes {
-    margin-top: 8px;
-    font-size: 13px;
-    color: #333;
-    line-height: 1.6;
-  }
-
-  .archive-list {
-    display: grid;
-    gap: 10px;
-  }
-
+  /* ── Archive ── */
+  .archive-list { display: grid; gap: 8px; }
   .archive-item {
-    border: 1px solid #e8e0d4;
-    border-radius: 12px;
-    background: linear-gradient(180deg, #fff 0%, #fcfaf5 100%);
-    padding: 12px;
-    display: grid;
-    gap: 6px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    padding: 11px 14px;
+    background: var(--surface);
+  }
+  .archive-label { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .archive-meta-txt { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+  .archive-open-btn {
+    padding: 6px 14px; border-radius: 6px;
+    background: var(--accent); color: #fff;
+    text-decoration: none; font-size: 12.5px; font-weight: 700;
+    white-space: nowrap; flex-shrink: 0;
   }
 
-  .archive-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center; padding: 28px 16px;
+    color: var(--ink-3); font-size: 13px; font-weight: 600;
   }
 
-  .archive-type {
-    font-weight: 700;
-    color: var(--ink);
-    font-size: 13px;
-  }
-
-  .archive-meta {
-    color: var(--muted);
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-
-  .archive-meta .dot {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: #a29a8f;
-    display: inline-block;
-  }
-
-  .archive-link {
-    width: fit-content;
-    text-decoration: none;
-    background: linear-gradient(180deg, #2b6c5a 0%, #1f5a4b 100%);
-    color: #fff;
-    padding: 7px 12px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: 700;
-    box-shadow: 0 6px 14px rgba(31, 90, 75, 0.14);
-  }
-
-  @media (max-width: 720px) {
-    .enginer-card {
-      padding: 16px 14px;
-      border-radius: 14px;
-    }
-
-    .section {
-      border-radius: 12px;
-    }
-
-    .upload-footer {
-      align-items: stretch;
-    }
-
-    .upload-actions {
-      width: 100%;
-      margin-inline-start: 0;
-    }
-
-    .upload-btn {
-      flex: 1 1 0;
-    }
-
-    .timeline-item {
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    .timeline-date {
-      text-align: right;
-      padding-top: 0;
-      padding-inline-start: 0;
-      font-size: 11px;
-    }
-
-    .timeline::before {
-      display: none;
-    }
-
-    .timeline-card {
-      margin-inline-start: 0;
-    }
-
-    .timeline-card::before {
-      display: none;
-    }
+  @media (max-width: 600px) {
+    .eng-hero { flex-direction: column; align-items: flex-start; }
+    .log-item { grid-template-columns: 1fr; }
+    .log-date { border-left: none; border-bottom: 1px solid var(--line); padding: 10px 0 6px; }
+    .log-body { padding: 8px 0 10px; }
   }
 </style>
+{% endblock %}
 
-<section class="enginer-page" lang="ar" dir="rtl">
-  <div class="enginer-card">
-    <div class="header">
-      <h1>ملف المهندس</h1>
-      <div class="header-actions">
+{% block content %}
+<section class="eng-detail-page" lang="ar" dir="rtl">
+  <div class="eng-detail-wrap">
+
+    {# ── Hero ── #}
+    <div class="eng-hero">
+      <div class="eng-hero-left">
+        <div>
+          <h1 class="eng-hero-name">{{ enginer.name }}</h1>
+          <div class="eng-hero-sub">
+            <span>بطاقة: {{ enginer.card_number|default:"—" }}</span>
+            <span>{{ enginer.phone }}</span>
+            <span>{{ enginer.email }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="eng-hero-right">
+        {% if active_leave %}
+          <span class="hero-badge hb-leave">🏖 في إجازة</span>
+        {% else %}
+          <span class="hero-badge hb-active">في العمل</span>
+        {% endif %}
+        {% if not enginer.public_health_cert or public_health_is_expired or not enginer.termite_cert or termite_is_expired %}
+          <span class="hero-badge hb-warn">شهادة منتهية / مفقودة</span>
+        {% endif %}
         {% if can_create_exam_request %}
-          <a class="exam-request-link" href="{% url 'public_health_exam_request_list' %}?enginer_id={{ enginer.id }}">تقديم طلب اختبار</a>
-          <a class="exam-request-link" style="background:linear-gradient(180deg,#217f60 0%,#176149 100%);border-color:rgba(33,127,96,.28);" href="{% url 'engineer_certificate_request_list' %}?enginer_id={{ enginer.id }}">طلب شهادة لمن يهمه الأمر</a>
+          <a class="hero-action-btn" href="{% url 'public_health_exam_request_list' %}?enginer_id={{ enginer.id }}">طلب اختبار</a>
+          <a class="hero-action-btn" href="{% url 'engineer_certificate_request_list' %}?enginer_id={{ enginer.id }}">شهادة لمن يهمه</a>
         {% endif %}
-        <a class="back-link" href="{% url 'enginer_list' %}">العودة إلى قائمة المهندسين</a>
+        <a class="hero-action-btn hero-back-btn" href="{% url 'enginer_list' %}">← المهندسون</a>
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">بيانات المهندس</div>
-      <div class="info-grid">
-        <div class="info-item">
-          <span class="label">الاسم</span>
-          <span class="value">{{ enginer.name }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">البريد الإلكتروني</span>
-          <span class="value">{{ enginer.email }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">رقم الهوية / الرقم الموحد</span>
-          <span class="value">{{ enginer.national_or_unified_number|default:"-" }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">رقم الهاتف</span>
-          <span class="value">{{ enginer.phone }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">رقم البطاقة</span>
-          <span class="value">{{ enginer.card_number|default:"-" }}</span>
-        </div>
-      </div>
-      <div style="margin-top: 12px;">
-        {% if enginer.public_health_cert %}
-          {% if public_health_is_expired %}
-            <span class="badge warn">شهادة الصحة العامة منتهية</span>
-          {% else %}
-            <span class="badge">شهادة الصحة العامة مرفقة</span>
-          {% endif %}
-        {% else %}
-          <span class="badge warn">شهادة الصحة العامة غير مرفقة</span>
-        {% endif %}
-        {% if enginer.termite_cert %}
-          {% if termite_is_expired %}
-            <span class="badge warn">شهادة النمل الأبيض منتهية</span>
-          {% else %}
-            <span class="badge">شهادة النمل الأبيض مرفقة</span>
-          {% endif %}
-        {% else %}
-          <span class="badge warn">شهادة النمل الأبيض غير مرفقة</span>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">الشهادات المرفقة</div>
-      <div class="info-grid">
-        <div class="info-item">
-          <span class="label">شهادة الصحة العامة</span>
-          <span class="value">
-            {% if enginer.public_health_cert %}
-              <a href="{{ enginer.public_health_cert.url }}" target="_blank" rel="noopener">فتح الشهادة</a>
-              {% if enginer.public_health_cert_issue_date %}
-                <br>تاريخ الإصدار: {{ enginer.public_health_cert_issue_date|date:"d/m/Y" }}
-                {% if public_health_expiry_date %}<br>تاريخ الانتهاء: {{ public_health_expiry_date|date:"d/m/Y" }}{% endif %}
-                {% if public_health_is_expired %}<br><strong style="color:#b42318;">منتهية</strong>{% endif %}
-              {% endif %}
-            {% else %}
-              -
-            {% endif %}
-          </span>
-        </div>
-        <div class="info-item">
-          <span class="label">شهادة النمل الأبيض</span>
-          <span class="value">
-            {% if enginer.termite_cert %}
-              <a href="{{ enginer.termite_cert.url }}" target="_blank" rel="noopener">فتح الشهادة</a>
-              {% if enginer.termite_cert_issue_date %}
-                <br>تاريخ الإصدار: {{ enginer.termite_cert_issue_date|date:"d/m/Y" }}
-                {% if termite_expiry_date %}<br>تاريخ الانتهاء: {{ termite_expiry_date|date:"d/m/Y" }}{% endif %}
-                {% if termite_is_expired %}<br><strong style="color:#b42318;">منتهية</strong>{% endif %}
-              {% endif %}
-            {% else %}
-              -
-            {% endif %}
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">تحديث الشهادات</div>
-      {% if error %}
-        <div class="error-box">{{ error }}</div>
-      {% endif %}
-      {% if can_update_enginer %}
-        <form method="POST" enctype="multipart/form-data" class="upload-form">
-          {% csrf_token %}
-          <div>
-            <label>إرفاق شهادة الصحة العامة (PDF أو صورة)</label>
-            <div class="upload-box">
-              <div class="upload-box-head">
-                <span class="upload-box-title">رفع شهادة الصحة العامة</span>
-                <span class="upload-box-tag">اختياري للتحديث</span>
-              </div>
-              <div class="upload-box-body">
-                <input id="detail_public_health_cert" class="upload-native" type="file" name="public_health_cert">
-                <label class="upload-drop" for="detail_public_health_cert" tabindex="0">
-                  <span class="upload-drop-inner">
-                    <span class="upload-icon">↑</span>
-                    <span class="upload-text">اسحب الملف هنا أو اضغط للاختيار</span>
-                    <span class="upload-subtext">PDF أو صورة</span>
-                  </span>
-                </label>
-                <div class="upload-footer">
-                  <div class="upload-file-pill" data-file-pill="detail_public_health_cert">
-                    <span>📄</span>
-                    <span class="upload-file-name" data-file-name="detail_public_health_cert">لا يوجد ملف</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+    {# ── بيانات المهندس ── #}
+    <div class="eng-card">
+      <div class="card-head">بيانات المهندس</div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">الاسم الكامل</span>
+            <span class="info-value">{{ enginer.name }}</span>
           </div>
-
-          <div>
-            <label>إرفاق شهادة النمل الأبيض (PDF أو صورة)</label>
-            <div class="upload-box">
-              <div class="upload-box-head">
-                <span class="upload-box-title">رفع شهادة النمل الأبيض</span>
-                <span class="upload-box-tag">اختياري للتحديث</span>
-              </div>
-              <div class="upload-box-body">
-                <input id="detail_termite_cert" class="upload-native" type="file" name="termite_cert">
-                <label class="upload-drop" for="detail_termite_cert" tabindex="0">
-                  <span class="upload-drop-inner">
-                    <span class="upload-icon">↑</span>
-                    <span class="upload-text">اسحب الملف هنا أو اضغط للاختيار</span>
-                    <span class="upload-subtext">PDF أو صورة</span>
-                  </span>
-                </label>
-                <div class="upload-footer">
-                  <div class="upload-file-pill" data-file-pill="detail_termite_cert">
-                    <span>📄</span>
-                    <span class="upload-file-name" data-file-name="detail_termite_cert">لا يوجد ملف</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="info-item">
+            <span class="info-label">رقم الهوية / الموحد</span>
+            <span class="info-value">{{ enginer.national_or_unified_number|default:"—" }}</span>
           </div>
+          <div class="info-item">
+            <span class="info-label">البريد الإلكتروني</span>
+            <span class="info-value">{{ enginer.email }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">رقم الهاتف</span>
+            <span class="info-value">{{ enginer.phone }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">رقم البطاقة</span>
+            <span class="info-value">{{ enginer.card_number|default:"—" }}</span>
+          </div>
+        </div>
 
-          <button type="submit">تحديث الشهادات</button>
-        </form>
-      {% else %}
-        <p style="font-size: 13px; color: #666;">التحديث متاح لموظفي الإدخال أو الإدارة فقط.</p>
-      {% endif %}
+        <div class="cert-row">
+          {% if enginer.public_health_cert %}
+            {% if public_health_is_expired %}
+              <span class="cert-pill cp-warn">شهادة الصحة العامة — منتهية</span>
+            {% else %}
+              <span class="cert-pill cp-ok">شهادة الصحة العامة — سارية</span>
+            {% endif %}
+          {% else %}
+            <span class="cert-pill cp-miss">شهادة الصحة العامة — غير مرفقة</span>
+          {% endif %}
+
+          {% if enginer.termite_cert %}
+            {% if termite_is_expired %}
+              <span class="cert-pill cp-warn">شهادة النمل الأبيض — منتهية</span>
+            {% else %}
+              <span class="cert-pill cp-ok">شهادة النمل الأبيض — سارية</span>
+            {% endif %}
+          {% else %}
+            <span class="cert-pill cp-miss">شهادة النمل الأبيض — غير مرفقة</span>
+          {% endif %}
+        </div>
+      </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">سجل حالة المهندس</div>
-      {% if logs %}
-        <div class="timeline">
-          {% for log in logs %}
-            <div class="timeline-item">
-              <div class="timeline-date">{{ log.created_at|date:"d/m/Y" }}</div>
-              <div class="timeline-card">
-                <div class="timeline-title">
-                  {% if log.action == "created" %}
-                    تم تسجيل المهندس
-                  {% elif log.action == "public_health_cert_uploaded" %}
-                    تم إرفاق شهادة الصحة العامة
-                  {% elif log.action == "termite_cert_uploaded" %}
-                    تم إرفاق شهادة النمل الأبيض
-                  {% else %}
-                    {{ log.action }}
+    {# ── الشهادات ── #}
+    <div class="eng-card">
+      <div class="card-head">الشهادات المرفقة</div>
+      <div class="card-body">
+        <div class="cert-cards">
+
+          <div class="cert-card" style="border-top: 3px solid {% if not enginer.public_health_cert %}#ef4444{% elif public_health_is_expired %}#f59e0b{% else %}#059669{% endif %};">
+            <div class="cert-card-head">
+              <span>شهادة الصحة العامة</span>
+              {% if enginer.public_health_cert %}
+                <a class="cert-open-btn" href="{{ enginer.public_health_cert.url }}" target="_blank" rel="noopener">فتح</a>
+              {% endif %}
+            </div>
+            <div class="cert-card-body">
+              {% if enginer.public_health_cert %}
+                {% if enginer.public_health_cert_issue_date %}
+                  <span>تاريخ الإصدار: <strong>{{ enginer.public_health_cert_issue_date|date:"d/m/Y" }}</strong></span>
+                  {% if public_health_expiry_date %}
+                    <span>تاريخ الانتهاء:
+                      <strong {% if public_health_is_expired %}style="color:#b91c1c;"{% endif %}>
+                        {{ public_health_expiry_date|date:"d/m/Y" }}{% if public_health_is_expired %} — منتهية{% endif %}
+                      </strong>
+                    </span>
                   {% endif %}
-                </div>
-                <div class="timeline-meta">
-                  <span class="actor">
-                    تم التحديث من قبل:
-                    {% if log.changed_by %}
-                      {{ log.changed_by.get_full_name|default:log.changed_by.username }}
-                    {% else %}
-                      النظام
-                    {% endif %}
-                  </span>
-                  <span class="dot"></span>
-                  <span>{{ log.created_at|date:"d/m/Y" }}</span>
-                  <span class="dot"></span>
-                  <span>{{ log.created_at|date:"h:i A" }}</span>
-                </div>
-                {% if log.notes %}
-                  <div class="timeline-notes">{{ log.notes }}</div>
+                {% else %}
+                  <span style="color:var(--ink-3);">لا يوجد تاريخ إصدار</span>
                 {% endif %}
-              </div>
+              {% else %}
+                <span style="color:var(--ink-3);">لم يتم إرفاق الشهادة بعد</span>
+              {% endif %}
             </div>
-          {% endfor %}
+          </div>
+
+          <div class="cert-card" style="border-top: 3px solid {% if not enginer.termite_cert %}#ef4444{% elif termite_is_expired %}#f59e0b{% else %}#059669{% endif %};">
+            <div class="cert-card-head">
+              <span>شهادة النمل الأبيض</span>
+              {% if enginer.termite_cert %}
+                <a class="cert-open-btn" href="{{ enginer.termite_cert.url }}" target="_blank" rel="noopener">فتح</a>
+              {% endif %}
+            </div>
+            <div class="cert-card-body">
+              {% if enginer.termite_cert %}
+                {% if enginer.termite_cert_issue_date %}
+                  <span>تاريخ الإصدار: <strong>{{ enginer.termite_cert_issue_date|date:"d/m/Y" }}</strong></span>
+                  {% if termite_expiry_date %}
+                    <span>تاريخ الانتهاء:
+                      <strong {% if termite_is_expired %}style="color:#b91c1c;"{% endif %}>
+                        {{ termite_expiry_date|date:"d/m/Y" }}{% if termite_is_expired %} — منتهية{% endif %}
+                      </strong>
+                    </span>
+                  {% endif %}
+                {% else %}
+                  <span style="color:var(--ink-3);">لا يوجد تاريخ إصدار</span>
+                {% endif %}
+              {% else %}
+                <span style="color:var(--ink-3);">لم يتم إرفاق الشهادة بعد</span>
+              {% endif %}
+            </div>
+          </div>
+
         </div>
-      {% else %}
-        <p style="font-size: 13px; color: #666;">لا توجد تحديثات مسجلة بعد.</p>
-      {% endif %}
+      </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">أرشيف الشهادات</div>
-      {% if archived_logs %}
+    {# ── تحديث الشهادات ── #}
+    {% if can_update_enginer %}
+    <div class="eng-card">
+      <div class="card-head">تحديث الشهادات</div>
+      <div class="card-body">
+        {% if error %}
+          <div class="alert-error">{{ error }}</div>
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="upload-grid">
+
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--ink-3);margin-bottom:8px;">شهادة الصحة العامة</div>
+              <input id="u_ph" class="upload-native" type="file" name="public_health_cert">
+              <label class="upload-zone" for="u_ph" tabindex="0">
+                <div class="upload-zone-icon">↑</div>
+                <span class="upload-zone-label">اسحب أو اضغط للاختيار</span>
+                <span class="upload-zone-sub">PDF أو صورة</span>
+              </label>
+              <div class="upload-file-pill" data-file-pill="u_ph">
+                <span>📄</span>
+                <span class="upload-file-name" data-file-name="u_ph"></span>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--ink-3);margin-bottom:8px;">شهادة النمل الأبيض</div>
+              <input id="u_tc" class="upload-native" type="file" name="termite_cert">
+              <label class="upload-zone" for="u_tc" tabindex="0">
+                <div class="upload-zone-icon">↑</div>
+                <span class="upload-zone-label">اسحب أو اضغط للاختيار</span>
+                <span class="upload-zone-sub">PDF أو صورة</span>
+              </label>
+              <div class="upload-file-pill" data-file-pill="u_tc">
+                <span>📄</span>
+                <span class="upload-file-name" data-file-name="u_tc"></span>
+              </div>
+            </div>
+
+          </div>
+          <button type="submit" class="upload-submit-btn">تحديث الشهادات</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── إجازة المهندس ── #}
+    <div class="eng-card">
+      <div class="card-head">
+        <span>إجازة المهندس</span>
+        {% if active_leave %}<span class="ls-active">◉ في إجازة حالياً</span>{% endif %}
+      </div>
+      <div class="card-body">
+
+        {% if leave_error %}
+          <div class="alert-error">{{ leave_error }}</div>
+        {% endif %}
+
+        {% if active_leave %}
+          <div class="leave-alert">
+            <div class="leave-alert-icon">🏖</div>
+            <div>
+              <div class="leave-alert-title">المهندس في إجازة حالياً</div>
+              <div class="leave-alert-meta">
+                <span>من: <strong>{{ active_leave.start_date|date:"d/m/Y" }}</strong></span>
+                {% if active_leave.expected_return_date %}
+                  <span>عودة متوقعة: <strong>{{ active_leave.expected_return_date|date:"d/m/Y" }}</strong></span>
+                {% endif %}
+                {% if active_leave.substitute %}
+                  <span>البديل: <strong><a href="{% url 'enginer_detail' active_leave.substitute.id %}" style="color:#5c3d00;">{{ active_leave.substitute.name }}</a></strong></span>
+                {% else %}
+                  <span>لا يوجد مهندس بديل</span>
+                {% endif %}
+                {% if active_leave.notes %}<span>{{ active_leave.notes }}</span>{% endif %}
+              </div>
+            </div>
+          </div>
+          {% if can_manage_leave %}
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="close_leave">
+              <div class="leave-form-grid">
+                <div class="leave-field">
+                  <label>تاريخ العودة الفعلية (اختياري)</label>
+                  <input type="date" name="actual_return_date">
+                </div>
+              </div>
+              <button type="submit" class="leave-btn green">تسجيل عودة المهندس ✓</button>
+            </form>
+          {% endif %}
+
+        {% else %}
+          <p style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">المهندس في العمل حالياً — لا توجد إجازة نشطة.</p>
+          {% if can_manage_leave %}
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="record_leave">
+              <div class="leave-form-grid">
+                <div class="leave-field">
+                  <label>تاريخ بداية الإجازة *</label>
+                  <input type="date" name="start_date" required>
+                </div>
+                <div class="leave-field">
+                  <label>تاريخ العودة المتوقع</label>
+                  <input type="date" name="expected_return_date">
+                </div>
+                <div class="leave-field">
+                  <label>المهندس البديل</label>
+                  <select name="substitute_id">
+                    <option value="">— بدون بديل —</option>
+                    {% for eng in all_engineers %}
+                      <option value="{{ eng.id }}">{{ eng.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="leave-field full">
+                  <label>ملاحظات</label>
+                  <textarea name="notes" rows="2" placeholder="مثال: إجازة سنوية / مرض / طارئة..."></textarea>
+                </div>
+              </div>
+              <button type="submit" class="leave-btn orange">تسجيل الإجازة</button>
+            </form>
+          {% endif %}
+        {% endif %}
+
+        {% if leave_history %}
+          <div style="margin-top:20px;border-top:1.5px solid var(--line);padding-top:16px;">
+            <div style="font-size:12px;font-weight:700;color:var(--ink-3);margin-bottom:10px;">سجل الإجازات</div>
+            <div style="overflow-x:auto;">
+              <table class="leave-table">
+                <thead>
+                  <tr>
+                    <th>بداية</th>
+                    <th>عودة متوقعة</th>
+                    <th>عودة فعلية</th>
+                    <th>البديل</th>
+                    <th>الحالة</th>
+                    <th>ملاحظات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for lv in leave_history %}
+                    <tr>
+                      <td>{{ lv.start_date|date:"d/m/Y" }}</td>
+                      <td>{{ lv.expected_return_date|date:"d/m/Y"|default:"—" }}</td>
+                      <td>{{ lv.actual_return_date|date:"d/m/Y"|default:"—" }}</td>
+                      <td>
+                        {% if lv.substitute %}
+                          <a href="{% url 'enginer_detail' lv.substitute.id %}" style="color:var(--accent);font-weight:700;">{{ lv.substitute.name }}</a>
+                        {% else %}—{% endif %}
+                      </td>
+                      <td>
+                        {% if lv.is_active %}
+                          <span class="ls-active">◉ في إجازة</span>
+                        {% else %}
+                          <span class="ls-closed">✓ عاد للعمل</span>
+                        {% endif %}
+                      </td>
+                      <td style="color:var(--ink-3);">{{ lv.notes|default:"—" }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    {# ── سجل الحالة ── #}
+    <div class="eng-card">
+      <div class="card-head">سجل حالة المهندس</div>
+      <div class="card-body" style="padding:0;">
+        {% if logs %}
+          <div class="log-list">
+            {% for log in logs %}
+              <div class="log-item">
+                <div class="log-date">{{ log.created_at|date:"d/m/Y" }}<br><span style="font-weight:400;">{{ log.created_at|date:"h:i A" }}</span></div>
+                <div class="log-body">
+                  <div class="log-title">
+                    {% if log.action == "created" %}تم تسجيل المهندس
+                    {% elif log.action == "public_health_cert_uploaded" %}تم إرفاق شهادة الصحة العامة
+                    {% elif log.action == "termite_cert_uploaded" %}تم إرفاق شهادة النمل الأبيض
+                    {% else %}{{ log.action }}{% endif %}
+                  </div>
+                  <div class="log-meta">
+                    بواسطة:
+                    {% if log.changed_by %}{{ log.changed_by.get_full_name|default:log.changed_by.username }}
+                    {% else %}النظام{% endif %}
+                    {% if log.notes %} — {{ log.notes }}{% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">لا توجد تحديثات مسجلة.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── أرشيف الشهادات ── #}
+    {% if archived_logs %}
+    <div class="eng-card">
+      <div class="card-head">أرشيف الشهادات السابقة</div>
+      <div class="card-body">
         <div class="archive-list">
           {% for log in archived_logs %}
             <div class="archive-item">
-              <div class="archive-head">
-                <div class="archive-type">
-                  {% if log.action == "public_health_cert_uploaded" %}
-                    نسخة سابقة - شهادة الصحة العامة
-                  {% elif log.action == "termite_cert_uploaded" %}
-                    نسخة سابقة - شهادة النمل الأبيض
-                  {% else %}
-                    نسخة شهادة مؤرشفة
-                  {% endif %}
+              <div>
+                <div class="archive-label">
+                  {% if log.action == "public_health_cert_uploaded" %}نسخة سابقة — شهادة الصحة العامة
+                  {% elif log.action == "termite_cert_uploaded" %}نسخة سابقة — شهادة النمل الأبيض
+                  {% else %}نسخة شهادة مؤرشفة{% endif %}
                 </div>
-                <a class="archive-link" href="{{ log.archived_file.url }}" target="_blank" rel="noopener">فتح النسخة المؤرشفة</a>
+                <div class="archive-meta-txt">
+                  {{ log.created_at|date:"d/m/Y" }} —
+                  {% if log.changed_by %}{{ log.changed_by.get_full_name|default:log.changed_by.username }}{% else %}النظام{% endif %}
+                </div>
               </div>
-              <div class="archive-meta">
-                <span>
-                  تم التحديث من قبل:
-                  {% if log.changed_by %}
-                    {{ log.changed_by.get_full_name|default:log.changed_by.username }}
-                  {% else %}
-                    النظام
-                  {% endif %}
-                </span>
-                <span class="dot"></span>
-                <span>{{ log.created_at|date:"d/m/Y" }}</span>
-                <span class="dot"></span>
-                <span>{{ log.created_at|date:"h:i A" }}</span>
-              </div>
+              <a class="archive-open-btn" href="{{ log.archived_file.url }}" target="_blank" rel="noopener">فتح النسخة</a>
             </div>
           {% endfor %}
         </div>
-      {% else %}
-        <p style="font-size: 13px; color: #666;">لا توجد نسخ مؤرشفة للشهادات حتى الآن.</p>
-      {% endif %}
+      </div>
     </div>
+    {% endif %}
+
   </div>
 </section>
+
 <script>
   (function () {
-    ["detail_public_health_cert", "detail_termite_cert"].forEach(function (id) {
-      var input = document.getElementById(id);
+    ["u_ph", "u_tc"].forEach(function (id) {
+      var input  = document.getElementById(id);
       if (!input) return;
       var nameEl = document.querySelector('[data-file-name="' + id + '"]');
       var pillEl = document.querySelector('[data-file-pill="' + id + '"]');
-      var dropEl = document.querySelector('label[for="' + id + '"].upload-drop');
+      var zoneEl = document.querySelector('label[for="' + id + '"].upload-zone');
 
       function refresh() {
-        var hasFile = input.files && input.files.length > 0;
-        if (hasFile) {
-          if (nameEl) nameEl.textContent = input.files[0].name;
-          if (pillEl) pillEl.classList.add("show");
-          if (dropEl) {
-            dropEl.style.borderColor = "rgba(31, 90, 75, 0.45)";
-            dropEl.style.background = "#f7fbf9";
-          }
-        } else {
-          if (nameEl) nameEl.textContent = "لا يوجد ملف";
-          if (pillEl) pillEl.classList.remove("show");
-          if (dropEl) {
-            dropEl.style.borderColor = "";
-            dropEl.style.background = "";
-          }
+        var has = input.files && input.files.length > 0;
+        if (nameEl) nameEl.textContent = has ? input.files[0].name : '';
+        if (pillEl) pillEl.classList.toggle("show", has);
+        if (zoneEl) {
+          zoneEl.style.borderColor = has ? 'var(--accent)' : '';
+          zoneEl.style.background  = has ? 'var(--surface-2)' : '';
         }
       }
 
       input.addEventListener("change", refresh);
 
-      if (dropEl) {
-        ["dragenter", "dragover"].forEach(function (evtName) {
-          dropEl.addEventListener(evtName, function (evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
-            dropEl.classList.add("drag-over");
+      if (zoneEl) {
+        ["dragenter","dragover"].forEach(function(e) {
+          zoneEl.addEventListener(e, function(ev) {
+            ev.preventDefault(); ev.stopPropagation();
+            zoneEl.classList.add("drag-over");
           });
         });
-
-        ["dragleave", "dragend", "drop"].forEach(function (evtName) {
-          dropEl.addEventListener(evtName, function (evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
-            if (evtName !== "drop") dropEl.classList.remove("drag-over");
+        ["dragleave","dragend","drop"].forEach(function(e) {
+          zoneEl.addEventListener(e, function(ev) {
+            ev.preventDefault(); ev.stopPropagation();
+            zoneEl.classList.remove("drag-over");
+            if (e === "drop") {
+              var files = ev.dataTransfer && ev.dataTransfer.files;
+              if (files && files.length) {
+                try {
+                  var dt = new DataTransfer();
+                  dt.items.add(files[0]);
+                  input.files = dt.files;
+                } catch(err) { return; }
+                input.dispatchEvent(new Event("change", {bubbles:true}));
+              }
+            }
           });
-        });
-
-        dropEl.addEventListener("drop", function (evt) {
-          var files = evt.dataTransfer && evt.dataTransfer.files;
-          dropEl.classList.remove("drag-over");
-          if (!files || !files.length) return;
-          try {
-            var dt = new DataTransfer();
-            dt.items.add(files[0]);
-            input.files = dt.files;
-          } catch (e) {
-            return;
-          }
-          input.dispatchEvent(new Event("change", { bubbles: true }));
         });
       }
 

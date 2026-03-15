@@ -1,141 +1,295 @@
 {% extends "hcsd/base.html" %}
+{% load static %}
 {% block title %}متابعة المهل{% endblock %}
-{% block content %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
 <style>
   .ext-page {
+    --pd-ink: #304357;
+    --pd-ink-2: #455c75;
+    --pd-ink-3: #6f8297;
+    --pd-paper: #ffffff;
+    --pd-surface: #f1f4f7;
+    --pd-surface-2: #e8eef4;
+    --pd-line: #d4dce5;
+    --pd-accent: #304357;
+    --pd-accent-dark: #26384a;
+    --pd-radius: 8px;
+    --pd-shadow: 0 10px 24px rgba(48,67,87,0.08);
+    padding: 20px 10px 40px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)),
+      var(--pd-surface);
+    direction: rtl;
+    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+    color: var(--pd-ink);
+  }
+
+  .ext-card {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px 16px 32px;
+    background: var(--pd-paper);
+    border: 1.5px solid var(--pd-line);
+    border-radius: var(--pd-radius);
+    box-shadow: var(--pd-shadow);
+    overflow: hidden;
   }
-  .ext-card {
-    background: #fbf9f5;
-    border: 1px solid #e1dacb;
-    border-radius: 16px;
-    padding: 14px;
-    box-shadow: 0 8px 18px rgba(24, 35, 28, 0.04);
+
+  .ext-header {
+    padding: 10px 16px;
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 800;
+    text-align: center;
+    background: linear-gradient(180deg, #3a4f66 0%, #304357 100%);
+    color: #fff;
+    letter-spacing: -0.01em;
   }
-  .ext-head {
+
+  .ext-subhead {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
+    justify-content: space-between;
     flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1.5px solid var(--pd-line);
+    background: var(--pd-surface);
   }
-  .ext-head h1 { margin: 0; font-size: 22px; }
-  .ext-note { color: #666; font-size: 13px; }
+
+  .ext-subhead-note {
+    font-size: 13px;
+    color: var(--pd-ink-3);
+    font-weight: 600;
+  }
+
+  .ext-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pd-ink-3);
+    background: var(--pd-paper);
+    border: 1.5px solid var(--pd-line);
+    border-radius: 20px;
+    padding: 3px 12px;
+  }
+
+  .ext-table-wrap {
+    overflow-x: auto;
+  }
+
   .ext-table {
     width: 100%;
     border-collapse: collapse;
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
+    font-size: 13.5px;
   }
-  .ext-table th, .ext-table td {
-    border: 1px solid #ece6d9;
-    padding: 10px;
-    text-align: right;
-    vertical-align: top;
-  }
+
   .ext-table thead th {
-    background: #f4f0e7;
+    background: var(--pd-surface);
+    color: var(--pd-ink-3);
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: none;
+    padding: 10px 14px;
+    border-bottom: 1.5px solid var(--pd-line);
     white-space: nowrap;
+    text-align: right;
   }
+
+  .ext-table tbody tr {
+    border-bottom: 1px solid var(--pd-line);
+    transition: background 0.12s;
+  }
+
+  .ext-table tbody tr:last-child { border-bottom: none; }
+  .ext-table tbody tr:hover { background: var(--pd-surface); }
+
+  .ext-table td {
+    padding: 11px 14px;
+    text-align: right;
+    vertical-align: middle;
+    color: var(--pd-ink);
+  }
+
+  .company-name {
+    font-weight: 700;
+    color: var(--pd-accent);
+  }
+
+  .date-val {
+    font-size: 13px;
+    color: var(--pd-ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .days-val {
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .days-over { color: #b91c1c; }
+  .days-soon { color: #92400e; }
+  .days-ok   { color: #065f46; }
+
   .badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     padding: 4px 10px;
-    border-radius: 999px;
+    border-radius: 20px;
     font-size: 12px;
     font-weight: 700;
-    border: 1px solid transparent;
+    white-space: nowrap;
   }
-  .b-expired { background: #ffe7e7; color: #8a2222; border-color: #f0b8b8; }
-  .b-soon { background: #fff4d6; color: #7a5a00; border-color: #ead08b; }
-  .b-active { background: #e8f6ed; color: #1f6c46; border-color: #b9dfc6; }
-  .b-unknown { background: #efefef; color: #555; border-color: #ddd; }
-  .link-btn {
+
+  .b-expired { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; }
+  .b-soon    { background: #fffbeb; color: #92400e; border: 1.5px solid #fcd34d; }
+  .b-active  { background: #f0fdf4; color: #065f46; border: 1.5px solid #86efac; }
+  .b-unknown { background: var(--pd-surface); color: var(--pd-ink-3); border: 1.5px solid var(--pd-line); }
+
+  .badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .b-expired::before { background: #b91c1c; }
+  .b-soon::before    { background: #d97706; }
+  .b-active::before  { background: #059669; }
+  .b-unknown::before { background: var(--pd-ink-3); }
+
+  .attach-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--pd-accent);
+    font-weight: 700;
+    font-size: 12.5px;
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1.5px solid var(--pd-line);
+    border-radius: 6px;
+    background: var(--pd-surface);
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .attach-link:hover {
+    background: var(--pd-surface-2);
+    border-color: var(--pd-line-2);
+  }
+
+  .detail-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 80px;
-    padding: 7px 12px;
-    border-radius: 8px;
-    background: #1f5a4b;
+    padding: 7px 14px;
+    border-radius: 6px;
+    background: var(--pd-accent);
     color: #fff;
     text-decoration: none;
-    white-space: nowrap;
     font-weight: 700;
+    font-size: 12.5px;
+    white-space: nowrap;
+    transition: background 0.15s;
   }
-  @media (max-width: 800px) {
-    .ext-table { display: block; overflow-x: auto; }
+
+  .detail-btn:hover { background: var(--pd-accent-dark); }
+
+  .ext-empty {
+    padding: 48px 16px;
+    text-align: center;
+    color: var(--pd-ink-3);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .ext-empty-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+    opacity: 0.4;
   }
 </style>
+{% endblock %}
 
+{% block content %}
 <section class="ext-page" lang="ar" dir="rtl">
   <div class="ext-card">
-    <div class="ext-head">
-      <div>
-        <h1>متابعة المهل</h1>
-        <div class="ext-note">مرتبة حسب الأقرب انتهاءً أولًا.</div>
-      </div>
+
+    <div class="ext-header">متابعة المهل</div>
+
+    <div class="ext-subhead">
+      <span class="ext-subhead-note">مرتبة حسب الأقرب انتهاءً أولاً</span>
+      {% if extension_rows %}
+        <span class="ext-count">{{ extension_rows|length }} مهلة</span>
+      {% endif %}
     </div>
 
     {% if extension_rows %}
-      <table class="ext-table">
-        <thead>
-          <tr>
-            <th>الشركة</th>
-            <th>نوع المهلة</th>
-            <th>بداية المهلة</th>
-            <th>نهاية المهلة</th>
-            <th>الحالة</th>
-            <th>المتبقي</th>
-            <th>المرفق</th>
-            <th>التفاصيل</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in extension_rows %}
+      <div class="ext-table-wrap">
+        <table class="ext-table">
+          <thead>
             <tr>
-              <td>{{ row.company.name }}</td>
-              <td>{{ row.log.notes|default:"-" }}</td>
-              <td>{{ row.start_date|date:"d/m/Y"|default:"-" }}</td>
-              <td>{{ row.end_date|date:"d/m/Y"|default:"-" }}</td>
-              <td>
-                {% if row.days_left is None %}
-                  <span class="badge b-unknown">غير محدد</span>
-                {% elif row.days_left < 0 %}
-                  <span class="badge b-expired">منتهية</span>
-                {% elif row.days_left <= 7 %}
-                  <span class="badge b-soon">قريبة الانتهاء</span>
-                {% else %}
-                  <span class="badge b-active">سارية</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if row.days_left is None %}
-                  -
-                {% elif row.days_left < 0 %}
-                  منذ {{ row.days_overdue }} يوم
-                {% else %}
-                  {{ row.days_left }} يوم
-                {% endif %}
-              </td>
-              <td>
-                {% if row.log.attachment %}
-                  <a href="{{ row.log.attachment.url }}" target="_blank" rel="noopener">فتح</a>
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-              <td><a class="link-btn" href="{% url 'company_detail' row.company.id %}">عرض الشركة</a></td>
+              <th>الشركة</th>
+              <th>نوع المهلة</th>
+              <th>بداية المهلة</th>
+              <th>نهاية المهلة</th>
+              <th>الحالة</th>
+              <th>المتبقي</th>
+              <th>المرفق</th>
+              <th></th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for row in extension_rows %}
+              <tr>
+                <td><span class="company-name">{{ row.company.name }}</span></td>
+                <td>{{ row.log.notes|default:"-" }}</td>
+                <td><span class="date-val">{{ row.start_date|date:"d/m/Y"|default:"-" }}</span></td>
+                <td><span class="date-val">{{ row.end_date|date:"d/m/Y"|default:"-" }}</span></td>
+                <td>
+                  {% if row.days_left is None %}
+                    <span class="badge b-unknown">غير محدد</span>
+                  {% elif row.days_left < 0 %}
+                    <span class="badge b-expired">منتهية</span>
+                  {% elif row.days_left <= 7 %}
+                    <span class="badge b-soon">قريبة الانتهاء</span>
+                  {% else %}
+                    <span class="badge b-active">سارية</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if row.days_left is None %}
+                    <span style="color:var(--pd-ink-3);">—</span>
+                  {% elif row.days_left < 0 %}
+                    <span class="days-val days-over">منذ {{ row.days_overdue }} يوم</span>
+                  {% elif row.days_left <= 7 %}
+                    <span class="days-val days-soon">{{ row.days_left }} يوم</span>
+                  {% else %}
+                    <span class="days-val days-ok">{{ row.days_left }} يوم</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if row.log.attachment %}
+                    <a class="attach-link" href="{{ row.log.attachment.url }}" target="_blank" rel="noopener">فتح</a>
+                  {% else %}
+                    <span style="color:var(--pd-ink-3);">—</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a class="detail-btn" href="{% url 'company_detail' row.company.id %}">عرض الشركة</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     {% else %}
-      <p>لا توجد مهل مسجلة حاليًا.</p>
+      <div class="ext-empty">
+        <div class="ext-empty-icon">📋</div>
+        لا توجد مهل مسجلة حالياً
+      </div>
     {% endif %}
+
   </div>
 </section>
 {% endblock %}

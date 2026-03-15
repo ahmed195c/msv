@@ -1,0 +1,327 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تصريح التخلص من النفايات - {{ permit.permit_no }}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "IBM Plex Sans Arabic", "Tahoma", Arial, sans-serif;
+      background: #fff;
+      color: #1a1a1a;
+      font-size: 13px;
+      direction: rtl;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      padding: 12mm 14mm;
+      background-color: #fff;
+      background-image: url("{% static 'hcsd/border.jpeg' %}");
+      background-repeat: no-repeat;
+      background-size: 110% 100%;
+      background-position: center top;
+    }
+
+    /* ─── Header ─── */
+   
+
+    /* ─── Title bar ─── */
+    .title-bar {
+      margin-top: 20mm;
+      background: #3a3a3a;
+      color: #fff;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      letter-spacing: 0.01em;
+    }
+
+    /* ─── Table ─── */
+    .permit-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+    }
+
+    .permit-table td {
+      border: 1px solid #aaa;
+      padding: 6px 10px;
+      vertical-align: middle;
+      line-height: 1.5;
+    }
+
+    .permit-table .label-cell {
+      background: #e8ede8;
+      font-weight: 700;
+      color: #1a3a26;
+      width: 28%;
+      white-space: nowrap;
+    }
+
+    .permit-table .value-cell {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    /* quantity row special */
+    .qty-row td { padding: 5px 10px; }
+    .qty-boxes {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .qty-box {
+      display: inline-block;
+      border: 1px solid #888;
+      width: 40px;
+      height: 26px;
+      text-align: center;
+      line-height: 26px;
+      font-weight: 700;
+    }
+    .qty-total-label {
+      font-weight: 700;
+      margin-inline-start: 6px;
+    }
+
+    /* contractors row spans */
+    .contractors-label {
+      background: #e8ede8;
+      font-weight: 700;
+      color: #1a3a26;
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    /* ─── No-objection banner ─── */
+    .no-objection {
+      text-align: center;
+      background: #3a3a3a;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+    }
+
+    /* ─── Authority block ─── */
+    .authority-block {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .authority-block .auth-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1a3a26;
+    }
+
+    .authority-block .auth-dept {
+      font-size: 12px;
+      font-weight: 600;
+      color: #3a6b50;
+    }
+
+    /* ─── Dates grid ─── */
+    .dates-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+    }
+
+    .dates-table td {
+      border: 1px solid #aaa;
+      padding: 6px 10px;
+      vertical-align: middle;
+    }
+
+    .dates-table .label-cell {
+      background: #e8ede8;
+      font-weight: 700;
+      color: #1a3a26;
+      width: 22%;
+      white-space: nowrap;
+    }
+
+    .dates-table .value-cell {
+      font-weight: 600;
+      width: 28%;
+    }
+
+    /* ─── Employee ─── */
+    .employee-row {
+      margin-bottom: 14px;
+    }
+
+    /* ─── Notes ─── */
+    .notes-title {
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 6px;
+      text-decoration: underline;
+    }
+
+    .notes-list {
+      padding-inline-start: 20px;
+      line-height: 2;
+      font-size: 11.5px;
+      color: #2a2a2a;
+    }
+
+    /* ─── Print ─── */
+    .no-print {
+      text-align: center;
+      padding: 16px;
+    }
+
+    .print-btn {
+      background: #2d6e4e;
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    @page {
+      margin: 0;
+      size: A4;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff; margin: 0; }
+      .page {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 12mm 14mm;
+        box-shadow: none;
+        overflow: hidden;
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print">
+  <button class="print-btn" onclick="window.print()">طباعة التصريح</button>
+</div>
+
+<div class="page">
+
+
+  <!-- Title -->
+  <div class="title-bar">
+    تصريح التخلص من النفايات &nbsp;–&nbsp; Waste Disposal Permit
+  </div>
+
+  <!-- Main permit table -->
+  <table class="permit-table">
+    <tr>
+      <td class="label-cell">رقم التصريح</td>
+      <td class="value-cell">{{ permit.permit_no }}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">رقم الرخصة</td>
+      <td class="value-cell">{{ permit.company.number|default:"-" }}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">الاسم التجاري</td>
+      <td class="value-cell">{{ permit.company.name|default:"-" }}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">العنوان</td>
+      <td class="value-cell">{{ permit.company.address|default:"-" }}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">النشاط</td>
+      <td class="value-cell">{{ permit.company.business_activity_display|default:"كما هو موضح بالرخصة" }}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">تصنيف النفايات</td>
+      <td class="value-cell">
+        {% if waste %}
+          {{ waste.waste_classification|default:"-" }}
+        {% else %}-{% endif %}
+      </td>
+    </tr>
+    <tr class="qty-row">
+      <td class="label-cell">كمية النفايات (الشهرية)</td>
+      <td class="value-cell">
+        <div class="qty-boxes">
+          <span class="qty-box">{{ waste.waste_quantity_monthly|default:"" }}</span>
+          <span class="qty-total-label">بإجمالي</span>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td class="label-cell">أنواع النفايات</td>
+      <td class="value-cell">
+        {% if waste %}{{ waste.waste_types|default:"-" }}{% else %}-{% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td class="label-cell">حالة المادة</td>
+      <td class="value-cell">
+        {% if waste %}{{ waste.material_state|default:"-" }}{% else %}-{% endif %}
+      </td>
+    </tr>
+  </table>
+
+  <!-- No objection banner -->
+  <div class="no-objection">
+    لامانع من استخراج تصريح التخلص من النفايات
+  </div>
+
+  <!-- Authority -->
+  <div class="authority-block">
+    <div class="auth-name">إدارة الرقابة والسلامة الصحية</div>
+    <div class="auth-dept">قسم رقابة وتنظيم النفايات</div>
+  </div>
+
+  <!-- Dates -->
+  <table class="dates-table">
+    <tr>
+      <td class="label-cell">تاريخ الإصدار</td>
+      <td class="value-cell">{{ permit.issue_date|date:"Y-m-d"|default:"-" }}</td>
+      <td class="label-cell">تاريخ الانتهاء</td>
+      <td class="value-cell">{{ permit.dateOfExpiry|date:"Y-m-d"|default:"-" }}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">رقم الإيصال</td>
+      <td class="value-cell">{{ permit.PaymentNumber|default:"-" }}</td>
+      <td class="label-cell">تاريخ الإيصال</td>
+      <td class="value-cell">{{ permit.payment_date|date:"Y-m-d"|default:"-" }}</td>
+    </tr>
+  </table>
+
+  <!-- Notes -->
+  <div class="notes-title">ملاحظات</div>
+  <ul class="notes-list">
+    <li>يتوجب على المنشأة فصل النفايات حسب نوعها</li>
+    <li>يتم نقل النفايات عبر المركبات المرخصة والمعتمدة من قبل بلدية مدينة الشارقة</li>
+    <li>يتوجب على المنشأة الاحتفاظ بإيصالات المكتب الخاصة بالتخلص من النفايات الموضحة أعلاه وإبرازها عن تجديد التصريح</li>
+  </ul>
+
+</div>
+
+</body>
+</html>

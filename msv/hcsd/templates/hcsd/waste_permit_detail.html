@@ -263,6 +263,9 @@
   <div class="permit-card">
     <div class="action-bar no-print">
       <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
+      {% if pirmet.status == "payment_completed" or pirmet.status == "issued" or pirmet.status == "disposal_approved" %}
+      <a class="btn btn--primary" href="{% url 'waste_disposal_permit_print' pirmet.id %}" target="_blank" style="margin-inline-start:auto;">طباعة التصريح</a>
+      {% endif %}
     </div>
 
     <div class="permit-title permit-title--hero">متابعة تصريح التخلص من النفايات</div>

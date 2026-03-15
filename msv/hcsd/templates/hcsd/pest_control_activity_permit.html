@@ -2,196 +2,381 @@
 {% load static %}
 {% block title %}تصريح مزاولة نشاط مكافحة آفات الصحة العامة{% endblock %}
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'hcsd/pest_control_activity_permit.css' %}">
+<style>
+  .permit-page {
+    --pd-ink: #304357;
+    --pd-ink-2: #455c75;
+    --pd-ink-3: #6f8297;
+    --pd-paper: #ffffff;
+    --pd-surface: #f1f4f7;
+    --pd-surface-2: #e8eef4;
+    --pd-line: #d4dce5;
+    --pd-line-2: #bcc8d5;
+    --pd-accent: #304357;
+    --pd-accent-dark: #26384a;
+    --pd-radius: 8px;
+    --pd-shadow: 0 10px 24px rgba(48,67,87,0.08);
+    padding: 20px 10px 36px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
+    direction: rtl;
+  }
+
+  .permit-card {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: var(--pd-paper);
+    border: 1.5px solid var(--pd-line);
+    border-radius: var(--pd-radius);
+    box-shadow: var(--pd-shadow);
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .hero-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: linear-gradient(160deg, #3a4f66 0%, #304357 55%, #26384a 100%);
+    color: #fff;
+  }
+
+  .hero-title {
+    font-size: clamp(15px, 2vw, 20px);
+    font-weight: 800;
+    text-align: center;
+    flex: 1;
+  }
+
+  .hero-back {
+    color: #c8d8e8;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 6px;
+    padding: 6px 12px;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .hero-back:hover { background: rgba(255,255,255,0.1); }
+
+  .form-body { padding: 16px 18px; }
+
+  .alert {
+    background: #fef2f2;
+    border: 1.5px solid #f5c6cb;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: #8c1f1f;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+
+  .alert-list {
+    padding-inline-start: 18px;
+    margin-top: 6px;
+    line-height: 1.9;
+    font-size: 13px;
+  }
+
+  .alert-warn {
+    background: #fffbeb;
+    border: 1.5px solid #fcd34d;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: #78350f;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+
+  .form-section {
+    border: 1.5px solid var(--pd-line);
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .section-title {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: var(--pd-accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pd-ink-3);
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    border: 1.5px solid var(--pd-line-2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--pd-ink);
+    background: var(--pd-paper);
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+
+  .field textarea { resize: vertical; }
+
+  .field input[readonly] {
+    background: var(--pd-surface);
+    color: var(--pd-ink-2);
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--pd-accent);
+    outline: none;
+  }
+
+  .hint {
+    font-size: 11.5px;
+    color: var(--pd-ink-3);
+    margin-top: 5px;
+    line-height: 1.5;
+  }
+
+  .field-full { grid-column: 1 / -1; }
+
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding-top: 6px;
+  }
+
+  .btn-submit {
+    background: var(--pd-accent);
+    border: none;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .btn-submit:hover { background: var(--pd-accent-dark); }
+
+  .btn-cancel {
+    color: var(--pd-ink-2);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1.5px solid var(--pd-line-2);
+    border-radius: 6px;
+    padding: 9px 16px;
+  }
+</style>
 {% endblock %}
 {% block content %}
 <section class="permit-page" lang="ar" dir="rtl">
-  <form class="permit-card" method="post" enctype="multipart/form-data" autocomplete="off">
-    {% csrf_token %}
-    <header class="permit-header">
-      <div class="municipality">
-        <div class="logo-box">
-          <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
-        </div>
-        <div class="municipality-text">
-          <div class="title">بلدية مدينة الشارقة</div>
-          <div class="sub">إدارة الرقابة والسلامة الصحية</div>
-          <div class="sub">قسم رقابة وتنظيم النفايات</div>
-        </div>
-      </div>
-    </header>
+  <div class="permit-card">
+    <div class="hero-bar">
+      <a href="{% url 'clearance_list' %}" class="hero-back">← العودة</a>
+      <span class="hero-title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</span>
+    </div>
 
-    <div class="permit-title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</div>
+    <form method="post" enctype="multipart/form-data" autocomplete="off" class="form-body">
+      {% csrf_token %}
 
-    {% if form_errors %}
-      <div class="alert">
-        <strong>يرجى تصحيح التالي:</strong>
-        <ul class="alert-list">
-          {% for error in form_errors %}
-            <li>
-              {% if error == "company_select_invalid" %}
-                يرجى اختيار شركة مسجلة صحيحة.
-              {% elif error == "company_name_required" %}
-                يرجى إدخال الاسم التجاري.
-              {% elif error == "trade_license_no_required" %}
-                يرجى إدخال رقم الرخصة التجارية.
-              {% elif error == "company_address_required" %}
-                يرجى إدخال عنوان الشركة.
-              {% elif error == "trade_license_exp_required" %}
-                يرجى إدخال تاريخ انتهاء الرخصة التجارية.
-              {% elif error == "trade_license_exp_invalid" %}
-                تاريخ انتهاء الرخصة التجارية غير صالح.
-              {% elif error == "trade_license_expired" %}
-                الرخصة التجارية منتهية، يرجى تجديدها أولاً.
-              {% elif error == "request_email_required" %}
-                يرجى إدخال البريد الإلكتروني الذي وصل منه الطلب.
-              {% elif error == "engineer_required" %}
-                يرجى إدخال بيانات المهندس كاملة.
-              {% elif error == "company_engineer_missing" %}
-                الشركة المختارة لا تحتوي على مهندس مسجل.
-              {% elif error == "engineer_not_registered" %}
-                يرجى تسجيل المهندس وإرفاق الشهادات أولاً.
-              {% elif error == "engineer_cert_required" %}
-                لا يمكن اختيار مهندس بدون شهادة نجاح الصحة العامة.
-              {% elif error == "documents_required" %}
-                يرجى إرفاق مستند واحد على الأقل.
-              {% elif error == "documents_invalid" %}
-                الملفات المسموحة هي PDF أو صور فقط: {{ invalid_docs|join:", " }}
-              {% else %}
-                {{ error }}
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-
-    {% if trade_license_notice %}
-      <div class="alert">
-        {{ trade_license_notice }}
-      </div>
-    {% endif %}
-
-    {% if engineer_notice %}
-      <div class="alert">
-        {{ engineer_notice }}
-      </div>
-    {% endif %}
-
-    <section class="permit-section">
-      <div class="section-title">بيانات الشركة</div>
-      <div class="permit-grid">
-        <div class="field">
-          <label for="company_id">اختيار الشركة المسجلة</label>
-          <select id="company_id" name="company_id">
-            <option value="">-- اختيار --</option>
-            {% for company in companies %}
-              <option value="{{ company.id }}"
-                data-name="{{ company.name }}"
-                data-number="{{ company.number }}"
-                data-trade-exp="{{ company.trade_license_exp|date:'Y-m-d' }}"
-                data-address="{{ company.address }}"
-                data-landline="{{ company.landline|default_if_none:'' }}"
-                data-owner-phone="{{ company.owner_phone|default_if_none:'' }}"
-                data-email="{{ company.email|default_if_none:'' }}"
-                data-engineer-public="{% if company.enginer and company.enginer.public_health_cert %}1{% else %}0{% endif %}"
-                data-engineer-termite="{% if company.enginer and company.enginer.termite_cert %}1{% else %}0{% endif %}"
-                data-engineer-name="{% if company.enginer %}{{ company.enginer.name }}{% endif %}"
-                data-engineer-email="{% if company.enginer %}{{ company.enginer.email }}{% endif %}"
-                data-engineer-phone="{% if company.enginer %}{{ company.enginer.phone }}{% endif %}"
-                data-business="{{ company.business_activity|default_if_none:'' }}"
-                {% if company.id == selected_company_id %}selected{% endif %}>
-                {{ company.name }} - {{ company.number }}
-              </option>
+      {% if form_errors %}
+        <div class="alert">
+          <strong>يرجى تصحيح التالي:</strong>
+          <ul class="alert-list">
+            {% for error in form_errors %}
+              <li>
+                {% if error == "company_select_invalid" %}
+                  يرجى اختيار شركة مسجلة صحيحة.
+                {% elif error == "company_has_active_extension" %}
+                  هذه الشركة موقوفة بسبب مهلة نشطة — لا يمكن إنشاء تصاريح جديدة حتى يتم إغلاق المهلة.
+                {% elif error == "company_name_required" %}
+                  يرجى إدخال الاسم التجاري.
+                {% elif error == "trade_license_no_required" %}
+                  يرجى إدخال رقم الرخصة التجارية.
+                {% elif error == "company_address_required" %}
+                  يرجى إدخال عنوان الشركة.
+                {% elif error == "trade_license_exp_required" %}
+                  يرجى إدخال تاريخ انتهاء الرخصة التجارية.
+                {% elif error == "trade_license_exp_invalid" %}
+                  تاريخ انتهاء الرخصة التجارية غير صالح.
+                {% elif error == "trade_license_expired" %}
+                  الرخصة التجارية منتهية، يرجى تجديدها أولاً.
+                {% elif error == "request_email_required" %}
+                  يرجى إدخال البريد الإلكتروني الذي وصل منه الطلب.
+                {% elif error == "engineer_required" %}
+                  يرجى إدخال بيانات المهندس كاملة.
+                {% elif error == "company_engineer_missing" %}
+                  الشركة المختارة لا تحتوي على مهندس مسجل.
+                {% elif error == "engineer_not_registered" %}
+                  يرجى تسجيل المهندس وإرفاق الشهادات أولاً.
+                {% elif error == "engineer_cert_required" %}
+                  لا يمكن اختيار مهندس بدون شهادة نجاح الصحة العامة.
+                {% elif error == "documents_required" %}
+                  يرجى إرفاق مستند واحد على الأقل.
+                {% elif error == "documents_invalid" %}
+                  الملفات المسموحة هي PDF أو صور فقط: {{ invalid_docs|join:", " }}
+                {% else %}
+                  {{ error }}
+                {% endif %}
+              </li>
             {% endfor %}
-          </select>
-          <div class="hint">عند اختيار شركة يتم تعبئة البيانات تلقائياً، ويمكن تعديلها هنا قبل إرسال الطلب.</div>
-          <div id="engineer-cert-inline-warning" class="alert" style="display:none; margin-top:8px;">
-            تنبيه: المهندس المسجل لهذه الشركة لا يملك حالياً شهادات لمن يهمه الأمر.
+          </ul>
+        </div>
+      {% endif %}
+
+      {% if trade_license_notice %}
+        <div class="alert-warn">{{ trade_license_notice }}</div>
+      {% endif %}
+
+      {% if engineer_notice %}
+        <div class="alert-warn">{{ engineer_notice }}</div>
+      {% endif %}
+
+      <!-- بيانات الشركة -->
+      <div class="form-section">
+        <div class="section-title">بيانات الشركة</div>
+        <div class="form-grid">
+          <div class="field field-full">
+            <label for="company_id">اختيار الشركة المسجلة</label>
+            <select id="company_id" name="company_id">
+              <option value="">-- اختيار --</option>
+              {% for company in companies %}
+                <option value="{{ company.id }}"
+                  data-name="{{ company.name }}"
+                  data-number="{{ company.number }}"
+                  data-trade-exp="{{ company.trade_license_exp|date:'Y-m-d' }}"
+                  data-address="{{ company.address }}"
+                  data-landline="{{ company.landline|default_if_none:'' }}"
+                  data-owner-phone="{{ company.owner_phone|default_if_none:'' }}"
+                  data-email="{{ company.email|default_if_none:'' }}"
+                  data-engineer-public="{% if company.enginer and company.enginer.public_health_cert %}1{% else %}0{% endif %}"
+                  data-engineer-termite="{% if company.enginer and company.enginer.termite_cert %}1{% else %}0{% endif %}"
+                  data-engineer-name="{% if company.enginer %}{{ company.enginer.name }}{% endif %}"
+                  data-engineer-email="{% if company.enginer %}{{ company.enginer.email }}{% endif %}"
+                  data-engineer-phone="{% if company.enginer %}{{ company.enginer.phone }}{% endif %}"
+                  data-business="{{ company.business_activity|default_if_none:'' }}"
+                  {% if company.id == selected_company_id %}selected{% endif %}>
+                  {{ company.name }} - {{ company.number }}
+                </option>
+              {% endfor %}
+            </select>
+            <div class="hint">عند اختيار شركة يتم تعبئة البيانات تلقائياً، ويمكن تعديلها هنا قبل إرسال الطلب.</div>
+            <div id="engineer-cert-inline-warning" class="alert" style="display:none; margin-top:8px;">
+              تنبيه: المهندس المسجل لهذه الشركة لا يملك حالياً شهادات لمن يهمه الأمر.
+            </div>
+          </div>
+          <div class="field">
+            <label for="company_name">الاسم التجاري</label>
+            <input type="text" id="company_name" name="company_name" value="{{ form_data.company_name|default:'' }}" data-company-field>
+          </div>
+          <div class="field">
+            <label for="trade_license_no">رقم الرخصة التجارية</label>
+            <input type="text" id="trade_license_no" name="trade_license_no" value="{{ form_data.trade_license_no|default:'' }}" data-company-field>
+          </div>
+          <div class="field">
+            <label for="trade_license_exp">تاريخ انتهاء الرخصة التجارية</label>
+            <input type="date" id="trade_license_exp" name="trade_license_exp" value="{{ form_data.trade_license_exp|default:'' }}" data-company-field>
+          </div>
+          <div class="field">
+            <label for="company_address">عنوان الشركة</label>
+            <input type="text" id="company_address" name="company_address" value="{{ form_data.company_address|default:'' }}" data-company-field>
+          </div>
+          <div class="field">
+            <label for="landline">رقم الهاتف الأرضي</label>
+            <input type="tel" id="landline" name="landline" value="{{ form_data.landline|default:'' }}" data-company-field>
+          </div>
+          <div class="field">
+            <label for="owner_phone">رقم هاتف المالك</label>
+            <input type="tel" id="owner_phone" name="owner_phone" value="{{ form_data.owner_phone|default:'' }}" data-company-field>
+          </div>
+          <div class="field">
+            <label for="company_email">البريد الإلكتروني</label>
+            <input type="email" id="company_email" name="company_email" value="{{ form_data.company_email|default:'' }}" data-company-field>
+          </div>
+          <div class="field">
+            <label for="request_email">بريد مقدم الطلب</label>
+            <input type="email" id="request_email" name="request_email" value="{{ form_data.request_email|default:'' }}" required>
+          </div>
+          <div class="field field-full">
+            <label for="business_activity">أنشطة الرخصة</label>
+            <textarea id="business_activity" name="business_activity" rows="3" data-company-field>{{ form_data.business_activity|default:'' }}</textarea>
+            <div class="hint">اكتب الأنشطة كما هي بالرخصة التجارية.</div>
           </div>
         </div>
-        <div class="field">
-          <label for="company_name">الاسم التجاري</label>
-          <input type="text" id="company_name" name="company_name" value="{{ form_data.company_name|default:'' }}" data-company-field>
-        </div>
-        <div class="field">
-          <label for="trade_license_no">رقم الرخصة التجارية</label>
-          <input type="text" id="trade_license_no" name="trade_license_no" value="{{ form_data.trade_license_no|default:'' }}" data-company-field>
-        </div>
-        <div class="field">
-          <label for="trade_license_exp">تاريخ انتهاء الرخصة التجارية</label>
-          <input type="date" id="trade_license_exp" name="trade_license_exp" value="{{ form_data.trade_license_exp|default:'' }}" data-company-field>
-        </div>
-        <div class="field">
-          <label for="business_activity">أنشطة الرخصة</label>
-          <textarea id="business_activity" name="business_activity" rows="3" data-company-field>{{ form_data.business_activity|default:'' }}</textarea>
-          <div class="hint">اكتب الأنشطة كما هي بالرخصة التجارية.</div>
-        </div>
-        <div class="field">
-          <label for="company_address">عنوان الشركة</label>
-          <input type="text" id="company_address" name="company_address" value="{{ form_data.company_address|default:'' }}" data-company-field>
-        </div>
-        <div class="field">
-          <label for="landline">رقم الهاتف الأرضي</label>
-          <input type="tel" id="landline" name="landline" value="{{ form_data.landline|default:'' }}" data-company-field>
-        </div>
-        <div class="field">
-          <label for="owner_phone">رقم هاتف المالك</label>
-          <input type="tel" id="owner_phone" name="owner_phone" value="{{ form_data.owner_phone|default:'' }}" data-company-field>
-        </div>
-        <div class="field">
-          <label for="company_email">البريد الإلكتروني</label>
-          <input type="email" id="company_email" name="company_email" value="{{ form_data.company_email|default:'' }}" data-company-field>
-        </div>
-        <div class="field">
-          <label for="request_email">بريد مقدم الطلب</label>
-          <input type="email" id="request_email" name="request_email" value="{{ form_data.request_email|default:'' }}" required>
+      </div>
+
+      <!-- بيانات التصريح -->
+      <div class="form-section">
+        <div class="section-title">بيانات التصريح</div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="expiry_date">تاريخ انتهاء التصريح</label>
+            <input type="date" id="expiry_date" name="expiry_date" value="{{ form_data.expiry_date|default:'' }}" readonly>
+            <div class="hint">يُحتسب تلقائياً بعد سنة من انتهاء الرخصة التجارية.</div>
+          </div>
         </div>
       </div>
-    </section>
 
-    <section class="permit-section">
-      <div class="section-title">بيانات التصريح</div>
-      <div class="permit-grid">
-        <div class="field">
-          <label for="expiry_date">تاريخ انتهاء التصريح</label>
-          <input type="date" id="expiry_date" name="expiry_date" value="{{ form_data.expiry_date|default:'' }}" readonly>
-          <div class="hint">يُحتسب تلقائياً بعد سنة من انتهاء الرخصة التجارية.</div>
+      <!-- بيانات المهندس -->
+      <div class="form-section">
+        <div class="section-title">بيانات المهندس</div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="engineer_name">اسم المهندس</label>
+            <input type="text" id="engineer_name" name="engineer_name" value="{{ form_data.engineer_name|default:'' }}" data-company-field>
+          </div>
+          <div class="field">
+            <label for="engineer_phone">رقم الهاتف المتحرك</label>
+            <input type="tel" id="engineer_phone" name="engineer_phone" value="{{ form_data.engineer_phone|default:'' }}" data-company-field>
+          </div>
+          <div class="field">
+            <label for="engineer_email">البريد الإلكتروني للمهندس</label>
+            <input type="email" id="engineer_email" name="engineer_email" value="{{ form_data.engineer_email|default:'' }}" data-company-field>
+          </div>
         </div>
       </div>
-    </section>
 
-    <section class="permit-section">
-      <div class="section-title">بيانات المهندس</div>
-      <div class="permit-grid">
+      <!-- المستندات -->
+      <div class="form-section">
+        <div class="section-title">المستندات المطلوبة</div>
         <div class="field">
-          <label for="engineer_name">اسم المهندس</label>
-          <input type="text" id="engineer_name" name="engineer_name" value="{{ form_data.engineer_name|default:'' }}" data-company-field>
-        </div>
-        <div class="field">
-          <label for="engineer_phone">رقم الهاتف المتحرك</label>
-          <input type="tel" id="engineer_phone" name="engineer_phone" value="{{ form_data.engineer_phone|default:'' }}" data-company-field>
-        </div>
-        <div class="field">
-          <label for="engineer_email">البريد الإلكتروني للمهندس</label>
-          <input type="email" id="engineer_email" name="engineer_email" value="{{ form_data.engineer_email|default:'' }}" data-company-field>
+          <label for="documents">إرفاق المستندات (PDF أو صور)</label>
+          <input id="documents" type="file" name="documents" multiple required>
         </div>
       </div>
-    </section>
 
-    <section class="permit-section">
-      <div class="section-title">المستندات المطلوبة</div>
-      <div class="field">
-        <label for="documents">إرفاق المستندات (PDF أو صور)</label>
-        <input id="documents" type="file" name="documents" multiple required>
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">إرسال الطلب</button>
+        <a class="btn-cancel" href="{% url 'clearance_list' %}">العودة للطلبات</a>
       </div>
-    </section>
-
-    <div class="permit-actions">
-      <button type="submit">إرسال الطلب</button>
-      <a class="secondary" href="{% url 'clearance_list' %}">العودة للطلبات</a>
-    </div>
-  </form>
+    </form>
+  </div>
 </section>
 <script>
   (function () {

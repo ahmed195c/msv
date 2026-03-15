@@ -1,209 +1,271 @@
 {% extends "hcsd/base.html" %}
 {% block title %}طلبات شهادة لمن يهمه الأمر{% endblock %}
-{% block content %}
+{% block extra_css %}
 <style>
-  .cert-page { display: grid; gap: 14px; }
-  .cert-title { margin: 0; font-size: 24px; }
-  .cert-card {
-    border: 1px solid var(--line-soft);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.78);
-    padding: 14px;
-    box-shadow: var(--shadow-soft);
+  .cert-page {
+    --ink:       #304357;
+    --ink-2:     #455c75;
+    --ink-3:     #6f8297;
+    --paper:     #ffffff;
+    --surface:   #f1f4f7;
+    --surface-2: #e8eef4;
+    --line:      #d4dce5;
+    --line-2:    #bcc8d5;
+    --accent:    #304357;
+    --accent-dk: #26384a;
+    --radius:    8px;
+    --shadow:    0 10px 24px rgba(48,67,87,.08);
+    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+    direction: rtl;
+    color: var(--ink);
+    padding: 20px 16px 48px;
+    background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(241,244,247,.86)), var(--surface);
+    min-height: 100vh;
   }
-  .cert-form { display: grid; gap: 10px; }
-  .cert-grid-2, .cert-grid-3 { display: grid; gap: 10px; }
-  .cert-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .cert-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .cert-hint {
-    margin: 0;
-    border: 1px solid rgba(31, 90, 75, 0.2);
-    border-radius: 10px;
-    background: #f4faf7;
-    color: #1f5a4b;
-    font-size: 12px;
-    padding: 8px 10px;
-  }
-  .cert-error { color: #b42318; margin: 0; font-weight: 700; }
-  .cert-table th, .cert-table td { text-align: right; }
-  .cert-action {
-    display: inline-flex;
+
+  .cert-wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 14px; }
+
+  /* hero */
+  .cert-hero {
+    background: linear-gradient(160deg,#3a4f66 0%,#304357 55%,#26384a 100%);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 9px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    box-shadow: var(--shadow);
+  }
+  .cert-hero h1 { margin: 0; font-size: clamp(16px,2vw,22px); font-weight: 800; color: #fff; }
+  .cert-hero-btn {
+    color: #c8d8e8;
+    font-size: 13px;
+    font-weight: 700;
     text-decoration: none;
-    background: linear-gradient(180deg, var(--teal-600) 0%, var(--teal-700) 100%);
+    border: 1.5px solid rgba(255,255,255,.25);
+    border-radius: 6px;
+    padding: 7px 14px;
+    transition: background .15s;
+  }
+  .cert-hero-btn:hover { background: rgba(255,255,255,.1); }
+
+  /* card */
+  .cert-card {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .cert-card-title {
+    display: block;
+    padding: 11px 16px;
+    border-bottom: 1.5px solid var(--line);
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .cert-card-body { padding: 16px; }
+
+  /* form */
+  .cert-form { display: grid; gap: 10px; }
+  .cert-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cert-form select,
+  .cert-form input[type="text"],
+  .cert-form input[type="date"] {
+    width: 100%;
+    min-height: 42px;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ink);
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .cert-form select:focus,
+  .cert-form input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(48,67,87,.12);
+  }
+  .cert-form button[type="submit"] {
+    min-height: 42px;
+    padding: 10px 22px;
+    background: var(--accent);
     color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background .15s;
+    width: fit-content;
+  }
+  .cert-form button[type="submit"]:hover { background: var(--accent-dk); }
+
+  .cert-error {
+    color: #7a2c0d;
+    background: #fdf0ea;
+    border: 1.5px solid #d9ab95;
+    border-radius: 6px;
     padding: 8px 12px;
+    font-size: 13px;
     font-weight: 700;
   }
 
-  .cert-card--skeleton {
-    display: none;
-    border: 1px solid var(--line-soft);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.78);
-    padding: 16px;
-    box-shadow: var(--shadow-soft);
-    gap: 12px;
-  }
-
-  .cert-list--loading .cert-list-runtime-card {
-    display: none;
-  }
-
-  .cert-list--loading .cert-card--skeleton {
+  /* filter row */
+  .cert-filter-row {
     display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
   }
 
-  .cert-skeleton-line {
-    height: 14px;
-    border-radius: 8px;
-    background: linear-gradient(100deg, #e7eceb 30%, #f5f8f7 48%, #e7eceb 66%);
-    background-size: 220% 100%;
-    animation: cert-skeleton-shimmer 1.2s linear infinite;
-  }
-
-  .cert-skeleton-line--title {
-    width: 45%;
-    height: 18px;
-  }
-
-  .cert-skeleton-line--input {
+  /* table */
+  .cert-table {
     width: 100%;
-    height: 40px;
+    border-collapse: collapse;
+    font-size: 14px;
   }
+  .cert-table th {
+    background: var(--surface);
+    color: var(--ink-3);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 10px 12px;
+    border-bottom: 1.5px solid var(--line);
+    text-align: right;
+  }
+  .cert-table td {
+    padding: 11px 12px;
+    border-bottom: 1.5px solid var(--line);
+    color: var(--ink-2);
+    text-align: right;
+  }
+  .cert-table tr:last-child td { border-bottom: none; }
+  .cert-table tr:hover td { background: var(--surface); }
 
-  .cert-skeleton-table {
-    display: grid;
-    gap: 8px;
-    margin-top: 8px;
+  /* action link */
+  .cert-action {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background .15s;
   }
+  .cert-action:hover { background: var(--accent-dk); }
 
-  .cert-skeleton-row {
-    height: 16px;
-    border-radius: 8px;
-    background: linear-gradient(100deg, #e7eceb 30%, #f5f8f7 48%, #e7eceb 66%);
-    background-size: 220% 100%;
-    animation: cert-skeleton-shimmer 1.2s linear infinite;
-  }
+  .muted { color: var(--ink-3); font-size: 13px; }
 
-  @keyframes cert-skeleton-shimmer {
-    from { background-position: 100% 0; }
-    to { background-position: -100% 0; }
-  }
-
-  @media (max-width: 900px) {
-    .cert-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (max-width: 640px) {
-    .cert-grid-2, .cert-grid-3 { grid-template-columns: 1fr; }
+  @media (max-width: 760px) {
+    .cert-form-row { grid-template-columns: 1fr; }
+    .cert-filter-row { grid-template-columns: 1fr; }
   }
 </style>
-
+{% endblock %}
+{% block content %}
 <section class="cert-page" lang="ar" dir="rtl">
-  <h1 class="cert-title">طلبات شهادة لمن يهمه الأمر</h1>
+  <div class="cert-wrap">
 
-  <div class="cert-card--skeleton" aria-hidden="true">
-    <div class="cert-skeleton-line cert-skeleton-line--title"></div>
-    <div class="cert-grid-3">
-      <div class="cert-skeleton-line cert-skeleton-line--input"></div>
-      <div class="cert-skeleton-line cert-skeleton-line--input"></div>
-      <div class="cert-skeleton-line cert-skeleton-line--input"></div>
+    <div class="cert-hero">
+      <h1>طلبات شهادة لمن يهمه الأمر</h1>
+      <a class="cert-hero-btn" href="{% url 'enginer_list' %}">← قائمة المهندسين</a>
     </div>
-    <div class="cert-skeleton-table">
-      <div class="cert-skeleton-row"></div>
-      <div class="cert-skeleton-row"></div>
-      <div class="cert-skeleton-row"></div>
-      <div class="cert-skeleton-row"></div>
-      <div class="cert-skeleton-row"></div>
-      <div class="cert-skeleton-row"></div>
-    </div>
-  </div>
 
-  {% if can_manage_certificate_requests %}
-    <div class="cert-card cert-list-runtime-card">
-      <form method="post" class="cert-form">
-        {% csrf_token %}
-        {% if prefilled_source_exam_request_id %}
-          <input type="hidden" name="source_exam_request_id" value="{{ prefilled_source_exam_request_id }}">
-        {% endif %}
-        <div class="cert-grid-2">
-          <select id="enginer_id" name="enginer_id" required>
-            <option value="">اختر المهندس</option>
-            {% for eng in engineers %}
-              <option value="{{ eng.id }}" {% if prefilled_enginer_id == eng.id %}selected{% endif %}>{{ eng.name }} (بطاقة: {{ eng.card_number|default:"-" }})</option>
-            {% endfor %}
-          </select>
-          <select id="certificate_type" name="certificate_type" required>
-            <option value="">نوع الشهادة</option>
-            <option value="public_health" {% if prefilled_certificate_type == 'public_health' %}selected{% endif %}>شهادة اختبار عام</option>
-            <option value="termite" {% if prefilled_certificate_type == 'termite' %}selected{% endif %}>شهادة النمل الأبيض</option>
-          </select>
-        </div>
-        <button type="submit">تقديم طلب شهادة جديد</button>
-        {% if form_error %}<p class="cert-error">{{ form_error }}</p>{% endif %}
-      </form>
-    </div>
-  {% endif %}
-
-  <div class="cert-card cert-list-runtime-card">
-    <form method="get" class="cert-form">
-      <div class="cert-grid-3">
-        <input type="text" name="card_number" value="{{ card_number_query }}" placeholder="فلترة برقم البطاقة">
-        <select name="certificate_type_filter">
-          <option value="">كل أنواع الشهادات</option>
-          <option value="public_health" {% if certificate_type_filter == 'public_health' %}selected{% endif %}>اختبار عام</option>
-          <option value="termite" {% if certificate_type_filter == 'termite' %}selected{% endif %}>نمل أبيض</option>
-        </select>
-        <select name="status">
-          <option value="">كل الحالات</option>
-          <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>تم تقديم طلب الشهادة</option>
-          <option value="payment_pending" {% if status_filter == 'payment_pending' %}selected{% endif %}>بانتظار سداد رسوم الشهادة</option>
-          <option value="payment_received" {% if status_filter == 'payment_received' %}selected{% endif %}>تم استلام الإيصال والهوية الإماراتية</option>
-          <option value="issued" {% if status_filter == 'issued' %}selected{% endif %}>تم إصدار الشهادة</option>
-          <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>مرفوض</option>
-        </select>
-        <button type="submit">تصفية</button>
+    {% if can_manage_certificate_requests %}
+    <div class="cert-card">
+      <span class="cert-card-title">تقديم طلب شهادة جديد</span>
+      <div class="cert-card-body">
+        <form method="post" class="cert-form">
+          {% csrf_token %}
+          {% if prefilled_source_exam_request_id %}
+            <input type="hidden" name="source_exam_request_id" value="{{ prefilled_source_exam_request_id }}">
+          {% endif %}
+          <div class="cert-form-row">
+            <select id="enginer_id" name="enginer_id" required>
+              <option value="">اختر المهندس</option>
+              {% for eng in engineers %}
+                <option value="{{ eng.id }}" {% if prefilled_enginer_id == eng.id %}selected{% endif %}>
+                  {{ eng.name }} (بطاقة: {{ eng.card_number|default:"-" }})
+                </option>
+              {% endfor %}
+            </select>
+            <select id="certificate_type" name="certificate_type" required>
+              <option value="">نوع الشهادة</option>
+              <option value="public_health" {% if prefilled_certificate_type == 'public_health' %}selected{% endif %}>شهادة اختبار عام</option>
+              <option value="termite" {% if prefilled_certificate_type == 'termite' %}selected{% endif %}>شهادة النمل الأبيض</option>
+            </select>
+          </div>
+          <button type="submit">تقديم طلب شهادة</button>
+          {% if form_error %}<div class="cert-error">{{ form_error }}</div>{% endif %}
+        </form>
       </div>
-    </form>
+    </div>
+    {% endif %}
 
-    <table class="cert-table no-mobile-cards">
-      <thead>
-        <tr>
-          <th>المهندس</th>
-          <th>رقم البطاقة</th>
-          <th>نوع الشهادة</th>
-          <th>رقم أمر الدفع</th>
-          <th>الحالة</th>
-          <th>الإجراء</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for req in requests %}
-          <tr>
-            <td>{{ req.enginer.name }}</td>
-            <td>{{ req.enginer.card_number|default:"-" }}</td>
-            <td>{{ req.get_certificate_type_display }}</td>
-            <td>{{ req.payment_order_number|default:"-" }}</td>
-            <td>{{ req.get_status_display }}</td>
-            <td><a class="cert-action" href="{% url 'engineer_certificate_request_detail' req.id %}">عرض</a></td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="6">لا توجد طلبات شهادات حالياً.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="cert-card">
+      <span class="cert-card-title">قائمة الطلبات</span>
+      <div class="cert-card-body">
+        <form method="get" class="cert-form" style="margin-bottom:16px;">
+          <div class="cert-filter-row">
+            <input type="text" name="card_number" value="{{ card_number_query }}" placeholder="فلترة برقم البطاقة">
+            <select name="certificate_type_filter">
+              <option value="">كل أنواع الشهادات</option>
+              <option value="public_health" {% if certificate_type_filter == 'public_health' %}selected{% endif %}>اختبار عام</option>
+              <option value="termite" {% if certificate_type_filter == 'termite' %}selected{% endif %}>نمل أبيض</option>
+            </select>
+            <select name="status">
+              <option value="">كل الحالات</option>
+              <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>تم تقديم الطلب</option>
+              <option value="payment_pending" {% if status_filter == 'payment_pending' %}selected{% endif %}>بانتظار سداد الرسوم</option>
+              <option value="payment_received" {% if status_filter == 'payment_received' %}selected{% endif %}>تم استلام الإيصال والهوية</option>
+              <option value="issued" {% if status_filter == 'issued' %}selected{% endif %}>تم إصدار الشهادة</option>
+              <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>مرفوض</option>
+            </select>
+            <button type="submit">تصفية</button>
+          </div>
+        </form>
+
+        <table class="cert-table">
+          <thead>
+            <tr>
+              <th>المهندس</th>
+              <th>رقم البطاقة</th>
+              <th>نوع الشهادة</th>
+              <th>رقم أمر الدفع</th>
+              <th>الحالة</th>
+              <th>تفاصيل</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req in requests %}
+              <tr>
+                <td>{{ req.enginer.name }}</td>
+                <td>{{ req.enginer.card_number|default:"-" }}</td>
+                <td>{{ req.get_certificate_type_display }}</td>
+                <td>{{ req.payment_order_number|default:"-" }}</td>
+                <td>{{ req.get_status_display }}</td>
+                <td><a class="cert-action" href="{% url 'engineer_certificate_request_detail' req.id %}">عرض</a></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="muted" style="text-align:center;padding:20px;">لا توجد طلبات شهادات حالياً.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 </section>
-<script>
-  (function () {
-    document.addEventListener("submit", function (event) {
-      if (!event.target.matches(".cert-form")) {
-        return;
-      }
-      document.documentElement.classList.add("cert-list--loading");
-    });
-  })();
-</script>
 {% endblock %}

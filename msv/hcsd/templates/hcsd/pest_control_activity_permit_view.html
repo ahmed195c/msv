@@ -2,44 +2,173 @@
 {% load static %}
 {% block title %}عرض تصريح النشاط{% endblock %}
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
-  <link rel="stylesheet" href="{% static 'hcsd/printer.css' %}" media="print">
+<style>
+  .permit-page {
+    --pd-ink: #304357;
+    --pd-ink-2: #455c75;
+    --pd-ink-3: #6f8297;
+    --pd-paper: #ffffff;
+    --pd-surface: #f1f4f7;
+    --pd-surface-2: #e8eef4;
+    --pd-line: #d4dce5;
+    --pd-line-2: #bcc8d5;
+    --pd-accent: #304357;
+    --pd-accent-dark: #26384a;
+    --pd-radius: 8px;
+    --pd-shadow: 0 10px 24px rgba(48,67,87,0.08);
+    padding: 20px 10px 36px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
+    direction: rtl;
+  }
+
+  .permit-card {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: var(--pd-paper);
+    border: 1.5px solid var(--pd-line);
+    border-radius: var(--pd-radius);
+    box-shadow: var(--pd-shadow);
+    padding: 18px;
+    color: var(--pd-ink);
+    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+  }
+
+  .hero-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: linear-gradient(160deg, #3a4f66 0%, #304357 55%, #26384a 100%);
+    border-radius: 6px 6px 0 0;
+    margin: -18px -18px 18px;
+    color: #fff;
+  }
+
+  .hero-title {
+    font-size: clamp(14px, 1.8vw, 18px);
+    font-weight: 800;
+    flex: 1;
+    text-align: center;
+  }
+
+  .hero-btn {
+    color: #c8d8e8;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 6px;
+    padding: 6px 12px;
+    white-space: nowrap;
+    transition: background .15s;
+  }
+
+  .hero-btn:hover { background: rgba(255,255,255,0.1); }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .meta-item {
+    display: grid;
+    gap: 4px;
+    border: 1.5px solid var(--pd-line);
+    border-radius: 6px;
+    background: var(--pd-surface);
+    padding: 9px 12px;
+    min-width: 160px;
+  }
+
+  .meta-item .label {
+    font-size: 11px;
+    color: var(--pd-ink-3);
+    font-weight: 700;
+  }
+
+  .meta-item .value {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--pd-ink);
+  }
+
+  .permit-section {
+    margin-top: 14px;
+    border: 1.5px solid var(--pd-line);
+    border-radius: 6px;
+    background: #fff;
+    padding: 12px;
+  }
+
+  .section-title {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: var(--pd-accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+
+  .detail-item {
+    display: grid;
+    gap: 5px;
+    border: 1.5px solid var(--pd-line);
+    border-radius: 6px;
+    background: var(--pd-surface);
+    padding: 9px 10px;
+  }
+
+  .detail-item .label { font-size: 11px; color: var(--pd-ink-3); font-weight: 700; }
+  .detail-item .value { font-size: 14px; font-weight: 700; color: var(--pd-ink); word-break: break-word; }
+
+  .activity-list {
+    padding-inline-start: 20px;
+    line-height: 2;
+    font-size: 13.5px;
+    color: var(--pd-ink);
+    font-weight: 600;
+  }
+</style>
 {% endblock %}
 {% block content %}
 <section class="permit-page" lang="ar" dir="rtl">
   <div class="permit-card">
-    <div class="action-bar no-print">
-      <a class="back-link" href="{% url 'company_detail' pirmet.company.id %}">العودة إلى الشركة</a>
+
+    <div class="hero-bar no-print">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="{% url 'company_detail' pirmet.company.id %}" class="hero-btn">← العودة إلى الشركة</a>
+        <a href="{% url 'pest_control_permit_print' pirmet.id %}" target="_blank" class="hero-btn" style="background:rgba(255,255,255,0.15);">طباعة التصريح</a>
+      </div>
+      <span class="hero-title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</span>
     </div>
 
-    <header class="permit-header">
-      <div class="municipality">
-        <div class="logo-box">
-          <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
-        </div>
-        <div class="municipality-text">
-          <div class="title">بلدية مدينة الشارقة</div>
-          <div class="sub">إدارة الرقابة والسلامة الصحية</div>
-          <div class="sub">قسم رقابة وتنظيم النفايات</div>
-        </div>
+    <div class="meta-row">
+      <div class="meta-item">
+        <span class="label">رقم التصريح</span>
+        <span class="value">{{ pirmet.permit_no|default:"-" }}</span>
       </div>
-      <div class="meta-grid">
-        <div class="meta-item">
-          <span class="label">رقم التصريح</span>
-          <span class="value">{{ pirmet.permit_no|default:"-" }}</span>
-        </div>
-        <div class="meta-item">
-          <span class="label">تاريخ الإصدار</span>
-          <span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span>
-        </div>
-        <div class="meta-item">
-          <span class="label">تاريخ الانتهاء</span>
-          <span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span>
-        </div>
+      <div class="meta-item">
+        <span class="label">تاريخ الإصدار</span>
+        <span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span>
       </div>
-    </header>
-
-    <div class="permit-title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</div>
+      <div class="meta-item">
+        <span class="label">تاريخ الانتهاء</span>
+        <span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span>
+      </div>
+    </div>
 
     <section class="permit-section">
       <div class="section-title">بيانات الشركة</div>
@@ -94,19 +223,12 @@
         {% if allowed_activities %}
           {% for item in allowed_activities %}
             <li>
-              {% if item == "public_health_pest_control" %}
-                مكافحة آفات الصحة العامة
-              {% elif item == "flying_insects" %}
-                مكافحة الحشرات الطائرة
-              {% elif item == "rodents" %}
-                مكافحة القوارض
-              {% elif item == "termite_control" %}
-                مكافحة النمل الأبيض
-              {% elif item == "grain_pests" %}
-                مكافحة آفات الحبوب
-              {% else %}
-                {{ item }}
-              {% endif %}
+              {% if item == "public_health_pest_control" %}مكافحة آفات الصحة العامة
+              {% elif item == "flying_insects" %}مكافحة الحشرات الطائرة
+              {% elif item == "rodents" %}مكافحة القوارض
+              {% elif item == "termite_control" %}مكافحة النمل الأبيض
+              {% elif item == "grain_pests" %}مكافحة آفات الحبوب
+              {% else %}{{ item }}{% endif %}
             </li>
           {% endfor %}
         {% else %}
@@ -124,19 +246,12 @@
         {% if restricted_activities %}
           {% for item in restricted_activities %}
             <li>
-              {% if item == "public_health_pest_control" %}
-                مكافحة آفات الصحة العامة
-              {% elif item == "flying_insects" %}
-                مكافحة الحشرات الطائرة
-              {% elif item == "rodents" %}
-                مكافحة القوارض
-              {% elif item == "termite_control" %}
-                مكافحة النمل الأبيض
-              {% elif item == "grain_pests" %}
-                مكافحة آفات الحبوب
-              {% else %}
-                {{ item }}
-              {% endif %}
+              {% if item == "public_health_pest_control" %}مكافحة آفات الصحة العامة
+              {% elif item == "flying_insects" %}مكافحة الحشرات الطائرة
+              {% elif item == "rodents" %}مكافحة القوارض
+              {% elif item == "termite_control" %}مكافحة النمل الأبيض
+              {% elif item == "grain_pests" %}مكافحة آفات الحبوب
+              {% else %}{{ item }}{% endif %}
             </li>
           {% endfor %}
         {% else %}
@@ -147,6 +262,7 @@
         {% endif %}
       </ul>
     </section>
+
   </div>
 </section>
 {% endblock %}

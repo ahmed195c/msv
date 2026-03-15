@@ -1,403 +1,317 @@
 {% extends "hcsd/base.html" %}
-{% block title %}Register{% endblock %}
-{% block content %}
+{% load static %}
+{% block title %}إنشاء حساب جديد{% endblock %}
+{% block extra_css %}
 <style>
-  .signup-stage {
-    min-height: calc(100vh - 140px);
-    padding: 16px 0 36px;
-    display: grid;
+  .auth-page {
+    min-height: calc(100vh - 58px);
+    display: flex;
     align-items: center;
-  }
-
-  .signup-frame {
+    justify-content: center;
+    padding: 32px 16px 48px;
+    background: linear-gradient(135deg, #1e2e3d 0%, #2c4159 40%, #1a3347 100%);
+    direction: rtl;
     position: relative;
-    max-width: 1040px;
-    margin: 0 auto;
-    border-radius: 18px;
-    padding: 28px;
-    background:
-      radial-gradient(240px 240px at 8% 10%, rgba(200, 138, 45, 0.20), transparent 70%),
-      radial-gradient(320px 320px at 90% 88%, rgba(31, 90, 75, 0.16), transparent 72%),
-      radial-gradient(220px 220px at 80% 12%, rgba(226, 237, 233, 0.22), transparent 70%),
-      linear-gradient(135deg, #f2ede3 0%, #eadfcb 38%, #dfeae4 70%, #d6e4de 100%);
-    box-shadow: 0 26px 56px rgba(31, 90, 75, 0.14);
     overflow: hidden;
   }
 
-  .signup-frame::before,
-  .signup-frame::after {
-    content: "";
+  .auth-page::before {
+    content: '';
     position: absolute;
-    border-radius: 999px;
-    border: 28px solid rgba(200, 138, 45, 0.12);
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 20% 50%, rgba(74,114,156,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 300px at 85% 20%, rgba(99,157,210,0.12) 0%, transparent 65%),
+      radial-gradient(ellipse 300px 300px at 70% 85%, rgba(48,67,87,0.25) 0%, transparent 70%);
     pointer-events: none;
   }
 
-  .signup-frame::before {
-    width: 340px;
-    height: 340px;
-    top: -170px;
-    left: 120px;
-  }
-
-  .signup-frame::after {
-    width: 380px;
-    height: 380px;
-    right: -140px;
-    bottom: -180px;
-  }
-
-  .signup-panel {
+  .auth-card {
     position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: 1.05fr 1.35fr;
-    min-height: 560px;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    border-radius: 18px;
+    width: min(100%, 560px);
+    background: rgba(255,255,255,0.97);
+    border-radius: 16px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.12),
+      0 24px 64px rgba(0,0,0,0.35),
+      0 4px 16px rgba(0,0,0,0.2);
+    overflow: hidden;
+    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+  }
+
+  .auth-top {
+    padding: 28px 28px 22px;
+    background: linear-gradient(160deg, #304357 0%, #1e2e3d 100%);
+    color: #fff;
+    text-align: center;
+    position: relative;
     overflow: hidden;
   }
 
-  .signup-side {
-    padding: 30px 28px;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 16px;
-    background:
-      radial-gradient(150px 150px at 78% 16%, rgba(255, 255, 255, 0.13), transparent 65%),
-      radial-gradient(110px 110px at 20% 82%, rgba(200, 138, 45, 0.22), transparent 70%),
-      linear-gradient(165deg, rgba(47, 103, 89, 0.90) 0%, rgba(31, 90, 75, 0.95) 55%, rgba(28, 77, 65, 0.96) 100%);
-    position: relative;
-  }
-
-  .signup-side::before,
-  .signup-side::after {
-    content: "";
+  .auth-top::after {
+    content: '';
     position: absolute;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
+    bottom: -1px;
+    left: 0; right: 0;
+    height: 20px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   }
 
-  .signup-side::before {
-    width: 180px;
-    height: 180px;
-    top: -30px;
-    right: -20px;
-  }
-
-  .signup-side::after {
-    width: 120px;
-    height: 120px;
-    bottom: 18px;
-    left: 20px;
-  }
-
-  .signup-brand {
-    font-size: 12px;
-    opacity: 0.92;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .signup-welcome {
-    margin: 0;
-    font-size: 34px;
-    line-height: 1.15;
-    font-weight: 700;
-  }
-
-  .signup-side p {
-    margin: 0;
-    line-height: 1.65;
-    color: rgba(255, 255, 255, 0.95);
-    font-size: 14px;
-    max-width: 28ch;
-  }
-
-  .side-actions {
-    margin-top: 8px;
+  .auth-logo-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.25);
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .side-link {
-    display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px;
-    padding: 8px 14px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 13px;
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(2px);
+    margin: 0 auto 12px;
+    backdrop-filter: blur(4px);
   }
 
-  .side-link.primary {
-    color: var(--accent);
-    background: #fff;
-    border-color: #fff;
+  .auth-logo-ring img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
   }
 
-  .signup-form-wrap {
-    padding: 24px 26px 18px;
-    display: grid;
-    align-content: start;
-    gap: 14px;
-    background: rgba(255, 255, 255, 0.96);
+  .auth-top h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
   }
 
-  .signup-form-top {
-    border-bottom: 1px solid #ece2d9;
-    padding-bottom: 12px;
-  }
-
-  .signup-form-title {
+  .auth-top p {
     margin: 0;
-    font-size: 30px;
-    line-height: 1.15;
-    color: #171717;
+    font-size: 12.5px;
+    opacity: 0.7;
   }
 
-  .signup-form-sub {
-    margin: 8px 0 0;
-    color: #666055;
+  .auth-body {
+    padding: 28px 28px 26px;
+    display: grid;
+    gap: 20px;
+  }
+
+  .auth-alert {
+    background: #fef2f2;
+    border: 1.5px solid #fca5a5;
+    color: #7f1d1d;
+    border-radius: 10px;
+    padding: 11px 14px;
     font-size: 13px;
-    line-height: 1.55;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .signup-alert {
-    border: 1px solid #efc2c2;
-    background: #fff4f4;
-    color: #8f2323;
-    border-radius: 12px;
-    padding: 10px 12px;
-    font-size: 13px;
+  .auth-alert::before {
+    content: '⚠';
+    font-size: 15px;
+    flex-shrink: 0;
   }
 
-  .signup-grid {
+  .fields-section {
+    display: grid;
+    gap: 14px;
+  }
+
+  .fields-section-title {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+  }
+
+  .fields-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 14px;
   }
 
-  .signup-field {
+  .field-wrap {
     display: grid;
     gap: 6px;
   }
 
-  .signup-field.full {
+  .field-wrap.full {
     grid-column: 1 / -1;
   }
 
-  .signup-field label {
-    font-size: 12px;
-    color: #5f5950;
+  .field-wrap label {
+    font-size: 12.5px;
     font-weight: 700;
+    color: #4a5568;
   }
 
-  .signup-field input {
+  .field-wrap input {
     width: 100%;
-    border: 1px solid #e4d9cf;
-    background: #fbf9f6;
+    border: 1.5px solid #e2e8f0;
     border-radius: 10px;
-    padding: 10px 12px;
+    background: #f8fafc;
+    padding: 11px 14px;
     font-size: 14px;
-    color: #171717;
+    color: #1e2e3d;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   }
 
-  .signup-field input:focus {
+  .field-wrap input:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.14);
+    border-color: #304357;
     background: #fff;
+    box-shadow: 0 0 0 3.5px rgba(48,67,87,0.12);
   }
 
-  .signup-field .errorlist {
+  .field-wrap .errorlist {
     margin: 0;
     padding: 0;
     list-style: none;
-    color: #a32727;
+    color: #b91c1c;
     font-size: 12px;
+    font-weight: 600;
   }
 
-  .signup-field .helptext {
-    color: #7a746b;
+  .field-wrap .helptext {
     font-size: 11px;
-    line-height: 1.45;
-  }
-
-  .signup-submit {
-    margin-top: 4px;
-    width: 100%;
-    min-height: 42px;
-    border-radius: 10px;
-    font-weight: 700;
-    border: none;
-    color: #fff;
-    background: linear-gradient(90deg, #2c6b5a 0%, #1f5a4b 55%, #1a4e40 100%);
-    box-shadow: 0 8px 18px rgba(31, 90, 75, 0.22);
-  }
-
-  .signup-footnote {
-    margin-top: 2px;
-    color: #6d665d;
-    font-size: 12px;
+    color: #94a3b8;
     line-height: 1.5;
   }
 
-  .signup-links {
-    margin-top: auto;
-    padding-top: 14px;
-    border-top: 1px solid #ece2d9;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 14px;
-    color: #726c62;
-    font-size: 11px;
+  .auth-submit {
+    width: 100%;
+    padding: 13px 16px;
+    background: linear-gradient(135deg, #3a4f66 0%, #304357 50%, #26384a 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    box-shadow: 0 4px 14px rgba(48,67,87,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
   }
 
-  .signup-links a {
-    color: inherit;
+  .auth-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(48,67,87,0.4);
+  }
+
+  .auth-submit:active { transform: translateY(0); }
+
+  .auth-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #718096;
+  }
+
+  .auth-links a {
+    color: #304357;
+    font-weight: 700;
     text-decoration: none;
   }
 
-  @media (max-width: 900px) {
-    .signup-panel {
-      grid-template-columns: 1fr;
-      min-height: auto;
-    }
+  .auth-links a:hover { text-decoration: underline; }
 
-    .signup-side {
-      padding: 24px 18px;
-    }
-
-    .signup-side p {
-      max-width: none;
-    }
-
-    .signup-form-wrap {
-      padding: 18px 16px 16px;
-    }
+  .auth-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
   }
 
-  @media (max-width: 640px) {
-    .signup-stage {
-      min-height: auto;
-      padding: 10px 0 24px;
-    }
-
-    .signup-frame {
-      padding: 10px;
-      border-radius: 14px;
-    }
-
-    .signup-panel {
-      border-radius: 14px;
-    }
-
-    .signup-welcome {
-      font-size: 26px;
-    }
-
-    .signup-form-title {
-      font-size: 24px;
-    }
-
-    .signup-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .side-actions {
-      width: 100%;
-    }
-
-    .side-link {
-      flex: 1 1 100%;
-    }
-
-    .signup-links {
-      justify-content: center;
-      font-size: 10px;
-    }
+  @media (max-width: 500px) {
+    .fields-row { grid-template-columns: 1fr; }
+    .auth-body { padding: 22px 18px 20px; }
   }
 </style>
+{% endblock %}
+{% block content %}
+<section class="auth-page" lang="ar" dir="rtl">
+  <div class="auth-card">
 
-<section class="signup-stage" lang="ar" dir="rtl">
-  <div class="signup-frame">
-    <div class="signup-panel">
-      <aside class="signup-side">
-        <h1 class="signup-welcome"><br>أنشئ حسابك</h1>
-        <p>
-          للوصول إلى نظام التصاريح، أنشئ حسابًا باستخدام الاسم والرقم الإداري والبريد الإلكتروني.
-        </p>
-        <div class="side-actions">
-          <a class="side-link primary" href="{% url 'login' %}">تسجيل الدخول</a>
-          <a class="side-link" href="{% url 'home' %}">الصفحة الرئيسية</a>
-        </div>
-      </aside>
+    <div class="auth-top">
+      <div class="auth-logo-ring">
+        <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+      </div>
+      <h1>إنشاء حساب جديد</h1>
+      <p>نظام التصاريح — بلدية مدينة الشارقة</p>
+    </div>
 
-      <div class="signup-form-wrap">
-        <div class="signup-form-top">
-          <h2 class="signup-form-title"> أنشئ حسابك </h2>
-        </div>
+    <div class="auth-body">
 
-        <form method="POST" novalidate>
-          {% csrf_token %}
+      {% if form.errors %}
+        <div class="auth-alert">تعذر إنشاء الحساب. تأكد من صحة البيانات المدخلة.</div>
+      {% endif %}
+      {% if form.non_field_errors %}
+        <div class="auth-alert">{{ form.non_field_errors }}</div>
+      {% endif %}
 
-          {% if form.errors %}
-            <div class="signup-alert">تعذر إنشاء الحساب. تأكد من صحة البيانات المدخلة.</div>
-          {% endif %}
-          {% if form.non_field_errors %}
-            <div class="signup-alert" style="margin-top: 8px;">{{ form.non_field_errors }}</div>
-          {% endif %}
+      <form method="POST" novalidate style="display:grid;gap:20px;">
+        {% csrf_token %}
 
-          <div class="signup-grid" style="margin-top: 12px;">
-            <div class="signup-field full">
-              <label for="{{ form.full_name.id_for_label }}">الاسم</label>
+        <div class="fields-section">
+          <div class="fields-section-title">البيانات الشخصية</div>
+          <div class="fields-row">
+            <div class="field-wrap full">
+              <label for="{{ form.full_name.id_for_label }}">الاسم الكامل</label>
               {{ form.full_name }}
               {{ form.full_name.errors }}
             </div>
-
-            <div class="signup-field">
+            <div class="field-wrap">
               <label for="{{ form.admin_number.id_for_label }}">الرقم الإداري</label>
               {{ form.admin_number }}
               {{ form.admin_number.errors }}
             </div>
-
-            <div class="signup-field">
-              <label for="{{ form.email.id_for_label }}">الإيميل</label>
+            <div class="field-wrap">
+              <label for="{{ form.email.id_for_label }}">البريد الإلكتروني</label>
               {{ form.email }}
               {{ form.email.errors }}
             </div>
+          </div>
+        </div>
 
-            <div class="signup-field full">
-              <label for="{{ form.password.id_for_label }}">كلمة السر</label>
+        <div class="fields-section">
+          <div class="fields-section-title">كلمة المرور</div>
+          <div class="fields-row">
+            <div class="field-wrap">
+              <label for="{{ form.password.id_for_label }}">كلمة المرور</label>
               {{ form.password }}
               {{ form.password.errors }}
               {% if form.password.help_text %}
                 <div class="helptext">{{ form.password.help_text }}</div>
               {% endif %}
             </div>
-
-            <div class="signup-field full">
-              <label for="{{ form.password_confirm.id_for_label }}">تأكيد كلمة السر</label>
+            <div class="field-wrap">
+              <label for="{{ form.password_confirm.id_for_label }}">تأكيد كلمة المرور</label>
               {{ form.password_confirm }}
               {{ form.password_confirm.errors }}
             </div>
           </div>
+        </div>
 
-          <button type="submit" class="signup-submit">إنشاء الحساب</button>
-        </form>
+        <button type="submit" class="auth-submit">إنشاء الحساب</button>
+      </form>
 
+      <div class="auth-divider"></div>
+
+      <div class="auth-links">
+        <span>لديك حساب بالفعل؟</span>
+        <a href="{% url 'login' %}">تسجيل الدخول</a>
       </div>
+
     </div>
   </div>
 </section>

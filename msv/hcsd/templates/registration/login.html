@@ -1,180 +1,260 @@
 {% extends "hcsd/base.html" %}
-{% block title %}Login{% endblock %}
-{% block content %}
+{% load static %}
+{% block title %}تسجيل الدخول{% endblock %}
+{% block extra_css %}
 <style>
-  .auth-shell {
-    min-height: calc(100vh - 140px);
-    display: grid;
-    place-items: center;
-    padding: 20px 0 40px;
-  }
-
-  .auth-card {
-    width: min(100%, 520px);
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    box-shadow: var(--shadow);
+  .auth-page {
+    min-height: calc(100vh - 58px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px 48px;
+    background: linear-gradient(135deg, #1e2e3d 0%, #2c4159 40%, #1a3347 100%);
+    direction: rtl;
+    position: relative;
     overflow: hidden;
   }
 
-  .auth-hero {
-    padding: 18px 18px 14px;
+  .auth-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
     background:
-      linear-gradient(160deg, rgba(31, 90, 75, 0.10), rgba(200, 138, 45, 0.08)),
-      #fff;
-    border-bottom: 1px solid var(--line);
+      radial-gradient(ellipse 600px 400px at 20% 50%, rgba(74,114,156,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 300px at 85% 20%, rgba(99,157,210,0.12) 0%, transparent 65%),
+      radial-gradient(ellipse 300px 300px at 70% 85%, rgba(48,67,87,0.25) 0%, transparent 70%);
+    pointer-events: none;
   }
 
-  .auth-title {
+  .auth-card {
+    position: relative;
+    width: min(100%, 440px);
+    background: rgba(255,255,255,0.97);
+    border-radius: 16px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.12),
+      0 24px 64px rgba(0,0,0,0.35),
+      0 4px 16px rgba(0,0,0,0.2);
+    overflow: hidden;
+    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+  }
+
+  .auth-top {
+    padding: 28px 28px 22px;
+    background: linear-gradient(160deg, #304357 0%, #1e2e3d 100%);
+    color: #fff;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-top::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0; right: 0;
+    height: 20px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  }
+
+  .auth-logo-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    backdrop-filter: blur(4px);
+  }
+
+  .auth-logo-ring img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+  }
+
+  .auth-top h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .auth-top p {
     margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-  }
-
-  .auth-subtitle {
-    margin: 6px 0 0;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 12.5px;
+    opacity: 0.7;
   }
 
   .auth-body {
-    padding: 16px 18px 18px;
+    padding: 28px 28px 24px;
     display: grid;
-    gap: 12px;
+    gap: 18px;
   }
 
   .auth-alert {
-    border: 1px solid #d7a4a4;
-    background: #fff4f4;
-    color: #8b2323;
-    border-radius: 12px;
-    padding: 10px 12px;
+    background: #fef2f2;
+    border: 1.5px solid #fca5a5;
+    color: #7f1d1d;
+    border-radius: 10px;
+    padding: 11px 14px;
     font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .auth-field {
+  .auth-alert::before {
+    content: '⚠';
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .field-wrap {
     display: grid;
     gap: 6px;
   }
 
-  .auth-field label {
-    font-size: 13px;
-    color: var(--muted);
-    font-weight: 600;
+  .field-wrap label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #4a5568;
   }
 
-  .auth-field input {
+  .field-input-wrap {
+    position: relative;
+  }
+
+  .field-wrap input {
     width: 100%;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: #fff;
-    padding: 11px 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 11px 14px;
     font-size: 14px;
+    color: #1e2e3d;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   }
 
-  .auth-field .errorlist {
+  .field-wrap input:focus {
+    outline: none;
+    border-color: #304357;
+    background: #fff;
+    box-shadow: 0 0 0 3.5px rgba(48,67,87,0.12);
+  }
+
+  .field-wrap .errorlist {
     margin: 0;
     padding: 0;
     list-style: none;
-    color: #a32525;
+    color: #b91c1c;
     font-size: 12px;
+    font-weight: 600;
   }
 
   .auth-submit {
     width: 100%;
-    padding: 11px 14px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 14px;
+    padding: 13px 16px;
+    background: linear-gradient(135deg, #3a4f66 0%, #304357 50%, #26384a 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    box-shadow: 0 4px 14px rgba(48,67,87,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
   }
 
-  .auth-footer {
+  .auth-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(48,67,87,0.4);
+  }
+
+  .auth-submit:active {
+    transform: translateY(0);
+  }
+
+  .auth-links {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    justify-content: center;
     flex-wrap: wrap;
-    border-top: 1px dashed #ddd4c8;
-    padding-top: 12px;
+    gap: 6px 16px;
+    padding-top: 4px;
     font-size: 13px;
+    color: #718096;
   }
 
-  .auth-footer a {
+  .auth-links a {
+    color: #304357;
+    font-weight: 700;
     text-decoration: none;
-    font-weight: 600;
+    transition: color 0.15s;
   }
 
-  @media (max-width: 640px) {
-    .auth-shell {
-      padding: 12px 0 28px;
-      min-height: auto;
-    }
+  .auth-links a:hover { color: #1e2e3d; text-decoration: underline; }
 
-    .auth-card {
-      border-radius: 14px;
-    }
-
-    .auth-hero,
-    .auth-body {
-      padding-left: 14px;
-      padding-right: 14px;
-    }
-
-    .auth-title {
-      font-size: 21px;
-    }
-
-    .auth-footer {
-      flex-direction: column;
-      align-items: stretch;
-    }
+  .auth-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
   }
 </style>
-
-<section class="auth-shell" lang="ar" dir="rtl">
+{% endblock %}
+{% block content %}
+<section class="auth-page" lang="ar" dir="rtl">
   <div class="auth-card">
-    <div class="auth-hero">
-      <h1 class="auth-title">تسجيل الدخول</h1>
-      <p class="auth-subtitle">ادخل الرقم الإداري وكلمة المرور للوصول إلى نظام التصاريح.</p>
+
+    <div class="auth-top">
+      <div class="auth-logo-ring">
+        <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+      </div>
+      <h1>تسجيل الدخول</h1>
+      <p>نظام التصاريح — بلدية مدينة الشارقة</p>
     </div>
 
-    <form method="POST" class="auth-body" novalidate>
-      {% csrf_token %}
+    <div class="auth-body">
 
       {% if form.errors %}
         <div class="auth-alert">فشل تسجيل الدخول. تأكد من الرقم الإداري وكلمة المرور.</div>
       {% endif %}
 
-      {% if form.non_field_errors %}
-        <div class="auth-alert">{{ form.non_field_errors }}</div>
-      {% endif %}
+      <form method="POST" novalidate style="display:grid;gap:14px;">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
 
-      <div class="auth-field">
-        <label for="{{ form.username.id_for_label }}">الرقم الإداري</label>
-        {{ form.username }}
-        {{ form.username.errors }}
-      </div>
+        <div class="field-wrap">
+          <label for="{{ form.username.id_for_label }}">الرقم الإداري</label>
+          {{ form.username }}
+          {{ form.username.errors }}
+        </div>
 
-      <div class="auth-field">
-        <label for="{{ form.password.id_for_label }}">كلمة المرور</label>
-        {{ form.password }}
-        {{ form.password.errors }}
-      </div>
+        <div class="field-wrap">
+          <label for="{{ form.password.id_for_label }}">كلمة المرور</label>
+          {{ form.password }}
+          {{ form.password.errors }}
+        </div>
 
-      <input type="hidden" name="next" value="{{ next }}">
-      <button type="submit" class="auth-submit">دخول</button>
+        <button type="submit" class="auth-submit">دخول</button>
+      </form>
 
-      <div class="auth-footer" style="border-top:none; padding-top:0;">
+      <div class="auth-divider"></div>
+
+      <div class="auth-links">
         <a href="{% url 'password_reset' %}">نسيت كلمة المرور؟</a>
       </div>
 
-      <div class="auth-footer">
-        <span>ليس لديك حساب؟</span>
-        <a href="{% url 'register' %}">إنشاء حساب جديد</a>
-      </div>
-    </form>
+    </div>
   </div>
 </section>
 {% endblock %}

@@ -31,6 +31,8 @@
             <li>
               {% if error == "company_select_invalid" %}
                 يرجى اختيار شركة صحيحة.
+              {% elif error == "company_has_active_extension" %}
+                هذه الشركة موقوفة بسبب مهلة نشطة — لا يمكن إنشاء تصاريح جديدة حتى يتم إغلاق المهلة.
               {% elif error == "request_email_required" %}
                 يرجى إدخال بريد مقدم الطلب.
               {% elif error == "documents_required" %}

@@ -23,14 +23,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv(
     'DJANGO_SECRET_KEY',
-    'django-insecure-change-me-in-production',
+    'dev-only-key-set-DJANGO_SECRET_KEY-in-production',
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', '1') in {'1', 'true', 'True'}
+DEBUG = os.getenv('DJANGO_DEBUG', '0') in {'1', 'true', 'True'}
 
 DEFAULT_ALLOWED_HOSTS = [
-    '0.0.0.0',
     'msvshjminc.asuscomm.com',
     'msvshjminc.com',
     '.msvshjminc.com',
@@ -132,7 +131,12 @@ else:
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = []
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 6},
+    },
+]
 
 
 

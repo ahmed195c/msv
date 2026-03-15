@@ -16,6 +16,7 @@ from .models import (
     Company,
     CompanyChangeLog,
     EngineerCertificateRequest,
+    EngineerLeave,
     Enginer,
     EnginerStatusLog,
     InspectorReview,
@@ -224,6 +225,13 @@ def _can_data_entry(user):
 
 def _can_head(user):
     return _has_capability(user, 'head_approve')
+
+
+def _company_has_active_extension(company):
+    """Return True if the company has an open extension that hasn't been closed yet."""
+    requested = company.change_logs.filter(action='extension_requested').count()
+    closed = company.change_logs.filter(action='extension_closed').count()
+    return requested > closed
 
 
 def _can_create_exam_request(user):
@@ -573,6 +581,7 @@ def _group_clearances_by_status(items, status_order, status_section_label_map):
     return grouped
 
 
+@login_required
 def home(request):
     permits_qs = PirmetClearance.objects.filter(
         permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal']
@@ -644,14 +653,37 @@ def home(request):
     active_extension_companies = (
         CompanyChangeLog.objects.filter(
             action='extension_requested',
-            extension_end_date__isnull=False,
-            extension_end_date__gte=today,
         )
-        .filter(Q(extension_start_date__isnull=True) | Q(extension_start_date__lte=today))
+        .filter(
+            Q(extension_end_date__isnull=True) | Q(extension_end_date__gte=today)
+        )
         .values('company_id')
         .distinct()
         .count()
     )
+
+    engineers_on_leave = EngineerLeave.objects.filter(actual_return_date__isnull=True).count()
+
+    # ── Permits expiring within 7 days ──────────────────────────────────────
+    week_ahead = today + datetime.timedelta(days=7)
+    expiring_soon_qs = (
+        PirmetClearance.objects.filter(
+            permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'],
+            status='issued',
+            dateOfExpiry__gte=today,
+            dateOfExpiry__lte=week_ahead,
+        )
+        .select_related('company')
+        .order_by('dateOfExpiry')
+    )
+    expiring_soon = []
+    for p in expiring_soon_qs:
+        days_left = (p.dateOfExpiry - today).days
+        expiring_soon.append({
+            'permit': p,
+            'days_left': days_left,
+            'label': _permit_label_ar(p.permit_type),
+        })
 
     return render(
         request,
@@ -664,13 +696,13 @@ def home(request):
             'pending_permits': pending_permits,
             'needs_completion_permits': needs_completion_permits,
             'active_extension_companies': active_extension_companies,
+            'engineers_on_leave': engineers_on_leave,
             'status_breakdown': status_breakdown,
             'permit_type_breakdown': permit_type_breakdown,
+            'expiring_soon': expiring_soon,
         },
     )
 
-
-@login_required
 
 @login_required
 def company_list(request):
@@ -959,7 +991,21 @@ def company_detail(request, id):
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        if action == 'request_extension':
+        if action == 'close_extension':
+            if not _can_admin(request.user):
+                extension_error = 'إغلاق المهلة متاح للإدارة فقط.'
+            elif not _company_has_active_extension(company):
+                extension_error = 'لا توجد مهلة نشطة لإغلاقها.'
+            else:
+                close_notes = (request.POST.get('close_notes') or '').strip()
+                _log_company_change(
+                    company,
+                    'extension_closed',
+                    request.user,
+                    notes=close_notes or 'تم إغلاق المهلة واستيفاء الشروط.',
+                )
+                return redirect('company_detail', id=company.id)
+        elif action == 'request_extension':
             if not can_request_extension:
                 extension_error = 'ليس لديك صلاحية لطلب المهلة.'
             else:
@@ -1180,6 +1226,14 @@ def company_detail(request, id):
     requirement_insurance_requests = list(
         company.requirement_insurance_requests.select_related('related_permit', 'created_by')
     )
+    company_blocked = _company_has_active_extension(company)
+    # Engineer leave info for company's primary engineer
+    engineer_active_leave = None
+    if company.enginer_id:
+        engineer_active_leave = EngineerLeave.objects.filter(
+            engineer_id=company.enginer_id,
+            actual_return_date__isnull=True,
+        ).select_related('substitute').first()
     latest_extension = company.change_logs.filter(action='extension_requested').order_by('-created_at').first()
     if latest_extension and latest_extension.extension_end_date:
         days_left = (latest_extension.extension_end_date - datetime.date.today()).days
@@ -1217,6 +1271,8 @@ def company_detail(request, id):
             'issued_archive': issued_archive,
             'pending_permits_list': pending_permits_list,
             'extension_logs': extension_logs,
+            'company_blocked': company_blocked,
+            'engineer_active_leave': engineer_active_leave,
         },
     )
 
@@ -1423,13 +1479,17 @@ def requirement_insurance_create(request):
 
 @login_required
 def enginer_list(request):
-    card_number_query = (request.GET.get('card_number') or '').strip()
+    search_query = (request.GET.get('q') or '').strip()
     certification_filter = (request.GET.get('certification') or '').strip()
 
     engineers = Enginer.objects.all()
 
-    if card_number_query:
-        engineers = engineers.filter(card_number__icontains=card_number_query)
+    if search_query:
+        engineers = engineers.filter(
+            Q(name__icontains=search_query) |
+            Q(national_or_unified_number__icontains=search_query) |
+            Q(card_number__icontains=search_query)
+        )
 
     if certification_filter == 'public_health':
         engineers = engineers.exclude(public_health_cert='')
@@ -1437,6 +1497,14 @@ def enginer_list(request):
         engineers = engineers.exclude(termite_cert='')
 
     engineers = list(engineers.order_by('name'))
+    # Fetch all active leave records in one query for efficiency
+    active_leave_map = {
+        leave.engineer_id: leave
+        for leave in EngineerLeave.objects.filter(
+            actual_return_date__isnull=True,
+            engineer_id__in=[e.id for e in engineers],
+        ).select_related('substitute')
+    }
     for engineer in engineers:
         ph_expiry_date, ph_is_expired = _certificate_expiry(engineer.public_health_cert_issue_date)
         termite_expiry_date, termite_is_expired = _certificate_expiry(engineer.termite_cert_issue_date)
@@ -1444,6 +1512,7 @@ def enginer_list(request):
         engineer.public_health_cert_is_expired = ph_is_expired
         engineer.termite_cert_expiry_date = termite_expiry_date
         engineer.termite_cert_is_expired = termite_is_expired
+        engineer.active_leave = active_leave_map.get(engineer.id)
     return render(
         request,
         'hcsd/enginer_list.html',
@@ -1452,8 +1521,9 @@ def enginer_list(request):
             'can_add_enginer': _can_data_entry(request.user),
             'can_create_exam_request': _can_create_exam_request(request.user),
             'can_view_exam_requests': _can_inspector(request.user) or _can_create_exam_request(request.user),
-            'card_number_query': card_number_query,
+            'search_query': search_query,
             'certification_filter': certification_filter,
+            'on_leave_count': len(active_leave_map),
         },
     )
 
@@ -1529,8 +1599,50 @@ def enginer_add(request):
 def enginer_detail(request, id):
     enginer = get_object_or_404(Enginer, id=id)
     error = ''
+    leave_error = ''
+    all_engineers = Enginer.objects.exclude(id=enginer.id).order_by('name')
+    active_leave = enginer.leaves.filter(actual_return_date__isnull=True).order_by('-created_at').first()
+
     if request.method == 'POST':
-        if not _can_data_entry(request.user):
+        action = request.POST.get('action', '')
+
+        if action == 'record_leave':
+            if not _can_admin(request.user):
+                leave_error = 'تسجيل الإجازة متاح للإدارة فقط.'
+            elif active_leave:
+                leave_error = 'يوجد إجازة نشطة مسجلة بالفعل — أغلقها أولاً قبل تسجيل إجازة جديدة.'
+            else:
+                start_date = _parse_date(request.POST.get('start_date'))
+                expected_return_date = _parse_date(request.POST.get('expected_return_date'))
+                substitute_id = _parse_int(request.POST.get('substitute_id'))
+                notes = (request.POST.get('notes') or '').strip()
+                substitute = Enginer.objects.filter(id=substitute_id).first() if substitute_id else None
+                if not start_date:
+                    leave_error = 'يرجى إدخال تاريخ بداية الإجازة.'
+                else:
+                    EngineerLeave.objects.create(
+                        engineer=enginer,
+                        substitute=substitute,
+                        start_date=start_date,
+                        expected_return_date=expected_return_date,
+                        notes=notes,
+                        created_by=request.user,
+                    )
+                    return redirect('enginer_detail', id=enginer.id)
+
+        elif action == 'close_leave':
+            if not _can_admin(request.user):
+                leave_error = 'إغلاق الإجازة متاح للإدارة فقط.'
+            elif not active_leave:
+                leave_error = 'لا توجد إجازة نشطة لإغلاقها.'
+            else:
+                actual_return = _parse_date(request.POST.get('actual_return_date')) or datetime.date.today()
+                active_leave.actual_return_date = actual_return
+                active_leave.closed_by = request.user
+                active_leave.save(update_fields=['actual_return_date', 'closed_by'])
+                return redirect('enginer_detail', id=enginer.id)
+
+        elif not _can_data_entry(request.user):
             error = 'التحديث متاح لموظفي الإدخال أو الإدارة فقط.'
         else:
             updated = False
@@ -1563,6 +1675,9 @@ def enginer_detail(request, id):
                 return redirect('enginer_detail', id=enginer.id)
             error = 'يرجى إرفاق ملف واحد على الأقل.'
 
+    # Re-fetch active leave after possible POST changes
+    active_leave = enginer.leaves.filter(actual_return_date__isnull=True).order_by('-created_at').first()
+    leave_history = enginer.leaves.select_related('substitute', 'created_by', 'closed_by').order_by('-created_at')
     logs = enginer.status_logs.select_related('changed_by').all().order_by('-created_at')
     archived_logs = [log for log in logs if getattr(log, 'archived_file', None)]
     public_health_expiry_date, public_health_is_expired = _certificate_expiry(enginer.public_health_cert_issue_date)
@@ -1573,8 +1688,13 @@ def enginer_detail(request, id):
         {
             'enginer': enginer,
             'can_update_enginer': _can_data_entry(request.user),
+            'can_manage_leave': _can_admin(request.user),
             'can_create_exam_request': _can_create_exam_request(request.user),
             'error': error,
+            'leave_error': leave_error,
+            'active_leave': active_leave,
+            'leave_history': leave_history,
+            'all_engineers': all_engineers,
             'logs': logs,
             'archived_logs': archived_logs,
             'public_health_expiry_date': public_health_expiry_date,
@@ -1625,7 +1745,7 @@ def public_health_exam_request_list(request):
                         .order_by('name')
                         .first()
                     )
-                attempt_number = PublicHealthExamRequest.next_attempt_number(enginer)
+                attempt_number = PublicHealthExamRequest.next_attempt_number(enginer, exam_type=exam_type)
                 exam_fee = PublicHealthExamRequest.fee_for_attempt(attempt_number)
                 PublicHealthExamRequest.objects.create(
                     enginer=enginer,
@@ -1654,16 +1774,27 @@ def public_health_exam_request_list(request):
         requests_qs = requests_qs.filter(status=status_filter)
 
     engineers = Enginer.objects.order_by('name')
-    attempt_counts = {
-        row['enginer_id']: row['total']
-        for row in PublicHealthExamRequest.objects.values('enginer_id').annotate(total=Count('id'))
-    }
-    engineer_next_attempt_map = {}
-    engineer_next_fee_map = {}
+    _EXAM_TYPES = ['اختبار عام', 'نمل أبيض']
+    per_type_counts = {}
+    for row in PublicHealthExamRequest.objects.values('enginer_id', 'exam_type').annotate(total=Count('id')):
+        eng_id = row['enginer_id']
+        et = row['exam_type'] or ''
+        per_type_counts.setdefault(eng_id, {})[et] = row['total']
+    engineer_attempt_map = {}
+    engineer_fee_map = {}
+    engineer_data_map = {}
     for eng in engineers:
-        next_attempt = attempt_counts.get(eng.id, 0) + 1
-        engineer_next_attempt_map[eng.id] = next_attempt
-        engineer_next_fee_map[eng.id] = PublicHealthExamRequest.fee_for_attempt(next_attempt)
+        counts_for_eng = per_type_counts.get(eng.id, {})
+        engineer_attempt_map[eng.id] = {}
+        engineer_fee_map[eng.id] = {}
+        for et in _EXAM_TYPES:
+            next_att = counts_for_eng.get(et, 0) + 1
+            engineer_attempt_map[eng.id][et] = next_att
+            engineer_fee_map[eng.id][et] = PublicHealthExamRequest.fee_for_attempt(next_att)
+        engineer_data_map[eng.id] = {
+            'national_number': eng.national_or_unified_number or '',
+            'phone': eng.phone or '',
+        }
 
     companies = Company.objects.all().prefetch_related('engineers').order_by('name')
     engineer_company_map = {}
@@ -1688,8 +1819,9 @@ def public_health_exam_request_list(request):
             'can_inspector_review': _can_inspector(request.user),
             'prefilled_enginer_id': prefilled_enginer_id,
             'engineer_company_map': engineer_company_map,
-            'engineer_next_attempt_map': engineer_next_attempt_map,
-            'engineer_next_fee_map': engineer_next_fee_map,
+            'engineer_attempt_map': engineer_attempt_map,
+            'engineer_fee_map': engineer_fee_map,
+            'engineer_data_map': engineer_data_map,
         },
     )
 
@@ -2377,6 +2509,7 @@ def clearance_list(request):
     )
 
 
+@login_required
 def permit_types(request):
     return render(
         request,
@@ -2420,6 +2553,8 @@ def vehicle_permit(request):
         )
         if not company:
             form_errors.append('company_select_invalid')
+        elif _company_has_active_extension(company):
+            form_errors.append('company_has_active_extension')
 
         form_data.update(
             {
@@ -2861,6 +2996,8 @@ def waste_permit(request):
         )
         if not company:
             form_errors.append('company_select_invalid')
+        elif _company_has_active_extension(company):
+            form_errors.append('company_has_active_extension')
 
         form_data.update(
             {
@@ -3547,6 +3684,8 @@ def pest_control_permit(request):
         original_company_trade_license_exp = company.trade_license_exp if company else None
         if company_id and not company:
             form_errors.append('company_select_invalid')
+        elif company and _company_has_active_extension(company):
+            form_errors.append('company_has_active_extension')
 
         form_data.update(
             {
@@ -3599,6 +3738,7 @@ def pest_control_permit(request):
             ).exists()
 
         enginer = None
+        pending_enginer_fields = []
         if company:
             enginer = company.enginer
             if not enginer:
@@ -3607,18 +3747,17 @@ def pest_control_permit(request):
                 else:
                     form_errors.append('company_engineer_missing')
             else:
-                changed_fields = []
-                if form_data['engineer_name'] and enginer.name != form_data['engineer_name']:
-                    enginer.name = form_data['engineer_name']
-                    changed_fields.append('name')
-                if form_data['engineer_email'] and enginer.email != form_data['engineer_email']:
-                    enginer.email = form_data['engineer_email']
-                    changed_fields.append('email')
-                if form_data['engineer_phone'] and enginer.phone != form_data['engineer_phone']:
-                    enginer.phone = form_data['engineer_phone']
-                    changed_fields.append('phone')
-                if changed_fields:
-                    enginer.save(update_fields=changed_fields)
+                if _can_admin(request.user):
+                    pending_enginer_fields = []
+                    if form_data['engineer_name'] and enginer.name != form_data['engineer_name']:
+                        enginer.name = form_data['engineer_name']
+                        pending_enginer_fields.append('name')
+                    if form_data['engineer_email'] and enginer.email != form_data['engineer_email']:
+                        enginer.email = form_data['engineer_email']
+                        pending_enginer_fields.append('email')
+                    if form_data['engineer_phone'] and enginer.phone != form_data['engineer_phone']:
+                        enginer.phone = form_data['engineer_phone']
+                        pending_enginer_fields.append('phone')
                 engineer_notice = _engineer_no_certificate_notice(enginer)
         else:
             if form_data['engineer_name'] or form_data['engineer_email'] or form_data['engineer_phone']:
@@ -3629,15 +3768,13 @@ def pest_control_permit(request):
                     if not enginer:
                         form_errors.append('engineer_not_registered')
                     else:
-                        enginer_changed_fields = []
+                        pending_enginer_fields = []
                         if form_data['engineer_name'] and enginer.name != form_data['engineer_name']:
                             enginer.name = form_data['engineer_name']
-                            enginer_changed_fields.append('name')
+                            pending_enginer_fields.append('name')
                         if form_data['engineer_phone'] and enginer.phone != form_data['engineer_phone']:
                             enginer.phone = form_data['engineer_phone']
-                            enginer_changed_fields.append('phone')
-                        if enginer_changed_fields:
-                            enginer.save(update_fields=enginer_changed_fields)
+                            pending_enginer_fields.append('phone')
                         engineer_notice = _engineer_no_certificate_notice(enginer)
             else:
                 engineer_notice = 'تنبيه: يمكن تقديم الطلب بدون مهندس للشركة الجديدة، وسيتم استكمال المهندس لاحقاً.'
@@ -3660,6 +3797,9 @@ def pest_control_permit(request):
 
 
         if not form_errors:
+          with transaction.atomic():
+            if enginer and pending_enginer_fields:
+                enginer.save(update_fields=pending_enginer_fields)
             if not company:
                 company = Company.objects.create(
                     name=form_data['company_name'],
@@ -4703,6 +4843,20 @@ def pest_control_permit_detail(request, id):
 
 
 @login_required
+def pest_control_permit_print(request, id):
+    pirmet = get_object_or_404(
+        PirmetClearance.objects.select_related('company', 'company__enginer'),
+        id=id,
+        permit_type='pest_control',
+    )
+    return render(request, 'hcsd/pest_control_activity_permit_print.html', {
+        'pirmet': pirmet,
+        'allowed_activities': _split_activities(pirmet.allowed_activities),
+        'restricted_activities': _split_activities(pirmet.restricted_activities),
+    })
+
+
+@login_required
 def pest_control_permit_view(request, id):
     pirmet = get_object_or_404(
         PirmetClearance.objects.select_related('company', 'company__enginer').prefetch_related('documents'),
@@ -4723,7 +4877,11 @@ def pest_control_permit_view(request, id):
     )
 
 
+@login_required
 def register(request):
+    if not _can_admin(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('ليس لديك صلاحية لإنشاء مستخدمين جدد.')
     if request.method == 'POST':
         form = StaffRegistrationForm(request.POST)
         if form.is_valid():
@@ -4735,7 +4893,6 @@ def register(request):
                 data_entry_group = Group.objects.create(name='Data Entry')
             if data_entry_group:
                 user.groups.add(data_entry_group)
-            login(request, user)
             return redirect('home')
     else:
         form = StaffRegistrationForm()
@@ -4743,6 +4900,55 @@ def register(request):
     return render(request, 'hcsd/register.html', {'form': form})
 
 
+@login_required
+def vehicle_permit_print(request, permit_id):
+    pirmet = get_object_or_404(
+        PirmetClearance.objects.select_related('company', 'transport_details'),
+        id=permit_id,
+        permit_type='pesticide_transport',
+    )
+    transport = getattr(pirmet, 'transport_details', None)
+    return render(request, 'hcsd/vehicle_permit_print.html', {
+        'pirmet': pirmet,
+        'transport': transport,
+    })
+
+
+@login_required
+def waste_disposal_permit_print(request, permit_id):
+    # Get the requested permit to identify the company
+    base_permit = get_object_or_404(
+        PirmetClearance.objects.select_related('company'),
+        id=permit_id,
+        permit_type='waste_disposal',
+    )
+    company = base_permit.company
+
+    # Use the latest issued permit for this company as the active permit
+    permit = (
+        PirmetClearance.objects
+        .select_related('company', 'waste_details')
+        .filter(company=company, permit_type='waste_disposal', status__in=['issued', 'disposal_approved', 'payment_completed'])
+        .order_by('-issue_date', '-id')
+        .first()
+    )
+    # Fall back to the requested permit if no issued one exists
+    if permit is None:
+        permit = get_object_or_404(
+            PirmetClearance.objects.select_related('company', 'waste_details'),
+            id=permit_id,
+            permit_type='waste_disposal',
+            status__in=['payment_completed', 'issued'],
+        )
+
+    waste = getattr(permit, 'waste_details', None)
+    return render(request, 'hcsd/waste_disposal_permit_print.html', {
+        'permit': permit,
+        'waste': waste,
+    })
+
+
+@login_required
 def printer(request, permit_id=None):
     requested_id = permit_id or _parse_int(request.GET.get('permit_id'))
     permits_qs = PirmetClearance.objects.select_related('company', 'company__enginer').filter(

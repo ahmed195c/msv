@@ -1,495 +1,578 @@
 {% extends "hcsd/base.html" %}
-{% block title %}تفاصيل طلب اختبار آفات الصحة العامة{% endblock %}
-{% block content %}
+{% load static %}
+{% block title %}طلب اختبار #{{ exam_request.id }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
 <style>
-  .exam-detail-page { display: grid; gap: 14px; }
-  .exam-detail-card {
-    border: 1px solid var(--line-soft);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.78);
-    padding: 14px;
-    box-shadow: var(--shadow-soft);
+  .exam-detail-page {
+    --ink:       #304357;
+    --ink-2:     #455c75;
+    --ink-3:     #6f8297;
+    --paper:     #ffffff;
+    --surface:   #f1f4f7;
+    --surface-2: #e8eef4;
+    --line:      #d4dce5;
+    --accent:    #304357;
+    --accent-dk: #26384a;
+    --radius:    8px;
+    --shadow:    0 10px 24px rgba(48,67,87,.08);
+
+    padding: 20px 10px 48px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.5), rgba(241,244,247,.86)),
+      var(--surface);
+    direction: rtl;
+    font-family: "IBM Plex Sans Arabic","Tahoma",sans-serif;
+    color: var(--ink);
   }
-  .exam-meta {
+
+  .exam-wrap {
+    max-width: 960px;
+    margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  /* ── Hero ── */
+  .exam-hero {
+    background: linear-gradient(160deg,#3a4f66 0%,#304357 55%,#26384a 100%);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+    box-shadow: 0 8px 24px rgba(48,67,87,.22);
+  }
+  .exam-hero h1 { margin: 0 0 4px; font-size: clamp(16px,2vw,20px); font-weight: 800; letter-spacing: -.02em; }
+  .exam-hero p  { margin: 0; font-size: 12.5px; opacity: .7; }
+  .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .hero-btn {
+    display: inline-flex; align-items: center;
+    padding: 8px 16px; border-radius: 6px;
+    font-size: 12.5px; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    border: 1.5px solid rgba(255,255,255,.2);
+    background: rgba(255,255,255,.12); color: #fff;
+    transition: background .15s;
+  }
+  .hero-btn:hover { background: rgba(255,255,255,.22); }
+
+  /* ── Status badge in hero ── */
+  .hero-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 700;
+    background: rgba(255,255,255,.15);
+    border: 1.5px solid rgba(255,255,255,.25);
+    color: #fff;
+  }
+  .hero-status::before { content:''; width:7px; height:7px; border-radius:50%; background:#fff; flex-shrink:0; }
+  .hs-submitted::before  { background:#93c5fd; }
+  .hs-approved::before   { background:#6ee7b7; }
+  .hs-payment::before    { background:#fcd34d; }
+  .hs-scheduled::before  { background:#c4b5fd; }
+  .hs-completed::before  { background:#34d399; }
+  .hs-rejected::before   { background:#f87171; }
+
+  /* ── Card ── */
+  .exam-card {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .card-head {
+    padding: 11px 16px;
+    border-bottom: 1.5px solid var(--line);
+    background: var(--surface);
+    font-size: 13px; font-weight: 800; color: var(--ink);
+  }
+  .card-body { padding: 16px; }
+
+  /* ── Info grid ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 10px;
   }
-  .exam-meta-item {
-    padding: 8px 10px;
-    border: 1px solid rgba(44, 67, 80, 0.14);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.65);
-  }
-  .exam-form { display: grid; gap: 10px; }
-  .exam-form button {
-    width: 100%;
-    justify-content: center;
-  }
-  .docs-section {
-    display: grid;
-    gap: 10px;
-  }
-  .docs-title {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--ink-900);
-  }
-  .docs-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-  .doc-card {
-    border: 1px solid rgba(44, 67, 80, 0.14);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.8);
-    padding: 10px;
-    display: grid;
-    gap: 8px;
-  }
-  .doc-card.is-ready {
-    border-color: rgba(31, 90, 75, 0.28);
-    background: linear-gradient(180deg, #ffffff 0%, #f4faf7 100%);
-  }
-  .doc-card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .doc-card-name {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ink-900);
-  }
-  .doc-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    padding: 4px 8px;
-    font-size: 11px;
-    font-weight: 700;
-    border: 1px solid rgba(44, 67, 80, 0.16);
-    color: var(--ink-700);
-    background: #fff;
-  }
-  .doc-card.is-ready .doc-badge {
-    color: #1f5a4b;
-    border-color: #c9dbd3;
-    background: #edf5f1;
-  }
-  .doc-hint {
-    margin: 0;
-    font-size: 12px;
-    color: var(--ink-500);
-  }
-  .doc-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  .doc-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9px;
-    padding: 7px 10px;
-    font-size: 12px;
-    font-weight: 700;
-    text-decoration: none;
-    color: #1f5a4b;
-    border: 1px solid #c9dbd3;
-    background: #edf5f1;
-    width: 100%;
-  }
-  .doc-action:hover {
-    background: #e4f0eb;
-  }
-  .upload-box {
-    border: 1px solid var(--line-soft);
-    border-radius: 14px;
-    background: linear-gradient(180deg, #fff 0%, #fbf8f2 100%);
-    overflow: hidden;
-  }
-  .upload-box-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+  .info-item {
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
     padding: 10px 12px;
-    border-bottom: 1px solid rgba(44, 67, 80, 0.14);
-    background: rgba(255, 255, 255, .85);
+    display: grid; gap: 3px;
   }
-  .upload-box-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ink-900);
+  .info-label { font-size: 11px; font-weight: 700; color: var(--ink-3); }
+  .info-value { font-size: 14px; font-weight: 800; color: var(--ink); }
+
+  /* ── Status badge ── */
+  .sbadge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 700; white-space: nowrap;
   }
-  .upload-box-tag {
-    font-size: 11px;
-    color: var(--ink-500);
+  .sbadge::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .sb-submitted        { background:#eff6ff; color:#1e40af; border:1.5px solid #bfdbfe; }
+  .sb-submitted::before { background:#3b82f6; }
+  .sb-approved         { background:#f0fdf4; color:#065f46; border:1.5px solid #86efac; }
+  .sb-approved::before  { background:#059669; }
+  .sb-payment          { background:#fff7ed; color:#9a3412; border:1.5px solid #fed7aa; }
+  .sb-payment::before   { background:#f97316; }
+  .sb-scheduled        { background:#f5f3ff; color:#5b21b6; border:1.5px solid #ddd6fe; }
+  .sb-scheduled::before { background:#7c3aed; }
+  .sb-completed        { background:#f0fdf4; color:#065f46; border:1.5px solid #6ee7b7; }
+  .sb-completed::before { background:#10b981; }
+  .sb-rejected         { background:#fef2f2; color:#b91c1c; border:1.5px solid #fecaca; }
+  .sb-rejected::before  { background:#ef4444; }
+
+  /* ── Doc cards ── */
+  .doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .doc-card {
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: grid; gap: 8px;
+    background: var(--surface);
   }
-  .upload-native {
-    position: absolute;
-    width: 1px;
-    height: 1px;
+  .doc-card.has-file { border-color: #86efac; background: #f0fdf4; }
+  .doc-label { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+  .doc-link {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 7px 14px; border-radius: 6px;
+    background: var(--accent); color: #fff;
+    text-decoration: none; font-size: 12.5px; font-weight: 700;
+    transition: background .15s;
+  }
+  .doc-link:hover { background: var(--accent-dk); }
+  .doc-empty { font-size: 12px; color: var(--ink-3); }
+
+  /* ── Action forms ── */
+  .action-section { display: grid; gap: 12px; }
+  .action-card {
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-    padding: 0;
-    margin: -1px;
+  }
+  .action-card-head {
+    padding: 10px 14px;
+    background: var(--surface);
+    border-bottom: 1.5px solid var(--line);
+    font-size: 13px; font-weight: 800; color: var(--ink);
+  }
+  .action-card-body { padding: 14px; display: grid; gap: 10px; }
+
+  .form-field { display: grid; gap: 5px; }
+  .form-field label { font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    padding: 9px 12px;
+    font-size: 13.5px; font-family: inherit;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(48,67,87,.12);
+  }
+
+  .btn-primary {
+    padding: 10px 22px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: var(--radius);
+    font-size: 13.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s;
+  }
+  .btn-primary:hover { background: var(--accent-dk); }
+  .btn-primary.btn-full { width: 100%; text-align: center; }
+
+  .btn-link {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 10px 22px; border-radius: var(--radius);
+    background: var(--accent); color: #fff;
+    text-decoration: none; font-size: 13px; font-weight: 700;
+    transition: background .15s;
+  }
+  .btn-link:hover { background: var(--accent-dk); }
+
+  /* ── Date confirmed card ── */
+  .date-card {
+    background: #f0fdf4; border: 1.5px solid #86efac;
+    border-radius: var(--radius); padding: 12px 16px;
+    display: grid; gap: 3px;
+  }
+  .date-label { font-size: 11.5px; font-weight: 700; color: #065f46; }
+  .date-value { font-size: 18px; font-weight: 800; color: #047857; }
+
+  /* ── Upload ── */
+  .upload-box { border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .upload-box-head {
+    padding: 9px 14px; border-bottom: 1.5px solid var(--line);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-size: 12px; font-weight: 700; color: var(--ink);
+  }
+  .upload-box-tag { font-size: 11px; color: var(--ink-3); }
+  .upload-box-body { padding: 12px; display: grid; gap: 8px; }
+  .upload-native {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0,0,0,0);
+    white-space: nowrap; border: 0; padding: 0; margin: -1px;
   }
   .upload-drop {
-    display: grid;
-    place-items: center;
-    min-height: 100px;
-    border: 1.5px dashed rgba(31, 90, 75, 0.25);
-    border-radius: 12px;
-    background: #fff;
-    cursor: pointer;
-    text-align: center;
-    padding: 12px;
+    display: grid; place-items: center; min-height: 90px;
+    border: 1.5px dashed var(--line); border-radius: 6px;
+    background: var(--surface); cursor: pointer; text-align: center; padding: 12px;
+    transition: border-color .15s, background .15s;
   }
-  .upload-drop.drag-over { border-color: rgba(31, 90, 75, 0.65); background: #f3faf7; }
-  .upload-text { font-size: 13px; color: var(--ink-900); font-weight: 600; }
-  .upload-subtext { font-size: 11px; color: var(--ink-500); }
-  .upload-file-pill {
-    display: none;
-    border: 1px solid #d2e0da;
-    background: #edf5f1;
-    color: #214d42;
-    border-radius: 10px;
-    padding: 8px 10px;
-    font-size: 12px;
+  .upload-drop:hover, .upload-drop.drag-over { border-color: var(--accent); background: var(--surface-2); }
+  .upload-drop-inner { display: grid; gap: 5px; justify-items: center; }
+  .upload-icon {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--surface-2); border: 1.5px solid var(--line); font-size: 15px;
   }
-  .upload-file-pill.show { display: inline-flex; }
-  .schedule-box {
-    border: 1px solid rgba(31, 90, 75, 0.22);
-    border-radius: 14px;
-    background:
-      radial-gradient(180px 80px at 85% 0, rgba(31, 90, 75, 0.07), transparent 70%),
-      linear-gradient(180deg, #ffffff 0%, #f5faf7 100%);
-    padding: 12px;
-    display: grid;
-    gap: 8px;
+  .upload-text    { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .upload-subtext { font-size: 11px; color: var(--ink-3); }
+  .upload-pill {
+    display: none; align-items: center; gap: 8px;
+    border: 1.5px solid var(--line); background: var(--surface);
+    color: var(--ink-2); border-radius: 6px; padding: 7px 12px; font-size: 12px;
   }
-  .schedule-title {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--ink-900);
+  .upload-pill.show { display: inline-flex; }
+
+  .form-error {
+    background: #fef2f2; border: 1.5px solid #fecaca;
+    border-radius: var(--radius); padding: 10px 14px;
+    color: #b91c1c; font-size: 13px; font-weight: 700;
   }
-  .schedule-note {
-    margin: 0;
-    font-size: 12px;
-    color: var(--ink-500);
+
+  @media (max-width: 640px) {
+    .info-grid { grid-template-columns: 1fr 1fr; }
+    .doc-grid  { grid-template-columns: 1fr; }
+    .exam-hero { flex-direction: column; align-items: flex-start; }
   }
-  .schedule-date-input {
-    width: 100%;
-    min-height: 44px;
-    border: 1px solid #c9dbd3;
-    border-radius: 10px;
-    background: #fff;
-    color: var(--ink-900);
-    padding: 10px 12px;
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .schedule-date-input:focus {
-    outline: none;
-    border-color: var(--teal-600);
-    box-shadow: 0 0 0 3px rgba(31, 90, 75, 0.14);
-  }
-  .scheduled-date-card {
-    margin-top: 12px;
-    border: 1px solid rgba(31, 90, 75, 0.24);
-    border-radius: 12px;
-    background: linear-gradient(180deg, #ffffff 0%, #eef7f3 100%);
-    padding: 12px;
-    display: grid;
-    gap: 6px;
-  }
-  .scheduled-date-label {
-    margin: 0;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ink-600);
-  }
-  .scheduled-date-value {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 800;
-    color: #1f5a4b;
-    letter-spacing: 0.2px;
-  }
-  .cert-section {
-    margin-top: 14px;
-    border: 1px solid rgba(30, 95, 140, 0.22);
-    border-radius: 14px;
-    background:
-      radial-gradient(180px 90px at 90% 0, rgba(30, 95, 140, 0.08), transparent 70%),
-      linear-gradient(180deg, #ffffff 0%, #f3f8fd 100%);
-    padding: 12px;
-    display: grid;
-    gap: 10px;
-  }
-  .cert-title {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--ink-900);
-  }
-  .cert-meta {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-  .cert-meta-item {
-    border: 1px solid rgba(30, 95, 140, 0.18);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.82);
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-  .cert-file-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-  }
-  .cert-file-card {
-    border: 1px solid rgba(44, 67, 80, 0.14);
-    border-radius: 10px;
-    padding: 8px;
-    background: #fff;
-    display: grid;
-    gap: 8px;
-  }
-  .cert-file-title {
-    margin: 0;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ink-700);
-  }
-  .cert-file-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    border-radius: 8px;
-    padding: 7px 10px;
-    font-size: 12px;
-    font-weight: 700;
-    text-decoration: none;
-    color: #1f5a4b;
-    border: 1px solid #c9dbd3;
-    background: #edf5f1;
-  }
-  .cert-file-empty {
-    margin: 0;
-    font-size: 11px;
-    color: var(--ink-500);
-  }
-  .exam-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    text-decoration: none;
-    background: linear-gradient(180deg, var(--teal-600) 0%, var(--teal-700) 100%);
-    color: #fff;
-    padding: 10px 14px;
-    font-weight: 700;
-  }
-  .exam-error { color: #b42318; margin: 0; font-weight: 700; }
-  @media (max-width: 700px) {
-    .exam-meta { grid-template-columns: 1fr; }
-    .docs-grid { grid-template-columns: 1fr; }
-    .cert-meta { grid-template-columns: 1fr; }
-    .cert-file-grid { grid-template-columns: 1fr; }
+  @media (max-width: 420px) {
+    .info-grid { grid-template-columns: 1fr; }
   }
 </style>
+{% endblock %}
 
+{% block content %}
 <section class="exam-detail-page" lang="ar" dir="rtl">
-  <div class="exam-detail-card">
-    <h1 style="margin-top:0;">تفاصيل الطلب #{{ exam_request.id }}</h1>
-    {% if error %}<p class="exam-error">{{ error }}</p>{% endif %}
+  <div class="exam-wrap">
 
-    <div class="exam-meta">
-      <div class="exam-meta-item"><strong>المهندس:</strong> {{ exam_request.enginer.name }}</div>
-      <div class="exam-meta-item"><strong>رقم البطاقة:</strong> {{ exam_request.enginer.card_number|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>تاريخ تقديم الطلب:</strong> {{ exam_request.request_submission_date|date:"d/m/Y"|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>الرقم الموحد / رقم الهوية:</strong> {{ exam_request.identity_number|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>لغة الاختبار:</strong> {{ exam_request.exam_language|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>نوع الاختبار:</strong> {{ exam_request.exam_type|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>اسم الفني المؤهل:</strong> {{ exam_request.qualified_technician_name|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>رقم الهاتف:</strong> {{ exam_request.phone_number|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>الإسم التجاري:</strong> {{ exam_request.company_trade_name|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>رقم الرخصة:</strong> {{ exam_request.trade_license_number|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>عدد مرات الخضوع للإختبار:</strong> {{ exam_request.attempt_number }}</div>
-      <div class="exam-meta-item"><strong>رسوم الاختبار:</strong> {{ exam_request.exam_fee }}</div>
-      <div class="exam-meta-item"><strong>الحالة:</strong> {{ exam_request.get_status_display }}</div>
-      <div class="exam-meta-item"><strong>رقم أمر الدفع:</strong> {{ exam_request.payment_reference|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>نتيجة الإمتحان:</strong> {{ exam_request.exam_result|default:"-" }}</div>
-      <div class="exam-meta-item"><strong>تاريخ إنشاء السجل:</strong> {{ exam_request.created_at|date:"d/m/Y" }}</div>
-    </div>
-  </div>
-
-  <div class="exam-detail-card">
-    <div class="docs-section">
-      <h2 class="docs-title">المستندات</h2>
-      <div class="docs-grid">
-        <article class="doc-card {% if exam_request.request_document %}is-ready{% endif %}">
-          <div class="doc-card-head">
-            <div class="doc-card-name">مستندات الطلب</div>
-          </div>
-          {% if exam_request.request_document %}
-            <div class="doc-actions">
-              <a class="doc-action" href="{{ exam_request.request_document.url }}" target="_blank" rel="noopener">عرض الملف</a>
-            </div>
+    {# ── Hero ── #}
+    <div class="exam-hero">
+      <div>
+        <h1>طلب اختبار #{{ exam_request.id }} — {{ exam_request.enginer.name }}</h1>
+        <p>
+          {% if exam_request.status == 'submitted' %}
+            <span class="hero-status hs-submitted">بانتظار الاعتماد</span>
+          {% elif exam_request.status == 'inspector_approved' %}
+            <span class="hero-status hs-approved">تم الاعتماد</span>
+          {% elif exam_request.status == 'payment_pending' %}
+            <span class="hero-status hs-payment">بانتظار الدفع</span>
+          {% elif exam_request.status == 'scheduled' %}
+            <span class="hero-status hs-scheduled">تم حجز الموعد</span>
+          {% elif exam_request.status == 'completed' %}
+            <span class="hero-status hs-completed">مكتمل</span>
+          {% elif exam_request.status == 'rejected' %}
+            <span class="hero-status hs-rejected">مرفوض</span>
+          {% else %}
+            <span class="hero-status">{{ exam_request.get_status_display }}</span>
           {% endif %}
-        </article>
-
-        <article class="doc-card {% if exam_request.payment_receipt %}is-ready{% endif %}">
-          <div class="doc-card-head">
-            <div class="doc-card-name">إيصال الدفع</div>
-          </div>
-          {% if exam_request.payment_receipt %}
-            <div class="doc-actions">
-              <a class="doc-action" href="{{ exam_request.payment_receipt.url }}" target="_blank" rel="noopener">عرض الإيصال</a>
-            </div>
-          {% endif %}
-        </article>
+        </p>
+      </div>
+      <div class="hero-actions">
+        <a class="hero-btn" href="{% url 'enginer_detail' exam_request.enginer.id %}">المهندس</a>
+        <a class="hero-btn" href="{% url 'public_health_exam_request_list' %}">← القائمة</a>
       </div>
     </div>
 
-    {% if can_inspector_review and exam_request.status == 'submitted' %}
-      <form method="post" class="exam-form">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="inspector_review">
-        <select name="decision" required>
-          <option value=""> اعتماد | رفض </option>
-          <option value="approve">اعتماد</option>
-          <option value="reject">رفض</option>
-        </select>
-        <textarea name="recommendation" rows="2" placeholder="التوصية">{{ exam_request.recommendation|default:'' }}</textarea>
-        <textarea name="review_notes" rows="3" placeholder="ملاحظات المفتش"></textarea>
-        <button type="submit">حفظ قرار المراجعة</button>
-      </form>
+    {% if error %}
+      <div class="form-error">{{ error }}</div>
     {% endif %}
 
-    {% if can_manage_payment and exam_request.status == 'inspector_approved' and not exam_request.payment_reference %}
-      <form method="post" class="exam-form" style="margin-top:12px;">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="set_payment_order_number">
-        <input type="text" name="payment_reference" value="{{ exam_request.payment_reference|default:'' }}" placeholder="رقم أمر الدفع" required>
-        <button type="submit">حفظ رقم أمر الدفع</button>
-      </form>
-    {% endif %}
-
-    {% if can_manage_payment and exam_request.status == 'payment_pending' and exam_request.payment_reference and not exam_request.payment_receipt %}
-      <form method="post" enctype="multipart/form-data" class="exam-form" style="margin-top:12px;">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="record_payment">
-        <div class="upload-box">
-          <div class="upload-box-head">
-            <div class="upload-box-title">إيصال الدفع</div>
-            <div class="upload-box-tag">PDF / JPG / PNG</div>
+    {# ── Info grid ── #}
+    <div class="exam-card">
+      <div class="card-head">بيانات الطلب</div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">المهندس</div>
+            <div class="info-value">{{ exam_request.enginer.name }}</div>
           </div>
-          <input class="upload-native" id="payment_receipt" type="file" name="payment_receipt" required accept=".pdf,.png,.jpg,.jpeg">
-          <label class="upload-drop" for="payment_receipt" id="payment-receipt-drop">
-            <span>
-              <span class="upload-text">اضغط لاختيار الملف أو اسحبه هنا</span><br>
-              <span class="upload-subtext">صيغة الملف: PDF أو صورة</span>
-            </span>
-          </label>
-          <div class="upload-file-pill" id="payment-receipt-pill">
-            <span id="payment-receipt-name">—</span>
+          <div class="info-item">
+            <div class="info-label">رقم البطاقة</div>
+            <div class="info-value">{{ exam_request.enginer.card_number|default:"—" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">رقم الهوية / الموحد</div>
+            <div class="info-value">{{ exam_request.identity_number|default:"—" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">رقم الهاتف</div>
+            <div class="info-value">{{ exam_request.phone_number|default:"—" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">تاريخ تقديم الطلب</div>
+            <div class="info-value">{{ exam_request.request_submission_date|date:"d/m/Y"|default:"—" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">لغة الاختبار</div>
+            <div class="info-value">{{ exam_request.exam_language|default:"—" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">نوع الاختبار</div>
+            <div class="info-value">{{ exam_request.exam_type|default:"—" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">اسم الفني المؤهل</div>
+            <div class="info-value">{{ exam_request.qualified_technician_name|default:"—" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">عدد مرات الاختبار</div>
+            <div class="info-value">{{ exam_request.attempt_number }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">رسوم الاختبار</div>
+            <div class="info-value">{{ exam_request.exam_fee }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">رقم أمر الدفع</div>
+            <div class="info-value">{{ exam_request.payment_reference|default:"—" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">نتيجة الاختبار</div>
+            <div class="info-value">{{ exam_request.exam_result|default:"—" }}</div>
+          </div>
+          {% if exam_request.company %}
+          <div class="info-item">
+            <div class="info-label">الشركة</div>
+            <div class="info-value">{{ exam_request.company.name }}</div>
+          </div>
+          {% endif %}
+          <div class="info-item">
+            <div class="info-label">تاريخ إنشاء السجل</div>
+            <div class="info-value">{{ exam_request.created_at|date:"d/m/Y" }}</div>
           </div>
         </div>
-        <button type="submit">تسجيل إيصال الدفع</button>
-      </form>
-    {% endif %}
+      </div>
+    </div>
 
-    {% if can_manage_payment and exam_request.status == 'payment_pending' and exam_request.payment_receipt %}
-      <form method="post" class="exam-form" style="margin-top:12px;">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="schedule_exam">
-        <div class="schedule-box">
-          <p class="schedule-title">تحديد موعد الاختبار</p>
-          <input type="date" name="exam_date" class="schedule-date-input" required>
+    {# ── Documents ── #}
+    <div class="exam-card">
+      <div class="card-head">المستندات</div>
+      <div class="card-body">
+        <div class="doc-grid">
+          <div class="doc-card {% if exam_request.request_document %}has-file{% endif %}">
+            <div class="doc-label">مستندات الطلب</div>
+            {% if exam_request.request_document %}
+              <a class="doc-link" href="{{ exam_request.request_document.url }}" target="_blank" rel="noopener">عرض الملف</a>
+            {% else %}
+              <span class="doc-empty">لم يُرفع ملف بعد</span>
+            {% endif %}
+          </div>
+          <div class="doc-card {% if exam_request.payment_receipt %}has-file{% endif %}">
+            <div class="doc-label">إيصال الدفع</div>
+            {% if exam_request.payment_receipt %}
+              <a class="doc-link" href="{{ exam_request.payment_receipt.url }}" target="_blank" rel="noopener">عرض الإيصال</a>
+            {% else %}
+              <span class="doc-empty">لم يُرفع إيصال بعد</span>
+            {% endif %}
+          </div>
         </div>
-        <button type="submit">حجز موعد الاختبار</button>
-      </form>
-    {% endif %}
+      </div>
+    </div>
 
-    {% if can_record_result %}
-      <form method="post" class="exam-form" style="margin-top:12px;">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="record_exam_result">
-        <select name="exam_result" required>
-          <option value="">نتيجة الإمتحان</option>
-          <option value="ناجح" {% if exam_request.exam_result == 'ناجح' %}selected{% endif %}>ناجح</option>
-          <option value="غير ناجح" {% if exam_request.exam_result == 'غير ناجح' %}selected{% endif %}>غير ناجح</option>
-        </select>
-        <button type="submit">حفظ النتيجة</button>
-      </form>
-    {% endif %}
+    {# ── Exam date ── #}
     {% if exam_request.exam_datetime %}
-      <div class="scheduled-date-card">
-        <p class="scheduled-date-label">تاريخ موعد الاختبار</p>
-        <p class="scheduled-date-value">{{ exam_request.exam_datetime|date:"d/m/Y" }}</p>
+    <div class="exam-card">
+      <div class="card-head">موعد الاختبار</div>
+      <div class="card-body">
+        <div class="date-card">
+          <div class="date-label">تاريخ موعد الاختبار</div>
+          <div class="date-value">{{ exam_request.exam_datetime|date:"d/m/Y" }}</div>
+        </div>
       </div>
+    </div>
     {% endif %}
 
-    {% if can_create_certificate_request %}
-      <a class="exam-link" href="{% url 'engineer_certificate_request_list' %}?enginer_id={{ exam_request.enginer.id }}&certificate_type={{ suggested_certificate_type }}&source_exam_request_id={{ exam_request.id }}">
+    {# ── Actions ── #}
+    <div class="action-section">
+
+      {# Inspector review #}
+      {% if can_inspector_review and exam_request.status == 'submitted' %}
+      <div class="action-card">
+        <div class="action-card-head">مراجعة المفتش</div>
+        <div class="action-card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="inspector_review">
+            <div style="display:grid;gap:10px;">
+              <div class="form-field">
+                <label>القرار</label>
+                <select name="decision" required>
+                  <option value="">اختر القرار</option>
+                  <option value="approve">اعتماد</option>
+                  <option value="reject">رفض</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>التوصية</label>
+                <textarea name="recommendation" rows="2" placeholder="التوصية">{{ exam_request.recommendation|default:'' }}</textarea>
+              </div>
+              <div class="form-field">
+                <label>ملاحظات المفتش</label>
+                <textarea name="review_notes" rows="3" placeholder="ملاحظات المراجعة"></textarea>
+              </div>
+              <button type="submit" class="btn-primary">حفظ قرار المراجعة</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {# Set payment order number #}
+      {% if can_manage_payment and exam_request.status == 'inspector_approved' and not exam_request.payment_reference %}
+      <div class="action-card">
+        <div class="action-card-head">رقم أمر الدفع</div>
+        <div class="action-card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="set_payment_order_number">
+            <div style="display:grid;gap:10px;">
+              <div class="form-field">
+                <label>رقم أمر الدفع</label>
+                <input type="text" name="payment_reference" placeholder="أدخل رقم أمر الدفع" required>
+              </div>
+              <button type="submit" class="btn-primary">حفظ رقم أمر الدفع</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {# Upload payment receipt #}
+      {% if can_manage_payment and exam_request.status == 'payment_pending' and exam_request.payment_reference and not exam_request.payment_receipt %}
+      <div class="action-card">
+        <div class="action-card-head">رفع إيصال الدفع</div>
+        <div class="action-card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="record_payment">
+            <div class="upload-box">
+              <div class="upload-box-head">
+                <span>إيصال الدفع</span>
+                <span class="upload-box-tag">PDF / JPG / PNG</span>
+              </div>
+              <div class="upload-box-body">
+                <input class="upload-native" id="payment_receipt" type="file" name="payment_receipt" required accept=".pdf,.png,.jpg,.jpeg">
+                <label class="upload-drop" for="payment_receipt" id="payment-receipt-drop">
+                  <span class="upload-drop-inner">
+                    <span class="upload-icon">⇪</span>
+                    <span class="upload-text">اضغط لاختيار الملف أو اسحبه هنا</span>
+                    <span class="upload-subtext">PDF أو صورة</span>
+                  </span>
+                </label>
+                <div class="upload-pill" id="payment-receipt-pill">
+                  <strong>الملف:</strong>
+                  <span id="payment-receipt-name">—</span>
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary btn-full" style="margin-top:8px;">تسجيل إيصال الدفع</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {# Schedule exam #}
+      {% if can_manage_payment and exam_request.status == 'payment_pending' and exam_request.payment_receipt %}
+      <div class="action-card">
+        <div class="action-card-head">تحديد موعد الاختبار</div>
+        <div class="action-card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="schedule_exam">
+            <div style="display:grid;gap:10px;">
+              <div class="form-field">
+                <label>تاريخ الاختبار</label>
+                <input type="date" name="exam_date" required>
+              </div>
+              <button type="submit" class="btn-primary">حجز موعد الاختبار</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {# Record result #}
+      {% if can_record_result %}
+      <div class="action-card">
+        <div class="action-card-head">تسجيل نتيجة الاختبار</div>
+        <div class="action-card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="record_exam_result">
+            <div style="display:grid;gap:10px;">
+              <div class="form-field">
+                <label>النتيجة</label>
+                <select name="exam_result" required>
+                  <option value="">اختر النتيجة</option>
+                  <option value="ناجح"     {% if exam_request.exam_result == 'ناجح' %}selected{% endif %}>ناجح</option>
+                  <option value="غير ناجح" {% if exam_request.exam_result == 'غير ناجح' %}selected{% endif %}>غير ناجح</option>
+                </select>
+              </div>
+              <button type="submit" class="btn-primary">حفظ النتيجة</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {# Certificate request link #}
+      {% if can_create_certificate_request %}
+      <a class="btn-link" href="{% url 'engineer_certificate_request_list' %}?enginer_id={{ exam_request.enginer.id }}&certificate_type={{ suggested_certificate_type }}&source_exam_request_id={{ exam_request.id }}">
         تقديم طلب شهادة لمن يهمه الأمر
       </a>
-    {% endif %}
+      {% endif %}
+
+    </div>
+
   </div>
-
-  <a class="exam-link" href="{% url 'public_health_exam_request_list' %}">العودة لقائمة الطلبات</a>
 </section>
+
 <script>
-  (function () {
-    function registerUpload(inputId, dropId, pillId, nameId) {
-      var input = document.getElementById(inputId);
-      var drop = document.getElementById(dropId);
-      var pill = document.getElementById(pillId);
-      var name = document.getElementById(nameId);
-      if (!input || !drop || !pill || !name) return;
+(function () {
+  function registerUpload(inputId, dropId, pillId, nameId) {
+    var input = document.getElementById(inputId);
+    var drop  = document.getElementById(dropId);
+    var pill  = document.getElementById(pillId);
+    var name  = document.getElementById(nameId);
+    if (!input || !drop) return;
 
-      function sync() {
-        if (input.files && input.files[0]) {
-          name.textContent = input.files[0].name;
-          pill.classList.add('show');
-        } else {
-          name.textContent = '—';
-          pill.classList.remove('show');
-        }
-      }
-
-      input.addEventListener('change', sync);
-      drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.classList.add('drag-over'); });
-      drop.addEventListener('dragleave', function () { drop.classList.remove('drag-over'); });
-      drop.addEventListener('drop', function (e) {
-        e.preventDefault();
-        drop.classList.remove('drag-over');
-        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-          input.files = e.dataTransfer.files;
-          sync();
-        }
-      });
+    function sync() {
+      var f = input.files && input.files[0];
+      if (f) { if(pill) pill.classList.add('show'); if(name) name.textContent = f.name; }
+      else   { if(pill) pill.classList.remove('show'); if(name) name.textContent = '—'; }
     }
+    input.addEventListener('change', sync);
+    ['dragenter','dragover'].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.add('drag-over'); }); });
+    ['dragleave','drop'].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.remove('drag-over'); }); });
+    drop.addEventListener('drop', function(e) {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) { input.files = e.dataTransfer.files; sync(); }
+    });
+  }
 
-    registerUpload('payment_receipt', 'payment-receipt-drop', 'payment-receipt-pill', 'payment-receipt-name');
-    registerUpload('certificate_payment_receipt', 'certificate-payment-receipt-drop', 'certificate-payment-receipt-pill', 'certificate-payment-receipt-name');
-    registerUpload('certificate_emirates_id_document', 'certificate-emirates-id-drop', 'certificate-emirates-id-pill', 'certificate-emirates-id-name');
-    registerUpload('issued_certificate', 'issued-certificate-drop', 'issued-certificate-pill', 'issued-certificate-name');
-  })();
+  registerUpload('payment_receipt', 'payment-receipt-drop', 'payment-receipt-pill', 'payment-receipt-name');
+})();
 </script>
 {% endblock %}

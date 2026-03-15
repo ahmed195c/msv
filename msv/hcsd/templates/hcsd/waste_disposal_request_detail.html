@@ -229,6 +229,9 @@
   <div class="permit-card">
     <div class="action-bar no-print">
       <a class="back-link" href="{% url 'waste_permit_detail' id=permit.id %}">العودة لتصريح النفايات</a>
+      {% if permit.status == "payment_completed" or permit.status == "issued" or permit.status == "disposal_approved" %}
+      <a class="back-link" href="{% url 'waste_disposal_permit_print' permit.id %}" target="_blank" style="margin-inline-start:auto;background:#2d6e4e;color:#fff;border-color:#2d6e4e;">طباعة التصريح</a>
+      {% endif %}
     </div>
     {% if create_mode %}
       <div class="permit-title permit-title--hero">إنشاء طلب التخلص من النفايات</div>

@@ -1,0 +1,417 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تصريح نقل مبيدات – {{ pirmet.permit_no }}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "IBM Plex Sans Arabic", "Tahoma", Arial, sans-serif;
+      background: #f0f0f0;
+      color: #1a1a1a;
+      font-size: 12.5px;
+      direction: rtl;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      padding: 10mm 12mm 10mm;
+      background: #fff;
+      background-image: url("{% static 'hcsd/border.jpeg' %}");
+      background-repeat: no-repeat;
+      background-size: 110% 100%;
+      background-position: center top;
+    }
+
+    /* ── Header ── */
+    .doc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 80px;
+      margin-bottom: 6px;
+      gap: 12px;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-logo img {
+      width: 72px;
+      height: auto;
+    }
+
+    .header-logo-text {
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.6;
+      color: #1a2e1a;
+    }
+
+    .header-dept {
+      text-align: left;
+      direction: ltr;
+    }
+
+    .header-dept-ar {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1a2e1a;
+      text-align: right;
+      direction: rtl;
+      line-height: 1.5;
+    }
+
+    .header-dept-en {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1a2e1a;
+      text-align: center;
+      direction: ltr;
+      border: 2px solid #1a2e1a;
+      padding: 4px 10px;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    /* ── Title bar ── */
+    .title-bar {
+      background: #3d3d3d;
+      color: #fff;
+      text-align: center;
+      padding: 6px 12px;
+      margin-bottom: 0;
+    }
+
+    .title-bar-ar {
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .title-bar-en {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    td {
+      border: 1px solid #999;
+      padding: 5px 8px;
+      vertical-align: middle;
+      line-height: 1.5;
+    }
+
+    .lbl {
+      background: #dce8db;
+      font-weight: 700;
+      color: #173317;
+      white-space: nowrap;
+      width: 22%;
+    }
+
+    .val {
+      font-weight: 600;
+      color: #111;
+    }
+
+    /* permit number row */
+    .permit-no-row td {
+      text-align: center;
+    }
+
+    .permit-no-label {
+      background: #dce8db;
+      font-weight: 700;
+      color: #173317;
+      width: 28%;
+    }
+
+    .permit-no-value {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      direction: ltr;
+      text-align: center;
+    }
+
+    /* section title row */
+    .section-hdr td {
+      background: #3d3d3d;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+      padding: 5px 8px;
+    }
+
+    /* banner row */
+    .banner-row td {
+      background: #f0f5ef;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+      color: #173317;
+      border: 1.5px solid #888;
+    }
+
+    /* ── Footer area ── */
+    .footer-block {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 10px;
+      gap: 12px;
+    }
+
+    .footer-stamp {
+      border: 2px solid #1a3a1a;
+      padding: 8px 16px;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .footer-stamp-ar {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1a3a1a;
+    }
+
+    .footer-stamp-en {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #1a3a1a;
+      direction: ltr;
+    }
+
+    .footer-datetime {
+      font-size: 11px;
+      color: #555;
+      text-align: left;
+      direction: ltr;
+    }
+
+    /* ── Conditions ── */
+    .conditions-title {
+      background: #3d3d3d;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 4px 8px;
+      margin-top: 10px;
+      text-align: right;
+    }
+
+    .conditions-list {
+      border: 1px solid #999;
+      padding: 6px 12px 6px 6px;
+    }
+
+    .conditions-list li {
+      font-size: 11px;
+      line-height: 1.9;
+      color: #222;
+      list-style: disc;
+      margin-inline-start: 16px;
+    }
+
+    /* ── Print button ── */
+    .no-print {
+      text-align: center;
+      padding: 16px;
+    }
+
+    .print-btn {
+      background: #2d6e4e;
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      margin-inline-end: 8px;
+    }
+
+    .back-btn {
+      background: #555;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    @page { margin: 0; size: A4; }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff; margin: 0; }
+      .page {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0;
+        padding: 10mm 12mm;
+        box-shadow: none;
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print">
+  <button class="print-btn" onclick="window.print()">طباعة التصريح</button>
+  <a class="back-btn" href="{% url 'vehicle_permit_detail' pirmet.id %}">رجوع</a>
+</div>
+
+<div class="page">
+
+  <!-- ── Header ── -->
+  <div class="doc-header">
+    <div class="header-logo">
+      <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+      <div class="header-logo-text">
+        الإمارات العربية المتحدة – حكومة الشارقة<br>
+        بلـديـة مدينـة الشـارقـة<br>
+        United Arab Emirates – Sharjah Government<br>
+        SHARJAH CITY MUNICIPALITY
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Title ── -->
+  <div class="title-bar">
+    <div class="title-bar-ar">تصريح نقل مبيدات آفات الصحة العامة</div>
+    <div class="title-bar-en">Public health pesticide transport permit</div>
+  </div>
+
+  <!-- ── Permit number + dates ── -->
+  <table style="margin-top:0;">
+    <tr class="permit-no-row">
+      <td class="permit-no-label">رقم التصريح</td>
+      <td class="permit-no-value" colspan="3">WCR-VP-&nbsp;{{ pirmet.permit_no }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">تاريخ اصدار التصريح</td>
+      <td class="val">{{ pirmet.issue_date|date:"d/m/Y"|default:"—" }}</td>
+      <td class="lbl">تاريخ انتهاء التصريح</td>
+      <td class="val">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"—" }}</td>
+    </tr>
+  </table>
+
+  <!-- ── Company details ── -->
+  <table style="margin-top:0; border-top:0;">
+    <tr>
+      <td class="lbl">اسم الشركة</td>
+      <td class="val" colspan="3">{{ pirmet.company.name|default:"—" }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">رقم الرخصة</td>
+      <td class="val">{{ pirmet.company.number|default:"—" }}</td>
+      <td class="lbl">رقم التواصل</td>
+      <td class="val">{% if transport %}{{ transport.contact_number|default:pirmet.company.owner_phone|default:"—" }}{% else %}{{ pirmet.company.owner_phone|default:"—" }}{% endif %}</td>
+    </tr>
+    <tr>
+      <td class="lbl">عنوان الشركة</td>
+      <td class="val" colspan="3">{{ pirmet.company.address|default:"—" }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">تاريخ انتهاء الرخصة</td>
+      <td class="val">{{ pirmet.company.trade_license_exp|date:"d/m/Y"|default:"—" }}</td>
+      <td class="lbl">نوع النشاط</td>
+      <td class="val">{% if transport %}{{ transport.activity_type|default:"كما هو موضح بالرخصة" }}{% else %}كما هو موضح بالرخصة{% endif %}</td>
+    </tr>
+  </table>
+
+  <!-- ── Vehicle section header ── -->
+  <table style="margin-top:0; border-top:0;">
+    <tr class="section-hdr">
+      <td colspan="4">تفاصيل المركبة</td>
+    </tr>
+    <tr>
+      <td class="lbl">نوع المركبة</td>
+      <td class="val">{% if transport %}{{ transport.vehicle_type|default:"—" }}{% else %}—{% endif %}</td>
+      <td class="lbl">لون المركبة</td>
+      <td class="val">{% if transport %}{{ transport.vehicle_color|default:"—" }}{% else %}—{% endif %}</td>
+    </tr>
+    <tr>
+      <td class="lbl">رقم المركبة</td>
+      <td class="val">{% if transport %}{{ transport.vehicle_number|default:"—" }}{% else %}—{% endif %}</td>
+      <td class="lbl">جهة الاصدار</td>
+      <td class="val">{% if transport %}{{ transport.issue_authority|default:"—" }}{% else %}—{% endif %}</td>
+    </tr>
+    <tr>
+      <td class="lbl">تاريخ انتهاء ملكية السيارة</td>
+      <td class="val" colspan="3">{% if transport %}{{ transport.vehicle_license_expiry|date:"d/m/Y"|default:"—" }}{% else %}—{% endif %}</td>
+    </tr>
+  </table>
+
+  <!-- ── Permission banner ── -->
+  <table style="margin-top:0; border-top:0;">
+    <tr class="banner-row">
+      <td>يصرح له بنقل مبيدات آفات الصحة العامة والمعدات</td>
+    </tr>
+  </table>
+
+  <!-- ── Payment ── -->
+  <table style="margin-top:0; border-top:0;">
+    <tr>
+      <td class="lbl">رقم ايصال الدفع</td>
+      <td class="val">{{ pirmet.PaymentNumber|default:"—" }}</td>
+      <td class="lbl">تاريخ ايصال الدفع</td>
+      <td class="val">{{ pirmet.payment_date|date:"d/m/Y"|default:"—" }}</td>
+    </tr>
+  </table>
+
+  <!-- ── Footer: stamp + conditions ── -->
+  <div class="footer-block" style="margin-top:8px;">
+    <div>
+      <div class="footer-stamp">
+        <div class="footer-stamp-ar">قسم رقابة وتنظيم النفايات</div>
+        <div class="footer-stamp-en">Waste Control and<br>Regulation Section</div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <div class="conditions-title">اشتراطات</div>
+      <ul class="conditions-list">
+        <li>يسمح له بالعمل داخل مدينة الشارقة فقط</li>
+        <li>يجب الاحتفاظ بالتصريح داخل المركبة</li>
+        <li>الاحتفاظ بشهادات التسجيل وكشوفات السلامة للمواد</li>
+        <li>توفر طفاية حريق وصندوق إسعافات أولية ومعدات السلامة الشخصية</li>
+        <li>توفر أدوات السيطرة على انسكابات المبيدات وتدريب السائق للتعامل مع الانسكابات</li>
+        <li>عدم تخزين المبيدات داخل المركبة بعد الانتهاء من أعمال مكافحة الحشرات</li>
+        <li>يجب تجديد التصريح خلال مدة أقصاها (30) يوما من تاريخ الانتهاء وفي حال التأخير ستُفرض غرامة مالية بواقع (100) درهم شهريا بحد أقصى (1000) درهم</li>
+        <li>في حالة عدم الالتزام ببنود التصريح يحق البلدية إلغائه</li>
+        <li>يعتبر هذا التصريح مستندا معتمدا ولا يحتاج لختم</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
