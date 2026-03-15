@@ -629,7 +629,7 @@ def home(request):
         'issued': 'تم إصدار التصريح',
         'head_approved': 'الاعتماد النهائي',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
-        'cancelled_admin': 'موقوف إداريًا',
+        'cancelled_admin': 'مغلق',
         'disposal_approved': 'إتلاف معتمد',
         'disposal_rejected': 'إتلاف مرفوض',
     }
@@ -1149,7 +1149,7 @@ def company_detail(request, id):
         'inspection_completed': 'تم إنهاء التفتيش',
         'head_approved': 'الاعتماد النهائي',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
-        'cancelled_admin': 'مغلق إداريًا',
+        'cancelled_admin': 'مغلق',
         'disposal_approved': 'إتلاف معتمد',
         'disposal_rejected': 'إتلاف مرفوض',
     }
@@ -2412,7 +2412,7 @@ def clearance_list(request):
         'issued': 'تم إصدار التصريح',
         'inspection_completed': 'اكتمل التفتيش',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
-        'cancelled_admin': 'مغلق إداريًا',
+        'cancelled_admin': 'مغلق',
         'disposal_approved': 'إتلاف معتمد',
         'disposal_rejected': 'إتلاف مرفوض',
     }
@@ -2430,7 +2430,7 @@ def clearance_list(request):
         'issued': 'طلبات صادرة',
         'inspection_completed': 'طلبات اكتمل تفتيشها',
         'closed_requirements_pending': 'طلبات مغلقة - اشتراطات واجبة الاستيفاء',
-        'cancelled_admin': 'طلبات مغلقة إداريًا',
+        'cancelled_admin': 'طلبات مغلقة',
         'disposal_approved': 'طلبات إتلاف معتمدة',
         'disposal_rejected': 'طلبات إتلاف مرفوضة',
     }
