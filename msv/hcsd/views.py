@@ -4012,13 +4012,13 @@ def pest_control_permit_detail(request, id):
     )
     can_record_violation_order = (
         _can_admin(request.user)
-        and pirmet.status in {'violation_payment_link_pending', 'inspection_completed', 'payment_pending'}
+        and pirmet.status == 'violation_payment_link_pending'
         and violation_required
         and not violation_order_recorded
     )
     can_record_violation_receipt = (
         _can_admin(request.user)
-        and pirmet.status in {'violation_payment_pending', 'inspection_completed', 'payment_pending', 'head_approved'}
+        and pirmet.status in {'violation_payment_pending', 'head_approved'}
         and violation_required
         and violation_order_recorded
         and not violation_receipt_recorded
@@ -4190,8 +4190,8 @@ def pest_control_permit_detail(request, id):
         if action == 'save_violation_payment_order':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال بيانات مخالفة التأخير.')
-            if pirmet.status not in {'violation_payment_link_pending', 'inspection_completed', 'payment_pending'}:
-                review_errors.append('يمكن إدخال أمر دفع المخالفة فقط بعد انتهاء التفتيش.')
+            if pirmet.status != 'violation_payment_link_pending':
+                review_errors.append('يمكن إدخال أمر دفع المخالفة فقط في مرحلة انتظار رابط دفع المخالفة.')
             if not violation_required:
                 review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
             if violation_receipt_recorded:
@@ -4204,11 +4204,8 @@ def pest_control_permit_detail(request, id):
             if not review_errors:
                 pirmet.violation_payment_order_number = violation_order
                 pirmet.violation_amount = violation_amount_due
-                if pirmet.status == 'violation_payment_link_pending':
-                    pirmet.status = 'violation_payment_pending'
-                    pirmet.save(update_fields=['violation_payment_order_number', 'violation_amount', 'status'])
-                else:
-                    pirmet.save(update_fields=['violation_payment_order_number', 'violation_amount'])
+                pirmet.status = 'violation_payment_pending'
+                pirmet.save(update_fields=['violation_payment_order_number', 'violation_amount', 'status'])
                 _log_pirmet_change(
                     pirmet,
                     'details_update',
@@ -4220,8 +4217,8 @@ def pest_control_permit_detail(request, id):
         if action == 'save_violation_payment_receipt':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال إيصال مخالفة التأخير.')
-            if pirmet.status not in {'violation_payment_pending', 'inspection_completed', 'payment_pending', 'head_approved'}:
-                review_errors.append('يمكن إدخال إيصال المخالفة فقط بعد انتهاء التفتيش.')
+            if pirmet.status not in {'violation_payment_pending', 'head_approved'}:
+                review_errors.append('يمكن إدخال إيصال المخالفة فقط في مرحلة انتظار دفع المخالفة.')
             if not violation_required:
                 review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
             if not (pirmet.violation_payment_order_number or '').strip():
@@ -4242,7 +4239,7 @@ def pest_control_permit_detail(request, id):
                 pirmet.violation_amount = violation_amount_due
                 pirmet.violation_payment_receipt = violation_receipt
                 if pirmet.status == 'violation_payment_pending':
-                    pirmet.status = 'inspection_completed'
+                    pirmet.status = 'head_approved'
                     pirmet.save(update_fields=['violation_amount', 'violation_payment_receipt', 'status'])
                 else:
                     pirmet.save(update_fields=['violation_amount', 'violation_payment_receipt'])
@@ -4390,10 +4387,13 @@ def pest_control_permit_detail(request, id):
             if not review_errors:
                 old_status = pirmet.status
                 if head_decision == 'approved':
-                    pirmet.status = 'head_approved'
                     pirmet.head_approved_by = request.user
                     pirmet.head_approved_date = datetime.date.today()
                     pirmet.head_approved_notes = head_remarks or None
+                    if violation_required and not violation_payment_completed:
+                        pirmet.status = 'violation_payment_link_pending'
+                    else:
+                        pirmet.status = 'head_approved'
                     pirmet.save(update_fields=['status', 'head_approved_by', 'head_approved_date', 'head_approved_notes'])
                     _log_pirmet_change(
                         pirmet,
@@ -4578,7 +4578,7 @@ def pest_control_permit_detail(request, id):
                 old_status = pirmet.status
                 update_fields = ['status']
                 if decision == 'approved':
-                    pirmet.status = 'violation_payment_link_pending' if violation_required else 'inspection_completed'
+                    pirmet.status = 'inspection_completed'
                     if pirmet.inspection_requires_insurance:
                         pirmet.inspection_requires_insurance = False
                         update_fields.append('inspection_requires_insurance')
