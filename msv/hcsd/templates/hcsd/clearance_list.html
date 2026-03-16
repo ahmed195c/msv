@@ -238,6 +238,36 @@
 
 .cl-group:first-child { margin-top: 0; }
 
+.cl-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.cl-pagination button {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .15s;
+}
+.cl-pagination button:hover:not(:disabled) { background: var(--surface-2); }
+.cl-pagination button:disabled { opacity: .35; cursor: default; }
+.cl-pagination .pg-info {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  min-width: 80px;
+  text-align: center;
+}
+
 .cl-group-label {
   display: inline-flex;
   align-items: center;
@@ -709,7 +739,7 @@
             <span style="font-family:var(--mono);font-size:11px;color:var(--ink-4);">({{ group.items|length }})</span>
           </h3>
 
-          <div class="cl-cards">
+          <div class="cl-cards" data-pg-group="{{ forloop.counter }}">
             {% for clearance in group.items %}
               <article class="cl-card">
 
@@ -844,6 +874,11 @@
               </article>
             {% endfor %}
           </div>
+          <div class="cl-pagination" data-pg-bar="{{ forloop.counter }}" style="display:none;">
+            <button data-pg-prev>&#8250; السابق</button>
+            <span class="pg-info" data-pg-info></span>
+            <button data-pg-next>التالي &#8249;</button>
+          </div>
         </div>
       {% endfor %}
     {% else %}
@@ -866,7 +901,7 @@
             <span style="font-family:var(--mono);font-size:11px;color:var(--ink-4);">({{ group.items|length }})</span>
           </h3>
 
-          <div class="cl-cards">
+          <div class="cl-cards" data-pg-group="f{{ forloop.counter }}">
             {% for clearance in group.items %}
               <article class="cl-card" style="opacity:0.85;">
                 <div class="cl-card-stripe
@@ -931,6 +966,11 @@
               </article>
             {% endfor %}
           </div>
+          <div class="cl-pagination" data-pg-bar="f{{ forloop.counter }}" style="display:none;">
+            <button data-pg-prev>&#8250; السابق</button>
+            <span class="pg-info" data-pg-info></span>
+            <button data-pg-next>التالي &#8249;</button>
+          </div>
         </div>
       {% endfor %}
     {% else %}
@@ -940,4 +980,43 @@
   {% endif %}
 
 </section>
+
+<script>
+(function () {
+  var PAGE_SIZE = 10;
+
+  function initPagination(cards, bar) {
+    var items = Array.from(cards.querySelectorAll('.cl-card'));
+    if (items.length <= PAGE_SIZE) return;
+
+    var total = Math.ceil(items.length / PAGE_SIZE);
+    var current = 1;
+
+    var prevBtn = bar.querySelector('[data-pg-prev]');
+    var nextBtn = bar.querySelector('[data-pg-next]');
+    var info    = bar.querySelector('[data-pg-info]');
+
+    function render() {
+      items.forEach(function (el, i) {
+        el.style.display = (i >= (current - 1) * PAGE_SIZE && i < current * PAGE_SIZE) ? '' : 'none';
+      });
+      info.textContent = current + ' / ' + total;
+      prevBtn.disabled = (current === 1);
+      nextBtn.disabled = (current === total);
+    }
+
+    prevBtn.addEventListener('click', function () { if (current > 1)     { current--; render(); } });
+    nextBtn.addEventListener('click', function () { if (current < total) { current++; render(); } });
+
+    bar.style.display = '';
+    render();
+  }
+
+  document.querySelectorAll('.cl-cards[data-pg-group]').forEach(function (cards) {
+    var groupId = cards.getAttribute('data-pg-group');
+    var bar = document.querySelector('.cl-pagination[data-pg-bar="' + groupId + '"]');
+    if (bar) initPagination(cards, bar);
+  });
+})();
+</script>
 {% endblock %}
