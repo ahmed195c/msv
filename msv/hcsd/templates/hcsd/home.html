@@ -348,20 +348,23 @@
   }
   .exp-btn.ghost:hover { background: #fef3c7; }
 
-  /* ── Quick links row (top nav) ── */
+  /* ── Quick links row (mobile top) ── */
   .quick-links-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: none; /* hidden on desktop */
     gap: 10px;
   }
+
+  /* desktop: show inside card, hide top row */
+  .home-card-quick { display: block; }
 
   @media (max-width: 800px) {
     .main-grid { grid-template-columns: 1fr; }
     .expiring-table { display: block; overflow-x: auto; white-space: nowrap; }
-  }
-
-  @media (max-width: 600px) {
-    .quick-links-row { grid-template-columns: repeat(2, 1fr); }
+    .home-card-quick { display: none; } /* hide card on mobile */
+    .quick-links-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   @media (max-width: 500px) {
@@ -530,7 +533,35 @@
         </div>
       </div>
 
-<div class="home-card">
+      <div class="home-card home-card-quick">
+        <div class="card-head">روابط سريعة</div>
+        <div class="card-body">
+          <div class="quick-links">
+            <a class="quick-link ql-blue" href="{% url 'clearance_list' %}">
+              <span class="quick-link-bar"></span>
+              <span class="quick-link-label">متابعة الطلبات</span>
+              <span class="quick-link-arrow">←</span>
+            </a>
+            <a class="quick-link ql-teal" href="{% url 'permit_types' %}">
+              <span class="quick-link-bar"></span>
+              <span class="quick-link-label">التصاريح</span>
+              <span class="quick-link-arrow">←</span>
+            </a>
+            <a class="quick-link ql-green" href="{% url 'company_list' %}">
+              <span class="quick-link-bar"></span>
+              <span class="quick-link-label">الشركات</span>
+              <span class="quick-link-arrow">←</span>
+            </a>
+            <a class="quick-link ql-violet" href="{% url 'enginer_list' %}">
+              <span class="quick-link-bar"></span>
+              <span class="quick-link-label">المهندسين</span>
+              <span class="quick-link-arrow">←</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-card">
         <div class="card-head">طلبات تحتاج متابعة</div>
         <div class="card-body">
           <ul class="status-list">
