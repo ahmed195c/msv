@@ -761,7 +761,7 @@
                       {% elif clearance.status == 'payment_pending' %}بانتظار دفع التصريح
                       {% elif clearance.status == 'violation_payment_link_pending' %}بانتظار إرسال رابط دفع المخالفة
                       {% elif clearance.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
-                      {% elif clearance.status == 'issued' %}تم الإصدار
+                      {% elif clearance.status == 'issued' %}تم إصدار التصريح
                       {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
                       {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
                       {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}بانتظار إدخال رقم الدفع{% else %}بانتظار الاعتماد النهائي{% endif %}
