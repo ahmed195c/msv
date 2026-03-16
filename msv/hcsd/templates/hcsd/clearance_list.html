@@ -720,7 +720,6 @@
                   {% elif clearance.status == 'approved' %}stripe-approved
                   {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}stripe-needs
                   {% elif clearance.status == 'payment_pending' %}stripe-payment
-                  {% elif clearance.status == 'payment_completed' %}stripe-paid
                   {% elif clearance.status == 'issued' %}stripe-issued
                   {% elif clearance.status == 'inspection_pending' or clearance.status_key == 'inspection_received' %}stripe-inspect
                   {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}stripe-head
@@ -741,7 +740,6 @@
                       {% elif clearance.status == 'approved' %}st-approved
                       {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}st-needs-completion
                       {% elif clearance.status == 'payment_pending' %}st-payment-pending
-                      {% elif clearance.status == 'payment_completed' %}st-payment-completed
                       {% elif clearance.status == 'issued' %}st-issued
                       {% elif clearance.status_key == 'inspection_received' %}st-inspection-received
                       {% elif clearance.status == 'inspection_pending' %}st-inspection-pending
@@ -758,7 +756,6 @@
                       {% elif clearance.status == 'approved' %}معتمد
                       {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}غير معتمد
                       {% elif clearance.status == 'payment_pending' %}بانتظار دفع التصريح
-                      {% elif clearance.status == 'payment_completed' %}تم استلام الدفع
                       {% elif clearance.status == 'issued' %}تم الإصدار
                       {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
                       {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
@@ -795,7 +792,6 @@
                           {% elif clearance.status == 'approved' %}تم الاعتماد من المفتش{% if clearance.inspector_name %} {{ clearance.inspector_name }}{% endif %}
                           {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}تم إنهاء الطلب - غير معتمد
                           {% elif clearance.status == 'payment_pending' %}بانتظار دفع التصريح
-                          {% elif clearance.status == 'payment_completed' %}تم استلام الدفع
                           {% elif clearance.status == 'issued' %}تم إصدار التصريح
                           {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
                           {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام

@@ -369,7 +369,7 @@ def _latest_expired_activity_permit_before(pirmet, reference_date):
         PirmetClearance.objects.filter(
             company=pirmet.company,
             permit_type='pest_control',
-            status__in={'issued', 'payment_completed'},
+            status='issued',
             dateOfExpiry__isnull=False,
             dateOfExpiry__lt=reference_date,
         )
@@ -537,7 +537,7 @@ def _is_effective_active_permit(permit, today):
     if permit.issue_date:
         return True
     return (
-        permit.status in {'issued', 'payment_completed'}
+        permit.status == 'issued'
         and bool(permit.dateOfExpiry)
         and permit.dateOfExpiry >= today
     )
@@ -596,7 +596,6 @@ def home(request):
                 'inspection_pending',
                 'review_pending',
                 'payment_pending',
-                'payment_completed',
                 'disposal_approved',
                 'head_approved',
                 'inspection_completed',
@@ -625,7 +624,6 @@ def home(request):
         'approved': 'معتمد من المفتش',
         'needs_completion': 'غير معتمد',
         'payment_pending': 'بانتظار دفع التصريح',
-        'payment_completed': 'تم استلام الدفع',
         'issued': 'تم إصدار التصريح',
         'head_approved': 'الاعتماد النهائي',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
@@ -721,7 +719,7 @@ def company_list(request):
     for permit in PirmetClearance.objects.filter(
         company_id__in=company_ids,
         permit_type='pest_control',
-        status__in=['issued', 'payment_completed'],
+        status__in=['issued'],
     ).order_by('company_id', '-dateOfCreation', '-id'):
         if permit.company_id not in latest_issued_permit_map:
             latest_issued_permit_map[permit.company_id] = permit
@@ -738,7 +736,7 @@ def company_list(request):
         PirmetClearance.objects.filter(
             company_id__in=company_ids,
             permit_type__in=['pest_control', 'pesticide_transport'],
-            status__in=['issued', 'payment_completed'],
+            status__in=['issued'],
             dateOfExpiry__isnull=False,
             dateOfExpiry__lt=today,
         ).values_list('company_id', flat=True).distinct()
@@ -1127,7 +1125,6 @@ def company_detail(request, id):
         'needs_completion': 'غير معتمد',
         'approved': 'تم الاعتماد من المفتش',
         'payment_pending': 'بانتظار دفع التصريح',
-        'payment_completed': 'تم استلام الدفع',
         'issued': 'تم إصدار التصريح',
         'inspection_pending': 'جاهز للاستلام',
         'inspection_completed': 'تم إنهاء التفتيش',
@@ -1142,7 +1139,7 @@ def company_detail(request, id):
         permit.permit_label_ar = _permit_label_ar(permit.permit_type)
         permit.status_label_ar = permit_status_labels.get(permit.status, permit.get_status_display())
         permit.detail_url_name = _permit_detail_url_name(permit.permit_type)
-        permit.is_issued_record = bool(permit.issue_date) or permit.status in {'issued', 'payment_completed'}
+        permit.is_issued_record = bool(permit.issue_date) or permit.status == 'issued'
         permit.is_effective_active = _is_effective_active_permit(permit, today)
 
         if permit.status == 'cancelled_admin':
@@ -1171,7 +1168,6 @@ def company_detail(request, id):
 
     display_status_priority = {
         'issued': 0,
-        'payment_completed': 0,
         'inspection_pending': 1,
         'order_received': 1,
         'inspection_payment_pending': 1,
@@ -2392,7 +2388,6 @@ def clearance_list(request):
         'needs_completion': 'غير معتمد',
         'rejected': 'مرفوض',
         'payment_pending': 'بانتظار دفع التصريح',
-        'payment_completed': 'تم استلام الدفع',
         'issued': 'تم إصدار التصريح',
         'inspection_completed': 'اكتمل التفتيش',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
@@ -2410,7 +2405,6 @@ def clearance_list(request):
         'needs_completion': 'طلبات غير معتمدة',
         'rejected': 'طلبات مرفوضة',
         'payment_pending': 'طلبات بانتظار دفع التصريح',
-        'payment_completed': 'طلبات تم استلام دفعها',
         'issued': 'طلبات صادرة',
         'inspection_completed': 'طلبات اكتمل تفتيشها',
         'closed_requirements_pending': 'طلبات مغلقة - اشتراطات واجبة الاستيفاء',
@@ -2428,7 +2422,6 @@ def clearance_list(request):
         'needs_completion',
         'rejected',
         'payment_pending',
-        'payment_completed',
     ]
     finished_status_order = [
         'issued',
@@ -2894,7 +2887,7 @@ def vehicle_permit_detail(request, id):
         if action == 'issue':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإصدار التصريح.')
-            if pirmet.status != 'payment_completed':
+            if pirmet.status != 'payment_pending':
                 review_errors.append('لا يمكن إصدار التصريح قبل تأكيد دفع التصريح.')
 
             if not review_errors:
@@ -3142,7 +3135,7 @@ def waste_permit_detail(request, id):
         if action == 'issue':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإصدار التصريح.')
-            if pirmet.status != 'payment_completed':
+            if pirmet.status != 'payment_pending':
                 review_errors.append('لا يمكن إصدار التصريح قبل تأكيد الدفع.')
             if not review_errors:
                 old_status = pirmet.status
@@ -4847,7 +4840,7 @@ def pest_control_permit_view(request, id):
         id=id,
         permit_type='pest_control',
     )
-    if pirmet.status not in {'payment_completed', 'issued'}:
+    if pirmet.status != 'issued':
         return redirect('pest_control_permit_detail', id=pirmet.id)
 
     return render(
@@ -4912,7 +4905,7 @@ def waste_disposal_permit_print(request, permit_id):
     permit = (
         PirmetClearance.objects
         .select_related('company', 'waste_details')
-        .filter(company=company, permit_type='waste_disposal', status__in=['issued', 'disposal_approved', 'payment_completed'])
+        .filter(company=company, permit_type='waste_disposal', status__in=['issued', 'disposal_approved'])
         .order_by('-issue_date', '-id')
         .first()
     )
@@ -4922,7 +4915,7 @@ def waste_disposal_permit_print(request, permit_id):
             PirmetClearance.objects.select_related('company', 'waste_details'),
             id=permit_id,
             permit_type='waste_disposal',
-            status__in=['payment_completed', 'issued'],
+            status__in=['issued'],
         )
 
     waste = getattr(permit, 'waste_details', None)
@@ -4937,7 +4930,7 @@ def printer(request, permit_id=None):
     requested_id = permit_id or _parse_int(request.GET.get('permit_id'))
     permits_qs = PirmetClearance.objects.select_related('company', 'company__enginer').filter(
         permit_type='pest_control',
-        status__in=['payment_completed', 'issued'],
+        status__in=['issued'],
     )
 
     if requested_id:

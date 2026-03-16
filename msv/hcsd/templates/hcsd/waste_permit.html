@@ -2,134 +2,379 @@
 {% load static %}
 {% block title %}تصريح التخلص من النفايات{% endblock %}
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'hcsd/pest_control_activity_permit.css' %}">
+<style>
+  .permit-page {
+    --pd-ink: #304357;
+    --pd-ink-2: #455c75;
+    --pd-ink-3: #6f8297;
+    --pd-paper: #ffffff;
+    --pd-surface: #f1f4f7;
+    --pd-surface-2: #e8eef4;
+    --pd-line: #d4dce5;
+    --pd-line-2: #bcc8d5;
+    --pd-accent: #304357;
+    --pd-accent-dark: #26384a;
+    --pd-radius: 8px;
+    --pd-shadow: 0 10px 24px rgba(48,67,87,0.08);
+    padding: 20px 10px 36px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
+    direction: rtl;
+  }
+
+  .permit-card {
+    max-width: 960px;
+    margin: 0 auto;
+    background: var(--pd-paper);
+    border: 1.5px solid var(--pd-line);
+    border-radius: var(--pd-radius);
+    box-shadow: var(--pd-shadow);
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .hero-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: linear-gradient(160deg, #3a4f66 0%, #304357 55%, #26384a 100%);
+    color: #fff;
+  }
+
+  .hero-title {
+    font-size: clamp(17px, 2vw, 22px);
+    font-weight: 800;
+  }
+
+  .hero-back {
+    color: #c8d8e8;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 6px;
+    padding: 6px 12px;
+    transition: background 0.15s;
+  }
+
+  .hero-back:hover { background: rgba(255,255,255,0.1); }
+
+  .form-body { padding: 16px 18px; }
+
+  .alert {
+    background: #fef2f2;
+    border: 1.5px solid #f5c6cb;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: #8c1f1f;
+    margin-bottom: 14px;
+  }
+
+  .alert-list {
+    padding-inline-start: 18px;
+    margin-top: 6px;
+    line-height: 1.9;
+    font-size: 13px;
+  }
+
+  .form-section {
+    border: 1.5px solid var(--pd-line);
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .section-title {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: var(--pd-accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pd-ink-3);
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .field input,
+  .field select {
+    width: 100%;
+    border: 1.5px solid var(--pd-line-2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--pd-ink);
+    background: var(--pd-paper);
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+
+  .field input[readonly] {
+    background: var(--pd-surface);
+    color: var(--pd-ink-2);
+  }
+
+  .field input:focus,
+  .field select:focus {
+    border-color: var(--pd-accent);
+    outline: none;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--pd-line-2);
+    border-radius: 6px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--pd-ink-3);
+    font-size: 13px;
+    font-weight: 600;
+    transition: border-color 0.15s, background 0.15s;
+    background: var(--pd-surface);
+  }
+
+  .drop-zone.dragover {
+    border-color: var(--pd-accent);
+    background: var(--pd-surface-2);
+  }
+
+  .drop-zone input[type="file"] { display: none; }
+
+  .drop-zone-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--pd-ink-3);
+    margin-bottom: 8px;
+  }
+
+  #file-list {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .file-chip {
+    background: var(--pd-surface-2);
+    border: 1px solid var(--pd-line);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pd-ink-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .file-chip .remove-file {
+    cursor: pointer;
+    color: #e05;
+    font-weight: 900;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding-top: 6px;
+  }
+
+  .btn-submit {
+    background: var(--pd-accent);
+    border: none;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .btn-submit:hover { background: var(--pd-accent-dark); }
+
+  .btn-cancel {
+    color: var(--pd-ink-2);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1.5px solid var(--pd-line-2);
+    border-radius: 6px;
+    padding: 9px 16px;
+  }
+</style>
 {% endblock %}
 {% block content %}
 <section class="permit-page" lang="ar" dir="rtl">
-  <form class="permit-card" method="post" enctype="multipart/form-data" autocomplete="off">
-    {% csrf_token %}
-    <header class="permit-header">
-      <div class="municipality">
-        <div class="logo-box">
-          <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
-        </div>
-        <div class="municipality-text">
-          <div class="title">بلدية مدينة الشارقة</div>
-          <div class="sub">إدارة الرقابة والسلامة الصحية</div>
-          <div class="sub">قسم رقابة وتنظيم النفايات</div>
-        </div>
-      </div>
-    </header>
-
-    <div class="permit-title">تصريح التخلص من النفايات (أساسي)</div>
-
-    {% if form_errors %}
-      <div class="alert">
-        <strong>يرجى تصحيح التالي:</strong>
-        <ul class="alert-list">
-          {% for error in form_errors %}
-            <li>
-              {% if error == "company_select_invalid" %}
-                يرجى اختيار شركة صحيحة.
-              {% elif error == "company_has_active_extension" %}
-                هذه الشركة موقوفة بسبب مهلة نشطة — لا يمكن إنشاء تصاريح جديدة حتى يتم إغلاق المهلة.
-              {% elif error == "request_email_required" %}
-                يرجى إدخال بريد مقدم الطلب.
-              {% elif error == "documents_required" %}
-                يرجى إرفاق مستند واحد على الأقل.
-              {% elif error == "documents_invalid" %}
-                الملفات المسموحة هي PDF أو صور فقط: {{ invalid_docs|join:", " }}
-              {% else %}
-                {{ error }}
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-
-    <section class="permit-section">
-      <div class="section-title">بيانات الشركة</div>
-      <div class="permit-grid">
-        <div class="field">
-          <label for="company_id">اختيار الشركة المسجلة</label>
-          <select id="company_id" name="company_id" required>
-            <option value="">-- اختيار --</option>
-            {% for company in companies %}
-              <option value="{{ company.id }}"
-                data-name="{{ company.name }}"
-                data-number="{{ company.number }}"
-                data-phone="{{ company.owner_phone|default:company.landline|default_if_none:'' }}"
-                data-exp="{{ company.trade_license_exp|date:'Y-m-d' }}"
-                {% if company.id == selected_company_id %}selected{% endif %}>
-                {{ company.name }} - {{ company.number }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="field">
-          <label>اسم الشركة</label>
-          <input id="company_name" type="text" value="{{ selected_company.name|default:'' }}" readonly>
-        </div>
-        <div class="field">
-          <label>رقم الرخصة التجارية</label>
-          <input id="company_number" type="text" value="{{ selected_company.number|default:'' }}" readonly>
-        </div>
-        <div class="field">
-          <label>رقم التواصل</label>
-          <input id="company_phone" type="text" value="{% if selected_company %}{{ selected_company.owner_phone|default:selected_company.landline|default:'' }}{% endif %}" readonly>
-        </div>
-        <div class="field">
-          <label>تاريخ انتهاء الرخصة التجارية</label>
-          <input id="company_trade_exp" type="date" value="{{ selected_company.trade_license_exp|date:'Y-m-d'|default:'' }}" readonly>
-        </div>
-        <div class="field">
-          <label for="request_email">بريد مقدم الطلب</label>
-          <input id="request_email" name="request_email" type="email" value="{{ form_data.request_email|default:'' }}" required>
-        </div>
-      </div>
-    </section>
-
-    <section class="permit-section">
-      <div class="section-title">المستندات المطلوبة</div>
-      <div class="field">
-        <label for="documents">إرفاق المستندات (PDF أو صور)</label>
-        <input id="documents" type="file" name="documents" multiple required>
-      </div>
-    </section>
-
-    <div class="permit-actions">
-      <button type="submit">إرسال الطلب</button>
-      <a class="secondary" href="{% url 'clearance_list' %}">العودة للطلبات</a>
+  <div class="permit-card">
+    <div class="hero-bar">
+      <a href="{% url 'clearance_list' %}" class="hero-back">← العودة</a>
+      <span class="hero-title">تصريح التخلص من النفايات</span>
     </div>
-  </form>
+
+    <form method="post" enctype="multipart/form-data" autocomplete="off" class="form-body" id="waste-form">
+      {% csrf_token %}
+
+      {% if form_errors %}
+        <div class="alert">
+          <strong>يرجى تصحيح التالي:</strong>
+          <ul class="alert-list">
+            {% for error in form_errors %}
+              <li>
+                {% if error == "company_select_invalid" %}يرجى اختيار شركة صحيحة.
+                {% elif error == "company_has_active_extension" %}هذه الشركة موقوفة بسبب مهلة نشطة — لا يمكن إنشاء تصاريح جديدة حتى يتم إغلاق المهلة.
+                {% elif error == "request_email_required" %}يرجى إدخال بريد مقدم الطلب.
+                {% elif error == "documents_required" %}يرجى إرفاق مستند واحد على الأقل.
+                {% elif error == "documents_invalid" %}الملفات المسموحة هي PDF أو صور فقط: {{ invalid_docs|join:", " }}
+                {% else %}{{ error }}
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <div class="form-section">
+        <div class="section-title">بيانات الشركة</div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="company_id">اختيار الشركة المسجلة</label>
+            <select id="company_id" name="company_id" required>
+              <option value="">-- اختيار --</option>
+              {% for company in companies %}
+                <option value="{{ company.id }}"
+                  data-name="{{ company.name }}"
+                  data-number="{{ company.number }}"
+                  data-phone="{{ company.owner_phone|default:company.landline|default_if_none:'' }}"
+                  data-exp="{{ company.trade_license_exp|date:'Y-m-d' }}"
+                  {% if company.id == selected_company_id %}selected{% endif %}>
+                  {{ company.name }} - {{ company.number }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label>اسم الشركة</label>
+            <input id="company_name" type="text" value="{{ selected_company.name|default:'' }}" readonly>
+          </div>
+          <div class="field">
+            <label>رقم الرخصة التجارية</label>
+            <input id="company_number" type="text" value="{{ selected_company.number|default:'' }}" readonly>
+          </div>
+          <div class="field">
+            <label>رقم التواصل</label>
+            <input id="company_phone" type="text" value="{% if selected_company %}{{ selected_company.owner_phone|default:selected_company.landline|default:'' }}{% endif %}" readonly>
+          </div>
+          <div class="field">
+            <label>تاريخ انتهاء الرخصة التجارية</label>
+            <input id="company_trade_exp" type="date" value="{{ selected_company.trade_license_exp|date:'Y-m-d'|default:'' }}" readonly>
+          </div>
+          <div class="field">
+            <label for="request_email">بريد مقدم الطلب</label>
+            <input id="request_email" name="request_email" type="email" value="{{ form_data.request_email|default:'' }}" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">المستندات المطلوبة</div>
+        <span class="drop-zone-label">إرفاق المستندات (PDF أو صور)</span>
+        <div class="drop-zone" id="drop-zone">
+          <input id="documents" type="file" name="documents" multiple accept=".pdf,.jpg,.jpeg,.png">
+          <div>اسحب الملفات هنا أو <strong>انقر للاختيار</strong></div>
+          <div style="font-size:11px;color:var(--pd-ink-3);margin-top:4px;">PDF أو صور JPG/PNG</div>
+        </div>
+        <div id="file-list"></div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">إرسال الطلب</button>
+        <a href="{% url 'clearance_list' %}" class="btn-cancel">إلغاء</a>
+      </div>
+    </form>
+  </div>
 </section>
 <script>
-  (function () {
-    var companySelect = document.getElementById('company_id');
-    if (!companySelect) return;
-    var companyName = document.getElementById('company_name');
-    var companyNumber = document.getElementById('company_number');
-    var companyPhone = document.getElementById('company_phone');
-    var companyTradeExp = document.getElementById('company_trade_exp');
+(function () {
+  // Company select fill
+  var companySelect = document.getElementById('company_id');
+  var companyName   = document.getElementById('company_name');
+  var companyNumber = document.getElementById('company_number');
+  var companyPhone  = document.getElementById('company_phone');
+  var companyTradeExp = document.getElementById('company_trade_exp');
 
-    function fillCompanyFields() {
-      var option = companySelect.options[companySelect.selectedIndex];
-      if (!option || !option.value) {
-        companyName.value = '';
-        companyNumber.value = '';
-        companyPhone.value = '';
-        companyTradeExp.value = '';
-        return;
-      }
-      companyName.value = option.dataset.name || '';
-      companyNumber.value = option.dataset.number || '';
-      companyPhone.value = option.dataset.phone || '';
-      companyTradeExp.value = option.dataset.exp || '';
+  function fillCompanyFields() {
+    var option = companySelect.options[companySelect.selectedIndex];
+    if (!option || !option.value) {
+      companyName.value = companyNumber.value = companyPhone.value = companyTradeExp.value = '';
+      return;
     }
+    companyName.value    = option.dataset.name   || '';
+    companyNumber.value  = option.dataset.number || '';
+    companyPhone.value   = option.dataset.phone  || '';
+    companyTradeExp.value = option.dataset.exp   || '';
+  }
+  companySelect.addEventListener('change', fillCompanyFields);
+  fillCompanyFields();
 
-    companySelect.addEventListener('change', fillCompanyFields);
-    fillCompanyFields();
-  })();
+  // Drag-and-drop file upload
+  var dropZone  = document.getElementById('drop-zone');
+  var fileInput = document.getElementById('documents');
+  var fileList  = document.getElementById('file-list');
+  var dt        = new DataTransfer();
+
+  function renderChips() {
+    fileList.innerHTML = '';
+    Array.from(dt.files).forEach(function (f, i) {
+      var chip = document.createElement('span');
+      chip.className = 'file-chip';
+      chip.innerHTML = f.name + ' <span class="remove-file" data-index="' + i + '">×</span>';
+      fileList.appendChild(chip);
+    });
+    fileInput.files = dt.files;
+  }
+
+  dropZone.addEventListener('click', function () { fileInput.click(); });
+  fileInput.addEventListener('change', function () {
+    Array.from(fileInput.files).forEach(function (f) { dt.items.add(f); });
+    renderChips();
+  });
+  dropZone.addEventListener('dragover', function (e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', function () { dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    Array.from(e.dataTransfer.files).forEach(function (f) { dt.items.add(f); });
+    renderChips();
+  });
+  fileList.addEventListener('click', function (e) {
+    if (e.target.classList.contains('remove-file')) {
+      var idx = parseInt(e.target.dataset.index);
+      var newDt = new DataTransfer();
+      Array.from(dt.files).forEach(function (f, i) { if (i !== idx) newDt.items.add(f); });
+      dt = newDt;
+      renderChips();
+    }
+  });
+})();
 </script>
 {% endblock %}

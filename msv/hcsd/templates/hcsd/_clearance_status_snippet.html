@@ -13,8 +13,6 @@
       تم إنهاء الطلب - غير معتمد
     {% elif item.status == 'payment_pending' %}
       بانتظار دفع التصريح
-    {% elif item.status == 'payment_completed' %}
-      تم استلام الدفع
     {% elif item.status == 'issued' %}
       تم إصدار التصريح
     {% elif status_key == 'inspection_received' %}

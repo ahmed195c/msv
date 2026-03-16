@@ -123,7 +123,6 @@ class PirmetClearance(models.Model):
         ('needs_completion', 'Needs Completion'),
         ('approved', 'Inspector Approved'),
         ('payment_pending', 'Waiting for Payment'),
-        ('payment_completed', 'Payment Completed'),
         ('issued', 'Issued'),
         ('inspection_pending', 'Inspection Pending'),
         ('inspection_completed', 'Inspection Completed'),

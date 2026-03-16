@@ -263,7 +263,7 @@
   <div class="permit-card">
     <div class="action-bar no-print">
       <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
-      {% if pirmet.status == "payment_completed" or pirmet.status == "issued" or pirmet.status == "disposal_approved" %}
+      {% if pirmet.status == "issued" or pirmet.status == "disposal_approved" %}
       <a class="btn btn--primary" href="{% url 'waste_disposal_permit_print' pirmet.id %}" target="_blank" style="margin-inline-start:auto;">طباعة التصريح</a>
       {% endif %}
     </div>
@@ -363,7 +363,7 @@
       </section>
     {% endif %}
 
-    {% if can_issue_pirmet and pirmet.status == "payment_completed" %}
+    {% if False %}{# issue action removed - payment goes directly to issued #}
       <section class="permit-section no-print">
         <div class="section-title">إصدار التصريح</div>
         <form method="post" class="review-form">

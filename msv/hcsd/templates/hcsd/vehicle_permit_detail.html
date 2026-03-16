@@ -366,7 +366,7 @@
               {{ pirmet.get_status_display }}
             {% endif %}
           </span>
-        {% elif pirmet.status == "inspection_completed" or pirmet.status == "payment_pending" or pirmet.status == "payment_completed" %}
+        {% elif pirmet.status == "inspection_completed" or pirmet.status == "payment_pending" %}
           <span class="hero-status hero-status--info">
             {% if pirmet.status == "inspection_completed" %}
               {% if inspection_report_decision == "approved" %}
@@ -378,8 +378,6 @@
               {% endif %}
             {% elif pirmet.status == "payment_pending" %}
               بانتظار دفع التصريح
-            {% elif pirmet.status == "payment_completed" %}
-              تم استلام الدفع
             {% endif %}
           </span>
         {% elif pirmet.status == "issued" %}
@@ -436,8 +434,6 @@
               تم إنهاء الطلب - غير معتمد
             {% elif pirmet.status == "payment_pending" %}
               بانتظار دفع التصريح
-            {% elif pirmet.status == "payment_completed" %}
-              تم استلام الدفع
             {% elif pirmet.status == "issued" %}
               تم إصدار التصريح
             {% else %}
@@ -668,7 +664,7 @@
     {% endif %}
 
     <!-- ── Action: issue permit ── -->
-    {% if can_record_payment and pirmet.status == "payment_completed" %}
+    {% if False %}{# issue action removed - payment goes directly to issued #}
       <section class="permit-section no-print">
         <div class="section-title">إصدار تصريح المركبة</div>
         <form method="post" class="review-form">

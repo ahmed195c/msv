@@ -627,7 +627,7 @@
     <div class="action-bar no-print">
       <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
       {% if pirmet.payment_receipt %}
-        {% if pirmet.status == "issued" or pirmet.status == "payment_completed" %}
+        {% if pirmet.status == "issued" %}
           <a class="print-button" href="{% url 'pest_control_permit_view' pirmet.id %}">عرض التصريح</a>
           <a class="print-button" href="{% url 'printer_permit' pirmet.id %}" target="_blank" rel="noopener">طباعة التصريح</a>
         {% endif %}
@@ -682,8 +682,7 @@
             <span class="status-badge status-badge--active">الاعتماد النهائي</span>
           {% elif pirmet.status == "payment_pending" %}
             <span class="status-badge status-badge--pending">بانتظار دفع التصريح</span>
-          {% elif pirmet.status == "payment_completed" %}
-            <span class="status-badge status-badge--active">تم استلام الدفع</span>
+          {# payment_completed removed #}
           {% elif pirmet.status == "approved" %}
             <span class="status-badge status-badge--active">تم الاعتماد من المفتش</span>
           {% elif pirmet.status == "inspection_pending" %}
