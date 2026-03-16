@@ -464,6 +464,7 @@
         <div class="detail-item"><span class="label">تاريخ الإصدار</span><span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">تاريخ الانتهاء</span><span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span></div>
+        <div class="detail-item"><span class="label">إيصال دفع التصريح</span><span class="value">{% if pirmet.payment_receipt %}<a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>{% else %}-{% endif %}</span></div>
         <div class="detail-item"><span class="label">رقم التواصل</span><span class="value">{{ pirmet.company.owner_phone|default:pirmet.company.landline|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">إيميل مقدم الطلب</span><span class="value">{{ pirmet.request_email|default:"-" }}</span></div>
       </div>
