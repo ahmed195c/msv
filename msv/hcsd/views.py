@@ -4013,7 +4013,7 @@ def pest_control_permit_detail(request, id):
     )
     can_record_violation_receipt = (
         _can_admin(request.user)
-        and pirmet.status in {'violation_payment_pending', 'inspection_completed', 'payment_pending'}
+        and pirmet.status in {'violation_payment_pending', 'inspection_completed', 'payment_pending', 'head_approved'}
         and violation_required
         and violation_order_recorded
         and not violation_receipt_recorded
@@ -4215,7 +4215,7 @@ def pest_control_permit_detail(request, id):
         if action == 'save_violation_payment_receipt':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال إيصال مخالفة التأخير.')
-            if pirmet.status not in {'violation_payment_pending', 'inspection_completed', 'payment_pending'}:
+            if pirmet.status not in {'violation_payment_pending', 'inspection_completed', 'payment_pending', 'head_approved'}:
                 review_errors.append('يمكن إدخال إيصال المخالفة فقط بعد انتهاء التفتيش.')
             if not violation_required:
                 review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
