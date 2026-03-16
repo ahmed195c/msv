@@ -624,6 +624,8 @@ def home(request):
         'approved': 'معتمد من المفتش',
         'needs_completion': 'غير معتمد',
         'payment_pending': 'بانتظار دفع التصريح',
+        'violation_payment_link_pending': 'بانتظار إرسال رابط دفع المخالفة',
+        'violation_payment_pending': 'بانتظار دفع المخالفة',
         'issued': 'تم إصدار التصريح',
         'head_approved': 'الاعتماد النهائي',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
@@ -1128,6 +1130,8 @@ def company_detail(request, id):
         'issued': 'تم إصدار التصريح',
         'inspection_pending': 'جاهز للاستلام',
         'inspection_completed': 'تم إنهاء التفتيش',
+        'violation_payment_link_pending': 'بانتظار إرسال رابط دفع المخالفة',
+        'violation_payment_pending': 'بانتظار دفع المخالفة',
         'head_approved': 'الاعتماد النهائي',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
         'cancelled_admin': 'مغلق',
@@ -2390,6 +2394,8 @@ def clearance_list(request):
         'payment_pending': 'بانتظار دفع التصريح',
         'issued': 'تم إصدار التصريح',
         'inspection_completed': 'اكتمل التفتيش',
+        'violation_payment_link_pending': 'بانتظار إرسال رابط دفع المخالفة',
+        'violation_payment_pending': 'بانتظار دفع المخالفة',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
         'cancelled_admin': 'مغلق',
         'disposal_approved': 'إتلاف معتمد',
@@ -2405,6 +2411,8 @@ def clearance_list(request):
         'needs_completion': 'طلبات غير معتمدة',
         'rejected': 'طلبات مرفوضة',
         'payment_pending': 'طلبات بانتظار دفع التصريح',
+        'violation_payment_link_pending': 'طلبات بانتظار إرسال رابط دفع المخالفة',
+        'violation_payment_pending': 'طلبات بانتظار دفع المخالفة',
         'issued': 'طلبات صادرة',
         'inspection_completed': 'طلبات اكتمل تفتيشها',
         'closed_requirements_pending': 'طلبات مغلقة - اشتراطات واجبة الاستيفاء',
@@ -2421,6 +2429,8 @@ def clearance_list(request):
         'approved',
         'needs_completion',
         'rejected',
+        'violation_payment_link_pending',
+        'violation_payment_pending',
         'payment_pending',
     ]
     finished_status_order = [
@@ -3997,13 +4007,13 @@ def pest_control_permit_detail(request, id):
     )
     can_record_violation_order = (
         _can_admin(request.user)
-        and pirmet.status in {'inspection_completed', 'payment_pending'}
+        and pirmet.status in {'violation_payment_link_pending', 'inspection_completed', 'payment_pending'}
         and violation_required
         and not violation_order_recorded
     )
     can_record_violation_receipt = (
         _can_admin(request.user)
-        and pirmet.status in {'inspection_completed', 'payment_pending'}
+        and pirmet.status in {'violation_payment_pending', 'inspection_completed', 'payment_pending'}
         and violation_required
         and violation_order_recorded
         and not violation_receipt_recorded
@@ -4175,7 +4185,7 @@ def pest_control_permit_detail(request, id):
         if action == 'save_violation_payment_order':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال بيانات مخالفة التأخير.')
-            if pirmet.status not in {'inspection_completed', 'payment_pending'}:
+            if pirmet.status not in {'violation_payment_link_pending', 'inspection_completed', 'payment_pending'}:
                 review_errors.append('يمكن إدخال أمر دفع المخالفة فقط بعد انتهاء التفتيش.')
             if not violation_required:
                 review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
@@ -4189,7 +4199,11 @@ def pest_control_permit_detail(request, id):
             if not review_errors:
                 pirmet.violation_payment_order_number = violation_order
                 pirmet.violation_amount = violation_amount_due
-                pirmet.save(update_fields=['violation_payment_order_number', 'violation_amount'])
+                if pirmet.status == 'violation_payment_link_pending':
+                    pirmet.status = 'violation_payment_pending'
+                    pirmet.save(update_fields=['violation_payment_order_number', 'violation_amount', 'status'])
+                else:
+                    pirmet.save(update_fields=['violation_payment_order_number', 'violation_amount'])
                 _log_pirmet_change(
                     pirmet,
                     'details_update',
@@ -4201,7 +4215,7 @@ def pest_control_permit_detail(request, id):
         if action == 'save_violation_payment_receipt':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال إيصال مخالفة التأخير.')
-            if pirmet.status not in {'inspection_completed', 'payment_pending'}:
+            if pirmet.status not in {'violation_payment_pending', 'inspection_completed', 'payment_pending'}:
                 review_errors.append('يمكن إدخال إيصال المخالفة فقط بعد انتهاء التفتيش.')
             if not violation_required:
                 review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
@@ -4219,13 +4233,20 @@ def pest_control_permit_detail(request, id):
                     review_errors.append('يُسمح فقط بملفات PDF أو صور لإيصال المخالفة.')
 
             if not review_errors:
+                old_status = pirmet.status
                 pirmet.violation_amount = violation_amount_due
                 pirmet.violation_payment_receipt = violation_receipt
-                pirmet.save(update_fields=['violation_amount', 'violation_payment_receipt'])
+                if pirmet.status == 'violation_payment_pending':
+                    pirmet.status = 'inspection_completed'
+                    pirmet.save(update_fields=['violation_amount', 'violation_payment_receipt', 'status'])
+                else:
+                    pirmet.save(update_fields=['violation_amount', 'violation_payment_receipt'])
                 _log_pirmet_change(
                     pirmet,
                     'document_upload',
                     request.user,
+                    old_status=old_status,
+                    new_status=pirmet.status,
                     notes='Violation payment receipt uploaded.',
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
@@ -4549,7 +4570,7 @@ def pest_control_permit_detail(request, id):
                 old_status = pirmet.status
                 update_fields = ['status']
                 if decision == 'approved':
-                    pirmet.status = 'inspection_completed'
+                    pirmet.status = 'violation_payment_link_pending' if violation_required else 'inspection_completed'
                     if pirmet.inspection_requires_insurance:
                         pirmet.inspection_requires_insurance = False
                         update_fields.append('inspection_requires_insurance')

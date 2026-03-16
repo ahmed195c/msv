@@ -682,7 +682,10 @@
             <span class="status-badge status-badge--active">الاعتماد النهائي</span>
           {% elif pirmet.status == "payment_pending" %}
             <span class="status-badge status-badge--pending">بانتظار دفع التصريح</span>
-          {# payment_completed removed #}
+          {% elif pirmet.status == "violation_payment_link_pending" %}
+            <span class="status-badge status-badge--warning">بانتظار إرسال رابط دفع المخالفة</span>
+          {% elif pirmet.status == "violation_payment_pending" %}
+            <span class="status-badge status-badge--warning">بانتظار دفع المخالفة</span>
           {% elif pirmet.status == "approved" %}
             <span class="status-badge status-badge--active">تم الاعتماد من المفتش</span>
           {% elif pirmet.status == "inspection_pending" %}
