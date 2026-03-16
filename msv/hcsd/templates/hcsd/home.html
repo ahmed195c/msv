@@ -191,39 +191,67 @@
   /* ── Quick links ── */
   .quick-links {
     display: grid;
-    gap: 8px;
+    gap: 10px;
   }
 
   .quick-link {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 11px 14px;
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    background: var(--pd-surface);
+    gap: 12px;
+    padding: 13px 14px;
+    border: 2px solid var(--pd-line);
+    border-radius: 8px;
+    background: var(--pd-paper);
     color: var(--pd-ink);
     text-decoration: none;
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 700;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    transition: background 0.15s, border-color 0.15s, color 0.15s,
+                box-shadow 0.15s, transform 0.15s;
+    box-shadow: 0 2px 6px rgba(48,67,87,0.07);
+    cursor: pointer;
   }
 
   .quick-link:hover {
     background: var(--pd-accent);
     border-color: var(--pd-accent);
     color: #fff;
+    box-shadow: 0 6px 18px rgba(48,67,87,0.22);
+    transform: translateX(-3px);
+  }
+
+  .quick-link-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--pd-surface);
+    border: 1.5px solid var(--pd-line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .quick-link:hover .quick-link-icon {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.25);
+  }
+
+  .quick-link-label {
+    flex: 1;
   }
 
   .quick-link-arrow {
-    font-size: 14px;
-    opacity: 0.5;
+    font-size: 16px;
+    opacity: 0.35;
     transition: opacity 0.15s, transform 0.15s;
   }
 
   .quick-link:hover .quick-link-arrow {
     opacity: 1;
-    transform: translateX(-3px);
+    transform: translateX(-4px);
   }
 
   /* ── Expiring soon alert ── */
@@ -322,6 +350,7 @@
   @media (max-width: 800px) {
     .main-grid { grid-template-columns: 1fr; }
     .expiring-table { display: block; overflow-x: auto; white-space: nowrap; }
+    .home-card-quick { order: -1; }
   }
 
   @media (max-width: 500px) {
@@ -466,24 +495,28 @@
         </div>
       </div>
 
-      <div class="home-card">
+      <div class="home-card home-card-quick">
         <div class="card-head">روابط سريعة</div>
         <div class="card-body">
           <div class="quick-links">
             <a class="quick-link" href="{% url 'clearance_list' %}">
-              <span>متابعة الطلبات</span>
+              <span class="quick-link-icon">📋</span>
+              <span class="quick-link-label">متابعة الطلبات</span>
               <span class="quick-link-arrow">←</span>
             </a>
             <a class="quick-link" href="{% url 'permit_types' %}">
-              <span>التصاريح</span>
+              <span class="quick-link-icon">📄</span>
+              <span class="quick-link-label">التصاريح</span>
               <span class="quick-link-arrow">←</span>
             </a>
             <a class="quick-link" href="{% url 'company_list' %}">
-              <span>الشركات</span>
+              <span class="quick-link-icon">🏢</span>
+              <span class="quick-link-label">الشركات</span>
               <span class="quick-link-arrow">←</span>
             </a>
             <a class="quick-link" href="{% url 'enginer_list' %}">
-              <span>المهندسين</span>
+              <span class="quick-link-icon">👷</span>
+              <span class="quick-link-label">المهندسين</span>
               <span class="quick-link-arrow">←</span>
             </a>
           </div>
