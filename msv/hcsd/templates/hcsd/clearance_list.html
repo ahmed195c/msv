@@ -764,7 +764,7 @@
                       {% elif clearance.status == 'issued' %}تم إصدار التصريح
                       {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
                       {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
-                      {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}بانتظار إدخال رقم الدفع{% else %}بانتظار الاعتماد النهائي{% endif %}
+                      {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}بانتظار إرسال رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
                       {% elif clearance.status == 'inspection_completed' %}تم التفتيش
                       {% elif clearance.status == 'head_approved' %}الاعتماد النهائي
                       {% elif clearance.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
@@ -808,7 +808,7 @@
                           {% elif clearance.status == 'issued' %}تم إصدار التصريح
                           {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
                           {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
-                          {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}تم التفتيش - بانتظار إدخال رقم الدفع{% else %}تم التفتيش - بانتظار الاعتماد النهائي{% endif %}
+                          {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}تم التفتيش - بانتظار إرسال رابط دفع التصريح{% else %}تم التفتيش - بانتظار الاعتماد النهائي{% endif %}
                           {% elif clearance.status == 'inspection_completed' %}{% if clearance.inspection_report_decision == 'rejected' %}تم التفتيش - غير معتمد{% else %}تم التفتيش{% endif %}
                           {% elif clearance.status == 'head_approved' %}تم الاعتماد النهائي - بانتظار إدخال رقم الدفع
                           {% elif clearance.status == 'closed_requirements_pending' %}تم إغلاق الطلب - اشتراطات واجبة الاستيفاء
