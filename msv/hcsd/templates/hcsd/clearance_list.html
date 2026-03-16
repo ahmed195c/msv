@@ -783,6 +783,12 @@
                       <div class="cl-lbl">نوع التصريح</div>
                       <div class="cl-val">{{ clearance.permit_label_ar }}</div>
                     </div>
+                    {% if clearance.permit_no %}
+                    <div class="cl-row">
+                      <div class="cl-lbl">رقم التصريح</div>
+                      <div class="cl-val" style="font-family:var(--mono);font-weight:600;">{{ clearance.permit_no }}</div>
+                    </div>
+                    {% endif %}
                     <div class="cl-row">
                       <div class="cl-lbl">الموقع</div>
                       <div class="cl-val">{{ clearance.company_location|default:"—" }}</div>
@@ -898,6 +904,12 @@
                       <div class="cl-lbl">نوع التصريح</div>
                       <div class="cl-val">{{ clearance.permit_label_ar }}</div>
                     </div>
+                    {% if clearance.permit_no %}
+                    <div class="cl-row">
+                      <div class="cl-lbl">رقم التصريح</div>
+                      <div class="cl-val" style="font-family:var(--mono);font-weight:600;">{{ clearance.permit_no }}</div>
+                    </div>
+                    {% endif %}
                     <div class="cl-row">
                       <div class="cl-lbl">الموقع</div>
                       <div class="cl-val">{{ clearance.company_location|default:"—" }}</div>
