@@ -1154,9 +1154,14 @@
             <span class="value">{{ head_approved_date|date:"Y-m-d" }}</span>
           </div>
           {% endif %}
-          {% if head_remarks %}
+          {% if head_approved_notes %}
           <div class="detail-item">
-            <span class="label">التعليق</span>
+            <span class="label">الملاحظات</span>
+            <span class="value">{{ head_approved_notes }}</span>
+          </div>
+          {% elif head_remarks %}
+          <div class="detail-item">
+            <span class="label">الملاحظات</span>
             <span class="value">{{ head_remarks }}</span>
           </div>
           {% endif %}

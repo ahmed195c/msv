@@ -3938,13 +3938,18 @@ def pest_control_permit_detail(request, id):
         .first()
     )
     head_approved_by = (
-        _display_user_name(head_approval_log.changed_by)
-        if head_approval_log and head_approval_log.changed_by
-        else None
+        _display_user_name(pirmet.head_approved_by)
+        if pirmet.head_approved_by
+        else (
+            _display_user_name(head_approval_log.changed_by)
+            if head_approval_log and head_approval_log.changed_by
+            else None
+        )
     )
-    head_approved_date = (
+    head_approved_date = pirmet.head_approved_date or (
         head_approval_log.created_at if head_approval_log else None
     )
+    head_approved_notes = pirmet.head_approved_notes
 
     assigned_review = InspectorReview.objects.filter(pirmet=pirmet).select_related(
         'inspector', 'inspector_user'
@@ -4386,7 +4391,10 @@ def pest_control_permit_detail(request, id):
                 old_status = pirmet.status
                 if head_decision == 'approved':
                     pirmet.status = 'head_approved'
-                    pirmet.save(update_fields=['status'])
+                    pirmet.head_approved_by = request.user
+                    pirmet.head_approved_date = datetime.date.today()
+                    pirmet.head_approved_notes = head_remarks or None
+                    pirmet.save(update_fields=['status', 'head_approved_by', 'head_approved_date', 'head_approved_notes'])
                     _log_pirmet_change(
                         pirmet,
                         'status_change',
@@ -4829,6 +4837,7 @@ def pest_control_permit_detail(request, id):
             'head_remarks': head_remarks,
             'head_approved_by': head_approved_by,
             'head_approved_date': head_approved_date,
+            'head_approved_notes': head_approved_notes,
             'can_record_permit_payment_reference': can_record_permit_payment_reference,
             'show_admin_close_form': show_admin_close_form,
             'can_review_pirmet': _can_inspector(request.user),
