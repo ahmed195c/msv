@@ -2817,7 +2817,7 @@ def vehicle_permit_detail(request, id):
         if action == 'send_payment_link':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال رقم الدفع.')
-            if pirmet.status != 'inspection_completed':
+            if pirmet.status not in {'inspection_completed', 'payment_pending'}:
                 review_errors.append('هذا الطلب ليس بانتظار إدخال رقم دفع التصريح.')
             payment_number = (request.POST.get('payment_number') or '').strip()
             if not payment_number:

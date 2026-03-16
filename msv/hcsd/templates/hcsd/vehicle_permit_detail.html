@@ -603,6 +603,20 @@
       </section>
     {% endif %}
 
+    <!-- ── Action: record payment number when in payment_pending without PaymentNumber ── -->
+    {% if can_record_payment and pirmet.status == "payment_pending" and not pirmet.PaymentNumber %}
+      <section class="permit-section no-print">
+        <div class="section-title">إدخال رقم دفع تصريح المركبة</div>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="send_payment_link">
+          <label for="payment_number">رقم أمر الدفع</label>
+          <input id="payment_number" name="payment_number" type="text" value="" required>
+          <button type="submit">حفظ رقم الدفع</button>
+        </form>
+      </section>
+    {% endif %}
+
     <!-- ── Action: upload payment receipt ── -->
     {% if can_record_payment and pirmet.status == "payment_pending" and pirmet.PaymentNumber %}
       <section class="permit-section no-print">
