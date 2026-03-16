@@ -348,10 +348,20 @@
   }
   .exp-btn.ghost:hover { background: #fef3c7; }
 
+  /* ── Quick links row (top nav) ── */
+  .quick-links-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
   @media (max-width: 800px) {
     .main-grid { grid-template-columns: 1fr; }
     .expiring-table { display: block; overflow-x: auto; white-space: nowrap; }
-    .home-card-quick { order: -1; }
+  }
+
+  @media (max-width: 600px) {
+    .quick-links-row { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 500px) {
@@ -363,6 +373,30 @@
 {% block content %}
 <section class="home-page" lang="ar" dir="rtl">
   <div class="home-wrap">
+
+    <!-- Quick links -->
+    <div class="quick-links-row">
+      <a class="quick-link ql-blue" href="{% url 'clearance_list' %}">
+        <span class="quick-link-bar"></span>
+        <span class="quick-link-label">متابعة الطلبات</span>
+        <span class="quick-link-arrow">←</span>
+      </a>
+      <a class="quick-link ql-teal" href="{% url 'permit_types' %}">
+        <span class="quick-link-bar"></span>
+        <span class="quick-link-label">التصاريح</span>
+        <span class="quick-link-arrow">←</span>
+      </a>
+      <a class="quick-link ql-green" href="{% url 'company_list' %}">
+        <span class="quick-link-bar"></span>
+        <span class="quick-link-label">الشركات</span>
+        <span class="quick-link-arrow">←</span>
+      </a>
+      <a class="quick-link ql-violet" href="{% url 'enginer_list' %}">
+        <span class="quick-link-bar"></span>
+        <span class="quick-link-label">المهندسين</span>
+        <span class="quick-link-arrow">←</span>
+      </a>
+    </div>
 
     <!-- Hero -->
     <div class="home-hero">
@@ -496,35 +530,7 @@
         </div>
       </div>
 
-      <div class="home-card home-card-quick">
-        <div class="card-head">روابط سريعة</div>
-        <div class="card-body">
-          <div class="quick-links">
-            <a class="quick-link ql-blue" href="{% url 'clearance_list' %}">
-              <span class="quick-link-bar"></span>
-              <span class="quick-link-label">متابعة الطلبات</span>
-              <span class="quick-link-arrow">←</span>
-            </a>
-            <a class="quick-link ql-teal" href="{% url 'permit_types' %}">
-              <span class="quick-link-bar"></span>
-              <span class="quick-link-label">التصاريح</span>
-              <span class="quick-link-arrow">←</span>
-            </a>
-            <a class="quick-link ql-green" href="{% url 'company_list' %}">
-              <span class="quick-link-bar"></span>
-              <span class="quick-link-label">الشركات</span>
-              <span class="quick-link-arrow">←</span>
-            </a>
-            <a class="quick-link ql-violet" href="{% url 'enginer_list' %}">
-              <span class="quick-link-bar"></span>
-              <span class="quick-link-label">المهندسين</span>
-              <span class="quick-link-arrow">←</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div class="home-card">
+<div class="home-card">
         <div class="card-head">طلبات تحتاج متابعة</div>
         <div class="card-body">
           <ul class="status-list">
