@@ -197,62 +197,63 @@
   .quick-link {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 13px 14px;
-    border: 2px solid var(--pd-line);
+    gap: 0;
+    padding: 0;
+    border: 1.5px solid var(--pd-line);
     border-radius: 8px;
     background: var(--pd-paper);
     color: var(--pd-ink);
     text-decoration: none;
     font-size: 14px;
     font-weight: 700;
-    transition: background 0.15s, border-color 0.15s, color 0.15s,
-                box-shadow 0.15s, transform 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
     box-shadow: 0 2px 6px rgba(48,67,87,0.07);
+    overflow: hidden;
     cursor: pointer;
   }
 
   .quick-link:hover {
-    background: var(--pd-accent);
-    border-color: var(--pd-accent);
-    color: #fff;
-    box-shadow: 0 6px 18px rgba(48,67,87,0.22);
+    border-color: var(--ql-color, var(--pd-accent));
+    box-shadow: 0 6px 18px rgba(48,67,87,0.16);
     transform: translateX(-3px);
   }
 
-  .quick-link-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: var(--pd-surface);
-    border: 1.5px solid var(--pd-line);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
+  .quick-link-bar {
+    width: 5px;
+    align-self: stretch;
+    background: var(--ql-color, var(--pd-accent));
     flex-shrink: 0;
-    transition: background 0.15s, border-color 0.15s;
+    transition: width 0.15s;
   }
 
-  .quick-link:hover .quick-link-icon {
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.25);
-  }
+  .quick-link:hover .quick-link-bar { width: 7px; }
 
   .quick-link-label {
     flex: 1;
+    padding: 14px 14px;
+    transition: color 0.15s;
+  }
+
+  .quick-link:hover .quick-link-label {
+    color: var(--ql-color, var(--pd-accent));
   }
 
   .quick-link-arrow {
+    padding-inline-end: 14px;
     font-size: 16px;
-    opacity: 0.35;
+    opacity: 0.3;
     transition: opacity 0.15s, transform 0.15s;
   }
 
   .quick-link:hover .quick-link-arrow {
-    opacity: 1;
+    opacity: 0.8;
     transform: translateX(-4px);
   }
+
+  .ql-blue   { --ql-color: #2563eb; }
+  .ql-teal   { --ql-color: #0891b2; }
+  .ql-green  { --ql-color: #059669; }
+  .ql-violet { --ql-color: #7c3aed; }
 
   /* ── Expiring soon alert ── */
   .expiring-alert {
@@ -499,23 +500,23 @@
         <div class="card-head">روابط سريعة</div>
         <div class="card-body">
           <div class="quick-links">
-            <a class="quick-link" href="{% url 'clearance_list' %}">
-              <span class="quick-link-icon">📋</span>
+            <a class="quick-link ql-blue" href="{% url 'clearance_list' %}">
+              <span class="quick-link-bar"></span>
               <span class="quick-link-label">متابعة الطلبات</span>
               <span class="quick-link-arrow">←</span>
             </a>
-            <a class="quick-link" href="{% url 'permit_types' %}">
-              <span class="quick-link-icon">📄</span>
+            <a class="quick-link ql-teal" href="{% url 'permit_types' %}">
+              <span class="quick-link-bar"></span>
               <span class="quick-link-label">التصاريح</span>
               <span class="quick-link-arrow">←</span>
             </a>
-            <a class="quick-link" href="{% url 'company_list' %}">
-              <span class="quick-link-icon">🏢</span>
+            <a class="quick-link ql-green" href="{% url 'company_list' %}">
+              <span class="quick-link-bar"></span>
               <span class="quick-link-label">الشركات</span>
               <span class="quick-link-arrow">←</span>
             </a>
-            <a class="quick-link" href="{% url 'enginer_list' %}">
-              <span class="quick-link-icon">👷</span>
+            <a class="quick-link ql-violet" href="{% url 'enginer_list' %}">
+              <span class="quick-link-bar"></span>
               <span class="quick-link-label">المهندسين</span>
               <span class="quick-link-arrow">←</span>
             </a>
