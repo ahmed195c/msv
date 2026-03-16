@@ -263,6 +263,66 @@
       </ul>
     </section>
 
+    <section class="permit-section">
+      <div class="section-title">بيانات الطلب</div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="label">رقم التصريح</span>
+          <span class="value">{{ pirmet.permit_no|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">تاريخ إصدار التصريح</span>
+          <span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">تاريخ انتهاء التصريح</span>
+          <span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">تاريخ الدفع</span>
+          <span class="value">{{ pirmet.payment_date|date:"d/m/Y"|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">رقم أمر دفع التفتيش</span>
+          <span class="value">{{ pirmet.inspection_payment_reference|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">إيصال دفع التفتيش</span>
+          <span class="value">
+            {% if pirmet.inspection_payment_receipt %}
+              <a href="{{ pirmet.inspection_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
+            {% else %}-{% endif %}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">رقم أمر دفع التصريح</span>
+          <span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">إيصال دفع التصريح</span>
+          <span class="value">
+            {% if pirmet.payment_receipt %}
+              <a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
+            {% else %}-{% endif %}
+          </span>
+        </div>
+        {% if pirmet.violation_amount %}
+        <div class="detail-item">
+          <span class="label">مبلغ المخالفة</span>
+          <span class="value">{{ pirmet.violation_amount }} درهم</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">إيصال دفع المخالفة</span>
+          <span class="value">
+            {% if pirmet.violation_payment_receipt %}
+              <a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
+            {% else %}-{% endif %}
+          </span>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
   </div>
 </section>
 {% endblock %}
