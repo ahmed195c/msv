@@ -680,8 +680,6 @@
             {% endif %}
           {% elif pirmet.status == "head_approved" %}
             <span class="status-badge status-badge--active">الاعتماد النهائي</span>
-          {% elif pirmet.status == "permit_ready" %}
-            <span class="status-badge status-badge--active">جاهز للاستلام</span>
           {% elif pirmet.status == "payment_pending" %}
             <span class="status-badge status-badge--pending">بانتظار دفع التصريح</span>
           {% elif pirmet.status == "violation_payment_link_pending" %}
@@ -1335,16 +1333,6 @@
             </div>
           </div>
           <button type="submit">حفظ إثبات الدفع</button>
-        </form>
-      </section>
-    {% endif %}
-
-    {% if can_issue_permit %}
-      <section class="permit-section no-print">
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="issue_permit">
-          <button type="submit" style="width:100%;padding:12px 16px;font-size:15px;font-weight:700;font-family:inherit;background:#059669;color:#fff;border:none;border-radius:10px;cursor:pointer;">إصدار التصريح</button>
         </form>
       </section>
     {% endif %}

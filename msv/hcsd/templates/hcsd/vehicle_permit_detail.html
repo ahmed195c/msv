@@ -380,8 +380,6 @@
               بانتظار دفع التصريح
             {% endif %}
           </span>
-        {% elif pirmet.status == "permit_ready" %}
-          <span class="hero-status hero-status--issued">جاهز للاستلام</span>
         {% elif pirmet.status == "issued" %}
           <span class="hero-status hero-status--issued">تم إصدار التصريح</span>
         {% elif pirmet.status == "needs_completion" %}
@@ -681,12 +679,13 @@
     {% endif %}
 
     <!-- ── Action: issue permit ── -->
-    {% if can_issue_permit %}
+    {% if False %}{# issue action removed - payment goes directly to issued #}
       <section class="permit-section no-print">
-        <form method="post">
+        <div class="section-title">إصدار تصريح المركبة</div>
+        <form method="post" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="issue">
-          <button type="submit" style="width:100%;padding:12px 16px;font-size:15px;font-weight:700;font-family:inherit;background:#059669;color:#fff;border:none;border-radius:10px;cursor:pointer;">إصدار التصريح</button>
+          <button type="submit">إصدار التصريح (مدة سنة من اليوم)</button>
         </form>
       </section>
     {% endif %}
