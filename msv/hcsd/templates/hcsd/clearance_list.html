@@ -796,7 +796,7 @@
                       {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
                       {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}بانتظار إرسال رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
                       {% elif clearance.status == 'inspection_completed' %}تم التفتيش
-                      {% elif clearance.status == 'head_approved' %}الاعتماد النهائي
+                      {% elif clearance.status == 'head_approved' %}تم الاعتماد النهائي
                       {% elif clearance.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
                       {% elif clearance.status == 'disposal_approved' %}إتلاف معتمد
                       {% elif clearance.status == 'disposal_rejected' %}إتلاف مرفوض
