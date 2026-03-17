@@ -744,7 +744,8 @@
               <article class="cl-card">
 
                 <div class="cl-card-stripe
-                  {% if clearance.status == 'order_received' %}stripe-received
+                  {% if clearance.status == 'permit_ready' %}stripe-approved
+                  {% elif clearance.status == 'order_received' %}stripe-received
                   {% elif clearance.status == 'inspection_payment_pending' %}stripe-pending
                   {% elif clearance.status == 'review_pending' %}stripe-review
                   {% elif clearance.status == 'approved' %}stripe-approved
@@ -765,7 +766,8 @@
                   <div class="cl-card-head">
 
                     <div class="cl-card-status
-                      {% if clearance.status == 'order_received' %}st-order-received
+                      {% if clearance.status == 'permit_ready' %}st-approved
+                      {% elif clearance.status == 'order_received' %}st-order-received
                       {% elif clearance.status == 'inspection_payment_pending' %}st-inspection-payment-pending
                       {% elif clearance.status == 'review_pending' %}st-review-pending
                       {% elif clearance.status == 'approved' %}st-approved
@@ -783,7 +785,8 @@
                       {% elif clearance.status == 'disposal_approved' %}st-disposal-approved
                       {% elif clearance.status == 'disposal_rejected' %}st-disposal-rejected
                       {% else %}st-fallback{% endif %}">
-                      {% if clearance.status == 'order_received' %}بانتظار اصدار رابط دفع التفتيش
+                      {% if clearance.status == 'permit_ready' %}جاهز للاستلام
+                      {% elif clearance.status == 'order_received' %}بانتظار اصدار رابط دفع التفتيش
                       {% elif clearance.status == 'inspection_payment_pending' %}بانتظار دفع التفتيش
                       {% elif clearance.status == 'review_pending' %}بانتظار المراجعة
                       {% elif clearance.status == 'approved' %}معتمد
@@ -827,7 +830,8 @@
                       <div class="cl-lbl">تفاصيل</div>
                       <div class="cl-val" style="flex-direction:column;align-items:flex-start;gap:4px;">
                         <span class="hint-text">
-                          {% if clearance.status == 'order_received' %}بانتظار اصدار رابط دفع التفتيش
+                          {% if clearance.status == 'permit_ready' %}تم استلام الدفع - التصريح جاهز للاستلام
+                          {% elif clearance.status == 'order_received' %}بانتظار اصدار رابط دفع التفتيش
                           {% elif clearance.status == 'inspection_payment_pending' %}تم إرسال رابط دفع التفتيش وبانتظار الدفع
                           {% elif clearance.status == 'review_pending' %}بانتظار مراجعة المفتش
                           {% elif clearance.status == 'approved' %}تم الاعتماد من المفتش{% if clearance.inspector_name %} {{ clearance.inspector_name }}{% endif %}

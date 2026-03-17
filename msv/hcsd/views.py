@@ -2321,9 +2321,13 @@ def clearance_list(request):
         'disposal_approved',
         'disposal_rejected',
     }
+    # These statuses are payment-processing steps; hide from clearance list entirely.
+    payment_processing_statuses = {'head_approved', 'payment_pending'}
     active_clearances = []
     finished_clearances = []
     for _item in clearances:
+        if _item.status in payment_processing_statuses:
+            continue
         if _item.status in finished_statuses:
             finished_clearances.append(_item)
         elif (
@@ -2385,6 +2389,7 @@ def clearance_list(request):
     status_filter_label_map = {
         'inspection_received': 'تم استلام الطلب للتفتيش',
         'inspection_pending': 'جاهز للاستلام',
+        'permit_ready': 'جاهز للاستلام',
         'order_received': 'بانتظار اصدار رابط دفع التفتيش',
         'inspection_payment_pending': 'بانتظار دفع التفتيش',
         'review_pending': 'بانتظار مراجعة المفتش',
@@ -2404,13 +2409,13 @@ def clearance_list(request):
     status_section_label_map = {
         'inspection_received': 'طلبات تم استلامها للتفتيش',
         'inspection_pending': 'طلبات جاهزة للاستلام',
+        'permit_ready': 'تصاريح جاهزة للاستلام',
         'order_received': 'بانتظار اصدار رابط دفع التفتيش',
         'inspection_payment_pending': 'طلبات بانتظار دفع التفتيش',
         'review_pending': 'طلبات بانتظار مراجعة المفتش',
         'approved': 'طلبات معتمدة من المفتش',
         'needs_completion': 'طلبات غير معتمدة',
         'rejected': 'طلبات مرفوضة',
-        'payment_pending': 'طلبات بانتظار دفع التصريح',
         'violation_payment_link_pending': 'طلبات بانتظار إرسال رابط دفع المخالفة',
         'violation_payment_pending': 'طلبات بانتظار دفع المخالفة',
         'issued': 'طلبات صادرة',
@@ -2421,6 +2426,7 @@ def clearance_list(request):
         'disposal_rejected': 'طلبات إتلاف مرفوضة',
     }
     active_status_order = [
+        'permit_ready',
         'inspection_pending',
         'inspection_received',
         'order_received',
@@ -2431,7 +2437,6 @@ def clearance_list(request):
         'rejected',
         'violation_payment_link_pending',
         'violation_payment_pending',
-        'payment_pending',
     ]
     finished_status_order = [
         'issued',
@@ -2877,12 +2882,7 @@ def vehicle_permit_detail(request, id):
                 old_status = pirmet.status
                 pirmet.payment_receipt = receipt
                 pirmet.payment_date = datetime.date.today()
-                issue_date = datetime.date.today()
-                expiry_date = _calculate_permit_expiry(issue_date)
-                pirmet.issue_date = issue_date
-                pirmet.dateOfExpiry = expiry_date
-                # New flow: after permit payment proof, issue the permit directly.
-                pirmet.status = 'issued'
+                pirmet.status = 'permit_ready'
                 pirmet.save()
                 _log_pirmet_change(
                     pirmet,
@@ -2890,15 +2890,15 @@ def vehicle_permit_detail(request, id):
                     request.user,
                     old_status=old_status,
                     new_status=pirmet.status,
-                    notes='Vehicle permit payment received and permit issued.',
+                    notes='Vehicle permit payment received, permit ready for pickup.',
                 )
                 return redirect('vehicle_permit_detail', id=pirmet.id)
 
         if action == 'issue':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإصدار التصريح.')
-            if pirmet.status != 'payment_pending':
-                review_errors.append('لا يمكن إصدار التصريح قبل تأكيد دفع التصريح.')
+            if pirmet.status != 'permit_ready':
+                review_errors.append('لا يمكن إصدار التصريح قبل تأكيد الدفع.')
 
             if not review_errors:
                 old_status = pirmet.status
@@ -2951,6 +2951,7 @@ def vehicle_permit_detail(request, id):
             'can_reassign_inspector': can_reassign_inspector,
             'can_submit_inspection_report': can_submit_inspection_report,
             'can_record_payment': _can_admin(request.user),
+            'can_issue_permit': _can_admin(request.user) and pirmet.status == 'permit_ready',
             'inspector_users': _inspector_users_qs(),
         },
     )
@@ -4481,7 +4482,28 @@ def pest_control_permit_detail(request, id):
                 old_status = pirmet.status
                 pirmet.payment_receipt = receipt
                 pirmet.payment_date = datetime.date.today()
-                # New flow: once payment proof is uploaded, issue the permit immediately.
+                pirmet.status = 'permit_ready'
+                pirmet.save()
+                _log_pirmet_change(
+                    pirmet,
+                    'status_change',
+                    request.user,
+                    old_status=old_status,
+                    new_status=pirmet.status,
+                    notes='Payment received, permit ready for pickup.',
+                )
+                return redirect('pest_control_permit_detail', id=pirmet.id)
+
+        if action == 'issue_permit':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لإصدار التصريح.')
+            if pirmet.status != 'permit_ready':
+                review_errors.append('هذا الطلب ليس جاهزاً للإصدار.')
+            if not review_errors:
+                old_status = pirmet.status
+                issue_date = datetime.date.today()
+                pirmet.issue_date = issue_date
+                pirmet.dateOfExpiry = _calculate_permit_expiry(issue_date)
                 pirmet.status = 'issued'
                 pirmet.save()
                 _log_pirmet_change(
@@ -4490,7 +4512,7 @@ def pest_control_permit_detail(request, id):
                     request.user,
                     old_status=old_status,
                     new_status=pirmet.status,
-                    notes='Payment received and permit issued.',
+                    notes='Permit issued.',
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
@@ -4839,6 +4861,7 @@ def pest_control_permit_detail(request, id):
             'head_approved_date': head_approved_date,
             'head_approved_notes': head_approved_notes,
             'can_record_permit_payment_reference': can_record_permit_payment_reference,
+            'can_issue_permit': _can_admin(request.user) and pirmet.status == 'permit_ready',
             'show_admin_close_form': show_admin_close_form,
             'can_review_pirmet': _can_inspector(request.user),
             'can_record_payment': _can_admin(request.user),
