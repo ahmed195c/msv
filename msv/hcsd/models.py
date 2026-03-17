@@ -128,7 +128,7 @@ class PirmetClearance(models.Model):
         ('inspection_completed', 'Inspection Completed'),
         ('violation_payment_link_pending', 'Violation Payment Link Pending'),
         ('violation_payment_pending', 'Violation Payment Pending'),
-        ('head_approved', 'Head of Section Approved'),
+        ('head_approved', 'الاعتماد النهائي'),
         ('closed_requirements_pending', 'Closed - Requirements Pending'),
         ('cancelled_admin', 'Cancelled Administratively'),
         ('disposal_approved', 'Disposal Approved'),
