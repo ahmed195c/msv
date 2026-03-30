@@ -2334,14 +2334,6 @@ def clearance_list(request):
         else:
             active_clearances.append(_item)
     inspector_scope_only = _can_inspector(request.user) and not _can_admin(request.user)
-    if inspector_scope_only:
-        inspector_visible_statuses = {'inspection_pending', 'inspection_received'}
-        active_clearances = [
-            item
-            for item in active_clearances
-            if getattr(item, 'status_key', item.status) in inspector_visible_statuses
-        ]
-        finished_clearances = []
 
     if _can_inspector(request.user):
         current_user_id = request.user.id
