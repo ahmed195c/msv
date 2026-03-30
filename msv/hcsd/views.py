@@ -2367,9 +2367,24 @@ def clearance_list(request):
             )
         )
 
+    finished_ids = [item.id for item in finished_clearances]
+    finished_completion_map = {}
+    if finished_ids:
+        completion_logs = (
+            PirmetChangeLog.objects.filter(
+                pirmet_id__in=finished_ids,
+                change_type='status_change',
+            )
+            .order_by('pirmet_id', '-created_at')
+        )
+        for log in completion_logs:
+            if log.pirmet_id not in finished_completion_map:
+                finished_completion_map[log.pirmet_id] = log.created_at
+    for item in finished_clearances:
+        item._completion_date = finished_completion_map.get(item.id)
     finished_clearances.sort(
         key=lambda item: (
-            -(item.dateOfCreation.toordinal() if item.dateOfCreation else 0),
+            -(item._completion_date.timestamp() if item._completion_date else 0),
             -item.id,
         )
     )
