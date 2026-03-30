@@ -2359,6 +2359,17 @@ def clearance_list(request):
             return (priority, -created_ordinal, -item.id)
 
         active_clearances.sort(key=_active_inspector_sort_key)
+    elif _can_admin(request.user):
+        def _active_admin_sort_key(item):
+            item_status = getattr(item, 'status_key', item.status)
+            needs_head_approval = (
+                item_status == 'inspection_completed'
+                and getattr(item, 'inspection_report_decision', None) == 'approved'
+            )
+            priority = 0 if needs_head_approval else 1
+            created_ordinal = item.dateOfCreation.toordinal() if item.dateOfCreation else 0
+            return (priority, -created_ordinal, -item.id)
+        active_clearances.sort(key=_active_admin_sort_key)
     else:
         active_clearances.sort(
             key=lambda item: (
