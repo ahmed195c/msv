@@ -2726,6 +2726,13 @@ def vehicle_permit_detail(request, id):
     inspection_report_date = (
         latest_inspection_report.created_at if latest_inspection_report else None
     )
+    inspection_report_by = None
+    if latest_inspection_report:
+        if latest_inspection_report.changed_by:
+            inspection_report_by = _display_user_name(latest_inspection_report.changed_by)
+        else:
+            # user deleted — fall back to the inspector who received the request
+            inspection_report_by = inspection_receiver_name
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -2978,6 +2985,7 @@ def vehicle_permit_detail(request, id):
             'review_errors': review_errors,
             'request_documents': _request_documents(pirmet),
             'inspection_report_decision': inspection_report_decision,
+            'inspection_report_by': inspection_report_by,
             'inspection_report_date': inspection_report_date,
             'inspection_report_notes': inspection_report_notes,
             'inspection_report_photos': _vehicle_inspection_report_photo_docs(pirmet),
