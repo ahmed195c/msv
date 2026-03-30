@@ -511,6 +511,7 @@
         <div class="section-title">نتيجة التفتيش</div>
         <div class="detail-grid">
           <div class="detail-item"><span class="label">النتيجة</span><span class="value">{% if inspection_report_decision == "approved" %}معتمد{% else %}غير معتمد{% endif %}</span></div>
+          <div class="detail-item"><span class="label">المفتش</span><span class="value">{{ inspection_report_by|default:"-" }}</span></div>
           <div class="detail-item"><span class="label">تاريخ إدخال التقرير</span><span class="value">{{ inspection_report_date|date:"Y-m-d"|default:"-" }}</span></div>
           <div class="detail-item"><span class="label">الملاحظات</span><span class="value">{{ inspection_report_notes|default:"-" }}</span></div>
         </div>

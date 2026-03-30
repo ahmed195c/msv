@@ -4008,7 +4008,6 @@ def pest_control_permit_detail(request, id):
     violation_payment_completed = (
         violation_order_recorded
         and violation_receipt_recorded
-        and (pirmet.violation_amount or 0) == violation_amount_due
     )
     can_record_violation_order = (
         _can_admin(request.user)
