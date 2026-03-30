@@ -4001,7 +4001,7 @@ def pest_control_permit_detail(request, id):
     delay_days_total = 0
     if renewal_reference_date and timezone.localdate() > renewal_reference_date:
         delay_days_total = (timezone.localdate() - renewal_reference_date).days
-    violation_amount_due = delay_months_after_grace * 100
+    violation_amount_due = int(pirmet.violation_amount) if pirmet.violation_amount else delay_months_after_grace * 100
     violation_required = delay_months_after_grace > 0
     violation_order_recorded = bool((pirmet.violation_payment_order_number or '').strip())
     violation_receipt_recorded = bool(pirmet.violation_payment_receipt)
