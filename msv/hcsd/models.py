@@ -75,10 +75,12 @@ class Enginer(models.Model):
         upload_to='engineer_certificates/', null=True, blank=True
     )
     public_health_cert_issue_date = models.DateField(null=True, blank=True)
+    public_health_cert_expiry_date = models.DateField(null=True, blank=True)
     termite_cert = models.FileField(
         upload_to='engineer_certificates/', null=True, blank=True
     )
     termite_cert_issue_date = models.DateField(null=True, blank=True)
+    termite_cert_expiry_date = models.DateField(null=True, blank=True)
 
     @property
     def has_public_health_cert(self):

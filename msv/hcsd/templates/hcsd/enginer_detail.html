@@ -498,15 +498,13 @@
               {% if enginer.public_health_cert %}
                 {% if enginer.public_health_cert_issue_date %}
                   <span>تاريخ الإصدار: <strong>{{ enginer.public_health_cert_issue_date|date:"d/m/Y" }}</strong></span>
-                  {% if public_health_expiry_date %}
-                    <span>تاريخ الانتهاء:
-                      <strong {% if public_health_is_expired %}style="color:#b91c1c;"{% endif %}>
-                        {{ public_health_expiry_date|date:"d/m/Y" }}{% if public_health_is_expired %} — منتهية{% endif %}
-                      </strong>
-                    </span>
-                  {% endif %}
-                {% else %}
-                  <span style="color:var(--ink-3);">لا يوجد تاريخ إصدار</span>
+                {% endif %}
+                {% if public_health_expiry_date %}
+                  <span>تاريخ الانتهاء:
+                    <strong {% if public_health_is_expired %}style="color:#b91c1c;"{% endif %}>
+                      {{ public_health_expiry_date|date:"d/m/Y" }}{% if public_health_is_expired %} — منتهية{% endif %}
+                    </strong>
+                  </span>
                 {% endif %}
               {% else %}
                 <span style="color:var(--ink-3);">لم يتم إرفاق الشهادة بعد</span>
@@ -525,15 +523,13 @@
               {% if enginer.termite_cert %}
                 {% if enginer.termite_cert_issue_date %}
                   <span>تاريخ الإصدار: <strong>{{ enginer.termite_cert_issue_date|date:"d/m/Y" }}</strong></span>
-                  {% if termite_expiry_date %}
-                    <span>تاريخ الانتهاء:
-                      <strong {% if termite_is_expired %}style="color:#b91c1c;"{% endif %}>
-                        {{ termite_expiry_date|date:"d/m/Y" }}{% if termite_is_expired %} — منتهية{% endif %}
-                      </strong>
-                    </span>
-                  {% endif %}
-                {% else %}
-                  <span style="color:var(--ink-3);">لا يوجد تاريخ إصدار</span>
+                {% endif %}
+                {% if termite_expiry_date %}
+                  <span>تاريخ الانتهاء:
+                    <strong {% if termite_is_expired %}style="color:#b91c1c;"{% endif %}>
+                      {{ termite_expiry_date|date:"d/m/Y" }}{% if termite_is_expired %} — منتهية{% endif %}
+                    </strong>
+                  </span>
                 {% endif %}
               {% else %}
                 <span style="color:var(--ink-3);">لم يتم إرفاق الشهادة بعد</span>
@@ -569,6 +565,8 @@
                 <span>📄</span>
                 <span class="upload-file-name" data-file-name="u_ph"></span>
               </div>
+              <label style="font-size:12px;font-weight:600;color:var(--ink-3);display:block;margin-top:10px;margin-bottom:4px;">تاريخ انتهاء الشهادة</label>
+              <input type="date" name="public_health_cert_expiry_date" value="{{ enginer.public_health_cert_expiry_date|date:'Y-m-d' }}" style="width:100%;padding:7px 10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;">
             </div>
 
             <div>
@@ -583,6 +581,8 @@
                 <span>📄</span>
                 <span class="upload-file-name" data-file-name="u_tc"></span>
               </div>
+              <label style="font-size:12px;font-weight:600;color:var(--ink-3);display:block;margin-top:10px;margin-bottom:4px;">تاريخ انتهاء الشهادة</label>
+              <input type="date" name="termite_cert_expiry_date" value="{{ enginer.termite_cert_expiry_date|date:'Y-m-d' }}" style="width:100%;padding:7px 10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;">
             </div>
 
           </div>

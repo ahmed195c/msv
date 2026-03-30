@@ -500,7 +500,9 @@ def _certificate_type_for_exam(exam_type):
     return 'public_health'
 
 
-def _certificate_expiry(issue_date):
+def _certificate_expiry(issue_date, stored_expiry_date=None):
+    if stored_expiry_date:
+        return stored_expiry_date, stored_expiry_date < timezone.localdate()
     if not issue_date:
         return None, False
     expiry_date = _add_months(issue_date, 3)
@@ -1491,11 +1493,11 @@ def enginer_list(request):
         ).select_related('substitute')
     }
     for engineer in engineers:
-        ph_expiry_date, ph_is_expired = _certificate_expiry(engineer.public_health_cert_issue_date)
-        termite_expiry_date, termite_is_expired = _certificate_expiry(engineer.termite_cert_issue_date)
-        engineer.public_health_cert_expiry_date = ph_expiry_date
+        ph_expiry_date, ph_is_expired = _certificate_expiry(engineer.public_health_cert_issue_date, engineer.public_health_cert_expiry_date)
+        termite_expiry_date, termite_is_expired = _certificate_expiry(engineer.termite_cert_issue_date, engineer.termite_cert_expiry_date)
+        engineer._ph_expiry_date = ph_expiry_date
         engineer.public_health_cert_is_expired = ph_is_expired
-        engineer.termite_cert_expiry_date = termite_expiry_date
+        engineer._termite_expiry_date = termite_expiry_date
         engineer.termite_cert_is_expired = termite_is_expired
         engineer.active_leave = active_leave_map.get(engineer.id)
     return render(
@@ -1633,9 +1635,13 @@ def enginer_detail(request, id):
             updated = False
             public_health_cert = request.FILES.get('public_health_cert')
             termite_cert = request.FILES.get('termite_cert')
+            ph_expiry = _parse_date((request.POST.get('public_health_cert_expiry_date') or '').strip())
+            tc_expiry = _parse_date((request.POST.get('termite_cert_expiry_date') or '').strip())
             if public_health_cert:
                 previous_public_health_cert = enginer.public_health_cert.name if enginer.public_health_cert else None
                 enginer.public_health_cert = public_health_cert
+                if ph_expiry:
+                    enginer.public_health_cert_expiry_date = ph_expiry
                 EnginerStatusLog.objects.create(
                     enginer=enginer,
                     action='public_health_cert_uploaded',
@@ -1644,9 +1650,14 @@ def enginer_detail(request, id):
                     archived_file=previous_public_health_cert or None,
                 )
                 updated = True
+            elif ph_expiry and enginer.public_health_cert:
+                enginer.public_health_cert_expiry_date = ph_expiry
+                updated = True
             if termite_cert:
                 previous_termite_cert = enginer.termite_cert.name if enginer.termite_cert else None
                 enginer.termite_cert = termite_cert
+                if tc_expiry:
+                    enginer.termite_cert_expiry_date = tc_expiry
                 EnginerStatusLog.objects.create(
                     enginer=enginer,
                     action='termite_cert_uploaded',
@@ -1655,18 +1666,21 @@ def enginer_detail(request, id):
                     archived_file=previous_termite_cert or None,
                 )
                 updated = True
+            elif tc_expiry and enginer.termite_cert:
+                enginer.termite_cert_expiry_date = tc_expiry
+                updated = True
             if updated:
                 enginer.save()
                 return redirect('enginer_detail', id=enginer.id)
-            error = 'يرجى إرفاق ملف واحد على الأقل.'
+            error = 'يرجى إرفاق ملف واحد على الأقل أو تحديث تاريخ الانتهاء.'
 
     # Re-fetch active leave after possible POST changes
     active_leave = enginer.leaves.filter(actual_return_date__isnull=True).order_by('-created_at').first()
     leave_history = enginer.leaves.select_related('substitute', 'created_by', 'closed_by').order_by('-created_at')
     logs = enginer.status_logs.select_related('changed_by').all().order_by('-created_at')
     archived_logs = [log for log in logs if getattr(log, 'archived_file', None)]
-    public_health_expiry_date, public_health_is_expired = _certificate_expiry(enginer.public_health_cert_issue_date)
-    termite_expiry_date, termite_is_expired = _certificate_expiry(enginer.termite_cert_issue_date)
+    public_health_expiry_date, public_health_is_expired = _certificate_expiry(enginer.public_health_cert_issue_date, enginer.public_health_cert_expiry_date)
+    termite_expiry_date, termite_is_expired = _certificate_expiry(enginer.termite_cert_issue_date, enginer.termite_cert_expiry_date)
     return render(
         request,
         'hcsd/enginer_detail.html',
