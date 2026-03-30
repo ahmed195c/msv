@@ -25,6 +25,7 @@ from .models import (
     PirmetClearance,
     PirmetDocument,
     PublicHealthExamRequest,
+    PublicHealthExamRequestDocument,
     RequirementInsuranceRequest,
     WasteDisposalRequest,
     WasteDisposalRequestDocument,
@@ -1704,7 +1705,7 @@ def public_health_exam_request_list(request):
             enginer_id = _parse_int(request.POST.get('enginer_id'))
             company_id = _parse_int(request.POST.get('company_id'))
             request_notes = (request.POST.get('request_notes') or '').strip()
-            request_document = request.FILES.get('request_document')
+            request_document = request.FILES.getlist('request_document')
             unified_identity_number = (request.POST.get('unified_identity_number') or '').strip()
             exam_language = (request.POST.get('exam_language') or '').strip()
             exam_type = (request.POST.get('exam_type') or '').strip()
@@ -1731,7 +1732,7 @@ def public_health_exam_request_list(request):
                     )
                 attempt_number = PublicHealthExamRequest.next_attempt_number(enginer, exam_type=exam_type)
                 exam_fee = PublicHealthExamRequest.fee_for_attempt(attempt_number)
-                PublicHealthExamRequest.objects.create(
+                exam_req = PublicHealthExamRequest.objects.create(
                     enginer=enginer,
                     company=company,
                     serial_number='',
@@ -1745,10 +1746,14 @@ def public_health_exam_request_list(request):
                     qualified_technician_name=qualified_technician_name,
                     phone_number=phone_number or enginer.phone,
                     request_notes=request_notes,
-                    request_document=request_document,
                     created_by=request.user,
                     status='submitted',
                 )
+                for doc_file in request_document:
+                    PublicHealthExamRequestDocument.objects.create(
+                        exam_request=exam_req,
+                        file=doc_file,
+                    )
                 return redirect('public_health_exam_request_list')
 
     requests_qs = PublicHealthExamRequest.objects.select_related('enginer', 'reviewed_by')
@@ -1925,6 +1930,7 @@ def public_health_exam_request_detail(request, request_id):
         'hcsd/public_health_exam_request_detail.html',
         {
             'exam_request': exam_request,
+            'exam_request_documents': list(exam_request.documents.all()),
             'error': error,
             'can_inspector_review': can_inspector_review,
             'can_manage_payment': can_manage_payment,

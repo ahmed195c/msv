@@ -558,6 +558,19 @@ class PublicHealthExamRequest(models.Model):
         return f"{self.enginer.name} - Exam Request #{self.id} (Attempt {self.attempt_number})"
 
 
+class PublicHealthExamRequestDocument(models.Model):
+    exam_request = models.ForeignKey(
+        PublicHealthExamRequest,
+        on_delete=models.CASCADE,
+        related_name='documents',
+    )
+    file = models.FileField(upload_to='public_health_exam_requests/documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['uploaded_at']
+
+
 class EngineerCertificateRequest(models.Model):
     CERTIFICATE_TYPE_CHOICES = [
         ('public_health', 'شهادة اختبار عام'),

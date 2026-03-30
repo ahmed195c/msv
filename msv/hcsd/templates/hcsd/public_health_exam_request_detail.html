@@ -372,9 +372,13 @@
       <div class="card-head">المستندات</div>
       <div class="card-body">
         <div class="doc-grid">
-          <div class="doc-card {% if exam_request.request_document %}has-file{% endif %}">
+          <div class="doc-card {% if exam_request_documents or exam_request.request_document %}has-file{% endif %}">
             <div class="doc-label">مستندات الطلب</div>
-            {% if exam_request.request_document %}
+            {% if exam_request_documents %}
+              {% for doc in exam_request_documents %}
+                <a class="doc-link" href="{{ doc.file.url }}" target="_blank" rel="noopener">مرفق {{ forloop.counter }}</a>
+              {% endfor %}
+            {% elif exam_request.request_document %}
               <a class="doc-link" href="{{ exam_request.request_document.url }}" target="_blank" rel="noopener">عرض الملف</a>
             {% else %}
               <span class="doc-empty">لم يُرفع ملف بعد</span>
