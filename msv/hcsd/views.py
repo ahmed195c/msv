@@ -2266,11 +2266,7 @@ def clearance_list(request):
                 latest_active_waste_request_map.get(clearance.id)
                 or latest_waste_request_map.get(clearance.id)
             )
-            if latest_waste_request and clearance.status in {
-                'inspection_pending',
-                'disposal_approved',
-                'disposal_rejected',
-            }:
+            if latest_waste_request:
                 clearance.permit_label_ar = 'طلب التخلص من النفايات'
                 clearance.detail_url = reverse(
                     'waste_disposal_request_detail',
