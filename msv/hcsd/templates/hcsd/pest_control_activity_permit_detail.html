@@ -814,6 +814,9 @@
             <span class="value">
               {% if pirmet.inspection_payment_receipt %}
                 <a href="{{ pirmet.inspection_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
+                {% if user_is_admin %}
+                  <form method="post" class="no-print" style="display:inline;margin-right:6px;">{% csrf_token %}<input type="hidden" name="action" value="delete_receipt"><input type="hidden" name="receipt_field" value="inspection_payment_receipt"><button type="submit" style="background:#8c2f2f;padding:2px 8px;font-size:11px;" onclick="return confirm('حذف الإيصال؟')">حذف</button></form>
+                {% endif %}
               {% else %}
                 -
               {% endif %}
@@ -838,6 +841,9 @@
             <span class="value">
               {% if pirmet.payment_receipt %}
                 <a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإثبات</a>
+                {% if user_is_admin %}
+                  <form method="post" class="no-print" style="display:inline;margin-right:6px;">{% csrf_token %}<input type="hidden" name="action" value="delete_receipt"><input type="hidden" name="receipt_field" value="payment_receipt"><button type="submit" style="background:#8c2f2f;padding:2px 8px;font-size:11px;" onclick="return confirm('حذف الإيصال؟')">حذف</button></form>
+                {% endif %}
               {% else %}
                 -
               {% endif %}
@@ -979,6 +985,9 @@
             <span class="value">
               {% if pirmet.violation_payment_receipt %}
                 <a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
+                {% if user_is_admin %}
+                  <form method="post" class="no-print" style="display:inline;margin-right:6px;">{% csrf_token %}<input type="hidden" name="action" value="delete_receipt"><input type="hidden" name="receipt_field" value="violation_payment_receipt"><button type="submit" style="background:#8c2f2f;padding:2px 8px;font-size:11px;" onclick="return confirm('حذف الإيصال؟')">حذف</button></form>
+                {% endif %}
               {% else %}
                 -
               {% endif %}

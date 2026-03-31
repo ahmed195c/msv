@@ -464,7 +464,7 @@
         <div class="detail-item"><span class="label">تاريخ الإصدار</span><span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">تاريخ الانتهاء</span><span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">إيصال دفع التصريح</span><span class="value">{% if pirmet.payment_receipt %}<a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>{% else %}-{% endif %}</span></div>
+        <div class="detail-item"><span class="label">إيصال دفع التصريح</span><span class="value">{% if pirmet.payment_receipt %}<a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>{% if user_is_admin %} <form method="post" class="no-print" style="display:inline;margin-right:6px;">{% csrf_token %}<input type="hidden" name="action" value="delete_receipt"><input type="hidden" name="receipt_field" value="payment_receipt"><button type="submit" style="background:#8c2f2f;padding:2px 8px;font-size:11px;" onclick="return confirm('حذف الإيصال؟')">حذف</button></form>{% endif %}{% else %}-{% endif %}</span></div>
         <div class="detail-item"><span class="label">رقم التواصل</span><span class="value">{{ pirmet.company.owner_phone|default:pirmet.company.landline|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">إيميل مقدم الطلب</span><span class="value">{{ pirmet.request_email|default:"-" }}</span></div>
       </div>

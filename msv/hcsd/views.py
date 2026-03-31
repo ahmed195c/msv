@@ -2959,6 +2959,27 @@ def vehicle_permit_detail(request, id):
                 )
                 return redirect('vehicle_permit_detail', id=pirmet.id)
 
+        if action == 'delete_receipt' and _can_admin(request.user):
+            field = (request.POST.get('receipt_field') or '').strip()
+            allowed = {'inspection_payment_receipt', 'payment_receipt'}
+            if field in allowed and getattr(pirmet, field):
+                setattr(pirmet, field, None)
+                pirmet.save(update_fields=[field])
+                _log_pirmet_change(pirmet, 'details_update', request.user, notes=f'{field}:deleted')
+                return redirect('vehicle_permit_detail', id=pirmet.id)
+
+        if action == 'replace_receipt' and _can_admin(request.user):
+            field = (request.POST.get('receipt_field') or '').strip()
+            allowed = {'inspection_payment_receipt', 'payment_receipt'}
+            new_file = request.FILES.get('new_receipt_file')
+            if field in allowed and new_file:
+                ext = os.path.splitext(new_file.name)[1].lower()
+                if ext in ALLOWED_DOC_EXTENSIONS:
+                    setattr(pirmet, field, new_file)
+                    pirmet.save(update_fields=[field])
+                    _log_pirmet_change(pirmet, 'details_update', request.user, notes=f'{field}:replaced')
+                    return redirect('vehicle_permit_detail', id=pirmet.id)
+
     latest_inspection_report_notes = (
         PirmetChangeLog.objects.filter(
             pirmet=pirmet,
@@ -2993,6 +3014,7 @@ def vehicle_permit_detail(request, id):
             'can_reassign_inspector': can_reassign_inspector,
             'can_submit_inspection_report': can_submit_inspection_report,
             'can_record_payment': _can_admin(request.user),
+            'user_is_admin': _can_admin(request.user),
             'inspector_users': _inspector_users_qs(),
         },
     )
@@ -4815,6 +4837,27 @@ def pest_control_permit_detail(request, id):
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
+        if action == 'delete_receipt' and _can_admin(request.user):
+            field = (request.POST.get('receipt_field') or '').strip()
+            allowed = {'inspection_payment_receipt', 'violation_payment_receipt', 'payment_receipt'}
+            if field in allowed and getattr(pirmet, field):
+                setattr(pirmet, field, None)
+                pirmet.save(update_fields=[field])
+                _log_pirmet_change(pirmet, 'details_update', request.user, notes=f'{field}:deleted')
+                return redirect('pest_control_permit_detail', id=pirmet.id)
+
+        if action == 'replace_receipt' and _can_admin(request.user):
+            field = (request.POST.get('receipt_field') or '').strip()
+            allowed = {'inspection_payment_receipt', 'violation_payment_receipt', 'payment_receipt'}
+            new_file = request.FILES.get('new_receipt_file')
+            if field in allowed and new_file:
+                ext = os.path.splitext(new_file.name)[1].lower()
+                if ext in ALLOWED_DOC_EXTENSIONS:
+                    setattr(pirmet, field, new_file)
+                    pirmet.save(update_fields=[field])
+                    _log_pirmet_change(pirmet, 'details_update', request.user, notes=f'{field}:replaced')
+                    return redirect('pest_control_permit_detail', id=pirmet.id)
+
     changes = (
         PirmetChangeLog.objects.filter(pirmet=pirmet)
         .select_related('changed_by')
@@ -4885,6 +4928,7 @@ def pest_control_permit_detail(request, id):
             'can_record_payment': _can_admin(request.user),
             'can_issue_pirmet': _can_admin(request.user),
             'can_update_pirmet': _can_admin(request.user),
+            'user_is_admin': _can_admin(request.user),
             'inspector_users': _inspector_users_qs(),
         },
     )
