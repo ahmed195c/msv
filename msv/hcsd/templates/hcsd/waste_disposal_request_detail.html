@@ -306,6 +306,7 @@
           <div class="detail-item"><span class="label">أنواع النفايات</span><span class="value">{{ disposal_request.get_waste_type_display }}</span></div>
           <div class="detail-item"><span class="label">حالة المادة</span><span class="value">{{ disposal_request.get_material_state_display }}</span></div>
           <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ disposal_request.disposal_reference|default:"-" }}</span></div>
+          <div class="detail-item"><span class="label">إيصال الدفع</span><span class="value">{% if disposal_request.disposal_payment_receipt %}<a href="{{ disposal_request.disposal_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>{% else %}-{% endif %}</span></div>
           <div class="detail-item"><span class="label">المفتش المستلم</span><span class="value">{{ assigned_inspector_name|default:"-" }}</span></div>
           <div class="detail-item"><span class="label">ملاحظات التفتيش</span><span class="value">{{ disposal_request.inspection_notes|default:"-" }}</span></div>
         </div>
