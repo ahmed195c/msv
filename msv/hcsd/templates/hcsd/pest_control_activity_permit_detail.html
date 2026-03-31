@@ -817,6 +817,8 @@
                 {% if user_is_admin %}
                   <form method="post" class="no-print" style="display:inline;margin-right:6px;">{% csrf_token %}<input type="hidden" name="action" value="delete_receipt"><input type="hidden" name="receipt_field" value="inspection_payment_receipt"><button type="submit" style="background:#8c2f2f;padding:2px 8px;font-size:11px;" onclick="return confirm('حذف الإيصال؟')">حذف</button></form>
                 {% endif %}
+              {% elif user_is_admin %}
+                <form method="post" enctype="multipart/form-data" class="no-print" style="display:flex;align-items:center;gap:6px;margin-top:4px;">{% csrf_token %}<input type="hidden" name="action" value="replace_receipt"><input type="hidden" name="receipt_field" value="inspection_payment_receipt"><input type="file" name="new_receipt_file" accept=".pdf,.jpg,.jpeg,.png" required style="font-size:12px;"><button type="submit" style="padding:3px 10px;font-size:12px;">رفع</button></form>
               {% else %}
                 -
               {% endif %}
@@ -844,6 +846,8 @@
                 {% if user_is_admin %}
                   <form method="post" class="no-print" style="display:inline;margin-right:6px;">{% csrf_token %}<input type="hidden" name="action" value="delete_receipt"><input type="hidden" name="receipt_field" value="payment_receipt"><button type="submit" style="background:#8c2f2f;padding:2px 8px;font-size:11px;" onclick="return confirm('حذف الإيصال؟')">حذف</button></form>
                 {% endif %}
+              {% elif user_is_admin %}
+                <form method="post" enctype="multipart/form-data" class="no-print" style="display:flex;align-items:center;gap:6px;margin-top:4px;">{% csrf_token %}<input type="hidden" name="action" value="replace_receipt"><input type="hidden" name="receipt_field" value="payment_receipt"><input type="file" name="new_receipt_file" accept=".pdf,.jpg,.jpeg,.png" required style="font-size:12px;"><button type="submit" style="padding:3px 10px;font-size:12px;">رفع</button></form>
               {% else %}
                 -
               {% endif %}
@@ -988,6 +992,8 @@
                 {% if user_is_admin %}
                   <form method="post" class="no-print" style="display:inline;margin-right:6px;">{% csrf_token %}<input type="hidden" name="action" value="delete_receipt"><input type="hidden" name="receipt_field" value="violation_payment_receipt"><button type="submit" style="background:#8c2f2f;padding:2px 8px;font-size:11px;" onclick="return confirm('حذف الإيصال؟')">حذف</button></form>
                 {% endif %}
+              {% elif user_is_admin %}
+                <form method="post" enctype="multipart/form-data" class="no-print" style="display:flex;align-items:center;gap:6px;margin-top:4px;">{% csrf_token %}<input type="hidden" name="action" value="replace_receipt"><input type="hidden" name="receipt_field" value="violation_payment_receipt"><input type="file" name="new_receipt_file" accept=".pdf,.jpg,.jpeg,.png" required style="font-size:12px;"><button type="submit" style="padding:3px 10px;font-size:12px;">رفع</button></form>
               {% else %}
                 -
               {% endif %}
