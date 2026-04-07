@@ -108,20 +108,12 @@ def _expired_trade_license_notice(trade_license_exp):
 
 
 def _activities_for_enginer(enginer):
-    # Temporary rollout rule:
-    # if the engineer/certificates are not entered yet, do not block or empty out
-    # the permit activities. Keep the request flowing and show a warning instead.
-    if not enginer:
-        return list(PEST_ACTIVITY_ORDER)
-    activities = []
-    if enginer.public_health_cert:
-        for item in PUBLIC_HEALTH_ACTIVITY_KEYS:
-            if item not in activities:
-                activities.append(item)
-    if enginer.termite_cert and 'termite_control' not in activities:
+    # Base activity is always public_health_pest_control.
+    # termite_control is added only if the engineer holds a termite certificate.
+    # grain_pests is never auto-assigned from certificates.
+    activities = ['public_health_pest_control']
+    if enginer and enginer.termite_cert:
         activities.append('termite_control')
-    if not activities:
-        return list(PEST_ACTIVITY_ORDER)
     return activities
 
 
