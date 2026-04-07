@@ -586,9 +586,16 @@
       .back-link, .print-button { width: 100%; text-align: center; font-size: 13px; }
 
       /* ── Permit header ── */
-      .permit-header { flex-direction: column; gap: 8px; }
-      .municipality { min-width: 0; }
-      .logo-box img { height: 48px; }
+      .permit-header { flex-direction: column; gap: 6px; padding-bottom: 8px; margin-bottom: 4px; }
+      .municipality { min-width: 0; padding: 6px 10px; gap: 8px; }
+      .logo-box { width: 44px; height: 44px; }
+      .logo-box img { width: 44px; height: 44px; }
+      .municipality-text .title { font-size: 13px; }
+      .municipality-text .sub { font-size: 11px; }
+      .meta-grid { padding: 7px; gap: 6px; }
+      .meta-item { padding: 7px 8px; }
+      .meta-item .value { font-size: 13px; }
+      .status-badge { font-size: 12px; padding: 5px 8px; }
       .municipality-text .title { font-size: 13px; }
 
       /* ── Permit title ── */
@@ -598,11 +605,23 @@
       .meta-grid { grid-template-columns: 1fr; gap: 6px; }
       .meta-item .value { font-size: 13px; }
 
-      /* ── Detail grid ── */
-      .detail-grid { grid-template-columns: 1fr !important; gap: 7px; }
-      .detail-item { padding: 8px 10px; }
-      .detail-item .label { font-size: 11px; }
-      .detail-item .value { font-size: 13px; }
+      /* ── Detail grid — label/value side by side ── */
+      .detail-grid { grid-template-columns: 1fr !important; gap: 5px; }
+      .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        min-height: unset;
+      }
+      .detail-item .label {
+        width: 42%;
+        flex-shrink: 0;
+        font-size: 11.5px;
+        border-left: 1.5px solid var(--pd-line);
+        padding-left: 8px;
+      }
+      .detail-item .value { flex: 1; font-size: 13px; }
 
       /* ── Sections ── */
       .permit-section { padding: 10px; margin-top: 10px; }

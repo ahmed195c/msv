@@ -351,18 +351,30 @@
       .hero-status { font-size: 11.5px; padding: 4px 8px; }
 
       /* ── Permit header ── */
-      .permit-header { flex-direction: column; gap: 8px; }
-      .logo-box img  { height: 48px; }
+      .permit-header { flex-direction: column; gap: 6px; }
+      .logo-box img  { height: 44px; width: auto; }
       .municipality-text .title { font-size: 13px; }
       .meta-grid { gap: 6px; }
-      .meta-item { min-width: 0; width: 100%; }
+      .meta-item { min-width: 0; width: 100%; padding: 6px 8px; }
       .meta-item .value { font-size: 13px; }
 
-      /* ── Detail grid — single column ── */
-      .detail-grid { grid-template-columns: 1fr; gap: 7px; }
-      .detail-item { padding: 8px 10px; }
-      .detail-item .label { font-size: 11px; }
-      .detail-item .value { font-size: 13px; }
+      /* ── Detail grid — label/value side by side ── */
+      .detail-grid { grid-template-columns: 1fr; gap: 5px; }
+      .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        min-height: unset;
+      }
+      .detail-item .label {
+        width: 42%;
+        flex-shrink: 0;
+        font-size: 11.5px;
+        border-left: 1.5px solid var(--pd-line);
+        padding-left: 8px;
+      }
+      .detail-item .value { flex: 1; font-size: 13px; }
 
       /* ── Sections ── */
       .permit-section { padding: 10px; margin-top: 10px; }
