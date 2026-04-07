@@ -908,6 +908,8 @@ def pest_control_permit_detail(request, id):
                 old_status = pirmet.status
                 pirmet.payment_receipt = receipt
                 pirmet.payment_date = datetime.date.today()
+                if not pirmet.issue_date:
+                    pirmet.issue_date = datetime.date.today()
                 # New flow: once payment proof is uploaded, issue the permit immediately.
                 pirmet.status = 'issued'
                 pirmet.save()
