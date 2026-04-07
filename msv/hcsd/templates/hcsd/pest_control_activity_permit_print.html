@@ -1,4 +1,4 @@
-{% load static %}
+{% load static qr_tags %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -271,7 +271,11 @@
   <table>
     <tr>
       <td class="permit-no-label">رقم التصريح</td>
-      <td class="permit-no-value" colspan="3">{{ pirmet.permit_no }}</td>
+      <td class="permit-no-value" colspan="2">{{ pirmet.permit_no }}</td>
+      <td style="width:90px;text-align:center;vertical-align:middle;" rowspan="2">
+        {% permit_qr_png_b64 request.path as qr_src %}
+        <img src="{{ qr_src }}" style="width:80px;height:80px;" alt="QR">
+      </td>
     </tr>
     <tr>
       <td class="lbl">تاريخ اصدار التصريح</td>

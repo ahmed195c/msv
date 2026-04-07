@@ -1,4 +1,4 @@
-{% load static %}
+{% load static qr_tags %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -238,6 +238,10 @@
     <tr>
       <td class="label-cell">رقم التصريح</td>
       <td class="value-cell">{{ permit.permit_no }}</td>
+      <td style="width:90px;text-align:center;vertical-align:middle;" rowspan="4">
+        {% permit_qr_png_b64 request.path as qr_src %}
+        <img src="{{ qr_src }}" style="width:80px;height:80px;" alt="QR">
+      </td>
     </tr>
     <tr>
       <td class="label-cell">رقم الرخصة</td>

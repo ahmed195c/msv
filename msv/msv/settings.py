@@ -59,6 +59,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.msvshjminc.com',
 ]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SITE_URL = os.getenv('SITE_URL', 'https://www.msvshjminc.com')
 
 
 # Application definition
