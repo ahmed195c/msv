@@ -217,14 +217,81 @@
     to { background-position: -100% 0; }
   }
 
-  @media (max-width: 760px) {
-    .permit-types-page {
-      padding: 16px 12px 30px;
-    }
+  .pt-table-section {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    margin-top: 20px;
+  }
 
-    .permit-card p {
-      min-height: 0;
-    }
+  .pt-table-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--paper);
+    background: var(--accent);
+    padding: 7px 16px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 16px;
+  }
+
+  .pt-table-title.expiring {
+    background: #b86e00;
+  }
+
+  .pt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .pt-table th {
+    background: var(--surface);
+    color: var(--ink-3);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--line);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .pt-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    vertical-align: middle;
+  }
+
+  .pt-table tr:last-child td { border-bottom: none; }
+  .pt-table tr:hover td { background: var(--surface); }
+
+  .pt-table a {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .pt-table a:hover { text-decoration: underline; }
+
+  .days-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .days-urgent { background: #fee2e2; color: #991b1b; }
+  .days-warn   { background: #fef3c7; color: #92400e; }
+  .days-ok     { background: #d1fae5; color: #065f46; }
+
+  @media (max-width: 760px) {
+    .permit-types-page { padding: 16px 12px 30px; }
+    .permit-card p { min-height: 0; }
+    .pt-table { display: block; overflow-x: auto; white-space: nowrap; }
   }
 </style>
 
@@ -296,6 +363,105 @@
         <p class="permit-denied">ليس لديك صلاحية إنشاء تصاريح.</p>
       {% endif %}
     </section>
+
+    {% if expiring_permits %}
+    <div class="pt-table-section">
+      <div class="pt-table-title expiring">تصاريح توشك على الانتهاء خلال أسبوع ({{ expiring_permits|length }})</div>
+      <table class="pt-table">
+        <thead>
+          <tr>
+            <th>الشركة</th>
+            <th>رقم الرخصة</th>
+            <th>نوع التصريح</th>
+            <th>رقم التصريح</th>
+            <th>تاريخ الانتهاء</th>
+            <th>المتبقي</th>
+            <th>العنوان</th>
+            <th>التواصل</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in expiring_permits %}
+          <tr>
+            <td><strong>{{ p.company.name }}</strong></td>
+            <td style="font-family:monospace;">{{ p.company.number|default:"—" }}</td>
+            <td>{{ p.permit_label }}</td>
+            <td style="font-family:monospace;">{{ p.permit_no|default:"—" }}</td>
+            <td>{{ p.dateOfExpiry|date:"d/m/Y" }}</td>
+            <td>
+              {% if p.days_left == 0 %}
+                <span class="days-badge days-urgent">ينتهي اليوم</span>
+              {% elif p.days_left <= 2 %}
+                <span class="days-badge days-urgent">{{ p.days_left }} يوم</span>
+              {% elif p.days_left <= 4 %}
+                <span class="days-badge days-warn">{{ p.days_left }} أيام</span>
+              {% else %}
+                <span class="days-badge days-ok">{{ p.days_left }} أيام</span>
+              {% endif %}
+            </td>
+            <td>{{ p.company.address|default:"—" }}</td>
+            <td style="font-family:monospace;">{{ p.contact_phone }}</td>
+            <td>
+              {% if p.permit_type == 'pest_control' %}
+                <a href="{% url 'pest_control_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+              {% elif p.permit_type == 'pesticide_transport' %}
+                <a href="{% url 'vehicle_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+              {% elif p.permit_type == 'waste_disposal' %}
+                <a href="{% url 'waste_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <div class="pt-table-section">
+      <div class="pt-table-title">آخر التصاريح المنتهية</div>
+      {% if finished_permits %}
+      <table class="pt-table">
+        <thead>
+          <tr>
+            <th>الشركة</th>
+            <th>رقم الرخصة</th>
+            <th>نوع التصريح</th>
+            <th>رقم التصريح</th>
+            <th>تاريخ الانتهاء</th>
+            <th>العنوان</th>
+            <th>التواصل</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in finished_permits %}
+          <tr>
+            <td><strong>{{ p.company.name }}</strong></td>
+            <td style="font-family:monospace;">{{ p.company.number|default:"—" }}</td>
+            <td>{{ p.permit_label }}</td>
+            <td style="font-family:monospace;">{{ p.permit_no|default:"—" }}</td>
+            <td>{{ p.dateOfExpiry|date:"d/m/Y"|default:"—" }}</td>
+            <td>{{ p.company.address|default:"—" }}</td>
+            <td style="font-family:monospace;">{{ p.contact_phone }}</td>
+            <td>
+              {% if p.permit_type == 'pest_control' %}
+                <a href="{% url 'pest_control_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+              {% elif p.permit_type == 'pesticide_transport' %}
+                <a href="{% url 'vehicle_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+              {% elif p.permit_type == 'waste_disposal' %}
+                <a href="{% url 'waste_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p style="color:var(--ink-3);font-size:13px;">لا توجد تصاريح منتهية.</p>
+      {% endif %}
+    </div>
+
   </div>
 </section>
 

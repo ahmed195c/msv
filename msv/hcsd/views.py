@@ -2532,11 +2532,54 @@ def clearance_list(request):
 
 @login_required
 def permit_types(request):
+    today = timezone.localdate()
+    week_later = today + datetime.timedelta(days=7)
+
+    expiring_qs = (
+        PirmetClearance.objects
+        .select_related('company', 'company__enginer')
+        .filter(
+            status='issued',
+            dateOfExpiry__gte=today,
+            dateOfExpiry__lte=week_later,
+        )
+        .order_by('dateOfExpiry')
+    )
+    for p in expiring_qs:
+        p.days_left = (p.dateOfExpiry - today).days
+
+    finished_qs = (
+        PirmetClearance.objects
+        .select_related('company', 'company__enginer')
+        .filter(status='issued')
+        .order_by('-dateOfExpiry')[:50]
+    )
+
+    permit_label_map = {
+        'pest_control': 'تصريح مزاولة النشاط',
+        'pesticide_transport': 'تصريح المركبة',
+        'waste_disposal': 'تصريح التخلص من النفايات',
+    }
+
+    def _enrich(permits):
+        result = []
+        for p in permits:
+            engineer = p.company.enginer if p.company else None
+            phone = (engineer.phone or '').strip() if engineer else ''
+            if not phone and p.company:
+                phone = (p.company.owner_phone or p.company.landline or '').strip()
+            p.contact_phone = phone or '—'
+            p.permit_label = permit_label_map.get(p.permit_type, p.permit_type)
+            result.append(p)
+        return result
+
     return render(
         request,
         'hcsd/permit_types.html',
         {
             'can_create_pirmet': _can_data_entry(request.user),
+            'expiring_permits': _enrich(list(expiring_qs)),
+            'finished_permits': _enrich(list(finished_qs)),
         },
     )
 
