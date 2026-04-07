@@ -224,8 +224,10 @@
         <div class="section-title">بيانات الشركة</div>
         <div class="form-grid">
           <div class="field">
+            <label for="company_search">بحث عن الشركة</label>
+            <input type="text" id="company_search" placeholder="ابحث باسم الشركة أو رقم الرخصة…" autocomplete="off" style="margin-bottom:6px;">
             <label for="company_id">اختيار الشركة المسجلة</label>
-            <select id="company_id" name="company_id" required>
+            <select id="company_id" name="company_id" required size="6" style="height:auto;overflow-y:auto;">
               <option value="">-- اختيار --</option>
               {% for company in companies %}
                 <option value="{{ company.id }}"
@@ -329,6 +331,21 @@
 
     companySelect.addEventListener('change', fillCompanyFields);
     fillCompanyFields();
+
+    // Company search filter
+    const companySearch = document.getElementById('company_search');
+    const allOptions = Array.from(companySelect.options);
+    if (companySearch) {
+      companySearch.addEventListener('input', function () {
+        const q = this.value.trim().toLowerCase();
+        allOptions.forEach(function (opt) {
+          if (!opt.value) { opt.style.display = ''; return; }
+          const name = (opt.dataset.name || opt.text || '').toLowerCase();
+          const num  = (opt.dataset.number || '').toLowerCase();
+          opt.style.display = (!q || name.includes(q) || num.includes(q)) ? '' : 'none';
+        });
+      });
+    }
   })();
 </script>
 {% endblock %}
