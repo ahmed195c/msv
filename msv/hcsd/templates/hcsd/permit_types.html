@@ -278,11 +278,16 @@
   .pt-table a:hover { text-decoration: underline; }
 
   .days-badge {
-    display: inline-block;
-    padding: 2px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    padding: 3px 10px;
     border-radius: 99px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
   }
   .days-urgent { background: #fee2e2; color: #991b1b; }
   .days-warn   { background: #fef3c7; color: #92400e; }
