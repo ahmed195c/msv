@@ -2535,31 +2535,20 @@ def permit_types(request):
     today = timezone.localdate()
     week_later = today + datetime.timedelta(days=7)
 
-    expiring_qs = (
-        PirmetClearance.objects
-        .select_related('company', 'company__enginer')
-        .filter(
-            status='issued',
-            dateOfExpiry__gte=today,
-            dateOfExpiry__lte=week_later,
-        )
-        .order_by('dateOfExpiry')
-    )
-    for p in expiring_qs:
-        p.days_left = (p.dateOfExpiry - today).days
-
-    finished_qs = (
-        PirmetClearance.objects
-        .select_related('company', 'company__enginer')
-        .filter(status='issued')
-        .order_by('-dateOfExpiry')[:50]
-    )
-
     permit_label_map = {
         'pest_control': 'تصريح مزاولة النشاط',
         'pesticide_transport': 'تصريح المركبة',
         'waste_disposal': 'تصريح التخلص من النفايات',
     }
+
+    def _latest_per_company_type(qs):
+        """Keep only the newest permit per (company, permit_type) pair."""
+        seen = {}
+        for p in qs:
+            key = (p.company_id, p.permit_type)
+            if key not in seen:
+                seen[key] = p
+        return list(seen.values())
 
     def _enrich(permits):
         result = []
@@ -2573,13 +2562,35 @@ def permit_types(request):
             result.append(p)
         return result
 
+    # Fetch all issued permits ordered newest first so _latest_per_company_type keeps the newest
+    all_issued = list(
+        PirmetClearance.objects
+        .select_related('company', 'company__enginer')
+        .filter(status='issued')
+        .order_by('-issue_date', '-id')
+    )
+    latest_issued = _latest_per_company_type(all_issued)
+
+    expiring_permits = []
+    for p in latest_issued:
+        if p.dateOfExpiry and today <= p.dateOfExpiry <= week_later:
+            p.days_left = (p.dateOfExpiry - today).days
+            expiring_permits.append(p)
+    expiring_permits.sort(key=lambda p: p.dateOfExpiry)
+
+    finished_permits = sorted(
+        [p for p in latest_issued if p.dateOfExpiry and p.dateOfExpiry < today],
+        key=lambda p: p.dateOfExpiry,
+        reverse=True,
+    )[:50]
+
     return render(
         request,
         'hcsd/permit_types.html',
         {
             'can_create_pirmet': _can_data_entry(request.user),
-            'expiring_permits': _enrich(list(expiring_qs)),
-            'finished_permits': _enrich(list(finished_qs)),
+            'expiring_permits': _enrich(expiring_permits),
+            'finished_permits': _enrich(finished_permits),
         },
     )
 
