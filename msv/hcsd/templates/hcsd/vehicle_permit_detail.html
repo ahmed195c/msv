@@ -332,9 +332,51 @@
     }
 
     @media (max-width: 720px) {
+      /* ── Page shell ── */
+      .permit-page  { padding: 8px 4px 24px; }
+      .permit-card  { padding: 10px; border-radius: 8px; }
+
+      /* ── Hero bar ── */
+      .hero-bar {
+        margin: -10px -10px 14px;
+        padding: 10px 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .hero-center { width: 100%; text-align: right; order: -1; }
+      .hero-title  { font-size: 14px; }
+      .hero-left, .hero-right { width: 100%; justify-content: flex-start; gap: 6px; }
+      .hero-btn    { font-size: 12px; padding: 5px 10px; }
+      .hero-status { font-size: 11.5px; padding: 4px 8px; }
+
+      /* ── Permit header ── */
+      .permit-header { flex-direction: column; gap: 8px; }
+      .logo-box img  { height: 48px; }
+      .municipality-text .title { font-size: 13px; }
+      .meta-grid { gap: 6px; }
+      .meta-item { min-width: 0; width: 100%; }
+      .meta-item .value { font-size: 13px; }
+
+      /* ── Detail grid — single column ── */
+      .detail-grid { grid-template-columns: 1fr; gap: 7px; }
+      .detail-item { padding: 8px 10px; }
+      .detail-item .label { font-size: 11px; }
+      .detail-item .value { font-size: 13px; }
+
+      /* ── Sections ── */
+      .permit-section { padding: 10px; margin-top: 10px; }
+      .section-title  { font-size: 12px; padding: 4px 9px; }
+
+      /* ── Forms ── */
+      .review-form button { width: 100%; font-size: 15px; padding: 12px; }
+      .review-form input,
+      .review-form select,
+      .review-form textarea { font-size: 15px; }  /* prevents iOS zoom on focus */
+
+      /* ── Upload ── */
       .upload-grid-two { grid-template-columns: 1fr; }
-      .upload-dropzone { min-height: 104px; }
-      .permit-header { flex-direction: column; }
+      .upload-dropzone { min-height: 90px; }
     }
   </style>
 {% endblock %}

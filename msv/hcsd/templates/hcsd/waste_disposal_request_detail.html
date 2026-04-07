@@ -210,17 +210,32 @@
     }
 
     @media (max-width: 720px) {
-      .permit-page {
-        padding: 16px 12px 32px;
-      }
+      .permit-page { padding: 8px 4px 24px; }
+      .permit-card { padding: 10px; border-radius: 8px; }
 
-      .permit-card {
-        padding: 14px;
-      }
+      /* ── Action bar ── */
+      .action-bar { flex-direction: column; align-items: stretch; gap: 6px; }
+      .back-link { width: 100%; text-align: center; font-size: 13px; box-sizing: border-box; }
 
-      .review-form button {
-        width: 100%;
-      }
+      /* ── Detail items ── */
+      .detail-grid { grid-template-columns: 1fr !important; gap: 7px; }
+      .detail-item { padding: 8px 10px; }
+      .detail-item .label { font-size: 11px; }
+      .detail-item .value { font-size: 13px; }
+
+      /* ── Sections ── */
+      .permit-section { padding: 10px; margin-top: 10px; }
+      .section-title  { font-size: 12px; padding: 4px 9px; }
+
+      /* ── Forms ── */
+      .review-form button { width: 100%; font-size: 15px; padding: 12px; }
+      .review-form input,
+      .review-form select,
+      .review-form textarea { font-size: 15px; }
+
+      /* ── Upload ── */
+      .upload-grid-two { grid-template-columns: 1fr; }
+      .upload-dropzone  { min-height: 90px; }
     }
   </style>
 {% endblock %}

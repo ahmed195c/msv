@@ -578,46 +578,48 @@
     }
 
     @media (max-width: 720px) {
-      .permit-page {
-        padding: 14px 0 24px;
-      }
+      .permit-page  { padding: 8px 4px 24px; }
+      .permit-card  { padding: 10px; border-radius: 8px; }
 
-      .permit-card {
-        padding: 12px;
-        border-radius: 0;
-        border-left: 0;
-        border-right: 0;
-      }
+      /* ── Action bar ── */
+      .action-bar { flex-direction: column; align-items: stretch; gap: 6px; }
+      .back-link, .print-button { width: 100%; text-align: center; font-size: 13px; }
 
-      .action-bar {
-        flex-direction: column;
-        align-items: stretch;
-      }
+      /* ── Permit header ── */
+      .permit-header { flex-direction: column; gap: 8px; }
+      .municipality { min-width: 0; }
+      .logo-box img { height: 48px; }
+      .municipality-text .title { font-size: 13px; }
 
-      .back-link,
-      .print-button {
-        width: 100%;
-      }
+      /* ── Permit title ── */
+      .permit-title--hero { font-size: 14px; padding: 8px 12px; }
 
-      .permit-header {
-        flex-direction: column;
-      }
+      /* ── Meta grid ── */
+      .meta-grid { grid-template-columns: 1fr; gap: 6px; }
+      .meta-item .value { font-size: 13px; }
 
-      .municipality {
-        min-width: 0;
-      }
+      /* ── Detail grid ── */
+      .detail-grid { grid-template-columns: 1fr !important; gap: 7px; }
+      .detail-item { padding: 8px 10px; }
+      .detail-item .label { font-size: 11px; }
+      .detail-item .value { font-size: 13px; }
 
-      .meta-grid {
-        grid-template-columns: 1fr;
-      }
+      /* ── Sections ── */
+      .permit-section { padding: 10px; margin-top: 10px; }
+      .section-title  { font-size: 12px; padding: 4px 9px; }
 
-      .upload-grid-two {
-        grid-template-columns: 1fr;
-      }
+      /* ── Admin edit section ── */
+      .admin-edit-actions { flex-direction: column; gap: 6px; }
 
-      .upload-dropzone {
-        min-height: 100px;
-      }
+      /* ── Forms ── */
+      .review-form button { width: 100%; font-size: 15px; padding: 12px; }
+      .review-form input,
+      .review-form select,
+      .review-form textarea { font-size: 15px; }
+
+      /* ── Upload ── */
+      .upload-grid-two { grid-template-columns: 1fr; }
+      .upload-dropzone { min-height: 90px; }
     }
   </style>
 {% endblock %}
