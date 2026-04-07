@@ -424,9 +424,21 @@
     {% endif %}
 
     <div class="pt-table-section">
-      <div class="pt-table-title">آخر التصاريح المنتهية</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+        <div class="pt-table-title" style="margin-bottom:0;">آخر التصاريح المنتهية</div>
+        {% if finished_permits %}
+        <input
+          id="finished-search"
+          type="search"
+          placeholder="بحث بالشركة أو الرخصة أو المنطقة…"
+          autocomplete="off"
+          style="flex:1;min-width:200px;max-width:360px;padding:6px 12px;border:1.5px solid #ccd6e0;border-radius:6px;font-family:inherit;font-size:13px;direction:rtl;outline:none;"
+        >
+        <span id="finished-search-count" style="font-size:12px;color:#6f8297;white-space:nowrap;"></span>
+        {% endif %}
+      </div>
       {% if finished_permits %}
-      <table class="pt-table">
+      <table class="pt-table" id="finished-permits-table">
         <thead>
           <tr>
             <th>الشركة</th>
@@ -439,9 +451,13 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="finished-permits-body">
           {% for p in finished_permits %}
-          <tr>
+          <tr
+            data-name="{{ p.company.name|default:'' }}"
+            data-number="{{ p.company.number|default:'' }}"
+            data-address="{{ p.company.address|default:'' }}"
+          >
             <td><strong>{{ p.company.name }}</strong></td>
             <td style="font-family:monospace;">{{ p.company.number|default:"—" }}</td>
             <td>{{ p.permit_label }}</td>
@@ -462,6 +478,7 @@
           {% endfor %}
         </tbody>
       </table>
+      <p id="finished-no-results" style="display:none;color:#8c2f2f;font-size:13px;padding:8px 0;">لا توجد نتائج مطابقة.</p>
       {% else %}
         <p style="color:var(--ink-3);font-size:13px;">لا توجد تصاريح منتهية.</p>
       {% endif %}
@@ -474,17 +491,79 @@
   (function () {
     document.addEventListener("click", function (event) {
       var link = event.target.closest(".permit-grid a.btn");
-      if (!link) {
-        return;
-      }
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-        return;
-      }
-      if (typeof event.button === "number" && event.button !== 0) {
-        return;
-      }
+      if (!link) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (typeof event.button === "number" && event.button !== 0) return;
       document.documentElement.classList.add("permit-types--loading");
     });
+  })();
+
+  /* ── Fuzzy search for finished permits table ── */
+  (function () {
+    var searchInput = document.getElementById("finished-search");
+    if (!searchInput) return;
+
+    var tbody = document.getElementById("finished-permits-body");
+    var noResults = document.getElementById("finished-no-results");
+    var countEl = document.getElementById("finished-search-count");
+    var allRows = Array.from(tbody.querySelectorAll("tr"));
+    var total = allRows.length;
+
+    /* Normalize Arabic text: strip diacritics, unify alef forms, ة→ه, ى→ي */
+    function normalize(str) {
+      return (str || "")
+        .replace(/[\u064B-\u065F\u0670]/g, "")   /* harakat */
+        .replace(/[أإآٱ]/g, "ا")
+        .replace(/ة/g, "ه")
+        .replace(/ى/g, "ي")
+        .replace(/ؤ/g, "و")
+        .replace(/ئ/g, "ي")
+        .toLowerCase()
+        .trim();
+    }
+
+    /* Fuzzy: returns true if every char of query appears in text in order */
+    function isSubsequence(query, text) {
+      var qi = 0;
+      for (var ti = 0; ti < text.length && qi < query.length; ti++) {
+        if (text[ti] === query[qi]) qi++;
+      }
+      return qi === query.length;
+    }
+
+    /* Score: higher = better match */
+    function score(query, text) {
+      if (!query) return 1;
+      if (text.includes(query)) return 2;           /* exact substring */
+      if (isSubsequence(query, text)) return 1;     /* fuzzy subsequence */
+      return 0;
+    }
+
+    function runSearch() {
+      var raw = normalize(searchInput.value);
+      var parts = raw.split(/\s+/).filter(Boolean);
+      var visible = 0;
+
+      allRows.forEach(function (row) {
+        var haystack = normalize(
+          (row.dataset.name || "") + " " +
+          (row.dataset.number || "") + " " +
+          (row.dataset.address || "")
+        );
+
+        var matched = parts.length === 0 || parts.every(function (part) {
+          return score(part, haystack) > 0;
+        });
+
+        row.style.display = matched ? "" : "none";
+        if (matched) visible++;
+      });
+
+      noResults.style.display = (visible === 0 && parts.length > 0) ? "" : "none";
+      countEl.textContent = parts.length > 0 ? (visible + " / " + total) : "";
+    }
+
+    searchInput.addEventListener("input", runSearch);
   })();
 </script>
 {% endblock %}
