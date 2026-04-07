@@ -522,23 +522,6 @@
         .trim();
     }
 
-    /* Fuzzy: returns true if every char of query appears in text in order */
-    function isSubsequence(query, text) {
-      var qi = 0;
-      for (var ti = 0; ti < text.length && qi < query.length; ti++) {
-        if (text[ti] === query[qi]) qi++;
-      }
-      return qi === query.length;
-    }
-
-    /* Score: higher = better match */
-    function score(query, text) {
-      if (!query) return 1;
-      if (text.includes(query)) return 2;           /* exact substring */
-      if (isSubsequence(query, text)) return 1;     /* fuzzy subsequence */
-      return 0;
-    }
-
     function runSearch() {
       var raw = normalize(searchInput.value);
       var parts = raw.split(/\s+/).filter(Boolean);
@@ -551,8 +534,9 @@
           (row.dataset.address || "")
         );
 
+        /* كل كلمة في البحث لازم تظهر كـ substring في النص */
         var matched = parts.length === 0 || parts.every(function (part) {
-          return score(part, haystack) > 0;
+          return haystack.includes(part);
         });
 
         row.style.display = matched ? "" : "none";
