@@ -23,6 +23,8 @@ def permit_qr_svg(url_path):
 @register.simple_tag
 def permit_qr_png_b64(url_path):
     """Render a QR code as a base64 PNG data URI for the given URL path."""
+    if not url_path:
+        return ''
     full_url = settings.SITE_URL.rstrip('/') + url_path
     img = qrcode.make(full_url, box_size=6, border=2)
     buf = io.BytesIO()

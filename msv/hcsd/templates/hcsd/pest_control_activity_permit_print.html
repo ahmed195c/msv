@@ -414,10 +414,12 @@
   </div>
 
 </div>
-{% permit_qr_png_b64 request.path as qr_src %}
+{% permit_qr_png_b64 permit_detail_path as qr_src %}
+{% if qr_src %}
 <div style="position:fixed;bottom:18mm;right:14mm;text-align:center;z-index:999;">
   <img src="{{ qr_src }}" style="width:72px;height:72px;display:block;" alt="QR">
   <div style="font-size:7pt;color:#555;margin-top:2px;">امسح للتحقق</div>
 </div>
+{% endif %}
 </body>
 </html>

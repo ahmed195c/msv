@@ -4945,6 +4945,7 @@ def pest_control_permit_print(request, id):
         'pirmet': pirmet,
         'allowed_activities': _split_activities(pirmet.allowed_activities),
         'restricted_activities': _split_activities(pirmet.restricted_activities),
+        'permit_detail_path': reverse('pest_control_permit_detail', args=[pirmet.id]),
     })
 
 
@@ -4965,6 +4966,7 @@ def pest_control_permit_view(request, id):
             'pirmet': pirmet,
             'allowed_activities': _split_activities(pirmet.allowed_activities),
             'restricted_activities': _split_activities(pirmet.restricted_activities),
+            'permit_detail_path': reverse('pest_control_permit_detail', args=[pirmet.id]),
         },
     )
 
@@ -5003,6 +5005,7 @@ def vehicle_permit_print(request, permit_id):
     return render(request, 'hcsd/vehicle_permit_print.html', {
         'pirmet': pirmet,
         'transport': transport,
+        'permit_detail_path': reverse('vehicle_permit_detail', args=[pirmet.id]),
     })
 
 
@@ -5037,6 +5040,7 @@ def waste_disposal_permit_print(request, permit_id):
     return render(request, 'hcsd/waste_disposal_permit_print.html', {
         'permit': permit,
         'waste': waste,
+        'permit_detail_path': reverse('waste_permit_detail', args=[permit.id]),
     })
 
 
