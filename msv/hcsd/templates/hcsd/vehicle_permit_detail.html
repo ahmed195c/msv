@@ -619,6 +619,21 @@
       </section>
     {% endif %}
 
+    <!-- ── Action: update payment number (when expired and reissued) ── -->
+    {% if user_is_admin and pirmet.status == "payment_pending" and pirmet.PaymentNumber %}
+      <section class="permit-section no-print">
+        <div class="section-title">تعديل رقم أمر الدفع</div>
+        <p style="font-size:12px;color:var(--pd-ink-3);margin-bottom:10px;">الرقم الحالي: <strong>{{ pirmet.PaymentNumber }}</strong> — استخدم هذا النموذج إذا انتهت صلاحية أمر الدفع وتم إصدار رقم جديد.</p>
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_payment_number">
+          <label for="new_payment_number">رقم أمر الدفع الجديد</label>
+          <input id="new_payment_number" name="payment_number" type="text" placeholder="{{ pirmet.PaymentNumber }}" required>
+          <button type="submit">تحديث رقم الدفع</button>
+        </form>
+      </section>
+    {% endif %}
+
     <!-- ── Action: upload payment receipt ── -->
     {% if can_record_payment and pirmet.status == "payment_pending" and pirmet.PaymentNumber %}
       <section class="permit-section no-print">

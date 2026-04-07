@@ -460,6 +460,26 @@ def vehicle_permit_detail(request, id):
                 )
                 return redirect('vehicle_permit_detail', id=pirmet.id)
 
+        if action == 'update_payment_number':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لتعديل رقم أمر الدفع.')
+            elif pirmet.status != 'payment_pending':
+                review_errors.append('لا يمكن تعديل رقم أمر الدفع إلا في حالة بانتظار الدفع.')
+            else:
+                new_number = (request.POST.get('payment_number') or '').strip()
+                if not new_number:
+                    review_errors.append('يرجى إدخال رقم أمر الدفع الجديد.')
+                else:
+                    pirmet.PaymentNumber = new_number
+                    pirmet.save(update_fields=['PaymentNumber'])
+                    _log_pirmet_change(
+                        pirmet,
+                        'details_update',
+                        request.user,
+                        notes=f'Payment number updated to: {new_number}',
+                    )
+                    return redirect('vehicle_permit_detail', id=pirmet.id)
+
         if action == 'delete_receipt' and _can_admin(request.user):
             field = (request.POST.get('receipt_field') or '').strip()
             allowed = {'inspection_payment_receipt', 'payment_receipt'}
