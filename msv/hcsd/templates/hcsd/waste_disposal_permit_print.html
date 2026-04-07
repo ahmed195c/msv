@@ -238,10 +238,6 @@
     <tr>
       <td class="label-cell">رقم التصريح</td>
       <td class="value-cell">{{ permit.permit_no }}</td>
-      <td style="width:90px;text-align:center;vertical-align:middle;" rowspan="4">
-        {% permit_qr_png_b64 request.path as qr_src %}
-        <img src="{{ qr_src }}" style="width:80px;height:80px;" alt="QR">
-      </td>
     </tr>
     <tr>
       <td class="label-cell">رقم الرخصة</td>
@@ -327,5 +323,10 @@
 
 </div>
 
+{% permit_qr_png_b64 request.path as qr_src %}
+<div style="position:fixed;bottom:18mm;right:14mm;text-align:center;z-index:999;">
+  <img src="{{ qr_src }}" style="width:72px;height:72px;display:block;" alt="QR">
+  <div style="font-size:7pt;color:#555;margin-top:2px;">امسح للتحقق</div>
+</div>
 </body>
 </html>

@@ -271,11 +271,7 @@
   <table>
     <tr>
       <td class="permit-no-label">رقم التصريح</td>
-      <td class="permit-no-value" colspan="2">{{ pirmet.permit_no }}</td>
-      <td style="width:90px;text-align:center;vertical-align:middle;" rowspan="2">
-        {% permit_qr_png_b64 request.path as qr_src %}
-        <img src="{{ qr_src }}" style="width:80px;height:80px;" alt="QR">
-      </td>
+      <td class="permit-no-value" colspan="3">{{ pirmet.permit_no }}</td>
     </tr>
     <tr>
       <td class="lbl">تاريخ اصدار التصريح</td>
@@ -417,6 +413,11 @@
     </div>
   </div>
 
+</div>
+{% permit_qr_png_b64 request.path as qr_src %}
+<div style="position:fixed;bottom:18mm;right:14mm;text-align:center;z-index:999;">
+  <img src="{{ qr_src }}" style="width:72px;height:72px;display:block;" alt="QR">
+  <div style="font-size:7pt;color:#555;margin-top:2px;">امسح للتحقق</div>
 </div>
 </body>
 </html>
