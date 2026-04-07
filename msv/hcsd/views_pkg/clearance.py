@@ -297,6 +297,7 @@ def clearance_list(request):
         'disposal_rejected': 'طلبات إتلاف مرفوضة',
     }
     active_status_order = [
+        'head_approved',
         'inspection_pending',
         'inspection_received',
         'order_received',
