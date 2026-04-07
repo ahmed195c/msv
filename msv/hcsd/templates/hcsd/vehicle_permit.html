@@ -227,7 +227,7 @@
             <label for="company_search">بحث عن الشركة</label>
             <input type="text" id="company_search" placeholder="ابحث باسم الشركة أو رقم الرخصة…" autocomplete="off" style="margin-bottom:6px;">
             <label for="company_id">اختيار الشركة المسجلة</label>
-            <select id="company_id" name="company_id" required size="6" style="height:auto;overflow-y:auto;width:100%;">
+            <select id="company_id" name="company_id" required size="8" style="width:100%;box-sizing:border-box;height:auto;min-height:160px;overflow-y:auto;">
               <option value="">-- اختيار --</option>
               {% for company in companies %}
                 <option value="{{ company.id }}"
