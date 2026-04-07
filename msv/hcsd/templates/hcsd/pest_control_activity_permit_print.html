@@ -35,25 +35,12 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 80px;
-      margin-bottom: 6px;
+      margin-top: 40px;
+      margin-bottom: 8px;
       gap: 12px;
     }
 
-    .header-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
     .header-logo img { width: 72px; height: auto; }
-
-    .header-logo-text {
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1.6;
-      color: #1a2e1a;
-    }
 
     .header-dept-ar {
       font-size: 13px;
@@ -65,7 +52,7 @@
     }
 
     .header-dept-en {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       color: #1a2e1a;
       text-align: center;
@@ -86,41 +73,71 @@
     }
 
     .title-bar-ar { font-size: 15px; font-weight: 800; }
-    .title-bar-en { font-size: 12px; font-weight: 600; }
+    .title-bar-en { font-size: 11.5px; font-weight: 600; margin-top: 2px; }
 
     /* ── Tables ── */
-    table { width: 100%; border-collapse: collapse; }
+    /*
+      3-column structure (RTL order, right→left):
+        Col 1 (22%): Arabic label   ← rightmost
+        Col 2 (56%): Value
+        Col 3 (22%): English label  ← leftmost
+    */
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+    col.c-ar  { width: 22%; }
+    col.c-val { width: 56%; }
+    col.c-en  { width: 22%; }
 
     td {
       border: 1px solid #999;
-      padding: 5px 8px;
+      padding: 5px 7px;
       vertical-align: middle;
-      line-height: 1.5;
+      line-height: 1.4;
+      overflow-wrap: break-word;
     }
 
-    .lbl {
+    /* Arabic label cell — rightmost, green tint */
+    .lbl-ar {
       background: #dce8db;
       font-weight: 700;
       color: #173317;
-      white-space: nowrap;
-      width: 22%;
+      font-size: 12px;
+      text-align: right;
     }
 
-    .val { font-weight: 600; color: #111; }
+    /* English label cell — leftmost, lighter green */
+    .lbl-en {
+      background: #eef4ed;
+      font-weight: 600;
+      color: #3a5a3a;
+      font-size: 10.5px;
+      direction: ltr;
+      text-align: left;
+    }
 
-    /* permit number */
-    .permit-no-label {
+    /* Value cell */
+    .val { font-weight: 600; color: #111; font-size: 12px; text-align: center; }
+
+    /* permit number special row */
+    .permit-no-ar {
       background: #dce8db;
-      font-weight: 700;
+      font-weight: 800;
       color: #173317;
-      width: 28%;
+      font-size: 12px;
       text-align: center;
     }
-
-    .permit-no-value {
-      font-size: 14px;
+    .permit-no-val {
+      font-size: 16px;
       font-weight: 800;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+    .permit-no-en {
+      background: #eef4ed;
+      font-weight: 600;
+      color: #3a5a3a;
+      font-size: 10.5px;
+      direction: ltr;
       text-align: center;
     }
 
@@ -128,10 +145,19 @@
     .section-hdr td {
       background: #3d3d3d;
       color: #fff;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 800;
       text-align: center;
       padding: 5px 8px;
+    }
+
+    .section-hdr .en {
+      font-size: 10px;
+      font-weight: 600;
+      direction: ltr;
+      display: inline-block;
+      margin-right: 6px;
+      opacity: 0.85;
     }
 
     /* banner */
@@ -144,25 +170,55 @@
       border: 1.5px solid #888;
     }
 
-    /* activity list cell */
-    .activity-cell { padding: 6px 10px; }
-    .activity-cell ul {
+    .banner-row .en {
+      font-size: 11px;
+      font-weight: 600;
+      direction: ltr;
+      display: block;
+      color: #2a4a2a;
+      margin-top: 2px;
+    }
+
+    /* activity cells */
+    .act-ar {
+      background: #dce8db;
+      font-weight: 700;
+      color: #173317;
+      font-size: 12px;
+      text-align: right;
+      vertical-align: top;
+      padding-top: 8px;
+    }
+    .act-val {
+      font-weight: 600;
+      color: #111;
+      padding: 6px 10px;
+    }
+    .act-val ul {
       margin: 0;
       padding-inline-start: 18px;
       line-height: 1.9;
+    }
+    .act-en {
+      background: #eef4ed;
+      font-weight: 600;
+      color: #3a5a3a;
+      font-size: 10.5px;
+      direction: ltr;
+      text-align: left;
+      vertical-align: top;
+      padding-top: 8px;
     }
 
     /* ── Footer ── */
     .footer-block {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+      justify-content: center;
       margin-top: 10px;
       gap: 12px;
     }
 
     .footer-stamp {
-      border: 2px solid #1a3a1a;
       padding: 8px 16px;
       text-align: center;
       line-height: 1.7;
@@ -170,26 +226,26 @@
     }
 
     .footer-stamp-ar { font-size: 13px; font-weight: 800; color: #1a3a1a; }
-    .footer-stamp-en { font-size: 11.5px; font-weight: 700; color: #1a3a1a; direction: ltr; }
+    .footer-stamp-en { font-size: 10.5px; font-weight: 700; color: #1a3a1a; direction: ltr; }
 
     /* ── Conditions ── */
     .conditions-title {
       background: #3d3d3d;
       color: #fff;
       font-weight: 800;
-      font-size: 13px;
+      font-size: 12.5px;
       padding: 4px 8px;
-      margin-top: 10px;
       text-align: right;
     }
 
     .conditions-list {
       border: 1px solid #999;
+      border-top: 0;
       padding: 6px 12px 6px 6px;
     }
 
     .conditions-list li {
-      font-size: 11px;
+      font-size: 10.5px;
       line-height: 1.9;
       color: #222;
       list-style: disc;
@@ -246,18 +302,9 @@
 
   <!-- ── Header ── -->
   <div class="doc-header">
-    <div class="header-logo">
-      <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
-      <div class="header-logo-text">
-        الإمارات العربية المتحدة – حكومة الشارقة<br>
-        بلـديـة مدينـة الشـارقـة<br>
-        United Arab Emirates – Sharjah Government<br>
-        SHARJAH CITY MUNICIPALITY
-      </div>
-    </div>
     <div>
       <div class="header-dept-ar">إدارة الرقابة والسلامة الصحية</div>
-      <div class="header-dept-en">Department of Health control<br>and Safety</div>
+      <div class="header-dept-ar">قسم رقابة وتنظيم النفايات </div>
     </div>
   </div>
 
@@ -269,61 +316,88 @@
 
   <!-- ── Permit number + dates ── -->
   <table>
+    <colgroup><col class="c-ar"><col class="c-val"><col class="c-en"></colgroup>
     <tr>
-      <td class="permit-no-label">رقم التصريح</td>
-      <td class="permit-no-value" colspan="3">{{ pirmet.permit_no }}</td>
+      <td class="permit-no-ar">رقم التصريح</td>
+      <td class="permit-no-val">{{ pirmet.permit_no }}</td>
+      <td class="permit-no-en">Permit No.</td>
     </tr>
     <tr>
-      <td class="lbl">تاريخ اصدار التصريح</td>
+      <td class="lbl-ar">تاريخ الإصدار</td>
       <td class="val">{{ pirmet.issue_date|date:"d/m/Y"|default:"—" }}</td>
-      <td class="lbl">تاريخ انتهاء التصريح</td>
+      <td class="lbl-en">Issue Date</td>
+    </tr>
+    <tr>
+      <td class="lbl-ar">تاريخ الانتهاء</td>
       <td class="val">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"—" }}</td>
+      <td class="lbl-en">Expiry Date</td>
     </tr>
   </table>
 
   <!-- ── Company data ── -->
   <table style="border-top:0;">
-    <tr>
-      <td class="lbl">اسم الشركة</td>
-      <td class="val" colspan="3">{{ pirmet.company.name|default:"—" }}</td>
+    <colgroup><col class="c-ar"><col class="c-val"><col class="c-en"></colgroup>
+    <tr class="section-hdr">
+      <td colspan="3">
+        بيانات شركة مكافحة آفات الصحة العامة
+        <span class="en">/ Public Health Pest Control Company</span>
+      </td>
     </tr>
     <tr>
-      <td class="lbl">رقم الرخصة التجارية</td>
+      <td class="lbl-ar">اسم الشركة</td>
+      <td class="val">{{ pirmet.company.name|default:"—" }}</td>
+      <td class="lbl-en">Company Name</td>
+    </tr>
+    <tr>
+      <td class="lbl-ar">رقم الرخصة التجارية</td>
       <td class="val">{{ pirmet.company.number|default:"—" }}</td>
-      <td class="lbl">تاريخ انتهاء الرخصة</td>
+      <td class="lbl-en">Trade License No.</td>
+    </tr>
+    <tr>
+      <td class="lbl-ar">تاريخ انتهاء الرخصة</td>
       <td class="val">{{ pirmet.company.trade_license_exp|date:"d/m/Y"|default:"—" }}</td>
+      <td class="lbl-en">License Expiry</td>
     </tr>
     <tr>
-      <td class="lbl">عنوان الشركة</td>
-      <td class="val" colspan="3">{{ pirmet.company.address|default:"—" }}</td>
+      <td class="lbl-ar">عنوان الشركة</td>
+      <td class="val">{{ pirmet.company.address|default:"—" }}</td>
+      <td class="lbl-en">Address</td>
     </tr>
     <tr>
-      <td class="lbl">رقم التواصل</td>
+      <td class="lbl-ar">رقم التواصل</td>
       <td class="val">{{ pirmet.company.owner_phone|default:pirmet.company.landline|default:"—" }}</td>
-      <td class="lbl">البريد الإلكتروني</td>
+      <td class="lbl-en">Contact No.</td>
+    </tr>
+    <tr>
+      <td class="lbl-ar">البريد الإلكتروني</td>
       <td class="val">{{ pirmet.company.email|default:"—" }}</td>
+      <td class="lbl-en">Email</td>
     </tr>
   </table>
 
   <!-- ── Engineer ── -->
   <table style="border-top:0;">
+    <colgroup><col class="c-ar"><col class="c-val"><col class="c-en"></colgroup>
     <tr class="section-hdr">
-      <td colspan="4">بيانات المهندس المسؤول</td>
+      <td colspan="3">
+        بيانات المهندس المسؤول
+        <span class="en">/ Responsible Engineer</span>
+      </td>
     </tr>
     {% if pirmet.company.enginer %}
     <tr>
-      <td class="lbl">اسم المهندس</td>
-      <td class="val" colspan="3">{{ pirmet.company.enginer.name|default:"—" }}</td>
+      <td class="lbl-ar">اسم المهندس</td>
+      <td class="val">{{ pirmet.company.enginer.name|default:"—" }}</td>
+      <td class="lbl-en">Engineer Name</td>
     </tr>
     <tr>
-      <td class="lbl">رقم الهاتف</td>
+      <td class="lbl-ar">رقم الهاتف</td>
       <td class="val">{{ pirmet.company.enginer.phone|default:"—" }}</td>
-      <td class="lbl">البريد الإلكتروني</td>
-      <td class="val">{{ pirmet.company.enginer.email|default:"—" }}</td>
+      <td class="lbl-en">Contact No.</td>
     </tr>
     {% else %}
     <tr>
-      <td class="val" colspan="4" style="text-align:center;color:#777;">لا يوجد مهندس مسجل</td>
+      <td class="val" colspan="3" style="text-align:center;color:#777;">لا يوجد مهندس مسجل / No engineer registered</td>
     </tr>
     {% endif %}
   </table>
@@ -331,15 +405,21 @@
   <!-- ── Permission banner ── -->
   <table style="border-top:0;">
     <tr class="banner-row">
-      <td>يصرح له بمزاولة نشاط مكافحة آفات الصحة العامة</td>
+      <td>
+        يصرح له بمزاولة نشاط مكافحة آفات الصحة العامة
+        <span class="en">Permitted to practice Public Health Pest Control Activity</span>
+      </td>
     </tr>
   </table>
 
   <!-- ── Activities ── -->
   <table style="border-top:0;">
+    <colgroup>
+      <col class="c-ar"><col style="width:55%;"><col class="c-en">
+    </colgroup>
     <tr>
-      <td class="lbl" style="vertical-align:top; padding-top:7px;">الأنشطة المصرح بها</td>
-      <td class="activity-cell val">
+      <td class="act-ar">الأنشطة المصرح بها</td>
+      <td class="act-val">
         <ul>
           {% if allowed_activities %}
             {% for item in allowed_activities %}
@@ -358,11 +438,12 @@
           {% if pirmet.allowed_other %}<li>أخرى: {{ pirmet.allowed_other }}</li>{% endif %}
         </ul>
       </td>
+      <td class="act-en">Allowed Activities</td>
     </tr>
     {% if restricted_activities or pirmet.restricted_other %}
     <tr>
-      <td class="lbl" style="vertical-align:top; padding-top:7px;">الأنشطة غير المصرح بها</td>
-      <td class="activity-cell val">
+      <td class="act-ar">الأنشطة غير المصرح بها</td>
+      <td class="act-val">
         <ul>
           {% for item in restricted_activities %}
             <li>
@@ -377,49 +458,43 @@
           {% if pirmet.restricted_other %}<li>أخرى: {{ pirmet.restricted_other }}</li>{% endif %}
         </ul>
       </td>
+      <td class="act-en">Restricted Activities</td>
     </tr>
     {% endif %}
   </table>
 
   <!-- ── Payment ── -->
   <table style="border-top:0;">
+    <colgroup><col class="c-ar"><col class="c-val"><col class="c-en"></colgroup>
     <tr>
-      <td class="lbl">رقم ايصال الدفع</td>
+      <td class="lbl-ar">رقم ايصال الدفع</td>
       <td class="val">{{ pirmet.PaymentNumber|default:"—" }}</td>
-      <td class="lbl">تاريخ ايصال الدفع</td>
+      <td class="lbl-en">Receipt Voucher No.</td>
+    </tr>
+    <tr>
+      <td class="lbl-ar">تاريخ الايصال</td>
       <td class="val">{{ pirmet.payment_date|date:"d/m/Y"|default:"—" }}</td>
+      <td class="lbl-en">Receipt Date</td>
     </tr>
   </table>
 
   <!-- ── Footer ── -->
-  <div class="footer-block" style="margin-top:8px;">
+  {% permit_qr_png_b64 permit_detail_path as qr_src %}
+  <div class="footer-block" style="margin-top:10px; align-items:flex-end;">
     <div>
       <div class="footer-stamp">
         <div class="footer-stamp-ar">قسم رقابة وتنظيم النفايات</div>
-        <div class="footer-stamp-en">Waste Control and<br>Regulation Section</div>
+        <div class="footer-stamp-en">Waste Control and Regulation Section</div>
       </div>
     </div>
-    <div style="flex:1;">
-      <div class="conditions-title">اشتراطات</div>
-      <ul class="conditions-list">
-        <li>يسمح له بالعمل داخل مدينة الشارقة فقط</li>
-        <li>يجب الاحتفاظ بنسخة من التصريح داخل مقر الشركة</li>
-        <li>الالتزام بالأنشطة المصرح بها فقط كما هو موضح في هذا التصريح</li>
-        <li>الاحتفاظ بسجلات العمليات والمواد المستخدمة</li>
-        <li>يجب تجديد التصريح قبل تاريخ انتهائه وفي حال التأخير ستُفرض غرامة مالية</li>
-        <li>في حالة عدم الالتزام ببنود التصريح يحق للبلدية إلغائه</li>
-        <li>يعتبر هذا التصريح مستندًا معتمدًا ولا يحتاج لختم</li>
-      </ul>
+    {% if qr_src %}
+    <div style="text-align:center;">
+      <img src="{{ qr_src }}" style="width:72px;height:72px;display:block;margin:0 auto;" alt="QR">
+      <div style="font-size:7pt;color:#555;margin-top:2px;">امسح للتحقق</div>
     </div>
+    {% endif %}
   </div>
 
 </div>
-{% permit_qr_png_b64 permit_detail_path as qr_src %}
-{% if qr_src %}
-<div style="position:fixed;bottom:18mm;right:14mm;text-align:center;z-index:999;">
-  <img src="{{ qr_src }}" style="width:72px;height:72px;display:block;" alt="QR">
-  <div style="font-size:7pt;color:#555;margin-top:2px;">امسح للتحقق</div>
-</div>
-{% endif %}
 </body>
 </html>

@@ -1309,7 +1309,7 @@ def pest_control_permit_print(request, id):
         'pirmet': pirmet,
         'allowed_activities': _split_activities(pirmet.allowed_activities),
         'restricted_activities': _split_activities(pirmet.restricted_activities),
-        'permit_detail_path': reverse('pest_control_permit_detail', args=[pirmet.id]),
+        'permit_detail_path': reverse('pest_control_permit_print', args=[pirmet.id]),
     })
 
 

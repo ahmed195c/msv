@@ -626,11 +626,9 @@
   <div class="permit-card">
     <div class="action-bar no-print">
       <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
-      {% if pirmet.payment_receipt %}
-        {% if pirmet.status == "issued" %}
-          <a class="print-button" href="{% url 'pest_control_permit_view' pirmet.id %}">عرض التصريح</a>
-          <a class="print-button" href="{% url 'printer_permit' pirmet.id %}" target="_blank" rel="noopener">طباعة التصريح</a>
-        {% endif %}
+      {% if pirmet.status == "issued" %}
+        <a class="print-button" href="{% url 'pest_control_permit_view' pirmet.id %}">عرض التصريح</a>
+        <a class="print-button" href="{% url 'pest_control_permit_print' pirmet.id %}" target="_blank" style="margin-inline-start:6px;">طباعة التصريح</a>
       {% endif %}
     </div>
 
