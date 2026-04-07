@@ -404,11 +404,11 @@
             <td style="font-family:monospace;">{{ p.contact_phone }}</td>
             <td>
               {% if p.permit_type == 'pest_control' %}
-                <a href="{% url 'pest_control_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+                <a href="{% url 'pest_control_permit_detail' p.id %}">عرض التصريح</a>
               {% elif p.permit_type == 'pesticide_transport' %}
-                <a href="{% url 'vehicle_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+                <a href="{% url 'vehicle_permit_detail' p.id %}">عرض التصريح</a>
               {% elif p.permit_type == 'waste_disposal' %}
-                <a href="{% url 'waste_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+                <a href="{% url 'waste_permit_detail' p.id %}">عرض التصريح</a>
               {% endif %}
             </td>
           </tr>
@@ -446,11 +446,11 @@
             <td style="font-family:monospace;">{{ p.contact_phone }}</td>
             <td>
               {% if p.permit_type == 'pest_control' %}
-                <a href="{% url 'pest_control_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+                <a href="{% url 'pest_control_permit_detail' p.id %}">عرض التصريح</a>
               {% elif p.permit_type == 'pesticide_transport' %}
-                <a href="{% url 'vehicle_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+                <a href="{% url 'vehicle_permit_detail' p.id %}">عرض التصريح</a>
               {% elif p.permit_type == 'waste_disposal' %}
-                <a href="{% url 'waste_permit' %}?company_id={{ p.company.id }}">تصريح جديد</a>
+                <a href="{% url 'waste_permit_detail' p.id %}">عرض التصريح</a>
               {% endif %}
             </td>
           </tr>
