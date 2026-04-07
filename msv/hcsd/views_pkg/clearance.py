@@ -1,0 +1,439 @@
+import calendar
+import datetime
+import os
+
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group, User
+from django.utils import timezone
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+
+from ..models import (
+    Company, CompanyChangeLog, EngineerCertificateRequest, EngineerLeave,
+    Enginer, EnginerStatusLog, InspectorReview, PesticideTransportPermit,
+    PirmetChangeLog, PirmetClearance, PirmetDocument, PublicHealthExamRequest,
+    PublicHealthExamRequestDocument, RequirementInsuranceRequest,
+    WasteDisposalRequest, WasteDisposalRequestDocument,
+)
+from ..forms import StaffRegistrationForm
+from .common import (
+    ALLOWED_DOC_EXTENSIONS, PEST_ACTIVITY_ORDER, PEST_ACTIVITY_KEYS,
+    PUBLIC_HEALTH_ACTIVITY_KEYS, GROUP_NAME_ALIASES, ROLE_CAPABILITIES,
+    INSPECTION_REPORT_PHOTO_PREFIX, VEHICLE_INSPECTION_REPORT_PHOTO_PREFIX,
+    _parse_int, _parse_int_list, _parse_date, _calculate_permit_expiry,
+    _add_months, _expired_trade_license_notice, _activities_for_enginer,
+    _restricted_activities_for_enginer, _has_any_group, _role_is_admin,
+    _role_is_inspector, _role_is_data_entry, _role_is_head, _user_roles,
+    _has_capability, _can_admin, _can_inspector, _can_data_entry, _can_head,
+    _company_has_active_extension, _can_create_exam_request,
+    _inspector_users_qs, _display_user_name, _inspector_review_name,
+    _inspection_report_decision_from_note, _inspection_report_photo_count_from_note,
+    _inspection_report_photo_docs_by_prefix, _inspection_report_photo_docs,
+    _vehicle_inspection_report_photo_docs, _request_documents,
+    _latest_expired_activity_permit_before, _delay_months_after_first_month,
+    _initial_violation_reference_expiry, _violation_reference_expiry_date,
+    _log_pirmet_change, _log_company_change, _split_activities,
+    _activity_keys_for_company, _permit_label_ar, _permit_detail_url_name,
+    _certificate_type_for_exam, _certificate_expiry, _enginer_has_passed_for_certificate,
+    _is_effective_active_permit, _engineer_no_certificate_notice,
+    _group_clearances_by_status, _validate_engineer_for_type,
+)
+@login_required
+def clearance_list(request):
+    search_query = (request.GET.get('q') or '').strip()
+    clearances_qs = (
+        PirmetClearance.objects.filter(permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'])
+        .select_related('company', 'company__enginer')
+        .order_by('-dateOfCreation')
+    )
+    if search_query:
+        clearances_qs = clearances_qs.filter(
+            Q(company__name__icontains=search_query)
+            | Q(company__number__icontains=search_query)
+        )
+    reviews = InspectorReview.objects.filter(pirmet__in=clearances_qs).select_related('inspector', 'inspector_user')
+    review_map = {review.pirmet_id: review for review in reviews}
+    inspection_receive_changes = (
+        PirmetChangeLog.objects.filter(
+            pirmet__in=clearances_qs,
+            change_type='details_update',
+            notes__startswith='inspection_received_by:',
+        )
+        .order_by('pirmet_id', '-created_at')
+    )
+    inspection_report_changes = (
+        PirmetChangeLog.objects.filter(
+            pirmet__in=clearances_qs,
+            change_type='details_update',
+            notes__startswith='inspection_report:',
+        )
+        .select_related('changed_by')
+        .order_by('pirmet_id', '-created_at')
+    )
+    inspection_receive_map = {}
+    for change in inspection_receive_changes:
+        if change.pirmet_id not in inspection_receive_map:
+            inspection_receive_map[change.pirmet_id] = change
+    inspection_report_map = {}
+    for change in inspection_report_changes:
+        if change.pirmet_id not in inspection_report_map:
+            inspection_report_map[change.pirmet_id] = change
+    clearances = list(clearances_qs)
+    waste_requests_qs = (
+        WasteDisposalRequest.objects.filter(permit__in=clearances_qs)
+        .select_related('inspected_by')
+        .order_by('permit_id', '-created_at', '-id')
+    )
+    latest_waste_request_map = {}
+    latest_active_waste_request_map = {}
+    for waste_request in waste_requests_qs:
+        if waste_request.permit_id not in latest_waste_request_map:
+            latest_waste_request_map[waste_request.permit_id] = waste_request
+        if (
+            waste_request.status in {'payment_pending', 'inspection_pending'}
+            and waste_request.permit_id not in latest_active_waste_request_map
+        ):
+            latest_active_waste_request_map[waste_request.permit_id] = waste_request
+
+    for clearance in clearances:
+        clearance.permit_label_ar = _permit_label_ar(clearance.permit_type)
+        clearance.detail_url_name = _permit_detail_url_name(clearance.permit_type)
+        clearance.detail_url = reverse(clearance.detail_url_name, kwargs={'id': clearance.id})
+        if clearance.permit_type == 'waste_disposal':
+            latest_waste_request = (
+                latest_active_waste_request_map.get(clearance.id)
+                or latest_waste_request_map.get(clearance.id)
+            )
+            if latest_waste_request:
+                clearance.permit_label_ar = 'طلب التخلص من النفايات'
+                clearance.detail_url = reverse(
+                    'waste_disposal_request_detail',
+                    kwargs={'permit_id': clearance.id, 'request_id': latest_waste_request.id},
+                )
+        company = clearance.company
+        engineer = company.enginer if company else None
+        engineer_phone = (engineer.phone or '').strip() if engineer else ''
+        landline_phone = (company.landline or '').strip() if company else ''
+        company_phone = (company.owner_phone or '').strip() if company else ''
+        clearance.contact_number = engineer_phone or landline_phone or company_phone or None
+        clearance.company_location = (company.address or '').strip() if company and company.address else '-'
+        review = review_map.get(clearance.id)
+        clearance.inspector_name = _inspector_review_name(review)
+        clearance.inspection_assigned_user_id = review.inspector_user_id if review and review.inspector_user_id else None
+        if (
+            not clearance.inspection_assigned_user_id
+            and clearance.permit_type == 'waste_disposal'
+        ):
+            pending_waste_request = latest_active_waste_request_map.get(clearance.id)
+            if (
+                pending_waste_request
+                and pending_waste_request.status == 'inspection_pending'
+                and pending_waste_request.inspected_by_id
+            ):
+                clearance.inspection_assigned_user_id = pending_waste_request.inspected_by_id
+        request_docs = _request_documents(clearance)
+        clearance.request_documents_count = len(request_docs)
+        clearance.has_request_documents = bool(
+            clearance.request_documents_bundle
+            or clearance.request_documents_count
+        )
+        receive_change = inspection_receive_map.get(clearance.id)
+        clearance.inspection_receiver_name = None
+        if receive_change and ':' in receive_change.notes:
+            clearance.inspection_receiver_name = receive_change.notes.split(':', 1)[1].strip()
+        if (
+            not clearance.inspection_receiver_name
+            and clearance.permit_type == 'waste_disposal'
+        ):
+            pending_waste_request = latest_active_waste_request_map.get(clearance.id)
+            if pending_waste_request and pending_waste_request.inspected_by:
+                clearance.inspection_receiver_name = _display_user_name(
+                    pending_waste_request.inspected_by
+                )
+        clearance.status_key = clearance.status
+        if (
+            clearance.status == 'inspection_pending'
+            and clearance.inspection_receiver_name
+        ):
+            clearance.status_key = 'inspection_received'
+        report_change = inspection_report_map.get(clearance.id)
+        clearance.inspection_report_decision = (
+            _inspection_report_decision_from_note(report_change.notes)
+            if report_change
+            else None
+        )
+        if not clearance.inspection_report_decision and clearance.permit_type == 'waste_disposal':
+            if clearance.status == 'disposal_approved':
+                clearance.inspection_report_decision = 'approved'
+            elif clearance.status == 'disposal_rejected':
+                clearance.inspection_report_decision = 'rejected'
+
+    finished_statuses = {
+        'issued',
+        'closed_requirements_pending',
+        'cancelled_admin',
+        'disposal_approved',
+        'disposal_rejected',
+    }
+    active_clearances = []
+    finished_clearances = []
+    for _item in clearances:
+        if _item.status in finished_statuses:
+            finished_clearances.append(_item)
+        elif (
+            _item.status == 'inspection_completed'
+            and _item.inspection_report_decision != 'approved'
+        ):
+            finished_clearances.append(_item)
+        else:
+            active_clearances.append(_item)
+    inspector_scope_only = _can_inspector(request.user) and not _can_admin(request.user)
+
+    if _can_inspector(request.user):
+        current_user_id = request.user.id
+
+        def _active_inspector_sort_key(item):
+            item_status = getattr(item, 'status_key', item.status)
+            is_ready_to_receive = item_status == 'inspection_pending'
+            is_received = item_status == 'inspection_received'
+            assigned_to_current = bool(
+                is_received
+                and item.inspection_assigned_user_id
+                and item.inspection_assigned_user_id == current_user_id
+            )
+            if is_ready_to_receive:
+                priority = 0
+            elif assigned_to_current:
+                priority = 1
+            elif is_received:
+                priority = 2
+            else:
+                priority = 3
+            created_ordinal = item.dateOfCreation.toordinal() if item.dateOfCreation else 0
+            return (priority, -created_ordinal, -item.id)
+
+        active_clearances.sort(key=_active_inspector_sort_key)
+    elif _can_admin(request.user):
+        def _active_admin_sort_key(item):
+            item_status = getattr(item, 'status_key', item.status)
+            needs_head_approval = (
+                item_status == 'inspection_completed'
+                and getattr(item, 'inspection_report_decision', None) == 'approved'
+            )
+            priority = 0 if needs_head_approval else 1
+            created_ordinal = item.dateOfCreation.toordinal() if item.dateOfCreation else 0
+            return (priority, -created_ordinal, -item.id)
+        active_clearances.sort(key=_active_admin_sort_key)
+    else:
+        active_clearances.sort(
+            key=lambda item: (
+                -(item.dateOfCreation.toordinal() if item.dateOfCreation else 0),
+                -item.id,
+            )
+        )
+
+    finished_ids = [item.id for item in finished_clearances]
+    finished_completion_map = {}
+    if finished_ids:
+        completion_logs = (
+            PirmetChangeLog.objects.filter(
+                pirmet_id__in=finished_ids,
+                change_type='status_change',
+            )
+            .order_by('pirmet_id', '-created_at')
+        )
+        for log in completion_logs:
+            if log.pirmet_id not in finished_completion_map:
+                finished_completion_map[log.pirmet_id] = log.created_at
+    for item in finished_clearances:
+        item._completion_date = finished_completion_map.get(item.id)
+    finished_clearances.sort(
+        key=lambda item: (
+            -(item._completion_date.timestamp() if item._completion_date else 0),
+            -item.id,
+        )
+    )
+
+    status_filter_label_map = {
+        'inspection_received': 'تم استلام الطلب للتفتيش',
+        'inspection_pending': 'جاهز للاستلام',
+        'order_received': 'بانتظار اصدار رابط دفع التفتيش',
+        'inspection_payment_pending': 'بانتظار دفع التفتيش',
+        'review_pending': 'بانتظار مراجعة المفتش',
+        'approved': 'معتمد من المفتش',
+        'needs_completion': 'غير معتمد',
+        'rejected': 'مرفوض',
+        'payment_pending': 'بانتظار دفع التصريح',
+        'issued': 'تم إصدار التصريح',
+        'inspection_completed': 'اكتمل التفتيش',
+        'violation_payment_link_pending': 'بانتظار إرسال رابط دفع المخالفة',
+        'violation_payment_pending': 'بانتظار دفع المخالفة',
+        'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
+        'cancelled_admin': 'مغلق',
+        'disposal_approved': 'إتلاف معتمد',
+        'disposal_rejected': 'إتلاف مرفوض',
+    }
+    status_section_label_map = {
+        'inspection_received': 'طلبات تم استلامها للتفتيش',
+        'inspection_pending': 'طلبات جاهزة للاستلام',
+        'order_received': 'بانتظار اصدار رابط دفع التفتيش',
+        'inspection_payment_pending': 'طلبات بانتظار دفع التفتيش',
+        'review_pending': 'طلبات بانتظار مراجعة المفتش',
+        'approved': 'طلبات معتمدة من المفتش',
+        'needs_completion': 'طلبات غير معتمدة',
+        'rejected': 'طلبات مرفوضة',
+        'payment_pending': 'طلبات بانتظار دفع التصريح',
+        'violation_payment_link_pending': 'طلبات بانتظار إرسال رابط دفع المخالفة',
+        'violation_payment_pending': 'طلبات بانتظار دفع المخالفة',
+        'issued': 'طلبات صادرة',
+        'inspection_completed': 'طلبات اكتمل تفتيشها',
+        'closed_requirements_pending': 'طلبات مغلقة - اشتراطات واجبة الاستيفاء',
+        'cancelled_admin': 'طلبات مغلقة',
+        'disposal_approved': 'طلبات إتلاف معتمدة',
+        'disposal_rejected': 'طلبات إتلاف مرفوضة',
+    }
+    active_status_order = [
+        'inspection_pending',
+        'inspection_received',
+        'order_received',
+        'inspection_payment_pending',
+        'review_pending',
+        'approved',
+        'needs_completion',
+        'rejected',
+        'violation_payment_link_pending',
+        'violation_payment_pending',
+        'payment_pending',
+    ]
+    finished_status_order = [
+        'issued',
+        'inspection_completed',
+        'closed_requirements_pending',
+        'cancelled_admin',
+        'disposal_approved',
+        'disposal_rejected',
+    ]
+    if inspector_scope_only:
+        active_status_order = ['inspection_pending', 'inspection_received']
+        finished_status_order = []
+    all_status_order = active_status_order + finished_status_order
+
+    status_filter = (request.GET.get('status') or 'all').strip()
+    if status_filter != 'all' and status_filter not in status_filter_label_map:
+        status_filter = 'all'
+
+    if status_filter != 'all':
+        active_clearances = [
+            item for item in active_clearances
+            if getattr(item, 'status_key', item.status) == status_filter
+        ]
+        finished_clearances = [
+            item for item in finished_clearances
+            if getattr(item, 'status_key', item.status) == status_filter
+        ]
+
+    status_filter_options = [
+        {'value': 'all', 'label': 'كل الحالات'},
+        *[
+            {'value': status_key, 'label': status_filter_label_map.get(status_key, status_key)}
+            for status_key in all_status_order
+        ],
+    ]
+    status_filter_label = (
+        status_filter_label_map.get(status_filter, 'كل الحالات')
+        if status_filter != 'all'
+        else 'كل الحالات'
+    )
+
+    active_clearance_groups = _group_clearances_by_status(active_clearances, active_status_order, status_section_label_map)
+    finished_clearance_groups = _group_clearances_by_status(finished_clearances, finished_status_order, status_section_label_map)
+
+    return render(
+        request,
+        'hcsd/clearance_list.html',
+        {
+            'clearances': active_clearances,
+            'active_clearances': active_clearances,
+            'finished_clearances': finished_clearances,
+            'active_clearance_groups': active_clearance_groups,
+            'finished_clearance_groups': finished_clearance_groups,
+            'query': search_query,
+            'status_filter': status_filter,
+            'status_filter_label': status_filter_label,
+            'status_filter_options': status_filter_options,
+            'show_finished_section': not inspector_scope_only,
+            'can_create_pirmet': _can_data_entry(request.user),
+            'form_errors': [],
+        },
+    )
+
+
+@login_required
+def permit_types(request):
+    today = timezone.localdate()
+    week_later = today + datetime.timedelta(days=7)
+
+    permit_label_map = {
+        'pest_control': 'تصريح مزاولة النشاط',
+        'pesticide_transport': 'تصريح المركبة',
+        'waste_disposal': 'تصريح التخلص من النفايات',
+    }
+
+    def _latest_per_company_type(qs):
+        """Keep only the newest permit per (company, permit_type) pair."""
+        seen = {}
+        for p in qs:
+            key = (p.company_id, p.permit_type)
+            if key not in seen:
+                seen[key] = p
+        return list(seen.values())
+
+    def _enrich(permits):
+        result = []
+        for p in permits:
+            engineer = p.company.enginer if p.company else None
+            phone = (engineer.phone or '').strip() if engineer else ''
+            if not phone and p.company:
+                phone = (p.company.owner_phone or p.company.landline or '').strip()
+            p.contact_phone = phone or '—'
+            p.permit_label = permit_label_map.get(p.permit_type, p.permit_type)
+            result.append(p)
+        return result
+
+    # Fetch all issued permits ordered newest first so _latest_per_company_type keeps the newest
+    all_issued = list(
+        PirmetClearance.objects
+        .select_related('company', 'company__enginer')
+        .filter(status='issued')
+        .order_by('-issue_date', '-id')
+    )
+    latest_issued = _latest_per_company_type(all_issued)
+
+    expiring_permits = []
+    for p in latest_issued:
+        if p.dateOfExpiry and today <= p.dateOfExpiry <= week_later:
+            p.days_left = (p.dateOfExpiry - today).days
+            expiring_permits.append(p)
+    expiring_permits.sort(key=lambda p: p.dateOfExpiry)
+
+    finished_permits = sorted(
+        [p for p in latest_issued if p.dateOfExpiry and p.dateOfExpiry < today],
+        key=lambda p: p.dateOfExpiry,
+        reverse=True,
+    )[:50]
+
+    return render(
+        request,
+        'hcsd/permit_types.html',
+        {
+            'can_create_pirmet': _can_data_entry(request.user),
+            'expiring_permits': _enrich(expiring_permits),
+            'finished_permits': _enrich(finished_permits),
+        },
+    )
+
+
