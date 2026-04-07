@@ -1300,7 +1300,6 @@ def pest_control_permit_detail(request, id):
     )
 
 
-@login_required
 def pest_control_permit_print(request, id):
     pirmet = get_object_or_404(
         PirmetClearance.objects.select_related('company', 'company__enginer'),
