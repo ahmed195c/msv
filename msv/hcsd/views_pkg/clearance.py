@@ -290,13 +290,14 @@ def clearance_list(request):
         'violation_payment_link_pending': 'طلبات بانتظار إرسال رابط دفع المخالفة',
         'violation_payment_pending': 'طلبات بانتظار دفع المخالفة',
         'issued': 'طلبات صادرة',
-        'inspection_completed': 'طلبات اكتمل تفتيشها',
+        'inspection_completed': 'طلبات بانتظار الاعتماد النهائي',
         'closed_requirements_pending': 'طلبات مغلقة - اشتراطات واجبة الاستيفاء',
         'cancelled_admin': 'طلبات مغلقة',
         'disposal_approved': 'طلبات إتلاف معتمدة',
         'disposal_rejected': 'طلبات إتلاف مرفوضة',
     }
     active_status_order = [
+        'inspection_completed',
         'approved',
         'head_approved',
         'inspection_pending',
