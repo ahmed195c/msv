@@ -1,10 +1,12 @@
 import calendar
 import datetime
+import io
 import os
 
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
+from django.http import HttpResponse
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -437,5 +439,243 @@ def permit_types(request):
             'finished_permits': _enrich(finished_permits),
         },
     )
+
+
+@login_required
+def permits_report_excel(request):
+    """Export one row per company with permit status columns (check/cross + permit no)."""
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    today = timezone.localdate()
+
+    ACTIVITY_LABEL = {
+        'public_health_pest_control': 'مكافحة آفات الصحة العامة',
+        'termite_control': 'مكافحة النمل الأبيض',
+        'grain_pests': 'مكافحة آفات الحبوب',
+    }
+
+    # Fetch all companies with related engineer
+    companies = list(
+        Company.objects.select_related('enginer')
+    )
+    company_ids = [c.id for c in companies]
+
+    # Fetch latest permit per (company, permit_type) — newest first
+    all_permits = list(
+        PirmetClearance.objects
+        .filter(company_id__in=company_ids)
+        .order_by('company_id', 'permit_type', '-dateOfCreation', '-id')
+    )
+
+    # Build map: company_id -> {permit_type -> permit}
+    permit_map = {}
+    for p in all_permits:
+        cid = p.company_id
+        pt = p.permit_type
+        if cid not in permit_map:
+            permit_map[cid] = {}
+        if pt not in permit_map[cid]:
+            permit_map[cid][pt] = p
+
+    # Sort companies: newest pest_control permit first, companies with no permit last
+    def _company_sort_key(company):
+        pc = permit_map.get(company.id, {}).get('pest_control')
+        if pc:
+            return (0, -pc.dateOfCreation.toordinal())
+        return (1, 0)
+
+    companies.sort(key=_company_sort_key)
+
+    # Active leave map for all engineers
+    all_eng_ids = {c.enginer_id for c in companies if c.enginer_id}
+    active_leave_map = {
+        leave.engineer_id: leave
+        for leave in EngineerLeave.objects.filter(
+            actual_return_date__isnull=True,
+            engineer_id__in=all_eng_ids,
+        ).select_related('substitute')
+    }
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'تقرير الشركات والتصاريح'
+    ws.sheet_view.rightToLeft = True
+
+    # ── Styles ──
+    header_font = Font(bold=True, color='FFFFFF', size=11)
+    header_fill = PatternFill('solid', fgColor='304357')
+    sub_header_fill = PatternFill('solid', fgColor='455c75')
+    center = Alignment(horizontal='center', vertical='center', wrap_text=True, readingOrder=2)
+    right_align = Alignment(horizontal='right', vertical='center', wrap_text=True, readingOrder=2)
+    thin = Side(border_style='thin', color='C0C8D0')
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    green_fill = PatternFill('solid', fgColor='D1FAE5')
+    red_fill   = PatternFill('solid', fgColor='FEE2E2')
+    green_font = Font(bold=True, color='065F46', size=13)
+    red_font   = Font(bold=True, color='991B1B', size=13)
+
+    # ── Headers ──
+    # Row 1: group headers
+    # Row 2: column headers
+    PERMIT_TYPES = [
+        ('pest_control',       'تصريح النشاط'),
+        ('pesticide_transport','تصريح المركبة'),
+        ('waste_disposal',     'تصريح النفايات'),
+    ]
+
+    # columns: م | اسم الشركة | رقم الرخصة | العنوان | المنطقة | الهاتف | المهندس | حالة المهندس
+    #          | [for each permit type: الحالة | رقم التصريح | تاريخ الانتهاء]
+    info_cols = ['م', 'اسم الشركة', 'رقم الرخصة', 'العنوان', 'هاتف الشركة', 'المهندس', 'حالة المهندس', 'الأنشطة المرخصة']
+    n_info = len(info_cols)
+    permit_sub_cols = ['الحالة', 'رقم التصريح', 'تاريخ الانتهاء']
+    n_permit_cols = len(permit_sub_cols)
+
+    ws.row_dimensions[1].height = 28
+    ws.row_dimensions[2].height = 24
+
+    # Row 1: info group header (merge) + permit group headers (merge each)
+    # Merge info cols in row 1
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=n_info)
+    cell = ws.cell(row=1, column=1, value='بيانات الشركة')
+    cell.font = header_font
+    cell.fill = header_fill
+    cell.alignment = center
+    cell.border = border
+
+    for ti, (pt_key, pt_label) in enumerate(PERMIT_TYPES):
+        start_col = n_info + ti * n_permit_cols + 1
+        end_col   = start_col + n_permit_cols - 1
+        ws.merge_cells(start_row=1, start_column=start_col, end_row=1, end_column=end_col)
+        cell = ws.cell(row=1, column=start_col, value=pt_label)
+        cell.font = header_font
+        cell.fill = sub_header_fill
+        cell.alignment = center
+        cell.border = border
+
+    # Row 2: individual column headers
+    for col_idx, label in enumerate(info_cols, 1):
+        cell = ws.cell(row=2, column=col_idx, value=label)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center
+        cell.border = border
+
+    for ti in range(len(PERMIT_TYPES)):
+        for si, sub_label in enumerate(permit_sub_cols):
+            col_idx = n_info + ti * n_permit_cols + si + 1
+            cell = ws.cell(row=2, column=col_idx, value=sub_label)
+            cell.font = header_font
+            cell.fill = sub_header_fill
+            cell.alignment = center
+            cell.border = border
+
+    # Column widths
+    col_widths = [4, 32, 16, 32, 14, 24, 14, 30]  # info cols
+    for _ in PERMIT_TYPES:
+        col_widths += [8, 14, 14]                  # status, permit_no, expiry
+    for i, w in enumerate(col_widths, 1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+
+    # ── Data rows ──
+    row_num = 3
+    for idx, company in enumerate(companies, 1):
+        engineer = company.enginer
+        eng_name = engineer.name if engineer else ''
+        if engineer:
+            active_leave = active_leave_map.get(engineer.id)
+            eng_status = 'في إجازة' if active_leave else 'في العمل'
+        else:
+            eng_status = ''
+
+        phone = ''
+        if engineer:
+            phone = (engineer.phone or '').strip()
+        if not phone:
+            phone = (company.owner_phone or company.landline or '').strip()
+
+        # Get allowed activities from the latest active pest_control permit
+        active_pc_permit = permit_map.get(company.id, {}).get('pest_control')
+        activities_display = ''
+        if active_pc_permit and active_pc_permit.allowed_activities:
+            keys = [k.strip() for k in active_pc_permit.allowed_activities.split(',') if k.strip()]
+            activities_display = ' / '.join(
+                ACTIVITY_LABEL.get(k, k) for k in keys
+            )
+
+        info_data = [
+            idx,
+            company.name or '',
+            company.number or '',
+            company.address or '',
+            phone,
+            eng_name,
+            eng_status,
+            activities_display,
+        ]
+
+        ws.row_dimensions[row_num].height = 20
+        for col_idx, value in enumerate(info_data, 1):
+            cell = ws.cell(row=row_num, column=col_idx, value=value)
+            cell.alignment = center if col_idx == 1 else right_align
+            cell.border = border
+
+        company_permits = permit_map.get(company.id, {})
+        for ti, (pt_key, _) in enumerate(PERMIT_TYPES):
+            p = company_permits.get(pt_key)
+            base_col = n_info + ti * n_permit_cols + 1
+
+            if p is None:
+                # No permit at all
+                status_val = '✗'
+                permit_no_val = ''
+                expiry_val = ''
+                s_fill = red_fill
+                s_font = red_font
+            else:
+                is_active = (
+                    p.status == 'issued'
+                    and (not p.dateOfExpiry or p.dateOfExpiry >= today)
+                )
+                status_val = '✓' if is_active else '✗'
+                permit_no_val = p.permit_no or ''
+                expiry_val = p.dateOfExpiry.strftime('%d/%m/%Y') if p.dateOfExpiry else ''
+                s_fill = green_fill if is_active else red_fill
+                s_font = green_font if is_active else red_font
+
+            # Status cell (✓ / ✗)
+            c = ws.cell(row=row_num, column=base_col, value=status_val)
+            c.font = s_font
+            c.fill = s_fill
+            c.alignment = center
+            c.border = border
+
+            # Permit number
+            c2 = ws.cell(row=row_num, column=base_col + 1, value=permit_no_val)
+            c2.alignment = center
+            c2.border = border
+
+            # Expiry date
+            c3 = ws.cell(row=row_num, column=base_col + 2, value=expiry_val)
+            c3.alignment = center
+            c3.border = border
+
+        row_num += 1
+
+    ws.freeze_panes = 'B3'
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"companies_report_{today.strftime('%Y%m%d')}.xlsx"
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 

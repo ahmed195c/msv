@@ -302,9 +302,17 @@
 
 <section class="permit-types-page" lang="ar" dir="rtl">
   <div class="permit-types-wrap">
-    <header class="permit-types-header">
-      <h1 class="permit-types-title">إنشاء تصريح جديد</h1>
-      <p class="permit-types-subtitle">اختر نوع التصريح المطلوب لبدء الطلب.</p>
+    <header class="permit-types-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h1 class="permit-types-title">إنشاء تصريح جديد</h1>
+        <p class="permit-types-subtitle">اختر نوع التصريح المطلوب لبدء الطلب.</p>
+      </div>
+      <a href="{% url 'permits_report_excel' %}"
+         style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#1d6f42;color:#fff;border-radius:7px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(29,111,66,.18);transition:background .15s;"
+         onmouseover="this.style.background='#155735'" onmouseout="this.style.background='#1d6f42'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        تحميل تقرير Excel
+      </a>
     </header>
 
     <section class="permit-types-section">
@@ -495,6 +503,10 @@
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (typeof event.button === "number" && event.button !== 0) return;
       document.documentElement.classList.add("permit-types--loading");
+    });
+    // Remove loading state whenever the page becomes visible (back button, bfcache, etc.)
+    window.addEventListener("pageshow", function () {
+      document.documentElement.classList.remove("permit-types--loading");
     });
   })();
 

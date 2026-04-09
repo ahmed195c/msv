@@ -27,6 +27,7 @@ urlpatterns = [
     path('enginers/certificate-requests/<int:request_id>/', views.engineer_certificate_request_detail, name='engineer_certificate_request_detail'),
     path('clearances/', views.clearance_list, name='clearance_list'),
     path('permits/', views.permit_types, name='permit_types'),
+    path('permits/report/excel/', views.permits_report_excel, name='permits_report_excel'),
     path('permits/pest-control/', views.pest_control_permit, name='pest_control_permit'),
     path('permits/vehicle/', views.vehicle_permit, name='vehicle_permit'),
     path('permits/waste/', views.waste_permit, name='waste_permit'),
