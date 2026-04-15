@@ -1,0 +1,670 @@
+{% extends "hcsd/complaints/base.html" %}
+{% block title %}{% if lang == 'en' %}Complaint #{{ complaint.complaint_number }}{% else %}شكوى #{{ complaint.complaint_number }}{% endif %}{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── Timeline ── */
+.wf-timeline { display:flex; align-items:flex-start; gap:0; margin-bottom:32px; overflow-x:auto; padding-bottom:4px; }
+.wf-step { display:flex; flex-direction:column; align-items:center; flex:1; min-width:90px; position:relative; }
+.wf-step:not(:last-child)::after {
+  content:''; position:absolute; top:14px; width:100%; height:2px;
+  background:var(--line); left:50%; z-index:0;
+}
+.wf-step.done::after  { background:#16a34a; }
+.wf-step.active::after { background:var(--line); }
+.wf-dot {
+  width:28px; height:28px; border-radius:50%; border:2px solid var(--line-2);
+  background:#fff; z-index:1; display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; color:var(--ink-3);
+}
+.wf-step.done .wf-dot  { background:#16a34a; border-color:#16a34a; color:#fff; }
+.wf-step.active .wf-dot { background:#fff; border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 3px var(--accent-bg); }
+.wf-label { font-size:10px; color:var(--ink-3); margin-top:6px; text-align:center; line-height:1.3; }
+.wf-step.done .wf-label  { color:#16a34a; font-weight:600; }
+.wf-step.active .wf-label { color:var(--accent); font-weight:600; }
+
+/* ── Cards ── */
+.c-card { background:#fff; border-radius:12px; border:1.5px solid var(--line); padding:24px; box-shadow:var(--shadow-sm); margin-bottom:20px; }
+.c-card-title { font-size:14px; font-weight:700; color:var(--ink); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+.c-badge { padding:3px 11px; border-radius:10px; font-size:11px; font-weight:700; }
+.badge-new        { background:#eff6ff; color:#1d4ed8; }
+.badge-inspector  { background:#f0f9ff; color:#0369a1; }
+.badge-done-insp  { background:#f0fdf4; color:#15803d; }
+.badge-supervisor { background:#faf5ff; color:#7c3aed; }
+.badge-inprogress { background:#fff7ed; color:#c2410c; }
+.badge-resolved   { background:#f0fdf4; color:#15803d; }
+.badge-closed     { background:#f1f5f9; color:#475569; }
+
+/* ── Meta grid ── */
+.meta-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; }
+.meta-item-label { font-size:11px; color:var(--ink-3); font-weight:600; margin-bottom:3px; }
+.meta-item-value { font-size:14px; font-weight:500; color:var(--ink); }
+
+/* ── Section header ── */
+.section-header {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 16px; border-radius:8px; margin-bottom:16px;
+}
+.section-header--inspector  { background:#fefce8; border:1px solid #fde68a; }
+.section-header--supervisor { background:#fff7ed; border:1px solid #fed7aa; }
+.section-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.section-icon--inspector  { background:#fde68a; color:#92400e; }
+.section-icon--supervisor { background:#fed7aa; color:#9a3412; }
+
+/* ── Photo grid ── */
+.photo-grid { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+.photo-thumb { position:relative; width:100px; height:100px; border-radius:8px; overflow:hidden; border:1.5px solid var(--line); flex-shrink:0; }
+.photo-thumb img { width:100%; height:100%; object-fit:cover; }
+.photo-thumb-del { position:absolute; top:3px; right:3px; background:rgba(0,0,0,.55); border:none; border-radius:4px; color:#fff; font-size:11px; cursor:pointer; padding:2px 6px; line-height:1.4; }
+/* When closed, hide delete buttons until edit mode toggled */
+.photos-locked .photo-del-form { display:none; }
+@media(max-width:600px){
+  .photo-thumb { width:80px; height:80px; }
+  .work-photo-forms { grid-template-columns:1fr!important; }
+}
+
+/* ── Vehicle table ── */
+.veh-table { width:100%; border-collapse:collapse; font-size:13px; }
+.veh-table th { background:var(--surface-2); padding:8px 12px; text-align:{% if lang == 'en' %}left{% else %}right{% endif %}; font-weight:600; color:var(--ink-2); border-bottom:1.5px solid var(--line); }
+.veh-table td { padding:8px 12px; border-bottom:1px solid var(--line); }
+.veh-row-del { background:none; border:none; color:#dc2626; cursor:pointer; font-size:13px; padding:0; }
+
+/* ── Form inputs ── */
+.f-label { font-size:12px; font-weight:600; color:var(--ink-2); margin-bottom:5px; display:block; }
+.f-input, .f-textarea, .f-select {
+  width:100%; padding:9px 12px; border:1.5px solid var(--line); border-radius:8px;
+  font-size:14px; font-family:inherit; outline:none; background:#fff;
+  direction:{% if lang == 'en' %}ltr{% else %}rtl{% endif %};
+  transition:border-color .15s;
+}
+.f-input:focus, .f-textarea:focus, .f-select:focus { border-color:var(--accent); }
+.f-row { margin-bottom:16px; }
+.f-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.btn-primary { padding:10px 22px; background:var(--accent); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; }
+.btn-secondary { padding:10px 22px; background:#fff; color:var(--ink-2); border:1.5px solid var(--line); border-radius:8px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; }
+.btn-done { padding:10px 22px; background:#15803d; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; }
+
+/* ── Photo upload zone ── */
+.upload-zone { border:2px dashed var(--line-2); border-radius:8px; padding:18px; text-align:center; cursor:pointer; background:var(--surface); transition:border-color .15s; }
+.upload-zone:hover { border-color:var(--accent); }
+
+@media (max-width:720px) {
+  .f-grid-2 { grid-template-columns:1fr; }
+  .meta-grid { grid-template-columns:1fr 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block nav_links %}
+  <a class="nav-link" href="{% url 'complaints_dashboard' %}">{% if lang == 'en' %}Complaints{% else %}الشكاوي{% endif %}</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Back + Title -->
+<div class="page-header" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;">
+  <a href="{% url 'complaints_dashboard' %}" style="color:var(--ink-3);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:4px;">
+    {% if lang == 'en' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg> Complaints
+    {% else %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> الشكاوي{% endif %}
+  </a>
+  <div style="flex:1;">
+    <h1 class="page-title">{% if lang == 'en' %}Complaint #{{ complaint.complaint_number }}{% else %}شكوى #{{ complaint.complaint_number }}{% endif %}</h1>
+    <p class="page-subtitle">{{ complaint.created_at|date:"d/m/Y — H:i" }}</p>
+  </div>
+  <!-- Status badge -->
+  {% if complaint.status == 'new' %}<span class="c-badge badge-new">{% if lang == 'en' %}New{% else %}جديدة{% endif %}</span>
+  {% elif complaint.status == 'assigned_inspector' %}<span class="c-badge badge-inspector">{% if lang == 'en' %}Awaiting Inspection{% else %}بانتظار التفتيش{% endif %}</span>
+  {% elif complaint.status == 'inspection_done' %}<span class="c-badge badge-done-insp">{% if lang == 'en' %}Inspection Done{% else %}اكتمل التفتيش{% endif %}</span>
+  {% elif complaint.status == 'assigned_supervisor' %}<span class="c-badge badge-supervisor">{% if lang == 'en' %}Awaiting Resolution{% else %}بانتظار المعالجة{% endif %}</span>
+  {% elif complaint.status == 'in_progress' %}<span class="c-badge badge-inprogress">{% if lang == 'en' %}In Progress{% else %}قيد المعالجة{% endif %}</span>
+  {% elif complaint.status == 'resolved' %}<span class="c-badge badge-resolved">{% if lang == 'en' %}Resolved{% else %}تم الحل{% endif %}</span>
+  {% elif complaint.status == 'closed' %}<span class="c-badge badge-closed">{% if lang == 'en' %}Closed{% else %}مغلقة{% endif %}</span>{% endif %}
+</div>
+
+<!-- ═══ Workflow Timeline ═══ -->
+{% with s=complaint.status %}
+{% with steps="new,assigned_inspector,inspection_done,assigned_supervisor,in_progress,resolved,closed" %}
+<div class="wf-timeline">
+  {% for step_key,step_label in status_choices %}
+  {% with is_done=False is_active=False %}
+  <div class="wf-step
+    {% if step_key == 'new' and s != 'new' %}done
+    {% elif step_key == 'assigned_inspector' and s in 'inspection_done,assigned_supervisor,in_progress,resolved,closed' %}done
+    {% elif step_key == 'inspection_done' and s in 'assigned_supervisor,in_progress,resolved,closed' %}done
+    {% elif step_key == 'assigned_supervisor' and s in 'in_progress,resolved,closed' %}done
+    {% elif step_key == 'in_progress' and s in 'resolved,closed' %}done
+    {% elif step_key == 'resolved' and s == 'closed' %}done
+    {% elif step_key == s %}active{% endif %}">
+    <div class="wf-dot">
+      {% if step_key == 'new' and s != 'new' %}✓
+      {% elif step_key == 'assigned_inspector' and s in 'inspection_done,assigned_supervisor,in_progress,resolved,closed' %}✓
+      {% elif step_key == 'inspection_done' and s in 'assigned_supervisor,in_progress,resolved,closed' %}✓
+      {% elif step_key == 'assigned_supervisor' and s in 'in_progress,resolved,closed' %}✓
+      {% elif step_key == 'in_progress' and s in 'resolved,closed' %}✓
+      {% elif step_key == 'resolved' and s == 'closed' %}✓
+      {% else %}{{ forloop.counter }}{% endif %}
+    </div>
+    <div class="wf-label">
+      {% if lang == 'en' %}
+        {% if step_key == 'new' %}New{% elif step_key == 'assigned_inspector' %}Inspection{% elif step_key == 'inspection_done' %}Inspected{% elif step_key == 'assigned_supervisor' %}Assigned{% elif step_key == 'in_progress' %}Working{% elif step_key == 'resolved' %}Resolved{% elif step_key == 'closed' %}Closed{% endif %}
+      {% else %}{{ step_label }}{% endif %}
+    </div>
+  </div>
+  {% endwith %}
+  {% endfor %}
+</div>
+{% endwith %}
+{% endwith %}
+
+<!-- ═══ Complaint Info ═══ -->
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    {% if lang == 'en' %}Complaint Information{% else %}بيانات الشكوى{% endif %}
+  </div>
+  <div class="meta-grid" style="margin-bottom:16px;">
+    <div><div class="meta-item-label">{% if lang == 'en' %}Complaint No.{% else %}رقم الشكوى{% endif %}</div><div class="meta-item-value" style="font-family:monospace;font-size:16px;">{{ complaint.complaint_number }}</div></div>
+    <div><div class="meta-item-label">{% if lang == 'en' %}Submitted On{% else %}تاريخ التقديم{% endif %}</div><div class="meta-item-value">{{ complaint.created_at|date:"d/m/Y" }}</div></div>
+    <div><div class="meta-item-label">{% if lang == 'en' %}Added By{% else %}أضيف بواسطة{% endif %}</div><div class="meta-item-value">{{ complaint.created_by.get_full_name|default:complaint.created_by.username|default:"—" }}</div></div>
+    <div><div class="meta-item-label">{% if lang == 'en' %}Last Updated{% else %}آخر تحديث{% endif %}</div><div class="meta-item-value">{{ complaint.updated_at|date:"d/m/Y" }}</div></div>
+  </div>
+
+  <!-- Complainant info -->
+  {% if complaint.complainant_name or complaint.area %}
+  <div class="meta-grid" style="margin-bottom:16px;padding-top:14px;border-top:1px solid var(--line);">
+    {% if complaint.complainant_name %}<div><div class="meta-item-label">{% if lang == 'en' %}Complainant{% else %}المتعامل{% endif %}</div><div class="meta-item-value">{{ complaint.complainant_name }}</div></div>{% endif %}
+    {% if complaint.complainant_mobile %}<div><div class="meta-item-label">{% if lang == 'en' %}Mobile{% else %}الموبايل{% endif %}</div><div class="meta-item-value" dir="ltr">{{ complaint.complainant_mobile }}</div></div>{% endif %}
+    {% if complaint.area %}<div><div class="meta-item-label">{% if lang == 'en' %}Area{% else %}المنطقة{% endif %}</div><div class="meta-item-value">{{ complaint.area }}</div></div>{% endif %}
+    {% if complaint.street_number %}<div><div class="meta-item-label">{% if lang == 'en' %}Street No.{% else %}رقم الشارع{% endif %}</div><div class="meta-item-value">{{ complaint.street_number }}</div></div>{% endif %}
+    {% if complaint.house_number %}<div><div class="meta-item-label">{% if lang == 'en' %}House No.{% else %}رقم المنزل{% endif %}</div><div class="meta-item-value">{{ complaint.house_number }}</div></div>{% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Pest types -->
+  {% if complaint_pest_labels %}
+  <div style="margin-bottom:14px;padding-top:14px;border-top:1px solid var(--line);">
+    <div class="meta-item-label" style="margin-bottom:8px;">{% if lang == 'en' %}Type of Pest{% else %}نوع الآفة{% endif %}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      {% for label in complaint_pest_labels %}
+      <span style="padding:3px 12px;background:#fef3c7;color:#92400e;border-radius:20px;font-size:12px;font-weight:600;">{{ label }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if complaint.notes %}<div style="border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--ink-2);line-height:1.7;">{{ complaint.notes }}</div>{% endif %}
+  {% if complaint.pdf_file %}
+  <div style="margin-top:14px;">
+    <a href="{{ complaint.pdf_file.url }}" target="_blank" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:var(--surface);border:1.5px solid var(--line);border-radius:7px;color:var(--accent);font-weight:600;font-size:12px;text-decoration:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      {% if lang == 'en' %}Open PDF{% else %}فتح ملف PDF{% endif %}
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ═══ Admin: Assign Inspector ═══ -->
+{% if can_manage and complaint.status == 'new' %}
+<div class="c-card" style="border-color:#fde68a;background:#fefce8;">
+  <div class="c-card-title" style="color:#92400e;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    {% if lang == 'en' %}Assign Inspector{% else %}إسناد لمفتش{% endif %}
+  </div>
+  <form method="post" action="{% url 'complaint_assign_inspector' complaint.pk %}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+    {% csrf_token %}
+    <div style="flex:1;min-width:200px;">
+      <label class="f-label">{% if lang == 'en' %}Select Inspector{% else %}اختر المفتش{% endif %}</label>
+      <select name="inspector_id" class="f-select" required>
+        <option value="">— {% if lang == 'en' %}Select{% else %}اختر{% endif %} —</option>
+        {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn-primary">{% if lang == 'en' %}Assign{% else %}إسناد{% endif %}</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- ═══ Inspector Section ═══ -->
+{% if inspection %}
+<div class="c-card">
+  <div class="section-header section-header--inspector">
+    <div class="section-icon section-icon--inspector">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#92400e;">{% if lang == 'en' %}Inspection Phase{% else %}مرحلة التفتيش{% endif %}</div>
+      <div style="font-size:12px;color:#a16207;">{% if lang == 'en' %}Inspector:{% else %}المفتش:{% endif %} {{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</div>
+    </div>
+    {% if inspection.completed_at %}
+    <span class="c-badge badge-done-insp" style="margin-right:auto;">{% if lang == 'en' %}Completed{% else %}مكتمل{% endif %}</span>
+    {% endif %}
+  </div>
+
+  <!-- Location display -->
+  {% if inspection.latitude and inspection.longitude %}
+  <div class="meta-grid" style="margin-bottom:14px;">
+    <div><div class="meta-item-label">{% if lang == 'en' %}Latitude{% else %}خط العرض{% endif %}</div><div class="meta-item-value" style="font-family:monospace;">{{ inspection.latitude }}</div></div>
+    <div><div class="meta-item-label">{% if lang == 'en' %}Longitude{% else %}خط الطول{% endif %}</div><div class="meta-item-value" style="font-family:monospace;">{{ inspection.longitude }}</div></div>
+  </div>
+  <div style="margin-bottom:14px;">
+    <a href="https://maps.google.com/?q={{ inspection.latitude }},{{ inspection.longitude }}" target="_blank"
+       style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:7px;color:#1d4ed8;font-size:12px;font-weight:600;text-decoration:none;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 13 8 13s8-7.75 8-13a8 8 0 0 0-8-8z"/></svg>
+      {% if lang == 'en' %}View on Map{% else %}عرض على الخريطة{% endif %}
+    </a>
+  </div>
+  {% endif %}
+
+  {% if inspection.location_notes or inspection.inspection_notes %}
+  <div class="meta-grid" style="margin-bottom:14px;">
+    {% if inspection.location_notes %}<div><div class="meta-item-label">{% if lang == 'en' %}Location Notes{% else %}وصف الموقع{% endif %}</div><div style="font-size:13px;color:var(--ink-2);">{{ inspection.location_notes }}</div></div>{% endif %}
+    {% if inspection.inspection_notes %}<div><div class="meta-item-label">{% if lang == 'en' %}Inspection Notes{% else %}ملاحظات التفتيش{% endif %}</div><div style="font-size:13px;color:var(--ink-2);">{{ inspection.inspection_notes }}</div></div>{% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Inspection photos -->
+  {% if inspection_photos %}
+  <div id="insp-photos-grid" style="margin-bottom:14px;"{% if complaint.status == 'closed' %} class="photos-locked"{% endif %}>
+    <div class="meta-item-label">{% if lang == 'en' %}Inspection Photos{% else %}صور التفتيش{% endif %}</div>
+    <div class="photo-grid">
+      {% for photo in inspection_photos %}
+      <div class="photo-thumb">
+        <a href="{{ photo.file.url }}" target="_blank"><img src="{{ photo.file.url }}" alt=""></a>
+        {% if can_manage or photo.uploaded_by_id == request.user.id %}
+        <form method="post" action="{% url 'complaint_photo_delete' complaint.pk photo.pk %}" style="display:inline;" class="photo-del-form">
+          {% csrf_token %}<button type="submit" class="photo-thumb-del" onclick="return confirm('{% if lang == 'en' %}Delete?{% else %}حذف؟{% endif %}')">✕</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Inspector form -->
+  {% if is_inspector and not inspection.completed_at or can_manage and not inspection.completed_at %}
+  <form method="post" action="{% url 'complaint_inspection_save' complaint.pk %}" enctype="multipart/form-data" style="border-top:1px solid var(--line);padding-top:18px;margin-top:4px;">
+    {% csrf_token %}
+    <div style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--ink);">{% if lang == 'en' %}Update Inspection Data{% else %}تحديث بيانات التفتيش{% endif %}</div>
+
+    <!-- GPS -->
+    <div class="f-grid-2 f-row">
+      <div>
+        <label class="f-label">{% if lang == 'en' %}Latitude{% else %}خط العرض{% endif %}</label>
+        <input id="lat-input" type="text" name="latitude" class="f-input" value="{{ inspection.latitude|default:'' }}" placeholder="24.123456" dir="ltr">
+      </div>
+      <div>
+        <label class="f-label">{% if lang == 'en' %}Longitude{% else %}خط الطول{% endif %}</label>
+        <input id="lng-input" type="text" name="longitude" class="f-input" value="{{ inspection.longitude|default:'' }}" placeholder="55.123456" dir="ltr">
+      </div>
+    </div>
+    <div class="f-row">
+      <button type="button" onclick="getLocation()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:7px;color:#1d4ed8;font-size:12px;font-weight:600;cursor:pointer;border:none;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 13 8 13s8-7.75 8-13a8 8 0 0 0-8-8z"/></svg>
+        {% if lang == 'en' %}Get Current Location{% else %}تحديد موقعي الحالي{% endif %}
+      </button>
+      <span id="loc-status" style="font-size:12px;color:var(--ink-3);margin-{% if lang == 'en' %}left{% else %}right{% endif %}:10px;"></span>
+    </div>
+
+    <div class="f-row">
+      <label class="f-label">{% if lang == 'en' %}Location Description{% else %}وصف الموقع{% endif %}</label>
+      <textarea name="location_notes" class="f-textarea" rows="2">{{ inspection.location_notes }}</textarea>
+    </div>
+    <div class="f-row">
+      <label class="f-label">{% if lang == 'en' %}Inspection Notes{% else %}ملاحظات التفتيش{% endif %}</label>
+      <textarea name="inspection_notes" class="f-textarea" rows="2">{{ inspection.inspection_notes }}</textarea>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button type="submit" class="btn-primary">{% if lang == 'en' %}Save{% else %}حفظ{% endif %}</button>
+      <button type="submit" name="mark_done" value="1" class="btn-done">{% if lang == 'en' %}Save & Mark Complete{% else %}حفظ وإنهاء التفتيش{% endif %}</button>
+    </div>
+  </form>
+  {% endif %}
+
+  <!-- Inspection photo management -->
+  {% if is_inspector or can_manage %}
+  <div style="border-top:1px solid var(--line);padding-top:14px;margin-top:4px;">
+    {% if complaint.status == 'closed' %}
+    <button type="button" onclick="togglePhotoEdit('insp-edit', 'insp-photos-grid')" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#fff;border:1.5px solid var(--line);border-radius:7px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;font-family:inherit;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      {% if lang == 'en' %}Edit Photos{% else %}تعديل الصور{% endif %}
+    </button>
+    <div id="insp-edit" style="display:none;margin-top:12px;">
+    {% endif %}
+      <!-- Delete buttons are in the photo grid above via .photo-del-form -->
+      <form method="post" action="{% url 'complaint_add_photos' complaint.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="phase" value="inspection">
+        <label class="f-label">{% if lang == 'en' %}Add Inspection Photos{% else %}إضافة صور التفتيش{% endif %}</label>
+        <label class="upload-zone" style="margin-bottom:10px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div style="font-size:12px;color:var(--ink-3);">{% if lang == 'en' %}Click to select photos{% else %}اضغط لاختيار الصور{% endif %}</div>
+          <input type="file" name="photos" accept=".jpg,.jpeg,.png,.webp" multiple style="display:none;" onchange="showFileCount(this,'insp-count')">
+          <span id="insp-count" style="font-size:12px;color:var(--accent);font-weight:600;"></span>
+        </label>
+        <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">{% if lang == 'en' %}Upload{% else %}رفع الصور{% endif %}</button>
+      </form>
+    {% if complaint.status == 'closed' %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- ═══ Admin: Assign Supervisor ═══ -->
+{% if can_manage and complaint.status == 'inspection_done' %}
+<div class="c-card" style="border-color:#fed7aa;background:#fff7ed;">
+  <div class="c-card-title" style="color:#9a3412;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    {% if lang == 'en' %}Assign Supervisor{% else %}إسناد لمراقب{% endif %}
+  </div>
+  <form method="post" action="{% url 'complaint_assign_supervisor' complaint.pk %}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+    {% csrf_token %}
+    <div style="flex:1;min-width:200px;">
+      <label class="f-label">{% if lang == 'en' %}Select Supervisor{% else %}اختر المراقب{% endif %}</label>
+      <select name="supervisor_id" class="f-select" required>
+        <option value="">— {% if lang == 'en' %}Select{% else %}اختر{% endif %} —</option>
+        {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn-primary">{% if lang == 'en' %}Assign{% else %}إسناد{% endif %}</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- ═══ Supervisor / Resolution Section ═══ -->
+{% if resolution %}
+<div class="c-card">
+  <div class="section-header section-header--supervisor">
+    <div class="section-icon section-icon--supervisor">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#9a3412;">{% if lang == 'en' %}Resolution Phase{% else %}مرحلة المعالجة{% endif %}</div>
+      <div style="font-size:12px;color:#c2410c;">{% if lang == 'en' %}Supervisor:{% else %}المراقب:{% endif %} {{ resolution.supervisor.get_full_name|default:resolution.supervisor.username }}</div>
+    </div>
+    {% if resolution.completed_at %}
+    <span class="c-badge badge-resolved" style="margin-right:auto;">{% if lang == 'en' %}Completed{% else %}مكتمل{% endif %}</span>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  {% if resolution.num_workers or resolution.num_days %}
+  <div class="meta-grid" style="margin-bottom:16px;">
+    {% if resolution.num_workers %}<div><div class="meta-item-label">{% if lang == 'en' %}Workers{% else %}عدد العمال{% endif %}</div><div class="meta-item-value" style="font-size:20px;font-weight:700;">{{ resolution.num_workers }}</div></div>{% endif %}
+    {% if resolution.num_days %}<div><div class="meta-item-label">{% if lang == 'en' %}Days{% else %}عدد الأيام{% endif %}</div><div class="meta-item-value" style="font-size:20px;font-weight:700;">{{ resolution.num_days }}</div></div>{% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Vehicles table -->
+  {% if vehicles %}
+  <div style="margin-bottom:16px;">
+    <div class="meta-item-label" style="margin-bottom:8px;">{% if lang == 'en' %}Vehicles{% else %}المركبات{% endif %} ({{ vehicles|length }})</div>
+    <table class="veh-table">
+      <thead><tr>
+        <th>#</th>
+        <th>{% if lang == 'en' %}Plate Number{% else %}رقم اللوحة{% endif %}</th>
+        <th>{% if lang == 'en' %}Type{% else %}النوع{% endif %}</th>
+      </tr></thead>
+      <tbody>
+        {% for v in vehicles %}
+        <tr><td>{{ forloop.counter }}</td><td style="font-family:monospace;">{{ v.plate_number }}</td><td>{{ v.vehicle_type|default:"—" }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if resolution.closing_status %}
+  <div style="margin-bottom:14px;">
+    <div class="meta-item-label">{% if lang == 'en' %}Closing Status{% else %}حالة الإغلاق{% endif %}</div>
+    <span style="padding:3px 12px;border-radius:12px;font-size:12px;font-weight:700;
+      {% if resolution.closing_status == 'ok' %}background:#f0fdf4;color:#15803d;
+      {% elif resolution.closing_status == 'no_answer' %}background:#fef2f2;color:#b91c1c;
+      {% elif resolution.closing_status == 'private_company' %}background:#eff6ff;color:#1d4ed8;
+      {% else %}background:#fef3c7;color:#92400e;{% endif %}">
+      {{ resolution.get_closing_status_display }}
+    </span>
+  </div>
+  {% endif %}
+  {% if materials %}
+  <div style="margin-bottom:16px;">
+    <div class="meta-item-label" style="margin-bottom:8px;">{% if lang == 'en' %}Materials Used{% else %}المواد المستخدمة{% endif %}</div>
+    <table class="veh-table">
+      <thead><tr><th>{% if lang == 'en' %}Material{% else %}المادة{% endif %}</th><th>{% if lang == 'en' %}Qty{% else %}الكمية{% endif %}</th></tr></thead>
+      <tbody>
+        {% for m in materials %}
+        <tr><td>{{ m.material_name }}</td><td dir="ltr">{{ m.quantity }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  {% if resolution.work_notes %}
+  <div style="margin-bottom:16px;"><div class="meta-item-label">{% if lang == 'en' %}Work Notes{% else %}ملاحظات{% endif %}</div><div style="font-size:13px;color:var(--ink-2);line-height:1.7;">{{ resolution.work_notes }}</div></div>
+  {% endif %}
+
+  <div id="res-photos-grid"{% if complaint.status == 'closed' %} class="photos-locked"{% endif %}>
+  <!-- During work photos -->
+  {% if during_photos %}
+  <div style="margin-bottom:12px;">
+    <div class="meta-item-label">{% if lang == 'en' %}During Work Photos{% else %}صور أثناء العمل{% endif %}</div>
+    <div class="photo-grid">
+      {% for photo in during_photos %}<div class="photo-thumb">
+        <a href="{{ photo.file.url }}" target="_blank"><img src="{{ photo.file.url }}" alt=""></a>
+        {% if can_manage or photo.uploaded_by_id == request.user.id %}
+        <form method="post" action="{% url 'complaint_photo_delete' complaint.pk photo.pk %}" class="photo-del-form">{% csrf_token %}<button type="submit" class="photo-thumb-del" onclick="return confirm('{% if lang == 'en' %}Delete?{% else %}حذف؟{% endif %}')">✕</button></form>
+        {% endif %}
+      </div>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- After work photos -->
+  {% if after_photos %}
+  <div style="margin-bottom:12px;">
+    <div class="meta-item-label">{% if lang == 'en' %}After Work Photos{% else %}صور بعد الانتهاء{% endif %}</div>
+    <div class="photo-grid">
+      {% for photo in after_photos %}<div class="photo-thumb">
+        <a href="{{ photo.file.url }}" target="_blank"><img src="{{ photo.file.url }}" alt=""></a>
+        {% if can_manage or photo.uploaded_by_id == request.user.id %}
+        <form method="post" action="{% url 'complaint_photo_delete' complaint.pk photo.pk %}" class="photo-del-form">{% csrf_token %}<button type="submit" class="photo-thumb-del" onclick="return confirm('{% if lang == 'en' %}Delete?{% else %}حذف؟{% endif %}')">✕</button></form>
+        {% endif %}
+      </div>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  </div><!-- end #res-photos-grid -->
+
+  <!-- Supervisor form -->
+  {% if is_supervisor and not resolution.completed_at or can_manage and not resolution.completed_at %}
+  <form method="post" action="{% url 'complaint_resolution_save' complaint.pk %}" enctype="multipart/form-data" style="border-top:1px solid var(--line);padding-top:18px;margin-top:4px;" id="res-form">
+    {% csrf_token %}
+    <div style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--ink);">{% if lang == 'en' %}Update Resolution Data{% else %}تحديث بيانات المعالجة{% endif %}</div>
+
+    <div class="f-row">
+      <label class="f-label">{% if lang == 'en' %}Number of Workers{% else %}عدد العمال{% endif %}</label>
+      <input type="number" name="num_workers" class="f-input" min="0" value="{{ resolution.num_workers|default:'' }}" dir="ltr" style="max-width:160px;">
+    </div>
+
+    <!-- Vehicles -->
+    <div class="f-row">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <label class="f-label" style="margin-bottom:0;">{% if lang == 'en' %}Vehicles{% else %}المركبات{% endif %}</label>
+        <button type="button" onclick="addVehicleRow()" style="padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">+ {% if lang == 'en' %}Add{% else %}إضافة{% endif %}</button>
+      </div>
+      <table class="veh-table" id="veh-table">
+        <thead><tr>
+          <th>{% if lang == 'en' %}Plate Number{% else %}رقم اللوحة{% endif %}</th>
+          <th>{% if lang == 'en' %}Vehicle Type{% else %}نوع المركبة{% endif %}</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="veh-body">
+          {% for v in vehicles %}
+          <tr>
+            <td><input type="text" name="plate_number" class="f-input" value="{{ v.plate_number }}" dir="ltr" placeholder="{% if lang == 'en' %}Plate no.{% else %}رقم اللوحة{% endif %}"></td>
+            <td><input type="text" name="vehicle_type" class="f-input" value="{{ v.vehicle_type }}" placeholder="{% if lang == 'en' %}e.g. Truck{% else %}مثال: شاحنة{% endif %}"></td>
+            <td><button type="button" class="veh-row-del" onclick="this.closest('tr').remove()">✕</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Materials -->
+    <div class="f-row">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <label class="f-label" style="margin-bottom:0;">{% if lang == 'en' %}Materials Used{% else %}المواد المستخدمة{% endif %}</label>
+        <button type="button" onclick="addMaterialRow()" style="padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">+ {% if lang == 'en' %}Add{% else %}إضافة{% endif %}</button>
+      </div>
+      <table class="veh-table" id="mat-table">
+        <thead><tr>
+          <th>{% if lang == 'en' %}Material Name{% else %}اسم المادة{% endif %}</th>
+          <th style="width:120px;">{% if lang == 'en' %}Quantity{% else %}الكمية{% endif %}</th>
+          <th style="width:36px;"></th>
+        </tr></thead>
+        <tbody id="mat-body">
+          {% for m in materials %}
+          <tr>
+            <td><input type="text" name="material_name" class="f-input" value="{{ m.material_name }}" placeholder="{% if lang == 'en' %}e.g. Diesel{% else %}مثال: ديزل{% endif %}"></td>
+            <td><input type="text" name="material_qty" class="f-input" value="{{ m.quantity }}" dir="ltr" placeholder="{% if lang == 'en' %}e.g. 1L{% else %}مثال: 1 لتر{% endif %}"></td>
+            <td><button type="button" class="veh-row-del" onclick="this.closest('tr').remove()">✕</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="f-row">
+      <label class="f-label">{% if lang == 'en' %}Work Notes{% else %}ملاحظات المعالجة{% endif %}</label>
+      <textarea name="work_notes" class="f-textarea" rows="2">{{ resolution.work_notes }}</textarea>
+    </div>
+
+    <!-- Closing Status -->
+    <div class="f-row">
+      <label class="f-label">{% if lang == 'en' %}Closing Status{% else %}حالة الإغلاق{% endif %}</label>
+      <select name="closing_status" class="f-select">
+        <option value="">— {% if lang == 'en' %}Select{% else %}اختر{% endif %} —</option>
+        {% for key, label in closing_status_choices %}
+        <option value="{{ key }}" {% if resolution.closing_status == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button type="submit" class="btn-primary">{% if lang == 'en' %}Save{% else %}حفظ{% endif %}</button>
+      <button type="submit" name="mark_done" value="1" class="btn-done">{% if lang == 'en' %}Save & Mark Resolved{% else %}حفظ وإنهاء المعالجة{% endif %}</button>
+    </div>
+  </form>
+  {% endif %}
+
+  <!-- Work photo management -->
+  {% if is_supervisor or can_manage %}
+  <div style="border-top:1px solid var(--line);padding-top:14px;margin-top:4px;">
+    {% if complaint.status == 'closed' %}
+    <button type="button" onclick="togglePhotoEdit('res-edit', 'res-photos-grid')" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#fff;border:1.5px solid var(--line);border-radius:7px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;font-family:inherit;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      {% if lang == 'en' %}Edit Photos{% else %}تعديل الصور{% endif %}
+    </button>
+    <div id="res-edit" style="display:none;margin-top:12px;">
+    {% endif %}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="work-photo-forms">
+      <form method="post" action="{% url 'complaint_add_photos' complaint.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="phase" value="during_work">
+        <label class="f-label">{% if lang == 'en' %}Add During-Work Photos{% else %}إضافة صور أثناء العمل{% endif %}</label>
+        <label class="upload-zone" style="margin-bottom:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div style="font-size:11px;color:var(--ink-3);">{% if lang == 'en' %}Select photos{% else %}اختر الصور{% endif %}</div>
+          <input type="file" name="photos" accept=".jpg,.jpeg,.png,.webp" multiple style="display:none;" onchange="showFileCount(this,'during-count')">
+          <span id="during-count" style="font-size:12px;color:var(--accent);font-weight:600;"></span>
+        </label>
+        <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">{% if lang == 'en' %}Upload{% else %}رفع{% endif %}</button>
+      </form>
+      <form method="post" action="{% url 'complaint_add_photos' complaint.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="phase" value="after_work">
+        <label class="f-label">{% if lang == 'en' %}Add After-Work Photos{% else %}إضافة صور بعد الانتهاء{% endif %}</label>
+        <label class="upload-zone" style="margin-bottom:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div style="font-size:11px;color:var(--ink-3);">{% if lang == 'en' %}Select photos{% else %}اختر الصور{% endif %}</div>
+          <input type="file" name="photos" accept=".jpg,.jpeg,.png,.webp" multiple style="display:none;" onchange="showFileCount(this,'after-count')">
+          <span id="after-count" style="font-size:12px;color:var(--accent);font-weight:600;"></span>
+        </label>
+        <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">{% if lang == 'en' %}Upload{% else %}رفع{% endif %}</button>
+      </form>
+    </div>
+    {% if complaint.status == 'closed' %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Get GPS location
+function getLocation() {
+  var status = document.getElementById('loc-status');
+  status.textContent = '{% if lang == 'en' %}Fetching…{% else %}جاري التحديد…{% endif %}';
+  if (!navigator.geolocation) {
+    status.textContent = '{% if lang == 'en' %}Not supported{% else %}غير مدعوم{% endif %}';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      document.getElementById('lat-input').value = pos.coords.latitude.toFixed(6);
+      document.getElementById('lng-input').value = pos.coords.longitude.toFixed(6);
+      status.textContent = '✓';
+      status.style.color = 'var(--accent)';
+    },
+    function() {
+      status.textContent = '{% if lang == 'en' %}Error getting location{% else %}تعذر تحديد الموقع{% endif %}';
+      status.style.color = '#dc2626';
+    }
+  );
+}
+
+// Add material row
+function addMaterialRow() {
+  var body = document.getElementById('mat-body');
+  var row = document.createElement('tr');
+  row.innerHTML =
+    '<td><input type="text" name="material_name" class="f-input" placeholder="{% if lang == 'en' %}e.g. Diesel{% else %}مثال: ديزل{% endif %}"></td>' +
+    '<td><input type="text" name="material_qty" class="f-input" dir="ltr" placeholder="{% if lang == 'en' %}e.g. 1L{% else %}مثال: 1 لتر{% endif %}"></td>' +
+    '<td><button type="button" class="veh-row-del" onclick="this.closest(\'tr\').remove()">✕</button></td>';
+  body.appendChild(row);
+}
+
+// Add vehicle row
+function addVehicleRow() {
+  var body = document.getElementById('veh-body');
+  var row = document.createElement('tr');
+  row.innerHTML =
+    '<td><input type="text" name="plate_number" class="f-input" dir="ltr" placeholder="{% if lang == 'en' %}Plate no.{% else %}رقم اللوحة{% endif %}"></td>' +
+    '<td><input type="text" name="vehicle_type" class="f-input" placeholder="{% if lang == 'en' %}e.g. Truck{% else %}مثال: شاحنة{% endif %}"></td>' +
+    '<td><button type="button" class="veh-row-del" onclick="this.closest(\'tr\').remove()">✕</button></td>';
+  body.appendChild(row);
+}
+
+// Toggle photo edit mode for closed complaints
+function togglePhotoEdit(panelId, gridId) {
+  var panel = document.getElementById(panelId);
+  var grid = document.getElementById(gridId);
+  if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  if (grid) grid.classList.toggle('photos-locked');
+}
+
+// Show selected file count
+function showFileCount(input, countId) {
+  var el = document.getElementById(countId);
+  if (input.files && input.files.length > 0) {
+    el.textContent = input.files.length + ' {% if lang == 'en' %}file(s) selected{% else %}ملف محدد{% endif %}';
+  }
+}
+</script>
+{% endblock %}

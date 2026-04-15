@@ -1,0 +1,164 @@
+{% extends "hcsd/complaints/base.html" %}
+
+{% block title %}{% if lang == 'en' %}Submit Complaint{% else %}تقديم شكوى{% endif %}{% endblock %}
+
+{% block nav_links %}
+  <a class="nav-link" href="{% url 'complaints_dashboard' %}">
+    {% if lang == 'en' %}Complaints{% else %}الشكاوي{% endif %}
+  </a>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">{% if lang == 'en' %}Submit New Complaint{% else %}تقديم شكوى جديدة{% endif %}</h1>
+  <p class="page-subtitle">{% if lang == 'en' %}Enter the complaint number and upload the attached file{% else %}أدخل رقم الشكوى وارفع الملف المرفق{% endif %}</p>
+</div>
+
+<div style="max-width:560px;">
+  <div style="background:#fff;border-radius:12px;border:1.5px solid var(--line);padding:32px;box-shadow:var(--shadow-sm);">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <!-- Complaint Number -->
+      <div style="margin-bottom:18px;">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink);">
+          {% if lang == 'en' %}Complaint Number{% else %}رقم الشكوى{% endif %}
+          <span style="color:#dc2626;">*</span>
+        </label>
+        <input type="text" name="complaint_number" value="{{ form_data.complaint_number|default:'' }}"
+          placeholder="{% if lang == 'en' %}Enter complaint number{% else %}أدخل رقم الشكوى{% endif %}"
+          dir="ltr"
+          style="width:100%;padding:10px 14px;border:1.5px solid {% if errors.complaint_number %}#dc2626{% else %}var(--line){% endif %};border-radius:8px;font-size:15px;font-family:inherit;outline:none;"
+          onfocus="this.style.borderColor='var(--accent)'"
+          onblur="this.style.borderColor='{% if errors.complaint_number %}#dc2626{% else %}var(--line){% endif %}'">
+        {% if errors.complaint_number %}<p style="color:#dc2626;font-size:12px;margin-top:4px;">{{ errors.complaint_number }}</p>{% endif %}
+      </div>
+
+      <!-- Complainant Info -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">{% if lang == 'en' %}Complainant Name{% else %}اسم المتعامل{% endif %}</label>
+          <input type="text" name="complainant_name" value="{{ form_data.complainant_name|default:'' }}"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">{% if lang == 'en' %}Mobile{% else %}رقم الموبايل{% endif %}</label>
+          <input type="text" name="complainant_mobile" value="{{ form_data.complainant_mobile|default:'' }}" dir="ltr"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:18px;">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">{% if lang == 'en' %}Area{% else %}المنطقة{% endif %}</label>
+          <input type="text" name="area" value="{{ form_data.area|default:'' }}"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">{% if lang == 'en' %}Street No.{% else %}رقم الشارع{% endif %}</label>
+          <input type="text" name="street_number" value="{{ form_data.street_number|default:'' }}" dir="ltr"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">{% if lang == 'en' %}House No.{% else %}رقم المنزل{% endif %}</label>
+          <input type="text" name="house_number" value="{{ form_data.house_number|default:'' }}" dir="ltr"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+        </div>
+      </div>
+
+      <!-- Pest Types -->
+      <div style="margin-bottom:18px;">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:10px;color:var(--ink);">
+          {% if lang == 'en' %}Type of Pest{% else %}نوع الآفة{% endif %}
+        </label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          {% for key, label in pest_choices %}
+          <label style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid var(--line);border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-2);transition:all .15s;"
+            onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor=this.querySelector('input').checked?'var(--accent)':'var(--line)'">
+            <input type="checkbox" name="pest_types" value="{{ key }}"
+              {% if key in form_data.pest_types %}checked{% endif %}
+              style="accent-color:var(--accent);"
+              onchange="this.closest('label').style.borderColor=this.checked?'var(--accent)':'var(--line)';this.closest('label').style.background=this.checked?'var(--accent-bg)':'';this.closest('label').style.color=this.checked?'var(--accent)':'var(--ink-2)';">
+            {{ label }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- PDF File (optional) -->
+      <div style="margin-bottom:18px;">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink);">
+          {% if lang == 'en' %}Complaint File (PDF){% else %}ملف الشكوى (PDF){% endif %}
+          <span style="color:var(--ink-3);font-weight:400;">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</span>
+        </label>
+        <label for="pdf_file_input" id="drop-zone"
+          style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;border:2px dashed {% if errors.pdf_file %}#dc2626{% else %}var(--line){% endif %};border-radius:10px;cursor:pointer;background:var(--surface);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <span id="file-label" style="font-size:12px;color:var(--ink-3);">{% if lang == 'en' %}Click to select a PDF{% else %}اضغط لاختيار ملف PDF{% endif %}</span>
+          <input type="file" id="pdf_file_input" name="pdf_file" accept=".pdf" style="display:none;" onchange="updateFileLabel(this)">
+        </label>
+        {% if errors.pdf_file %}<p style="color:#dc2626;font-size:12px;margin-top:4px;">{{ errors.pdf_file }}</p>{% endif %}
+      </div>
+
+      <!-- Notes -->
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink);">
+          {% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}
+          <span style="color:var(--ink-3);font-weight:400;">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</span>
+        </label>
+        <textarea name="notes" rows="3"
+          placeholder="{% if lang == 'en' %}Add any additional notes…{% else %}أضف أي ملاحظات إضافية…{% endif %}"
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;direction:{% if lang == 'en' %}ltr{% else %}rtl{% endif %};resize:vertical;outline:none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'"
+        >{{ form_data.notes|default:'' }}</textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="submit" style="padding:11px 28px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">
+          {% if lang == 'en' %}Submit Complaint{% else %}تقديم الشكوى{% endif %}
+        </button>
+        <a href="{% url 'complaints_dashboard' %}" style="padding:11px 20px;background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">
+          {% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+function updateFileLabel(input) {
+  var label = document.getElementById('file-label');
+  if (input.files && input.files[0]) {
+    label.textContent = input.files[0].name;
+    label.style.color = 'var(--accent)';
+    label.style.fontWeight = '600';
+  }
+}
+var dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.style.borderColor='var(--accent)'; });
+dz.addEventListener('dragleave', function() { dz.style.borderColor='var(--line)'; });
+dz.addEventListener('drop', function(e) {
+  e.preventDefault();
+  dz.style.borderColor = 'var(--line)';
+  var file = e.dataTransfer.files[0];
+  if (file) {
+    var inp = document.getElementById('pdf_file_input');
+    var dt = new DataTransfer();
+    dt.items.add(file);
+    inp.files = dt.files;
+    updateFileLabel(inp);
+  }
+});
+</script>
+
+{% endblock %}

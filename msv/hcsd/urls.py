@@ -3,7 +3,18 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    path('', views.portal_landing, name='portal_landing'),
+    path('home/', views.home, name='home'),
+    path('complaints/', views.complaints_dashboard, name='complaints_dashboard'),
+    path('complaints/submit/', views.complaint_submit, name='complaint_submit'),
+    path('complaints/<int:pk>/', views.complaint_detail, name='complaint_detail'),
+    path('complaints/<int:pk>/assign-inspector/', views.complaint_assign_inspector, name='complaint_assign_inspector'),
+    path('complaints/<int:pk>/inspection/save/', views.complaint_inspection_save, name='complaint_inspection_save'),
+    path('complaints/<int:pk>/assign-supervisor/', views.complaint_assign_supervisor, name='complaint_assign_supervisor'),
+    path('complaints/<int:pk>/resolution/save/', views.complaint_resolution_save, name='complaint_resolution_save'),
+    path('complaints/<int:pk>/photos/add/', views.complaint_add_photos, name='complaint_add_photos'),
+    path('complaints/<int:pk>/photos/<int:photo_pk>/delete/', views.complaint_photo_delete, name='complaint_photo_delete'),
+    path('complaints/set-language/', views.set_complaints_language, name='set_complaints_language'),
     path('companies/', views.company_list, name='company_list'),
     path('company_detail/<int:id>/', views.company_detail, name='company_detail'),
     path(
@@ -28,6 +39,7 @@ urlpatterns = [
     path('clearances/', views.clearance_list, name='clearance_list'),
     path('permits/', views.permit_types, name='permit_types'),
     path('permits/report/excel/', views.permits_report_excel, name='permits_report_excel'),
+    path('permits/report/inspectors/', views.inspector_report_excel, name='inspector_report_excel'),
     path('permits/pest-control/', views.pest_control_permit, name='pest_control_permit'),
     path('permits/vehicle/', views.vehicle_permit, name='vehicle_permit'),
     path('permits/waste/', views.waste_permit, name='waste_permit'),

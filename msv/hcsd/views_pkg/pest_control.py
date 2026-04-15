@@ -145,22 +145,12 @@ def pest_control_permit(request):
         if not form_data['request_email']:
             form_errors.append('request_email_required')
 
-        can_submit_without_engineer = True
-        if company:
-            can_submit_without_engineer = not PirmetClearance.objects.filter(
-                company=company,
-                permit_type='pest_control',
-            ).exists()
-
         enginer = None
         pending_enginer_fields = []
         if company:
             enginer = company.enginer
             if not enginer:
-                if can_submit_without_engineer:
-                    engineer_notice = 'تنبيه: هذه الشركة بدون مهندس حالياً. يمكن تقديم الطلب واستكمال بيانات المهندس بعد التفتيش/الاستكمال.'
-                else:
-                    form_errors.append('company_engineer_missing')
+                engineer_notice = 'تنبيه: هذه الشركة بدون مهندس مسجل حالياً. يمكن تقديم الطلب واستكمال بيانات المهندس لاحقاً.'
             else:
                 if _can_admin(request.user):
                     pending_enginer_fields = []
@@ -554,6 +544,23 @@ def pest_control_permit_detail(request, id):
                         notes='Company email updated from permit request detail page.',
                     )
                     changed_labels.append('بريد الشركة')
+
+                # Handle receipt file uploads
+                receipt_update_fields = []
+                for field_name, label in (
+                    ('inspection_payment_receipt', 'إيصال دفع التفتيش'),
+                    ('payment_receipt', 'إيصال دفع تصريح المزاولة'),
+                ):
+                    receipt_file = request.FILES.get(field_name)
+                    if receipt_file:
+                        ext = os.path.splitext(receipt_file.name)[1].lower()
+                        if ext in ALLOWED_DOC_EXTENSIONS:
+                            setattr(pirmet, field_name, receipt_file)
+                            receipt_update_fields.append(field_name)
+                            changed_labels.append(label)
+                        else:
+                            review_errors.append(f'يُسمح فقط بملفات PDF أو صور لـ {label}.')
+
                 if changed_labels:
                     pirmet.save(update_fields=[
                         'request_email',
@@ -562,7 +569,7 @@ def pest_control_permit_detail(request, id):
                         'issue_date',
                         'dateOfExpiry',
                         'payment_date',
-                    ])
+                    ] + receipt_update_fields)
 
                 if enginer:
                     engineer_changed = []
@@ -677,6 +684,35 @@ def pest_control_permit_detail(request, id):
                     old_status=old_status,
                     new_status=pirmet.status,
                     notes='Violation payment receipt uploaded.',
+                )
+                return redirect('pest_control_permit_detail', id=pirmet.id)
+
+        if action == 'update_violation_data':
+            if not (_can_admin(request.user) or _can_data_entry(request.user)):
+                review_errors.append('ليس لديك صلاحية لتعديل بيانات المخالفة.')
+
+            order_number = (request.POST.get('violation_payment_order_number') or '').strip()
+            update_fields = []
+            if order_number:
+                pirmet.violation_payment_order_number = order_number
+                update_fields.append('violation_payment_order_number')
+
+            receipt_file = request.FILES.get('violation_payment_receipt')
+            if receipt_file:
+                ext = os.path.splitext(receipt_file.name)[1].lower()
+                if ext in ALLOWED_DOC_EXTENSIONS:
+                    pirmet.violation_payment_receipt = receipt_file
+                    update_fields.append('violation_payment_receipt')
+                else:
+                    review_errors.append('يُسمح فقط بملفات PDF أو صور لإيصال المخالفة.')
+
+            if not review_errors and update_fields:
+                pirmet.save(update_fields=update_fields)
+                _log_pirmet_change(
+                    pirmet,
+                    'details_update',
+                    request.user,
+                    notes='Violation data updated by admin/data-entry.',
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
@@ -1295,6 +1331,7 @@ def pest_control_permit_detail(request, id):
             'can_issue_pirmet': _can_admin(request.user),
             'can_update_pirmet': _can_admin(request.user),
             'user_is_admin': _can_admin(request.user),
+            'user_is_data_entry': _can_data_entry(request.user),
             'inspector_users': _inspector_users_qs(),
         },
     )

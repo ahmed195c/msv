@@ -98,16 +98,21 @@
     }
 
     .section-title {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      padding: 6px 10px;
+      justify-content: center;
+      width: 100%;
+      padding: 10px 14px;
       border-radius: 6px;
       border: 1.5px solid var(--pd-accent);
       background: var(--pd-accent);
       color: #fff;
-      font-size: 13px;
+      font-size: 14.5px;
       font-weight: 800;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
+      text-align: center;
+      box-sizing: border-box;
+      letter-spacing: 0.01em;
     }
 
     .detail-grid {
@@ -126,8 +131,8 @@
     }
 
     .detail-item .label {
-      font-size: 11px;
-      color: var(--pd-ink-3);
+      font-size: 12.5px;
+      color: var(--pd-ink-2);
       font-weight: 700;
     }
 
@@ -229,7 +234,7 @@
       .detail-item .label {
         width: 42%;
         flex-shrink: 0;
-        font-size: 11.5px;
+        font-size: 12px;
         border-left: 1.5px solid var(--pd-line, #d4dce5);
         padding-left: 8px;
       }
@@ -249,6 +254,15 @@
       .upload-grid-two { grid-template-columns: 1fr; }
       .upload-dropzone  { min-height: 90px; }
     }
+
+    /* ── Reset pirmet_detail.css box styles ── */
+    .permit-section { border: none; border-top: 1.5px solid var(--pd-line); background: transparent; border-radius: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; }
+    .detail-item { border: none; border-bottom: 1px solid var(--pd-line); background: transparent; border-radius: 0; box-shadow: none; min-height: unset; }
+    .payment-box { border: none; background: transparent; border-radius: 0; box-shadow: none; min-height: unset; padding: 0; }
+    .meta-item { border: none; border-left: 1px solid var(--pd-line); border-bottom: 1px solid var(--pd-line); border-radius: 0; box-shadow: none; }
+    .meta-item:last-child { border-left: none; }
+    .municipality { background: transparent; border: none; border-radius: 0; }
+    .logo-box { border: none; background: transparent; box-shadow: none; }
   </style>
 {% endblock %}
 {% block content %}

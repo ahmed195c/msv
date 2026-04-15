@@ -772,3 +772,212 @@ class RequirementInsuranceRequest(models.Model):
 
     def __str__(self):
         return f"{self.company.name} - Requirement Insurance #{self.id}"
+
+
+# ══════════════════════════════════════════
+#  Complaints System
+# ══════════════════════════════════════════
+
+class Complaint(models.Model):
+    STATUS_CHOICES = [
+        ('new',                 'جديدة'),
+        ('assigned_inspector',  'بانتظار التفتيش'),
+        ('inspection_done',     'اكتمل التفتيش'),
+        ('assigned_supervisor', 'بانتظار المعالجة'),
+        ('in_progress',         'قيد المعالجة'),
+        ('resolved',            'تم الحل'),
+        ('closed',              'مغلقة'),
+    ]
+
+    PEST_CHOICES = [
+        ('ant',         'نمل'),
+        ('mosquito',    'بعوض'),
+        ('fly',         'ذباب'),
+        ('rat',         'فئران'),
+        ('cockroach',   'صراصير'),
+        ('honey_bee',   'نحل'),
+        ('scorpion',    'عقارب'),
+        ('snake',       'ثعبان'),
+        ('wasp',        'دبابير'),
+        ('lizard',      'سحلية'),
+        ('other',       'أخرى'),
+    ]
+
+    complaint_number = models.CharField(
+        max_length=100,
+        verbose_name='رقم الشكوى',
+    )
+    pdf_file = models.FileField(
+        upload_to='complaints/pdfs/',
+        verbose_name='ملف الشكوى (PDF)',
+        null=True,
+        blank=True,
+    )
+    # Complainant info
+    complainant_name = models.CharField(max_length=200, blank=True, verbose_name='اسم المتعامل')
+    complainant_mobile = models.CharField(max_length=30, blank=True, verbose_name='موبايل المتعامل')
+    area = models.CharField(max_length=200, blank=True, verbose_name='المنطقة')
+    street_number = models.CharField(max_length=50, blank=True, verbose_name='رقم الشارع')
+    house_number = models.CharField(max_length=50, blank=True, verbose_name='رقم المنزل')
+    # Pest types: comma-separated keys from PEST_CHOICES
+    pest_types = models.CharField(max_length=200, blank=True, verbose_name='أنواع الآفات')
+    notes = models.TextField(
+        blank=True,
+        verbose_name='ملاحظات',
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='new',
+        verbose_name='الحالة',
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='complaints_created',
+        verbose_name='أضيف بواسطة',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'شكوى'
+        verbose_name_plural = 'الشكاوي'
+
+    def __str__(self):
+        return f"شكوى #{self.complaint_number}"
+
+
+class ComplaintInspection(models.Model):
+    """Inspector visit record: GPS location + photos."""
+    complaint = models.OneToOneField(
+        Complaint, on_delete=models.CASCADE, related_name='inspection',
+        verbose_name='الشكوى',
+    )
+    inspector = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True,
+        related_name='complaint_inspections', verbose_name='المفتش',
+    )
+    assigned_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='complaint_inspections_assigned', verbose_name='أسند بواسطة',
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, verbose_name='خط العرض')
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, verbose_name='خط الطول')
+    location_notes = models.TextField(blank=True, verbose_name='وصف الموقع')
+    inspection_notes = models.TextField(blank=True, verbose_name='ملاحظات التفتيش')
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ الإنجاز')
+
+    class Meta:
+        verbose_name = 'تفتيش شكوى'
+        verbose_name_plural = 'تفتيش الشكاوي'
+
+    def __str__(self):
+        return f"تفتيش — {self.complaint}"
+
+
+class ComplaintResolution(models.Model):
+    """Supervisor resolution record: workers, vehicles, days, photos."""
+    complaint = models.OneToOneField(
+        Complaint, on_delete=models.CASCADE, related_name='resolution',
+        verbose_name='الشكوى',
+    )
+    supervisor = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True,
+        related_name='complaint_resolutions', verbose_name='المراقب',
+    )
+    assigned_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='complaint_resolutions_assigned', verbose_name='أسند بواسطة',
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    CLOSING_STATUS_CHOICES = [
+        ('ok',              'تم التنفيذ (OK)'),
+        ('no_answer',       'لا يوجد رد'),
+        ('private_company', 'أُحيل لشركة خاصة'),
+        ('need_ulv',        'يحتاج رش ULV'),
+        ('need_approval',   'يحتاج موافقة'),
+        ('no_need',         'لا يحتاج تدخل'),
+    ]
+
+    num_workers = models.PositiveIntegerField(null=True, blank=True, verbose_name='عدد العمال')
+    num_days = models.PositiveIntegerField(null=True, blank=True, verbose_name='عدد الأيام')
+    work_notes = models.TextField(blank=True, verbose_name='ملاحظات المعالجة')
+    closing_status = models.CharField(
+        max_length=20, choices=CLOSING_STATUS_CHOICES,
+        blank=True, verbose_name='حالة الإغلاق',
+    )
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ الإنجاز')
+
+    class Meta:
+        verbose_name = 'معالجة شكوى'
+        verbose_name_plural = 'معالجة الشكاوي'
+
+    def __str__(self):
+        return f"معالجة — {self.complaint}"
+
+
+class ComplaintVehicle(models.Model):
+    """Vehicle used during complaint resolution."""
+    resolution = models.ForeignKey(
+        ComplaintResolution, on_delete=models.CASCADE, related_name='vehicles',
+        verbose_name='المعالجة',
+    )
+    plate_number = models.CharField(max_length=50, verbose_name='رقم اللوحة')
+    vehicle_type = models.CharField(max_length=100, blank=True, verbose_name='نوع المركبة')
+
+    class Meta:
+        verbose_name = 'مركبة'
+        verbose_name_plural = 'المركبات'
+
+    def __str__(self):
+        return self.plate_number
+
+
+class ComplaintMaterial(models.Model):
+    """Chemical material used during complaint resolution."""
+    resolution = models.ForeignKey(
+        ComplaintResolution, on_delete=models.CASCADE, related_name='materials',
+        verbose_name='المعالجة',
+    )
+    material_name = models.CharField(max_length=150, verbose_name='اسم المادة')
+    quantity = models.CharField(max_length=50, blank=True, verbose_name='الكمية')
+
+    class Meta:
+        verbose_name = 'مادة كيميائية'
+        verbose_name_plural = 'المواد الكيميائية'
+
+    def __str__(self):
+        return f"{self.material_name} — {self.resolution}"
+
+
+class ComplaintPhoto(models.Model):
+    """Photo attached to a complaint at a specific phase."""
+    PHASE_CHOICES = [
+        ('inspection',  'صور التفتيش'),
+        ('during_work', 'صور أثناء العمل'),
+        ('after_work',  'صور بعد الانتهاء'),
+    ]
+    complaint = models.ForeignKey(
+        Complaint, on_delete=models.CASCADE, related_name='photos',
+        verbose_name='الشكوى',
+    )
+    phase = models.CharField(max_length=20, choices=PHASE_CHOICES, verbose_name='المرحلة')
+    file = models.ImageField(upload_to='complaints/photos/', verbose_name='الصورة')
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='complaint_photos', verbose_name='رُفعت بواسطة',
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['uploaded_at']
+        verbose_name = 'صورة شكوى'
+        verbose_name_plural = 'صور الشكاوي'
+
+    def __str__(self):
+        return f"{self.get_phase_display()} — {self.complaint}"

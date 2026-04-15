@@ -462,7 +462,7 @@ def permits_report_excel(request):
     )
     company_ids = [c.id for c in companies]
 
-    # Fetch latest permit per (company, permit_type) — newest first
+    # Fetch all permits ordered: issued first, then newest creation date
     all_permits = list(
         PirmetClearance.objects
         .filter(company_id__in=company_ids)
@@ -470,13 +470,18 @@ def permits_report_excel(request):
     )
 
     # Build map: company_id -> {permit_type -> permit}
+    # Prefer the latest *issued* permit over any in-progress permit
     permit_map = {}
     for p in all_permits:
         cid = p.company_id
         pt = p.permit_type
         if cid not in permit_map:
             permit_map[cid] = {}
-        if pt not in permit_map[cid]:
+        existing = permit_map[cid].get(pt)
+        if existing is None:
+            permit_map[cid][pt] = p
+        elif existing.status != 'issued' and p.status == 'issued':
+            # Replace in-progress permit with an issued one
             permit_map[cid][pt] = p
 
     # Sort companies: newest pest_control permit first, companies with no permit last
@@ -679,3 +684,225 @@ def permits_report_excel(request):
     return response
 
 
+@login_required
+def inspector_report_excel(request):
+    """Export inspector performance report: rows = inspectors, cols = permit type × decision."""
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    today = timezone.localdate()
+
+    PERMIT_TYPES = [
+        ('pest_control',        'تصريح النشاط'),
+        ('pesticide_transport', 'تصريح المركبة'),
+        ('waste_disposal',      'تصريح النفايات'),
+    ]
+    PT_KEYS = [k for k, _ in PERMIT_TYPES]
+
+    # Fetch all reviews with related data
+    reviews = list(
+        InspectorReview.objects
+        .select_related('inspector_user', 'pirmet')
+        .filter(inspector_user__isnull=False)
+    )
+
+    # Build: {user_id: {permit_type: {approved: N, rejected: N}}}
+    from collections import defaultdict
+    stats = defaultdict(lambda: {pt: {'approved': 0, 'rejected': 0} for pt in PT_KEYS})
+    user_map = {}
+
+    for r in reviews:
+        uid = r.inspector_user_id
+        pt = r.pirmet.permit_type if r.pirmet_id else None
+        if pt not in PT_KEYS:
+            continue
+        user_map[uid] = r.inspector_user
+        decision = 'approved' if r.isApproved else 'rejected'
+        stats[uid][pt][decision] += 1
+
+    # Sort inspectors by total reviews desc
+    inspector_ids = sorted(
+        user_map.keys(),
+        key=lambda uid: sum(
+            stats[uid][pt]['approved'] + stats[uid][pt]['rejected']
+            for pt in PT_KEYS
+        ),
+        reverse=True,
+    )
+
+    # ── Styles ──
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'تقرير المفتشين'
+    ws.sheet_view.rightToLeft = True
+
+    header_font   = Font(bold=True, color='FFFFFF', size=11)
+    header_fill   = PatternFill('solid', fgColor='1e293b')
+    sub_fill_ap   = PatternFill('solid', fgColor='166534')
+    sub_fill_rj   = PatternFill('solid', fgColor='991b1b')
+    sub_fill_tot  = PatternFill('solid', fgColor='374151')
+    center        = Alignment(horizontal='center', vertical='center', wrap_text=True, readingOrder=2)
+    right_align   = Alignment(horizontal='right',  vertical='center', wrap_text=True, readingOrder=2)
+    thin          = Side(border_style='thin', color='C0C8D0')
+    border        = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    green_fill = PatternFill('solid', fgColor='D1FAE5')
+    red_fill   = PatternFill('solid', fgColor='FEE2E2')
+    green_font = Font(bold=True, color='065F46')
+    red_font   = Font(bold=True, color='991B1B')
+    gray_fill  = PatternFill('solid', fgColor='F3F4F6')
+    gray_font  = Font(bold=True, color='374151')
+
+    ws.row_dimensions[1].height = 26
+    ws.row_dimensions[2].height = 22
+
+    # ── Row 1: group headers ──
+    # Info group
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=2)
+    c = ws.cell(row=1, column=1, value='بيانات المفتش')
+    c.font = header_font; c.fill = header_fill; c.alignment = center; c.border = border
+
+    # Permit type groups (3 cols each: اعتماد | رفض | المجموع)
+    for ti, (_, pt_label) in enumerate(PERMIT_TYPES):
+        sc = 3 + ti * 3
+        ws.merge_cells(start_row=1, start_column=sc, end_row=1, end_column=sc + 2)
+        c = ws.cell(row=1, column=sc, value=pt_label)
+        c.font = header_font; c.fill = header_fill; c.alignment = center; c.border = border
+
+    # Total group
+    total_col = 3 + len(PERMIT_TYPES) * 3
+    ws.merge_cells(start_row=1, start_column=total_col, end_row=1, end_column=total_col + 2)
+    c = ws.cell(row=1, column=total_col, value='الإجمالي')
+    c.font = header_font; c.fill = header_fill; c.alignment = center; c.border = border
+
+    # ── Row 2: sub-headers ──
+    for ci, label in enumerate(['م', 'اسم المفتش'], 1):
+        c = ws.cell(row=2, column=ci, value=label)
+        c.font = header_font; c.fill = header_fill; c.alignment = center; c.border = border
+
+    sub_labels = ['اعتماد', 'رفض', 'المجموع']
+    for ti in range(len(PERMIT_TYPES)):
+        for si, sl in enumerate(sub_labels):
+            col = 3 + ti * 3 + si
+            c = ws.cell(row=2, column=col, value=sl)
+            c.font = header_font
+            c.fill = sub_fill_ap if si == 0 else (sub_fill_rj if si == 1 else sub_fill_tot)
+            c.alignment = center; c.border = border
+
+    for si, sl in enumerate(sub_labels):
+        col = total_col + si
+        c = ws.cell(row=2, column=col, value=sl)
+        c.font = header_font
+        c.fill = sub_fill_ap if si == 0 else (sub_fill_rj if si == 1 else sub_fill_tot)
+        c.alignment = center; c.border = border
+
+    # ── Column widths ──
+    ws.column_dimensions['A'].width = 5
+    ws.column_dimensions['B'].width = 26
+    for ti in range(len(PERMIT_TYPES)):
+        for si in range(3):
+            ws.column_dimensions[get_column_letter(3 + ti * 3 + si)].width = 10
+    for si in range(3):
+        ws.column_dimensions[get_column_letter(total_col + si)].width = 10
+
+    # ── Data rows ──
+    row_num = 3
+    total_approved_all = 0
+    total_rejected_all = 0
+
+    for idx, uid in enumerate(inspector_ids, 1):
+        user = user_map[uid]
+        name = user.get_full_name() or user.username
+        ws.row_dimensions[row_num].height = 19
+
+        ws.cell(row=row_num, column=1, value=idx).alignment = center
+        ws.cell(row=row_num, column=1).border = border
+        ws.cell(row=row_num, column=2, value=name).alignment = right_align
+        ws.cell(row=row_num, column=2).border = border
+
+        row_approved = 0
+        row_rejected = 0
+
+        for ti, (pt_key, _) in enumerate(PERMIT_TYPES):
+            ap = stats[uid][pt_key]['approved']
+            rj = stats[uid][pt_key]['rejected']
+            tot = ap + rj
+            row_approved += ap
+            row_rejected += rj
+
+            base = 3 + ti * 3
+            ca = ws.cell(row=row_num, column=base, value=ap or '')
+            ca.alignment = center; ca.border = border
+            if ap: ca.fill = green_fill; ca.font = green_font
+
+            cr = ws.cell(row=row_num, column=base + 1, value=rj or '')
+            cr.alignment = center; cr.border = border
+            if rj: cr.fill = red_fill; cr.font = red_font
+
+            ct = ws.cell(row=row_num, column=base + 2, value=tot or '')
+            ct.alignment = center; ct.border = border
+            if tot: ct.fill = gray_fill; ct.font = gray_font
+
+        total_approved_all += row_approved
+        total_rejected_all += row_rejected
+
+        ca2 = ws.cell(row=row_num, column=total_col, value=row_approved or '')
+        ca2.alignment = center; ca2.border = border
+        if row_approved: ca2.fill = green_fill; ca2.font = green_font
+
+        cr2 = ws.cell(row=row_num, column=total_col + 1, value=row_rejected or '')
+        cr2.alignment = center; cr2.border = border
+        if row_rejected: cr2.fill = red_fill; cr2.font = red_font
+
+        ct2 = ws.cell(row=row_num, column=total_col + 2, value=(row_approved + row_rejected) or '')
+        ct2.alignment = center; ct2.border = border
+        if row_approved + row_rejected: ct2.fill = gray_fill; ct2.font = gray_font
+
+        row_num += 1
+
+    # ── Totals row ──
+    ws.row_dimensions[row_num].height = 20
+    total_font = Font(bold=True, size=11)
+    total_fill = PatternFill('solid', fgColor='E2E8F0')
+
+    ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=2)
+    ct = ws.cell(row=row_num, column=1, value='الإجمالي')
+    ct.font = total_font; ct.fill = total_fill; ct.alignment = center; ct.border = border
+
+    grand_approved = 0
+    grand_rejected = 0
+    for ti, (pt_key, _) in enumerate(PERMIT_TYPES):
+        ap_total = sum(stats[uid][pt_key]['approved'] for uid in inspector_ids)
+        rj_total = sum(stats[uid][pt_key]['rejected'] for uid in inspector_ids)
+        grand_approved += ap_total
+        grand_rejected += rj_total
+        base = 3 + ti * 3
+
+        c = ws.cell(row=row_num, column=base, value=ap_total or '')
+        c.font = total_font; c.fill = total_fill; c.alignment = center; c.border = border
+        c = ws.cell(row=row_num, column=base + 1, value=rj_total or '')
+        c.font = total_font; c.fill = total_fill; c.alignment = center; c.border = border
+        c = ws.cell(row=row_num, column=base + 2, value=(ap_total + rj_total) or '')
+        c.font = total_font; c.fill = total_fill; c.alignment = center; c.border = border
+
+    c = ws.cell(row=row_num, column=total_col, value=grand_approved or '')
+    c.font = total_font; c.fill = total_fill; c.alignment = center; c.border = border
+    c = ws.cell(row=row_num, column=total_col + 1, value=grand_rejected or '')
+    c.font = total_font; c.fill = total_fill; c.alignment = center; c.border = border
+    c = ws.cell(row=row_num, column=total_col + 2, value=(grand_approved + grand_rejected) or '')
+    c.font = total_font; c.fill = total_fill; c.alignment = center; c.border = border
+
+    ws.freeze_panes = 'C3'
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"inspector_report_{today.strftime('%Y%m%d')}.xlsx"
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response

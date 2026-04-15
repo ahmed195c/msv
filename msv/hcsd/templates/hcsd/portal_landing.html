@@ -1,0 +1,245 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بلدية الشارقة — قسم الصحة والبيئة</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --permits-color:    #304357;
+      --permits-dk:       #26384a;
+      --permits-lt:       #eaf0f6;
+      --complaints-color: #1d6f42;
+      --complaints-dk:    #155735;
+      --complaints-lt:    #f0fdf4;
+      --ink:   #1f2937;
+      --ink-2: #4b5563;
+      --ink-3: #9ca3af;
+      --line:  #e5e7eb;
+      --sans:  'IBM Plex Sans Arabic', sans-serif;
+    }
+
+    html, body {
+      min-height: 100vh;
+      font-family: var(--sans);
+      background: #f8fafc;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    /* ── Header ── */
+    .portal-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .portal-logo {
+      width: 80px;
+      height: auto;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.10));
+    }
+
+    .portal-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.3px;
+      margin-bottom: 4px;
+    }
+
+    .portal-subtitle {
+      font-size: 14px;
+      color: var(--ink-2);
+      font-weight: 400;
+    }
+
+    .portal-divider {
+      width: 48px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--permits-color), var(--complaints-color));
+      border-radius: 2px;
+      margin: 14px auto 0;
+    }
+
+    /* ── Cards ── */
+    .portal-cards {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 780px;
+    }
+
+    .portal-card {
+      flex: 1;
+      min-width: 280px;
+      max-width: 360px;
+      background: #fff;
+      border-radius: 16px;
+      border: 2px solid var(--line);
+      padding: 36px 32px 32px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; left: 0;
+      height: 5px;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .portal-card--permits::before  { background: var(--permits-color); }
+    .portal-card--complaints::before { background: var(--complaints-color); }
+
+    .portal-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.12);
+    }
+
+    .portal-card--permits:hover  { border-color: var(--permits-color); }
+    .portal-card--complaints:hover { border-color: var(--complaints-color); }
+
+    .portal-card-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+
+    .portal-card--permits .portal-card-icon {
+      background: var(--permits-lt);
+      color: var(--permits-color);
+    }
+
+    .portal-card--complaints .portal-card-icon {
+      background: var(--complaints-lt);
+      color: var(--complaints-color);
+    }
+
+    .portal-card-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .portal-card-name {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .portal-card--permits  .portal-card-name { color: var(--permits-color); }
+    .portal-card--complaints .portal-card-name { color: var(--complaints-color); }
+
+    .portal-card-desc {
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.7;
+    }
+
+    .portal-card-btn {
+      margin-top: 8px;
+      padding: 10px 28px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--sans);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background .15s;
+    }
+
+    .portal-card--permits  .portal-card-btn { background: var(--permits-color); }
+    .portal-card--permits  .portal-card-btn:hover { background: var(--permits-dk); }
+    .portal-card--complaints .portal-card-btn { background: var(--complaints-color); }
+    .portal-card--complaints .portal-card-btn:hover { background: var(--complaints-dk); }
+
+    /* ── Footer ── */
+    .portal-footer {
+      margin-top: 48px;
+      font-size: 12px;
+      color: var(--ink-3);
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .portal-header { margin-bottom: 32px; }
+      .portal-card   { padding: 28px 22px 24px; min-width: 260px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="portal-header">
+    <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="بلدية الشارقة" class="portal-logo">
+    <h1 class="portal-title">قسم الصحة والبيئة — بلدية الشارقة</h1>
+    <p class="portal-subtitle">اختر النظام المطلوب للمتابعة</p>
+    <div class="portal-divider"></div>
+  </header>
+
+  <div class="portal-cards">
+
+    <!-- Permits System -->
+    <a href="{% url 'home' %}" class="portal-card portal-card--permits">
+      <div class="portal-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="3"/>
+          <path d="M7 8h10M7 12h7M7 16h5"/>
+        </svg>
+      </div>
+      <div class="portal-card-name">نظام التصاريح</div>
+      <p class="portal-card-desc">إدارة تصاريح مكافحة الآفات والمركبات وتصاريح التخلص من النفايات ومتابعة إجراءات الفحص والإصدار.</p>
+      <span class="portal-card-btn">الدخول للنظام</span>
+    </a>
+
+    <!-- Complaints System -->
+    <a href="{% url 'complaints_dashboard' %}" class="portal-card portal-card--complaints">
+      <div class="portal-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <div class="portal-card-name">نظام الشكاوي</div>
+      <p class="portal-card-desc">استقبال شكاوى المواطنين ومتابعة معالجتها وإسنادها للجهات المختصة والإشراف على الحلول المقدمة.</p>
+      <span class="portal-card-btn">الدخول للنظام</span>
+    </a>
+
+  </div>
+
+  <footer class="portal-footer">
+    بلدية الشارقة &mdash; قسم الصحة والبيئة
+  </footer>
+
+</body>
+</html>

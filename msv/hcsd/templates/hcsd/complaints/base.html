@@ -1,0 +1,238 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{% if lang == 'en' %}en{% else %}ar{% endif %}"
+      dir="{% if lang == 'en' %}ltr{% else %}rtl{% endif %}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{% if lang == 'en' %}Complaints{% else %}الشكاوي{% endif %}{% endblock %} — {% if lang == 'en' %}Sharjah Municipality{% else %}بلدية الشارقة{% endif %}</title>
+  <link rel="stylesheet" href="{% static 'hcsd/tailwind.css' %}?v=20260309b">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
+
+<style>
+:root {
+  --ink:        #0f172a;
+  --ink-2:      #475569;
+  --ink-3:      #64748b;
+  --ink-4:      #94a3b8;
+  --paper:      #ffffff;
+  --surface:    #f8fafc;
+  --surface-2:  #f1f5f9;
+  --line:       #e2e8f0;
+  --line-2:     #cbd5e1;
+  --accent:     #2563eb;
+  --accent-dk:  #1d4ed8;
+  --accent-lt:  #3b82f6;
+  --accent-bg:  #eff6ff;
+  --success:    #16a34a;
+  --mono:       'JetBrains Mono', monospace;
+  --sans-ar:    'IBM Plex Sans Arabic', sans-serif;
+  --sans-en:    'IBM Plex Sans', sans-serif;
+  --nav-h:      58px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:  0 2px 12px rgba(0,0,0,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-family: {% if lang == 'en' %}var(--sans-en){% else %}var(--sans-ar){% endif %};
+  color: var(--ink);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+body.app-shell {
+  margin: 0;
+  font-family: {% if lang == 'en' %}var(--sans-en){% else %}var(--sans-ar){% endif %};
+  color: var(--ink);
+  background: var(--surface);
+  direction: {% if lang == 'en' %}ltr{% else %}rtl{% endif %};
+  text-align: {% if lang == 'en' %}left{% else %}right{% endif %};
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #1e293b;
+  border-bottom: 1.5px solid #0f172a;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+}
+
+.navbar {
+  max-width: 1280px;
+  margin: 0 auto;
+  height: var(--nav-h);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.nav-brand img { height: 34px; filter: brightness(0) invert(1); }
+
+.nav-brand-label { display: flex; flex-direction: column; line-height: 1.2; }
+.nav-brand-sub   { font-size: 11px; font-weight: 400; opacity: 0.8; }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  {% if lang == 'en' %}margin-left: 24px;{% else %}margin-right: 24px;{% endif %}
+  flex: 1;
+}
+
+.nav-link {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.nav-link:hover, .nav-link.active { background: rgba(255,255,255,.15); color: #fff; }
+
+.nav-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  {% if lang == 'en' %}margin-left: auto;{% else %}margin-right: auto;{% endif %}
+}
+
+.nav-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .15s;
+}
+.nav-switch:hover { background: rgba(255,255,255,.25); }
+
+/* Language toggle */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,.35);
+}
+.lang-toggle__btn {
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.7);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, color .15s;
+}
+.lang-toggle__btn.active {
+  background: rgba(255,255,255,.25);
+  color: #fff;
+}
+.lang-toggle__sep {
+  width: 1px;
+  height: 18px;
+  background: rgba(255,255,255,.3);
+}
+
+.nav-user { font-size: 13px; color: rgba(255,255,255,.8); }
+
+.app-main { flex: 1; padding: 28px 20px; max-width: 1280px; margin: 0 auto; width: 100%; }
+
+.page-header { margin-bottom: 24px; }
+.page-title  { font-size: 20px; font-weight: 700; color: var(--ink); }
+.page-subtitle { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+
+@media (max-width: 720px) {
+  .app-main { padding: 16px 12px; }
+  .nav-brand-label { display: none; }
+}
+</style>
+
+{% block extra_head %}{% endblock %}
+</head>
+
+<body class="app-shell">
+
+<div class="app-chrome">
+  <nav class="navbar">
+    <a href="{% url 'complaints_dashboard' %}" class="nav-brand">
+      <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="Sharjah Municipality">
+      <span class="nav-brand-label">
+        {% if lang == 'en' %}Complaints System{% else %}نظام الشكاوي{% endif %}
+        <span class="nav-brand-sub">{% if lang == 'en' %}Environment Dept.{% else %}قسم البيئة{% endif %}</span>
+      </span>
+    </a>
+
+    <div class="nav-links">
+      {% block nav_links %}{% endblock %}
+    </div>
+
+    <div class="nav-end">
+      <!-- Language toggle -->
+      <div class="lang-toggle">
+        <form method="post" action="{% url 'set_complaints_language' %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="lang" value="ar">
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" class="lang-toggle__btn {% if lang == 'ar' %}active{% endif %}">ع</button>
+        </form>
+        <span class="lang-toggle__sep"></span>
+        <form method="post" action="{% url 'set_complaints_language' %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="lang" value="en">
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" class="lang-toggle__btn {% if lang == 'en' %}active{% endif %}">EN</button>
+        </form>
+      </div>
+
+      <!-- Switch to permits -->
+      <a href="{% url 'home' %}" class="nav-switch">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h7M7 16h5"/></svg>
+        {% if lang == 'en' %}Permits System{% else %}نظام التصاريح{% endif %}
+      </a>
+
+      {% if request.user.is_authenticated %}
+      <span class="nav-user">{{ request.user.get_full_name|default:request.user.username }}</span>
+      <a href="{% url 'logout' %}" class="nav-link" style="color:rgba(255,255,255,.7);">
+        {% if lang == 'en' %}Logout{% else %}خروج{% endif %}
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+</div>
+
+<main class="app-main">
+  {% block content %}{% endblock %}
+</main>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

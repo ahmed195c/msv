@@ -3,7 +3,6 @@
 {% block title %}متابعة تصريح المركبة{% endblock %}
 {% block extra_css %}
   <style>
-    /* ── Page shell ── */
     .permit-page {
       --pd-ink:        #304357;
       --pd-ink-2:      #455c75;
@@ -15,163 +14,145 @@
       --pd-line-2:     #bcc8d5;
       --pd-accent:     #304357;
       --pd-accent-dark:#26384a;
-      --pd-danger:     #8c2f2f;
+      --pd-btn:        #4a627c;
       --pd-radius:     8px;
-      --pd-shadow:     0 10px 24px rgba(48,67,87,0.08);
       padding: 20px 10px 36px;
-      background: linear-gradient(180deg,rgba(255,255,255,0.5),rgba(241,244,247,0.86)),var(--pd-surface);
       direction: rtl;
     }
 
-    /* ── Card ── */
     .permit-card {
       max-width: 1160px;
       margin: 0 auto;
-      background: var(--pd-paper);
-      border: 1.5px solid var(--pd-line);
-      border-radius: var(--pd-radius);
-      box-shadow: var(--pd-shadow);
-      padding: 18px;
+      background: var(--pd-surface);
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(48,67,87,0.10);
+      padding: 20px;
       color: var(--pd-ink);
       font-family: "IBM Plex Sans Arabic","Tahoma",sans-serif;
-    }
-
-    /* ── Hero bar ── */
-    .hero-bar {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      padding: 14px 18px;
-      background: linear-gradient(160deg,#3a4f66 0%,#304357 55%,#26384a 100%);
-      border-radius: 6px 6px 0 0;
-      margin: -18px -18px 18px;
-      color: #fff;
-    }
-    .hero-left  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .hero-center { flex: 1; text-align: center; }
-    .hero-right { display: flex; align-items: center; gap: 8px; }
-    .hero-title {
-      font-size: clamp(15px,1.8vw,20px);
-      font-weight: 800;
-    }
-    .hero-btn {
-      color: #c8d8e8;
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
-      border: 1.5px solid rgba(255,255,255,0.25);
-      border-radius: 6px;
-      padding: 6px 12px;
-      transition: background .15s;
-    }
-    .hero-btn:hover { background: rgba(255,255,255,0.1); }
-    .hero-btn--print { background: rgba(255,255,255,0.15); }
-
-    /* ── Status badges ── */
-    .hero-status {
-      display: inline-block;
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-size: 12.5px;
-      font-weight: 700;
-    }
-    .hero-status--default  { background: rgba(255,255,255,0.15); color: #e0eaf4; border: 1.5px solid rgba(255,255,255,0.2); }
-    .hero-status--pending  { background: #fef3c7; color: #78350f; border: 1.5px solid #fcd34d; }
-    .hero-status--info     { background: #dbeafe; color: #1e3a5f; border: 1.5px solid #93c5fd; }
-    .hero-status--issued   { background: #d4f5e2; color: #0e3d1d; border: 1.5px solid #155e2e; }
-    .hero-status--warning  { background: #fff7ed; color: #7c2d12; border: 1.5px solid #fed7aa; }
-    .hero-status--closed   { background: #f1f5f9; color: #475569; border: 1.5px solid #cbd5e1; }
-
-    /* ── Permit header (logo + meta) ── */
-    .permit-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 14px;
-      padding-bottom: 14px;
-      border-bottom: 1.5px solid var(--pd-line);
-      margin-bottom: 14px;
     }
-    .municipality { display: flex; align-items: center; gap: 12px; }
-    .logo-box img { height: 64px; width: auto; display: block; }
-    .municipality-text .title { font-weight: 800; font-size: 15px; color: var(--pd-ink); }
-    .municipality-text .sub   { font-size: 12px; color: var(--pd-ink-3); margin-top: 2px; }
-    .meta-grid {
+
+    /* ── Action bar ── */
+    .action-bar {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      align-items: flex-start;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(48,67,87,0.10), 0 0 0 1px rgba(48,67,87,0.08);
     }
-    .meta-item {
-      display: grid;
-      gap: 3px;
-      min-width: 150px;
+
+    .back-link, .print-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      line-height: 1;
+      text-decoration: none;
+      transition: background .15s, border-color .15s;
+      border: 1.5px solid var(--pd-line-2);
+      background: var(--pd-surface);
+      color: var(--pd-ink);
+      vertical-align: middle;
     }
-    .meta-item .label { font-size: 11px; color: var(--pd-ink-3); font-weight: 700; }
-    .meta-item .value { font-size: 14px; font-weight: 700; color: var(--pd-ink); }
+    .back-link:hover { background: var(--pd-surface-2); border-color: var(--pd-ink-3); }
+    .print-button { background: var(--pd-accent); border-color: var(--pd-accent); color: #fff; }
+    .print-button:hover { background: var(--pd-accent-dark); border-color: var(--pd-accent-dark); }
+
+    /* ── Municipality ── */
+    .municipality { display: flex; align-items: center; gap: 12px; }
+    .logo-box img { height: 48px; width: auto; display: block; }
+    .municipality-text .title { font-weight: 800; font-size: 15px; color: var(--pd-ink); }
+    .municipality-text .sub   { font-size: 12px; color: var(--pd-ink-3); margin-top: 2px; }
+
+    /* ── Status bar ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(48,67,87,0.10), 0 0 0 1px rgba(48,67,87,0.08);
+    }
+    .status-bar-label {
+      font-size: 11.5px; font-weight: 700; color: var(--pd-ink-3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 13px; font-weight: 700; line-height: 1.4;
+      border: 1.5px solid var(--pd-accent);
+      background: #edf2f7; color: var(--pd-accent);
+    }
+    .status-badge::before {
+      content: ''; display: inline-block;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: currentColor; flex-shrink: 0;
+    }
+    .status-badge--pending { border-color: #b07d10; background: #fef9ec; color: #7a5500; }
+    .status-badge--active  { border-color: #1f6b3e; background: #edf7f2; color: #1a5233; }
+    .status-badge--issued  { border-color: #155e2e; background: #d4f5e2; color: #0e3d1d; }
+    .status-badge--warning { border-color: #9c3a12; background: #fdf0ea; color: #7a2c0d; }
+    .status-badge--closed  { border-color: #5a5a5a; background: #f2f2f2; color: #3d3d3d; }
 
     /* ── Alert ── */
     .alert {
-      background: #fef2f2;
-      border: 1.5px solid #f5c6cb;
-      border-radius: 6px;
-      padding: 10px 14px;
-      color: #8c1f1f;
-      margin-bottom: 14px;
+      background: #fef2f2; border: 1.5px solid #f5c6cb;
+      border-radius: 6px; padding: 10px 14px; color: #8c1f1f;
     }
     .alert-list { margin: 6px 0 0 0; padding-right: 18px; }
     .alert-list li { margin-bottom: 3px; font-size: 13px; }
 
-    /* ── Sections ── */
-    .permit-section {
-      margin-top: 14px;
-      border: 1.5px solid var(--pd-line);
-      border-radius: 6px;
-      background: #fff;
-      padding: 12px;
-    }
-    .section-title {
-      display: inline-flex;
-      align-items: center;
-      padding: 5px 10px;
-      border-radius: 6px;
-      background: var(--pd-accent);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 800;
-      margin-bottom: 12px;
+    /* ── Doc card sections ── */
+    .permit-section { margin: 0; }
+    .permit-section--doc {
+      border-radius: 6px; padding: 0; overflow: hidden;
+      box-shadow: 0 2px 8px rgba(48,67,87,0.10), 0 0 0 1px rgba(48,67,87,0.08);
     }
 
-    /* ── Detail grid ── */
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-      gap: 10px;
+    .doc-band {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px 12px; background: #fff;
+      border-bottom: 1.5px solid var(--pd-line); gap: 12px;
     }
-    .detail-item {
-      display: grid;
-      gap: 5px;
-      border: 1.5px solid var(--pd-line);
-      border-radius: 6px;
-      background: var(--pd-surface);
-      padding: 9px 10px;
-    }
-    .detail-item .label { font-size: 11px; color: var(--pd-ink-3); font-weight: 700; }
-    .detail-item .value { font-size: 14px; font-weight: 700; color: var(--pd-ink); word-break: break-word; }
+    .doc-band-company { font-size: 17px; font-weight: 800; color: var(--pd-ink); line-height: 1.3; }
+    .doc-band-ref { display: flex; flex-direction: column; align-items: flex-start; flex-shrink: 0; gap: 2px; }
+    .doc-band-ref-label { font-size: 10.5px; color: var(--pd-ink-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+    .doc-band-ref-no { font-size: 22px; font-weight: 800; color: var(--pd-accent); font-family: "JetBrains Mono","Courier New",monospace; line-height: 1; }
 
-    /* ── Documents ── */
-    .documents { display: flex; flex-direction: column; gap: 6px; }
-    .documents a {
-      color: var(--pd-accent);
-      font-size: 13px;
-      font-weight: 600;
-      text-decoration: none;
-      word-break: break-all;
+    .doc-table { background: #fff; border-bottom: 1.5px solid var(--pd-line); }
+    .permit-section--doc .doc-table .detail-item {
+      padding: 10px 18px; border-bottom: 1px solid #eef1f5; display: flex; align-items: flex-start;
     }
-    .documents a:hover { text-decoration: underline; }
+    .permit-section--doc .doc-table .detail-item:last-child { border-bottom: none; }
+    .permit-section--doc .doc-table .detail-item:nth-child(even) { background: #fafbfc; }
+    .permit-section--doc .doc-table .detail-item .label {
+      width: 36%; font-size: 12.5px; color: var(--pd-ink-3); font-weight: 600; flex-shrink: 0;
+    }
+    .permit-section--doc .doc-table .detail-item .value {
+      font-size: 13.5px; font-weight: 700; color: var(--pd-ink); font-variant-numeric: tabular-nums; flex: 1;
+    }
+
+    .doc-form-body { padding: 16px 18px 18px; background: #fff; }
+    .doc-form-body .review-form { margin: 0; }
+
+    /* ── Admin edit actions ── */
+    .permit-section--doc .admin-edit-actions {
+      padding: 8px 18px 0; background: #fff; margin-bottom: -8px;
+    }
 
     /* ── Review forms ── */
     .review-form { display: grid; gap: 10px; }
@@ -179,216 +160,91 @@
     .review-form input,
     .review-form select,
     .review-form textarea {
-      width: 100%;
-      border: 1.5px solid var(--pd-line-2);
-      border-radius: 6px;
-      padding: 8px 10px;
-      font-size: 13.5px;
-      font-family: inherit;
-      color: var(--pd-ink);
-      background: #fff;
-      box-sizing: border-box;
+      width: 100%; border: 1.5px solid var(--pd-line-2); border-radius: 6px;
+      padding: 8px 10px; font-size: 13.5px; font-family: inherit;
+      color: var(--pd-ink); background: #fff; box-sizing: border-box;
     }
-    .review-form input:focus,
-    .review-form select:focus,
-    .review-form textarea:focus {
-      border-color: var(--pd-accent);
-      outline: none;
+    .review-form input:focus, .review-form select:focus, .review-form textarea:focus {
+      border-color: var(--pd-accent); outline: none;
     }
-    .review-form button {
-      background: var(--pd-accent);
-      border: none;
-      color: #fff;
-      font-weight: 800;
-      font-size: 14px;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background .15s;
+    .review-form button, .admin-edit-toggle {
+      border: 1.5px solid #4a627c; border-radius: 6px;
+      background: #4a627c; color: #fff;
+      font-size: 13px; font-weight: 800;
+      padding: 9px 12px; cursor: pointer; font-family: inherit;
+      transition: background .15s, border-color .15s;
     }
-    .review-form button:hover { background: var(--pd-accent-dark); }
+    .review-form button:hover, .admin-edit-toggle:hover { background: #304357; border-color: #304357; }
+
+    /* ── Admin inline edit ── */
+    .admin-inline-edit .js-edit-input { display: none; }
+    .admin-inline-edit.is-editing .js-read-value { display: none; }
+    .admin-inline-edit.is-editing .js-edit-input {
+      display: inline-block;
+      border: 1.5px solid var(--pd-line-2); border-radius: 6px;
+      padding: 4px 8px; font-size: 13px; font-family: inherit;
+      color: var(--pd-ink); background: #fff;
+    }
+    .admin-inline-edit .js-save-actions { display: none; }
+    .admin-inline-edit.is-editing .js-save-actions { display: inline-block; }
+    .admin-inline-edit .js-edit-input[type="file"] { padding: 5px 8px; cursor: pointer; }
 
     /* ── Upload cards ── */
     .upload-stack { display: grid; gap: 12px; }
-
     .upload-card {
-      border: 1.5px solid var(--pd-line);
-      border-radius: 10px;
-      background: var(--pd-surface);
-      padding: 12px;
+      border: 1.5px solid var(--pd-line); border-radius: 10px;
+      background: var(--pd-surface); padding: 12px;
       box-shadow: 0 4px 12px rgba(48,67,87,0.06);
     }
-
     .upload-card-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 8px;
-      font-weight: 700;
-      color: var(--pd-ink);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin-bottom: 8px; font-weight: 700; color: var(--pd-ink);
     }
-
-    .upload-card-note {
-      color: var(--pd-ink-3);
-      font-size: 12px;
-      font-weight: 500;
-    }
-
+    .upload-card-note { color: var(--pd-ink-3); font-size: 12px; font-weight: 500; }
     .upload-dropzone {
-      display: grid;
-      gap: 8px;
-      place-items: center;
-      min-height: 120px;
-      border: 2px dashed var(--pd-line-2);
-      border-radius: 8px;
-      background: #fff;
-      cursor: pointer;
-      text-align: center;
-      padding: 14px;
-      transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+      display: grid; gap: 8px; place-items: center; min-height: 120px;
+      border: 2px dashed var(--pd-line-2); border-radius: 8px; background: #fff;
+      cursor: pointer; text-align: center; padding: 14px;
+      transition: border-color .15s, background-color .15s;
     }
-
-    .upload-dropzone:hover {
-      border-color: var(--pd-accent);
-      background: var(--pd-surface-2);
-    }
-
-    .upload-dropzone.is-dragover {
-      border-color: var(--pd-accent-dark);
-      background: var(--pd-surface-2);
-      transform: translateY(-1px);
-    }
-
+    .upload-dropzone:hover { border-color: var(--pd-accent); background: var(--pd-surface-2); }
+    .upload-dropzone.is-dragover { border-color: var(--pd-accent-dark); background: var(--pd-surface-2); }
     .upload-dropzone-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: rgba(48,67,87,0.10);
-      color: var(--pd-accent);
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1;
+      width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+      background: rgba(48,67,87,0.10); color: var(--pd-accent); font-size: 14px; font-weight: 800;
     }
-
-    .upload-dropzone-title {
-      font-weight: 700;
-      color: var(--pd-ink);
-    }
-
-    .upload-dropzone-sub {
-      color: var(--pd-ink-3);
-      font-size: 12px;
-    }
-
+    .upload-dropzone-title { font-weight: 700; color: var(--pd-ink); }
+    .upload-dropzone-sub { color: var(--pd-ink-3); font-size: 12px; }
     .upload-hidden-input {
-      position: absolute !important;
-      width: 1px !important;
-      height: 1px !important;
-      padding: 0 !important;
-      margin: -1px !important;
-      overflow: hidden !important;
-      clip: rect(0, 0, 0, 0) !important;
-      white-space: nowrap !important;
-      border: 0 !important;
+      position: absolute !important; width: 1px !important; height: 1px !important;
+      padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+      clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important;
     }
-
     .upload-file-chip {
-      margin-top: 8px;
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      border: 1.5px solid var(--pd-line);
-      background: var(--pd-surface-2);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 13px;
+      margin-top: 8px; display: none; align-items: center; justify-content: space-between;
+      gap: 10px; border: 1.5px solid var(--pd-line); background: var(--pd-surface-2);
+      border-radius: 8px; padding: 8px 10px; font-size: 13px;
     }
-
     .upload-file-chip.is-visible { display: flex; }
-
-    .upload-file-chip-name {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: var(--pd-ink);
-      font-weight: 600;
-    }
-
-    .upload-file-chip-size {
-      color: var(--pd-ink-3);
-      white-space: nowrap;
-      font-size: 12px;
-    }
-
-    .upload-grid-two {
-      display: grid;
-      gap: 12px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+    .upload-file-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--pd-ink); font-weight: 600; }
+    .upload-file-chip-size { color: var(--pd-ink-3); white-space: nowrap; font-size: 12px; }
+    .upload-grid-two { display: grid; gap: 12px; grid-template-columns: repeat(2,minmax(0,1fr)); }
 
     @media (max-width: 720px) {
-      /* ── Page shell ── */
-      .permit-page  { padding: 8px 4px 24px; }
-      .permit-card  { padding: 10px; border-radius: 8px; }
-
-      /* ── Hero bar ── */
-      .hero-bar {
-        margin: -10px -10px 14px;
-        padding: 10px 12px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      .hero-center { width: 100%; text-align: right; order: -1; }
-      .hero-title  { font-size: 14px; }
-      .hero-left, .hero-right { width: 100%; justify-content: flex-start; gap: 6px; }
-      .hero-btn    { font-size: 12px; padding: 5px 10px; }
-      .hero-status { font-size: 11.5px; padding: 4px 8px; }
-
-      /* ── Permit header ── */
-      .permit-header { flex-direction: column; gap: 6px; }
-      .logo-box img  { height: 44px; width: auto; }
+      .permit-page { padding: 8px 4px 24px; }
+      .permit-card { padding: 10px; border-radius: 8px; gap: 10px; }
+      .action-bar { gap: 8px; padding: 10px 12px; }
+      .back-link, .print-button { font-size: 12px; padding: 6px 10px; }
+      .logo-box img { height: 40px; }
       .municipality-text .title { font-size: 13px; }
-      .meta-grid { gap: 6px; }
-      .meta-item { min-width: 0; width: 100%; padding: 6px 8px; }
-      .meta-item .value { font-size: 13px; }
-
-      /* ── Detail grid — label/value side by side ── */
-      .detail-grid { grid-template-columns: 1fr; gap: 5px; }
-      .detail-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 10px;
-        min-height: unset;
-      }
-      .detail-item .label {
-        width: 42%;
-        flex-shrink: 0;
-        font-size: 11.5px;
-        border-left: 1.5px solid var(--pd-line);
-        padding-left: 8px;
-      }
-      .detail-item .value { flex: 1; font-size: 13px; }
-
-      /* ── Sections ── */
-      .permit-section { padding: 10px; margin-top: 10px; }
-      .section-title  { font-size: 12px; padding: 4px 9px; }
-
-      /* ── Forms ── */
-      .review-form button { width: 100%; font-size: 15px; padding: 12px; }
-      .review-form input,
-      .review-form select,
-      .review-form textarea { font-size: 15px; }  /* prevents iOS zoom on focus */
-
-      /* ── Upload ── */
+      .municipality-text .sub { font-size: 11px; }
+      .doc-band { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .doc-band-ref-no { font-size: 18px; }
+      .permit-section--doc .doc-table .detail-item { flex-direction: column; padding: 8px 14px; }
+      .permit-section--doc .doc-table .detail-item .label { width: 100%; margin-bottom: 2px; }
       .upload-grid-two { grid-template-columns: 1fr; }
       .upload-dropzone { min-height: 90px; }
+      .review-form button { width: 100%; font-size: 15px; padding: 12px; }
     }
   </style>
 {% endblock %}
@@ -396,58 +252,14 @@
 <section class="permit-page" lang="ar" dir="rtl">
   <div class="permit-card">
 
-    <!-- ── Hero bar ── -->
-    <div class="hero-bar no-print">
-      <div class="hero-left">
-        <a href="{% url 'clearance_list' %}" class="hero-btn">← العودة</a>
+    <!-- ── Action bar ── -->
+    <div class="action-bar no-print">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
         {% if pirmet.status == "issued" %}
-          <a href="{% url 'vehicle_permit_print' pirmet.id %}" target="_blank" class="hero-btn hero-btn--print">طباعة التصريح</a>
+          <a class="print-button" href="{% url 'vehicle_permit_print' pirmet.id %}" target="_blank">طباعة التصريح</a>
         {% endif %}
       </div>
-      <div class="hero-center">
-        <div class="hero-title">تصريح المركبة — {{ pirmet.company.name }}</div>
-      </div>
-      <div class="hero-right">
-        {% if pirmet.status == "order_received" or pirmet.status == "inspection_pending" %}
-          <span class="hero-status hero-status--pending">
-            {% if pirmet.status == "inspection_pending" %}
-              {% if inspection_receiver_name %}
-                تم استلام الطلب - {{ inspection_receiver_name }}
-              {% else %}
-                جاهز للاستلام
-              {% endif %}
-            {% else %}
-              {{ pirmet.get_status_display }}
-            {% endif %}
-          </span>
-        {% elif pirmet.status == "inspection_completed" or pirmet.status == "payment_pending" %}
-          <span class="hero-status hero-status--info">
-            {% if pirmet.status == "inspection_completed" %}
-              {% if inspection_report_decision == "approved" %}
-                بانتظار إرسال رابط دفع التصريح
-              {% elif inspection_report_decision == "rejected" %}
-                تم إنهاء التفتيش - غير معتمد
-              {% else %}
-                تم إنهاء التفتيش
-              {% endif %}
-            {% elif pirmet.status == "payment_pending" %}
-              بانتظار دفع التصريح
-            {% endif %}
-          </span>
-        {% elif pirmet.status == "issued" %}
-          <span class="hero-status hero-status--issued">تم إصدار التصريح</span>
-        {% elif pirmet.status == "needs_completion" %}
-          <span class="hero-status hero-status--warning">تم إنهاء الطلب - غير معتمد</span>
-        {% elif pirmet.status == "cancelled_admin" %}
-          <span class="hero-status hero-status--closed">{{ pirmet.get_status_display }}</span>
-        {% else %}
-          <span class="hero-status hero-status--default">{{ pirmet.get_status_display }}</span>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- ── Permit header (logo + meta) ── -->
-    <header class="permit-header">
       <div class="municipality">
         <div class="logo-box">
           <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
@@ -458,45 +270,52 @@
           <div class="sub">قسم رقابة وتنظيم النفايات</div>
         </div>
       </div>
-      <div class="meta-grid">
-        <div class="meta-item">
-          <span class="label">رقم التصريح</span>
-          <span class="value">{{ pirmet.permit_no|default:"-" }}</span>
+    </div>
+
+    <!-- ── Title card ── -->
+    <div class="permit-section--doc">
+      <div class="doc-band">
+        <div class="doc-band-company" style="font-size:clamp(16px,2vw,20px);"> متابعة تصريح المركبة </div>
+        {% if pirmet.permit_no %}
+        <div class="doc-band-ref">
+          <span class="doc-band-ref-label">رقم التصريح</span>
+          <span class="doc-band-ref-no">{{ pirmet.permit_no }}</span>
         </div>
-        <div class="meta-item">
-          <span class="label">نوع التصريح</span>
-          <span class="value">تصريح المركبة للشركات</span>
-        </div>
-        <div class="meta-item">
-          <span class="label">الحالة الحالية</span>
-          <span class="value">
-            {% if pirmet.status == "inspection_pending" %}
-              {% if inspection_receiver_name %}
-                تم استلام الطلب - {{ inspection_receiver_name }}
-              {% else %}
-                جاهز للاستلام
-              {% endif %}
-            {% elif pirmet.status == "inspection_completed" %}
-              {% if inspection_report_decision == "approved" %}
-                تم إنهاء التفتيش - معتمد
-              {% elif inspection_report_decision == "rejected" %}
-                تم إنهاء التفتيش - غير معتمد
-              {% else %}
-                تم إنهاء التفتيش
-              {% endif %}
-            {% elif pirmet.status == "needs_completion" %}
-              تم إنهاء الطلب - غير معتمد
-            {% elif pirmet.status == "payment_pending" %}
-              بانتظار دفع التصريح
-            {% elif pirmet.status == "issued" %}
-              تم إصدار التصريح
-            {% else %}
-              {{ pirmet.get_status_display }}
-            {% endif %}
-          </span>
-        </div>
+        {% endif %}
       </div>
-    </header>
+    </div>
+
+    <!-- ── Status bar ── -->
+    <div class="status-bar">
+      <span class="status-bar-label">حالة الطلب</span>
+      {% if pirmet.status == "order_received" %}
+        <span class="status-badge status-badge--pending">{{ pirmet.get_status_display }}</span>
+      {% elif pirmet.status == "inspection_pending" %}
+        {% if inspection_receiver_name %}
+          <span class="status-badge status-badge--active">تم استلام الطلب - {{ inspection_receiver_name }}</span>
+        {% else %}
+          <span class="status-badge status-badge--pending">جاهز للاستلام</span>
+        {% endif %}
+      {% elif pirmet.status == "inspection_completed" %}
+        {% if inspection_report_decision == "approved" %}
+          <span class="status-badge status-badge--active">تم إنهاء التفتيش - معتمد</span>
+        {% elif inspection_report_decision == "rejected" %}
+          <span class="status-badge status-badge--warning">تم إنهاء التفتيش - غير معتمد</span>
+        {% else %}
+          <span class="status-badge status-badge--active">تم إنهاء التفتيش</span>
+        {% endif %}
+      {% elif pirmet.status == "payment_pending" %}
+        <span class="status-badge status-badge--pending">بانتظار دفع التصريح</span>
+      {% elif pirmet.status == "issued" %}
+        <span class="status-badge status-badge--issued">تم إصدار التصريح</span>
+      {% elif pirmet.status == "needs_completion" %}
+        <span class="status-badge status-badge--warning">تم إنهاء الطلب - غير معتمد</span>
+      {% elif pirmet.status == "cancelled_admin" %}
+        <span class="status-badge status-badge--closed">تم إغلاق الطلب</span>
+      {% else %}
+        <span class="status-badge">{{ pirmet.get_status_display }}</span>
+      {% endif %}
+    </div>
 
     <!-- ── Errors ── -->
     {% if review_errors %}
@@ -511,23 +330,77 @@
     {% endif %}
 
     <!-- ── Request data ── -->
-    <section class="permit-section">
-      <div class="section-title">بيانات الطلب</div>
-      <div class="detail-grid">
-        <div class="detail-item"><span class="label">تاريخ الإنشاء</span><span class="value">{{ pirmet.dateOfCreation|date:"d/m/Y" }}</span></div>
-        <div class="detail-item"><span class="label">تاريخ الإصدار</span><span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">تاريخ الانتهاء</span><span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">إيصال دفع التصريح</span><span class="value">{% if pirmet.payment_receipt %}<a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>{% if user_is_admin %} <form method="post" class="no-print" style="display:inline;margin-right:6px;">{% csrf_token %}<input type="hidden" name="action" value="delete_receipt"><input type="hidden" name="receipt_field" value="payment_receipt"><button type="submit" style="background:#8c2f2f;padding:2px 8px;font-size:11px;" onclick="return confirm('حذف الإيصال؟')">حذف</button></form>{% endif %}{% elif user_is_admin %}<form method="post" enctype="multipart/form-data" class="no-print" style="display:flex;align-items:center;gap:6px;">{% csrf_token %}<input type="hidden" name="action" value="replace_receipt"><input type="hidden" name="receipt_field" value="payment_receipt"><input type="file" name="new_receipt_file" accept=".pdf,.jpg,.jpeg,.png" required style="font-size:12px;"><button type="submit" style="padding:3px 10px;font-size:12px;">رفع</button></form>{% else %}-{% endif %}</span></div>
-        <div class="detail-item"><span class="label">رقم التواصل</span><span class="value">{{ pirmet.company.owner_phone|default:pirmet.company.landline|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">إيميل مقدم الطلب</span><span class="value">{{ pirmet.request_email|default:"-" }}</span></div>
+    <section class="permit-section permit-section--doc {% if user_is_admin %}admin-inline-edit{% endif %}" {% if user_is_admin %}data-admin-inline-edit{% endif %}>
+      {% if user_is_admin %}
+      <form method="post" enctype="multipart/form-data" class="review-form" style="margin:0;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="admin_update_request_data">
+        <div class="admin-edit-actions no-print">
+          <button type="button" class="admin-edit-toggle" data-edit-toggle>تعديل</button>
+          <button type="submit" class="js-save-actions" style="background:#4a627c;color:#fff;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">حفظ التعديلات</button>
+        </div>
+      {% endif %}
+      <div class="doc-band">
+        <div class="doc-band-company">بيانات الطلب</div>
       </div>
+      <div class="doc-table">
+        <div class="detail-item">
+          <span class="label">تاريخ الإنشاء</span>
+          <span class="value">{{ pirmet.dateOfCreation|date:"d/m/Y" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">تاريخ الإصدار</span>
+          <span class="value">
+            <span class="js-read-value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span>
+            <input class="js-edit-input" name="issue_date" type="date" value="{{ pirmet.issue_date|date:'Y-m-d'|default:'' }}">
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">تاريخ الانتهاء</span>
+          <span class="value">
+            <span class="js-read-value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span>
+            <input class="js-edit-input" name="expiry_date" type="date" value="{{ pirmet.dateOfExpiry|date:'Y-m-d'|default:'' }}">
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">رقم أمر الدفع</span>
+          <span class="value">
+            <span class="js-read-value">{{ pirmet.PaymentNumber|default:"-" }}</span>
+            <input class="js-edit-input" name="payment_number" type="text" value="{{ pirmet.PaymentNumber|default:'' }}">
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">إيصال دفع التصريح</span>
+          <span class="value">
+            <span class="js-read-value">
+              {% if pirmet.payment_receipt %}
+                <a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
+              {% else %}-{% endif %}
+            </span>
+            <input class="js-edit-input" name="new_receipt_file" type="file" accept=".pdf,image/*">
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">رقم التواصل</span>
+          <span class="value">{{ pirmet.company.owner_phone|default:pirmet.company.landline|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">إيميل مقدم الطلب</span>
+          <span class="value">
+            <span class="js-read-value">{{ pirmet.request_email|default:"-" }}</span>
+            <input class="js-edit-input" name="request_email" type="email" value="{{ pirmet.request_email|default:'' }}">
+          </span>
+        </div>
+      </div>
+      {% if user_is_admin %}</form>{% endif %}
     </section>
 
     <!-- ── Company data ── -->
-    <section class="permit-section">
-      <div class="section-title">بيانات الشركة</div>
-      <div class="detail-grid">
+    <section class="permit-section permit-section--doc">
+      <div class="doc-band">
+        <div class="doc-band-company">بيانات الشركة</div>
+      </div>
+      <div class="doc-table">
         <div class="detail-item"><span class="label">اسم الشركة</span><span class="value">{{ pirmet.company.name|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">رقم الرخصة التجارية</span><span class="value">{{ pirmet.company.number|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">رقم التواصل</span><span class="value">{{ pirmet.company.owner_phone|default:pirmet.company.landline|default:"-" }}</span></div>
@@ -536,9 +409,11 @@
     </section>
 
     <!-- ── Vehicle data ── -->
-    <section class="permit-section">
-      <div class="section-title">بيانات المركبة</div>
-      <div class="detail-grid">
+    <section class="permit-section permit-section--doc">
+      <div class="doc-band">
+        <div class="doc-band-company">بيانات المركبة</div>
+      </div>
+      <div class="doc-table">
         <div class="detail-item"><span class="label">نوع المركبة</span><span class="value">{{ transport.vehicle_type|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">رقم المركبة</span><span class="value">{{ transport.vehicle_number|default:"-" }}</span></div>
         <div class="detail-item"><span class="label">لون المركبة</span><span class="value">{{ transport.vehicle_color|default:"-" }}</span></div>
@@ -549,138 +424,173 @@
 
     <!-- ── Request documents ── -->
     {% if request_documents %}
-      <section class="permit-section">
-        <div class="section-title">مستندات الطلب</div>
-        <div class="documents">
+      <section class="permit-section permit-section--doc">
+        <div class="doc-band">
+          <div class="doc-band-company">مستندات الطلب</div>
+        </div>
+        <div class="doc-table">
           {% for doc in request_documents %}
-            <a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name|cut:"pirmet_documents/" }}</a><br>
+            <div class="detail-item">
+              <span class="label">مستند {{ forloop.counter }}</span>
+              <span class="value">
+                <a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name|cut:"pirmet_documents/" }}</a>
+              </span>
+            </div>
           {% endfor %}
         </div>
       </section>
     {% endif %}
 
-    <!-- ── Inspection result ── -->
+    <!-- ── Inspection result + photos ── -->
     {% if inspection_report_decision %}
-      <section class="permit-section">
-        <div class="section-title">نتيجة التفتيش</div>
-        <div class="detail-grid">
-          <div class="detail-item"><span class="label">النتيجة</span><span class="value">{% if inspection_report_decision == "approved" %}معتمد{% else %}غير معتمد{% endif %}</span></div>
-          <div class="detail-item"><span class="label">المفتش</span><span class="value">{{ inspection_report_by|default:"-" }}</span></div>
-          <div class="detail-item"><span class="label">تاريخ إدخال التقرير</span><span class="value">{{ inspection_report_date|date:"Y-m-d"|default:"-" }}</span></div>
-          <div class="detail-item"><span class="label">الملاحظات</span><span class="value">{{ inspection_report_notes|default:"-" }}</span></div>
+      <section class="permit-section permit-section--doc">
+        <div class="doc-band">
+          <div class="doc-band-company">نتيجة التفتيش</div>
         </div>
-      </section>
-    {% endif %}
-
-    <!-- ── Inspection photos ── -->
-    {% if inspection_report_photos %}
-      <section class="permit-section">
-        <div class="section-title">صور من التفتيش</div>
-        <div class="documents">
-          {% for doc in inspection_report_photos %}
-            <a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name|cut:"pirmet_documents/" }}</a><br>
-          {% endfor %}
+        <div class="doc-table">
+          <div class="detail-item">
+            <span class="label">النتيجة</span>
+            <span class="value">{% if inspection_report_decision == "approved" %}معتمد{% else %}غير معتمد{% endif %}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">المفتش</span>
+            <span class="value">{{ inspection_report_by|default:"-" }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">تاريخ إدخال التقرير</span>
+            <span class="value">{{ inspection_report_date|date:"Y-m-d"|default:"-" }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">الملاحظات</span>
+            <span class="value">{{ inspection_report_notes|default:"-" }}</span>
+          </div>
+          {% if inspection_report_photos %}
+            <div class="detail-item">
+              <span class="label">صور التفتيش</span>
+              <span class="value">
+                {% for doc in inspection_report_photos %}
+                  <a href="{{ doc.file.url }}" target="_blank" rel="noopener" style="display:block;margin-bottom:3px;">
+                    {{ doc.file.name|cut:"pirmet_documents/" }}
+                  </a>
+                {% endfor %}
+              </span>
+            </div>
+          {% endif %}
         </div>
       </section>
     {% endif %}
 
     <!-- ── Action: receive for inspection ── -->
     {% if can_receive_inspection_request %}
-      <section class="permit-section no-print">
-        <div class="section-title">استلام الطلب للتفتيش</div>
-        <form method="post" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="receive_for_inspection">
-          <button type="submit">استلام الطلب للتفتيش</button>
-        </form>
+      <section class="permit-section permit-section--doc no-print">
+        <div class="doc-band">
+          <div class="doc-band-company">استلام الطلب</div>
+        </div>
+        <div class="doc-form-body">
+          <form method="post" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="receive_for_inspection">
+            <button type="submit" style="width:100%;">استلام الطلب للتفتيش</button>
+          </form>
+        </div>
       </section>
     {% endif %}
 
     <!-- ── Action: reassign inspector ── -->
     {% if can_reassign_inspector %}
-      <section class="permit-section no-print">
-        <div class="section-title">تغيير المفتش المستلم</div>
-        <form method="post" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="receive_for_inspection">
-          <label for="inspector_id">المفتش الجديد</label>
-          <select id="inspector_id" name="inspector_id" required>
-            <option value="">-- اختيار المفتش --</option>
-            {% for inspector_user in inspector_users %}
-              <option value="{{ inspector_user.id }}" {% if assigned_inspector_id == inspector_user.id %}selected{% endif %}>
-                {{ inspector_user.get_full_name|default:inspector_user.username }}
-              </option>
-            {% endfor %}
-          </select>
-          <button type="submit">حفظ تغيير المفتش</button>
-        </form>
+      <section class="permit-section permit-section--doc no-print">
+        <div class="doc-band">
+          <div class="doc-band-company">تغيير المفتش المستلم</div>
+        </div>
+        <div class="doc-form-body">
+          <form method="post" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="receive_for_inspection">
+            <label for="inspector_id">المفتش الجديد</label>
+            <select id="inspector_id" name="inspector_id" required>
+              <option value="">-- اختيار المفتش --</option>
+              {% for inspector_user in inspector_users %}
+                <option value="{{ inspector_user.id }}" {% if assigned_inspector_id == inspector_user.id %}selected{% endif %}>
+                  {{ inspector_user.get_full_name|default:inspector_user.username }}
+                </option>
+              {% endfor %}
+            </select>
+            <button type="submit">حفظ تغيير المفتش</button>
+          </form>
+        </div>
       </section>
     {% endif %}
 
     <!-- ── Action: submit inspection report ── -->
     {% if can_submit_inspection_report %}
-      <section class="permit-section no-print">
-        <div class="section-title">إدخال تقرير التفتيش</div>
-        <form method="post" enctype="multipart/form-data" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="submit_inspection_report">
-          <label for="inspection_decision">نتيجة التقرير</label>
-          <select id="inspection_decision" name="inspection_decision" required>
-            <option value="">-- اختيار --</option>
-            <option value="approved">معتمد</option>
-            <option value="rejected">غير معتمد</option>
-          </select>
-          <label for="inspection_report_notes">ملاحظات التفتيش</label>
-          <textarea id="inspection_report_notes" name="inspection_report_notes" rows="4"></textarea>
-          <label for="inspection_report_photos">صور من التفتيش (اختياري)</label>
-          <input
-            id="inspection_report_photos"
-            name="inspection_report_photos"
-            type="file"
-            accept="image/*"
-            multiple
-          >
-          <button type="submit">حفظ تقرير التفتيش</button>
-        </form>
+      <section class="permit-section permit-section--doc no-print">
+        <div class="doc-band">
+          <div class="doc-band-company">إدخال تقرير التفتيش</div>
+        </div>
+        <div class="doc-form-body">
+          <form method="post" enctype="multipart/form-data" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="submit_inspection_report">
+            <label for="inspection_decision">نتيجة التقرير</label>
+            <select id="inspection_decision" name="inspection_decision" required>
+              <option value="">-- اختيار --</option>
+              <option value="approved">معتمد</option>
+              <option value="rejected">غير معتمد</option>
+            </select>
+            <label for="inspection_report_notes">ملاحظات التفتيش</label>
+            <textarea id="inspection_report_notes" name="inspection_report_notes" rows="4"></textarea>
+            <label for="inspection_report_photos">صور من التفتيش (اختياري)</label>
+            <input id="inspection_report_photos" name="inspection_report_photos" type="file" accept="image/*" multiple>
+            <button type="submit">حفظ تقرير التفتيش</button>
+          </form>
+        </div>
       </section>
     {% endif %}
 
-    <!-- ── Action: record payment number ── -->
+    <!-- ── Action: record payment number (inspection_completed) ── -->
     {% if can_record_payment and pirmet.status == "inspection_completed" and not pirmet.PaymentNumber %}
-      <section class="permit-section no-print">
-        <div class="section-title">إدخال رقم دفع تصريح المركبة</div>
-        <form method="post" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="send_payment_link">
-          <label for="payment_number">رقم أمر الدفع</label>
-          <input id="payment_number" name="payment_number" type="text" value="{{ pirmet.PaymentNumber|default:'' }}" required>
-          <button type="submit">حفظ رقم الدفع</button>
-        </form>
+      <section class="permit-section permit-section--doc no-print">
+        <div class="doc-band">
+          <div class="doc-band-company">إدخال رقم دفع تصريح المركبة</div>
+        </div>
+        <div class="doc-form-body">
+          <form method="post" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send_payment_link">
+            <label for="payment_number">رقم أمر الدفع</label>
+            <input id="payment_number" name="payment_number" type="text" value="{{ pirmet.PaymentNumber|default:'' }}" required>
+            <button type="submit">حفظ رقم الدفع</button>
+          </form>
+        </div>
       </section>
     {% endif %}
 
-    <!-- ── Action: record payment number when in payment_pending without PaymentNumber ── -->
+    <!-- ── Action: record payment number (payment_pending) ── -->
     {% if can_record_payment and pirmet.status == "payment_pending" and not pirmet.PaymentNumber %}
-      <section class="permit-section no-print">
-        <div class="section-title">إدخال رقم دفع تصريح المركبة</div>
-        <form method="post" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="send_payment_link">
-          <label for="payment_number">رقم أمر الدفع</label>
-          <input id="payment_number" name="payment_number" type="text" value="" required>
-          <button type="submit">حفظ رقم الدفع</button>
-        </form>
+      <section class="permit-section permit-section--doc no-print">
+        <div class="doc-band">
+          <div class="doc-band-company">إدخال رقم دفع تصريح المركبة</div>
+        </div>
+        <div class="doc-form-body">
+          <form method="post" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send_payment_link">
+            <label for="payment_number2">رقم أمر الدفع</label>
+            <input id="payment_number2" name="payment_number" type="text" required>
+            <button type="submit">حفظ رقم الدفع</button>
+          </form>
+        </div>
       </section>
     {% endif %}
 
-    <!-- ── Action: update payment number (when expired and reissued) ── -->
+    <!-- ── Action: update payment number ── -->
     {% if user_is_admin and pirmet.status == "payment_pending" and pirmet.PaymentNumber %}
-      <section class="permit-section no-print">
-        <button type="button" id="toggle-update-payment" style="background:none;border:1.5px solid var(--pd-accent);color:var(--pd-accent);padding:6px 16px;border-radius:6px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">
-          تعديل رقم أمر الدفع
-        </button>
-        <div id="update-payment-form" style="display:none;margin-top:14px;">
-          <p style="font-size:12px;color:var(--pd-ink-3);margin-bottom:10px;">الرقم الحالي: <strong>{{ pirmet.PaymentNumber }}</strong></p>
+      <section class="permit-section permit-section--doc no-print">
+        <div class="doc-band">
+          <div class="doc-band-company">تعديل رقم أمر الدفع</div>
+        </div>
+        <div class="doc-form-body">
+          <p style="font-size:12px;color:var(--pd-ink-3);margin:0 0 10px;">الرقم الحالي: <strong>{{ pirmet.PaymentNumber }}</strong></p>
           <form method="post" class="review-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="update_payment_number">
@@ -689,86 +599,56 @@
             <button type="submit">تحديث رقم الدفع</button>
           </form>
         </div>
-        <script>
-          document.getElementById('toggle-update-payment').addEventListener('click', function () {
-            var form = document.getElementById('update-payment-form');
-            var visible = form.style.display !== 'none';
-            form.style.display = visible ? 'none' : 'block';
-            this.textContent = visible ? 'تعديل رقم أمر الدفع' : 'إلغاء';
-          });
-        </script>
       </section>
     {% endif %}
 
     <!-- ── Action: upload payment receipt ── -->
     {% if can_record_payment and pirmet.status == "payment_pending" and pirmet.PaymentNumber %}
-      <section class="permit-section no-print">
-        <div class="section-title">إدخال إثبات دفع تصريح المركبة</div>
-        <form method="post" enctype="multipart/form-data" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="payment">
-          <div class="upload-grid-two">
-            <div class="upload-card">
-              <div class="upload-card-head">
-                <span>التقاط صورة مباشرة</span>
-                <span class="upload-card-note">كاميرا الجهاز</span>
+      <section class="permit-section permit-section--doc no-print">
+        <div class="doc-band">
+          <div class="doc-band-company">إدخال إثبات دفع تصريح المركبة</div>
+        </div>
+        <div class="doc-form-body">
+          <form method="post" enctype="multipart/form-data" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="payment">
+            <div class="upload-grid-two">
+              <div class="upload-card">
+                <div class="upload-card-head">
+                  <span>التقاط صورة مباشرة</span>
+                  <span class="upload-card-note">كاميرا الجهاز</span>
+                </div>
+                <label class="upload-dropzone js-dropzone" for="payment_receipt_camera">
+                  <span class="upload-dropzone-icon">CAM</span>
+                  <span class="upload-dropzone-title">اضغط لالتقاط صورة الإيصال</span>
+                  <span class="upload-dropzone-sub">صورة مباشرة من الكاميرا</span>
+                </label>
+                <input id="payment_receipt_camera" name="payment_receipt_camera" type="file" accept="image/*" capture="environment" class="upload-hidden-input js-file-input">
+                <div class="upload-file-chip js-file-chip" aria-live="polite">
+                  <span class="upload-file-chip-name js-file-name">لم يتم اختيار صورة</span>
+                  <span class="upload-file-chip-size js-file-size"></span>
+                </div>
               </div>
-              <label class="upload-dropzone js-dropzone" for="payment_receipt_camera">
-                <span class="upload-dropzone-icon">CAM</span>
-                <span class="upload-dropzone-title">اضغط لالتقاط صورة الإيصال</span>
-                <span class="upload-dropzone-sub">صورة مباشرة من الكاميرا</span>
-              </label>
-              <input
-                id="payment_receipt_camera"
-                name="payment_receipt_camera"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                class="upload-hidden-input js-file-input"
-              >
-              <div class="upload-file-chip js-file-chip" aria-live="polite">
-                <span class="upload-file-chip-name js-file-name">لم يتم اختيار صورة</span>
-                <span class="upload-file-chip-size js-file-size"></span>
-              </div>
-            </div>
-
-            <div class="upload-card">
-              <div class="upload-card-head">
-                <span>إرفاق إثبات الدفع</span>
-                <span class="upload-card-note">PDF أو صورة</span>
-              </div>
-              <label class="upload-dropzone js-dropzone" for="payment_receipt">
-                <span class="upload-dropzone-icon">⇪</span>
-                <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
-                <span class="upload-dropzone-sub">يمكنك رفع صورة أو PDF</span>
-              </label>
-              <input
-                id="payment_receipt"
-                name="payment_receipt"
-                type="file"
-                accept=".pdf,image/*"
-                class="upload-hidden-input js-file-input"
-              >
-              <div class="upload-file-chip js-file-chip" aria-live="polite">
-                <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
-                <span class="upload-file-chip-size js-file-size"></span>
+              <div class="upload-card">
+                <div class="upload-card-head">
+                  <span>إرفاق إثبات الدفع</span>
+                  <span class="upload-card-note">PDF أو صورة</span>
+                </div>
+                <label class="upload-dropzone js-dropzone" for="payment_receipt">
+                  <span class="upload-dropzone-icon">⇪</span>
+                  <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
+                  <span class="upload-dropzone-sub">يمكنك رفع صورة أو PDF</span>
+                </label>
+                <input id="payment_receipt" name="payment_receipt" type="file" accept=".pdf,image/*" class="upload-hidden-input js-file-input">
+                <div class="upload-file-chip js-file-chip" aria-live="polite">
+                  <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
+                  <span class="upload-file-chip-size js-file-size"></span>
+                </div>
               </div>
             </div>
-          </div>
-          <button type="submit">حفظ إثبات الدفع</button>
-        </form>
-      </section>
-    {% endif %}
-
-    <!-- ── Action: issue permit ── -->
-    {% if False %}{# issue action removed - payment goes directly to issued #}
-      <section class="permit-section no-print">
-        <div class="section-title">إصدار تصريح المركبة</div>
-        <form method="post" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="issue">
-          <button type="submit">إصدار التصريح (مدة سنة من اليوم)</button>
-        </form>
+            <button type="submit">حفظ إثبات الدفع</button>
+          </form>
+        </div>
       </section>
     {% endif %}
 
@@ -782,7 +662,6 @@
       if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
       return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
-
     function attachUploadCard(input) {
       var card = input.closest('.upload-card');
       if (!card) return;
@@ -791,51 +670,47 @@
       var nameEl = card.querySelector('.js-file-name');
       var sizeEl = card.querySelector('.js-file-size');
       if (!dropzone || !chip || !nameEl || !sizeEl) return;
-
       function updateChip(file) {
-        if (!file) {
-          chip.classList.remove('is-visible');
-          return;
-        }
+        if (!file) { chip.classList.remove('is-visible'); return; }
         nameEl.textContent = file.name || 'ملف مرفق';
         sizeEl.textContent = formatSize(file.size || 0);
         chip.classList.add('is-visible');
       }
-
       input.addEventListener('change', function () {
         updateChip(input.files && input.files[0] ? input.files[0] : null);
       });
-
-      ['dragenter', 'dragover'].forEach(function (evt) {
-        dropzone.addEventListener(evt, function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          dropzone.classList.add('is-dragover');
+      ['dragenter','dragover'].forEach(function(evt) {
+        dropzone.addEventListener(evt, function(e) {
+          e.preventDefault(); e.stopPropagation(); dropzone.classList.add('is-dragover');
         });
       });
-
-      ['dragleave', 'dragend', 'drop'].forEach(function (evt) {
-        dropzone.addEventListener(evt, function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (evt !== 'drop') {
-            dropzone.classList.remove('is-dragover');
-          }
+      ['dragleave','dragend','drop'].forEach(function(evt) {
+        dropzone.addEventListener(evt, function(e) {
+          e.preventDefault(); e.stopPropagation();
+          if (evt !== 'drop') dropzone.classList.remove('is-dragover');
         });
       });
-
-      dropzone.addEventListener('drop', function (e) {
+      dropzone.addEventListener('drop', function(e) {
         var files = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null;
         if (!files || !files.length) return;
-        input.files = files;
-        dropzone.classList.remove('is-dragover');
-        updateChip(files[0]);
+        input.files = files; dropzone.classList.remove('is-dragover'); updateChip(files[0]);
       });
     }
+    document.querySelectorAll('.js-file-input').forEach(attachUploadCard);
+  })();
 
-    var inputs = document.querySelectorAll('.js-file-input');
-    if (!inputs.length) return;
-    inputs.forEach(attachUploadCard);
+  // admin inline edit toggle
+  (function () {
+    document.querySelectorAll('[data-admin-inline-edit]').forEach(function(section) {
+      var toggleBtn = section.querySelector('[data-edit-toggle]');
+      var saveBtn   = section.querySelector('.js-save-actions');
+      if (!toggleBtn) return;
+      toggleBtn.addEventListener('click', function() {
+        var editing = section.classList.toggle('is-editing');
+        toggleBtn.style.display = editing ? 'none' : '';
+        if (saveBtn) saveBtn.style.display = editing ? 'inline-block' : 'none';
+      });
+    });
   })();
 </script>
 {% endblock %}

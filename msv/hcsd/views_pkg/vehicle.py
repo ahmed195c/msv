@@ -480,6 +480,42 @@ def vehicle_permit_detail(request, id):
                     )
                     return redirect('vehicle_permit_detail', id=pirmet.id)
 
+        if action == 'admin_update_request_data' and _can_admin(request.user):
+            import datetime as _dt
+            def _parse_date(val):
+                try:
+                    return _dt.date.fromisoformat(val.strip()) if val and val.strip() else None
+                except ValueError:
+                    return None
+            update_fields = []
+            issue_date = _parse_date(request.POST.get('issue_date', ''))
+            if issue_date is not None:
+                pirmet.issue_date = issue_date
+                update_fields.append('issue_date')
+            expiry_date = _parse_date(request.POST.get('expiry_date', ''))
+            if expiry_date is not None:
+                pirmet.dateOfExpiry = expiry_date
+                update_fields.append('dateOfExpiry')
+            payment_number = (request.POST.get('payment_number') or '').strip()
+            if payment_number:
+                pirmet.PaymentNumber = payment_number
+                update_fields.append('PaymentNumber')
+            request_email = (request.POST.get('request_email') or '').strip()
+            if request_email:
+                pirmet.request_email = request_email
+                update_fields.append('request_email')
+            if update_fields:
+                pirmet.save(update_fields=update_fields)
+                _log_pirmet_change(pirmet, 'details_update', request.user, notes='admin_update_request_data')
+            new_file = request.FILES.get('new_receipt_file')
+            if new_file:
+                ext = os.path.splitext(new_file.name)[1].lower()
+                if ext in ALLOWED_DOC_EXTENSIONS:
+                    pirmet.payment_receipt = new_file
+                    pirmet.save(update_fields=['payment_receipt'])
+                    _log_pirmet_change(pirmet, 'details_update', request.user, notes='payment_receipt:replaced')
+            return redirect('vehicle_permit_detail', id=pirmet.id)
+
         if action == 'delete_receipt' and _can_admin(request.user):
             field = (request.POST.get('receipt_field') or '').strip()
             allowed = {'inspection_payment_receipt', 'payment_receipt'}
