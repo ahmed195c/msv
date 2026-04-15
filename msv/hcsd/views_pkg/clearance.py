@@ -700,15 +700,45 @@ def inspector_report_excel(request):
     ]
     PT_KEYS = [k for k, _ in PERMIT_TYPES]
 
-    # Fetch all reviews with related data
+    # Only count permits where inspection is actually completed
+    COMPLETED_STATUSES = {
+        'inspection_completed', 'head_approved', 'approved',
+        'violation_payment_link_pending', 'violation_payment_pending',
+        'payment_pending', 'issued', 'cancelled_admin',
+        'closed_requirements_pending', 'needs_completion',
+    }
+
+    # Fetch all reviews with related data (completed permits only)
     reviews = list(
         InspectorReview.objects
         .select_related('inspector_user', 'pirmet')
-        .filter(inspector_user__isnull=False)
+        .filter(
+            inspector_user__isnull=False,
+            pirmet__status__in=COMPLETED_STATUSES,
+        )
     )
 
-    # Build: {user_id: {permit_type: {approved: N, rejected: N}}}
+    # Fetch change-log decisions for all permits (new-flow stores decision here)
     from collections import defaultdict
+    pirmet_ids = [r.pirmet_id for r in reviews if r.pirmet_id]
+    log_decisions = {}
+    for log in (
+        PirmetChangeLog.objects
+        .filter(
+            pirmet_id__in=pirmet_ids,
+            change_type='details_update',
+            notes__startswith='inspection_report:',
+        )
+        .order_by('pirmet_id', '-created_at')
+        .values('pirmet_id', 'notes')
+    ):
+        pid = log['pirmet_id']
+        if pid not in log_decisions:
+            dec = log['notes'].split(':', 1)[1].strip().lower()
+            if dec in {'approved', 'rejected', 'requirements_required'}:
+                log_decisions[pid] = dec
+
+    # Build: {user_id: {permit_type: {approved: N, rejected: N}}}
     stats = defaultdict(lambda: {pt: {'approved': 0, 'rejected': 0} for pt in PT_KEYS})
     user_map = {}
 
@@ -718,7 +748,19 @@ def inspector_report_excel(request):
         if pt not in PT_KEYS:
             continue
         user_map[uid] = r.inspector_user
-        decision = 'approved' if r.isApproved else 'rejected'
+
+        # New flow: decision stored in change log (accurate)
+        # Old flow: no change log entry → fall back to isApproved
+        log_dec = log_decisions.get(r.pirmet_id)
+        if log_dec == 'approved':
+            decision = 'approved'
+        elif log_dec in ('rejected', 'requirements_required'):
+            decision = 'rejected'
+        elif r.isApproved:
+            decision = 'approved'
+        else:
+            decision = 'rejected'
+
         stats[uid][pt][decision] += 1
 
     # Sort inspectors by total reviews desc

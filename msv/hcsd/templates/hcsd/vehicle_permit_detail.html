@@ -152,6 +152,7 @@
     /* ── Admin edit actions ── */
     .permit-section--doc .admin-edit-actions {
       padding: 8px 18px 0; background: #fff; margin-bottom: -8px;
+      display: flex; justify-content: flex-end; gap: 8px;
     }
 
     /* ── Review forms ── */
@@ -336,8 +337,8 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="admin_update_request_data">
         <div class="admin-edit-actions no-print">
-          <button type="button" class="admin-edit-toggle" data-edit-toggle>تعديل</button>
           <button type="submit" class="js-save-actions" style="background:#4a627c;color:#fff;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">حفظ التعديلات</button>
+          <button type="button" class="admin-edit-toggle" data-edit-toggle>تعديل</button>
         </div>
       {% endif %}
       <div class="doc-band">
@@ -703,12 +704,10 @@
   (function () {
     document.querySelectorAll('[data-admin-inline-edit]').forEach(function(section) {
       var toggleBtn = section.querySelector('[data-edit-toggle]');
-      var saveBtn   = section.querySelector('.js-save-actions');
       if (!toggleBtn) return;
       toggleBtn.addEventListener('click', function() {
         var editing = section.classList.toggle('is-editing');
-        toggleBtn.style.display = editing ? 'none' : '';
-        if (saveBtn) saveBtn.style.display = editing ? 'inline-block' : 'none';
+        toggleBtn.textContent = editing ? 'إلغاء التعديل' : 'تعديل';
       });
     });
   })();
