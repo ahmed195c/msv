@@ -1,0 +1,250 @@
+{% extends "hcsd/base.html" %}
+{% load static %}
+{% block title %}طلب إضافة مهندس{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
+  <style>
+    .permit-page {
+      --pd-ink: #304357;
+      --pd-ink-2: #455c75;
+      --pd-ink-3: #6f8297;
+      --pd-paper: #ffffff;
+      --pd-surface: #f1f4f7;
+      --pd-surface-2: #e8eef4;
+      --pd-line: #d4dce5;
+      --pd-line-2: #bcc8d5;
+      --pd-accent: #304357;
+      --pd-accent-dark: #26384a;
+      --pd-radius: 8px;
+      --pd-shadow: 0 10px 24px rgba(48, 67, 87, 0.08);
+      padding: 20px 10px 36px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
+      direction: rtl;
+    }
+    .permit-card {
+      max-width: 720px;
+      margin: 0 auto;
+      background: var(--pd-paper);
+      border: 1.5px solid var(--pd-line);
+      border-radius: var(--pd-radius);
+      box-shadow: var(--pd-shadow);
+      padding: 20px;
+      color: var(--pd-ink);
+      font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+    }
+    .permit-title--hero {
+      margin: 8px 0 18px;
+      font-size: clamp(18px, 2.2vw, 24px);
+      font-weight: 800;
+      text-align: center;
+      border: 1.5px solid var(--pd-accent);
+      border-radius: 6px;
+      background: linear-gradient(180deg, #3a4f66 0%, #304357 100%);
+      color: #fff;
+      padding: 10px 12px;
+    }
+    .action-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      border: 1.5px solid var(--pd-line-2);
+      border-radius: 6px;
+      background: var(--pd-paper);
+      color: var(--pd-ink);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      transition: background 0.15s;
+    }
+    .back-link:hover { background: var(--pd-surface-2); }
+    .create-form {
+      display: grid;
+      gap: 14px;
+    }
+    .form-row {
+      display: grid;
+      gap: 5px;
+    }
+    .form-row label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--pd-ink-2);
+    }
+    .form-row input[type="text"],
+    .form-row input[type="file"],
+    .form-row select {
+      width: 100%;
+      border: 1.5px solid var(--pd-line-2);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--pd-ink);
+      font-size: 13px;
+      font-family: inherit;
+      padding: 9px 10px;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-row input:focus,
+    .form-row select:focus {
+      border-color: var(--pd-accent);
+      box-shadow: 0 0 0 3px rgba(48,67,87,0.12);
+    }
+    .form-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .cert-block {
+      border: 1.5px solid var(--pd-line);
+      border-radius: 6px;
+      padding: 12px;
+      background: var(--pd-surface);
+      display: grid;
+      gap: 8px;
+    }
+    .cert-block .cert-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--pd-ink);
+      cursor: pointer;
+    }
+    .cert-block .cert-toggle input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--pd-accent);
+      cursor: pointer;
+    }
+    .cert-file-row {
+      display: none;
+    }
+    .cert-file-row.visible {
+      display: grid;
+      gap: 5px;
+    }
+    .submit-btn {
+      border: 1.5px solid var(--pd-accent);
+      border-radius: 6px;
+      background: var(--pd-accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      font-family: inherit;
+      padding: 11px 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+      justify-self: start;
+    }
+    .submit-btn:hover { background: var(--pd-accent-dark); }
+    .alert {
+      border: 1.5px solid #d8a7a7;
+      border-radius: 6px;
+      background: #fff3f3;
+      color: #8c2f2f;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .alert ul { margin: 6px 0 0; padding-right: 18px; display: grid; gap: 3px; }
+    @media (max-width: 600px) {
+      .form-2col { grid-template-columns: 1fr; }
+    }
+  </style>
+{% endblock %}
+{% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+  <div class="permit-card">
+
+    <div class="action-bar no-print">
+      <a class="back-link" href="{% url 'clearance_list' %}">← العودة للقائمة</a>
+    </div>
+
+    <div class="permit-title--hero">طلب إضافة مهندس جديد</div>
+
+    {% if errors %}
+      <div class="alert" style="margin-bottom:14px;">
+        <strong>تعذر إنشاء الطلب:</strong>
+        <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="create-form">
+      {% csrf_token %}
+
+      <div class="form-row">
+        <label for="company_id">الشركة <span style="color:#c0392b">*</span></label>
+        <select id="company_id" name="company_id" required>
+          <option value="">— اختر الشركة —</option>
+          {% for company in companies %}
+            <option value="{{ company.id }}" {% if request.POST.company_id == company.id|stringformat:"s" %}selected{% endif %}>{{ company.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-2col">
+        <div class="form-row">
+          <label for="engineer_name">اسم المهندس <span style="color:#c0392b">*</span></label>
+          <input id="engineer_name" name="engineer_name" type="text" placeholder="الاسم الكامل" value="{{ request.POST.engineer_name|default:'' }}" required>
+        </div>
+        <div class="form-row">
+          <label for="engineer_id_number">رقم الهوية / الموحد</label>
+          <input id="engineer_id_number" name="engineer_id_number" type="text" placeholder="اختياري" value="{{ request.POST.engineer_id_number|default:'' }}">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="engineer_phone">رقم الهاتف <span style="color:#c0392b">*</span></label>
+        <input id="engineer_phone" name="engineer_phone" type="text" placeholder="05xxxxxxxx" value="{{ request.POST.engineer_phone|default:'' }}" required>
+      </div>
+
+      <div class="form-2col">
+        <div class="cert-block">
+          <label class="cert-toggle">
+            <input type="checkbox" name="has_general_cert" id="has_general_cert" {% if request.POST.has_general_cert %}checked{% endif %}>
+            شهادة الصحة العامة
+          </label>
+          <div class="cert-file-row {% if request.POST.has_general_cert %}visible{% endif %}" id="general_cert_file_row">
+            <label for="general_cert_file" style="font-size:12px;font-weight:600;color:var(--pd-ink-3)">رفع الشهادة (PDF أو صورة)</label>
+            <input type="file" id="general_cert_file" name="general_cert_file" accept=".pdf,.jpg,.jpeg,.png">
+          </div>
+        </div>
+        <div class="cert-block">
+          <label class="cert-toggle">
+            <input type="checkbox" name="has_termite_cert" id="has_termite_cert" {% if request.POST.has_termite_cert %}checked{% endif %}>
+            شهادة النمل الأبيض
+          </label>
+          <div class="cert-file-row {% if request.POST.has_termite_cert %}visible{% endif %}" id="termite_cert_file_row">
+            <label for="termite_cert_file" style="font-size:12px;font-weight:600;color:var(--pd-ink-3)">رفع الشهادة (PDF أو صورة)</label>
+            <input type="file" id="termite_cert_file" name="termite_cert_file" accept=".pdf,.jpg,.jpeg,.png">
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">إنشاء الطلب</button>
+    </form>
+
+  </div>
+</section>
+<script>
+(function() {
+  function toggleCertFile(checkboxId, rowId) {
+    var cb = document.getElementById(checkboxId);
+    var row = document.getElementById(rowId);
+    if (!cb || !row) return;
+    cb.addEventListener('change', function() {
+      row.classList.toggle('visible', cb.checked);
+    });
+  }
+  toggleCertFile('has_general_cert', 'general_cert_file_row');
+  toggleCertFile('has_termite_cert', 'termite_cert_file_row');
+})();
+</script>
+{% endblock %}

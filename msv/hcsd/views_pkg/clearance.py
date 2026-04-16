@@ -48,7 +48,7 @@ from .common import (
 def clearance_list(request):
     search_query = (request.GET.get('q') or '').strip()
     clearances_qs = (
-        PirmetClearance.objects.filter(permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'])
+        PirmetClearance.objects.filter(permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal', 'engineer_addition'])
         .select_related('company', 'company__enginer')
         .order_by('-dateOfCreation')
     )
@@ -144,9 +144,23 @@ def clearance_list(request):
             or clearance.request_documents_count
         )
         receive_change = inspection_receive_map.get(clearance.id)
+        report_change_item = inspection_report_map.get(clearance.id)
         clearance.inspection_receiver_name = None
         if receive_change and ':' in receive_change.notes:
             clearance.inspection_receiver_name = receive_change.notes.split(':', 1)[1].strip()
+        # Compute inspection duration for admin indicator
+        clearance.inspection_duration_hours = None
+        clearance.inspection_duration_display = None
+        if receive_change and report_change_item:
+            delta = report_change_item.created_at - receive_change.created_at
+            hours = max(int(delta.total_seconds() // 3600), 0)
+            clearance.inspection_duration_hours = hours
+            clearance.inspection_duration_display = f'{hours // 24} يوم' if hours >= 24 else f'{hours} ساعة'
+        elif receive_change and clearance.status == 'inspection_pending':
+            delta = timezone.now() - receive_change.created_at
+            hours = max(int(delta.total_seconds() // 3600), 0)
+            clearance.inspection_duration_hours = hours
+            clearance.inspection_duration_display = f'{hours // 24} يوم' if hours >= 24 else f'{hours} ساعة'
         if (
             not clearance.inspection_receiver_name
             and clearance.permit_type == 'waste_disposal'
@@ -371,6 +385,7 @@ def clearance_list(request):
             'status_filter_options': status_filter_options,
             'show_finished_section': not inspector_scope_only,
             'can_create_pirmet': _can_data_entry(request.user),
+            'user_is_admin': _can_admin(request.user),
             'form_errors': [],
         },
     )

@@ -68,7 +68,7 @@ class Company(models.Model):
 class Enginer(models.Model):
     name = models.CharField(max_length=100)
     national_or_unified_number = models.CharField(max_length=50, null=True, blank=True)
-    email = models.EmailField()
+    email = models.EmailField(blank=True, default='')
     phone = models.CharField(max_length=20)
     card_number = models.CharField(max_length=4, unique=True, null=True, blank=True, editable=False)
     public_health_cert = models.FileField(
@@ -161,7 +161,14 @@ class PirmetClearance(models.Model):
             ('pest_control', 'Pest Control Permit'),
             ('pesticide_transport', 'Pesticide Transport Permit'),
             ('waste_disposal', 'Waste Disposal Permit'),
+            ('engineer_addition', 'Engineer Addition Request'),
         ],
+    )
+    engineer_to_add = models.ForeignKey(
+        'Enginer',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='addition_requests',
     )
     payment_date = models.DateField(null=True, blank=True)
     payment_link = models.CharField(max_length=500, null=True, blank=True)

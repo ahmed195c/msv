@@ -379,6 +379,17 @@
               </div>
             </div>
           </article>
+
+          <article class="permit-card">
+            <div class="permit-card-stripe"></div>
+            <div class="permit-card-body">
+              <h3>إضافة مهندس جديد</h3>
+              <p>تقديم طلب إضافة مهندس لشركة معينة مع بيانات الشهادات ومتابعة إجراءات التفتيش حتى تسجيل المهندس.</p>
+              <div class="permit-card-footer">
+                <a class="btn btn-primary" href="{% url 'engineer_addition_create' %}">بدء الطلب</a>
+              </div>
+            </div>
+          </article>
         </div>
       {% else %}
         <p class="permit-denied">ليس لديك صلاحية إنشاء تصاريح.</p>

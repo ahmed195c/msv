@@ -1343,10 +1343,13 @@ def pest_control_permit_print(request, id):
         id=id,
         permit_type='pest_control',
     )
+    enginer = pirmet.company.enginer if pirmet.company else None
+    allowed = _activities_for_enginer(enginer)
+    restricted = _restricted_activities_for_enginer(enginer)
     return render(request, 'hcsd/pest_control_activity_permit_print.html', {
         'pirmet': pirmet,
-        'allowed_activities': _split_activities(pirmet.allowed_activities),
-        'restricted_activities': _split_activities(pirmet.restricted_activities),
+        'allowed_activities': allowed,
+        'restricted_activities': restricted,
         'permit_detail_path': reverse('pest_control_permit_print', args=[pirmet.id]),
     })
 

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تصريح مزاولة نشاط – {{ pirmet.company.name }} – {{ pirmet.permit_no }}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -32,12 +32,11 @@
 
     /* ── Header ── */
     .doc-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 40px;
-      margin-bottom: 8px;
-      gap: 12px;
+
+     
+      margin-top: 60px;
+      margin-bottom: 28px;
+
     }
 
     .header-logo img { width: 72px; height: auto; }
@@ -57,8 +56,6 @@
       color: #1a2e1a;
       text-align: center;
       direction: ltr;
-      border: 2px solid #1a2e1a;
-      padding: 4px 10px;
       margin-top: 4px;
       line-height: 1.4;
     }
@@ -72,8 +69,8 @@
       margin-bottom: 0;
     }
 
-    .title-bar-ar { font-size: 15px; font-weight: 800; }
-    .title-bar-en { font-size: 11.5px; font-weight: 600; margin-top: 2px; }
+    .title-bar-ar { font-size: 17px; font-weight: 800; }
+    .title-bar-en { font-size: 13px; font-weight: 600; margin-top: 3px; }
 
     /* ── Tables ── */
     /*
@@ -101,8 +98,8 @@
       background: #dce8db;
       font-weight: 700;
       color: #173317;
-      font-size: 12px;
-      text-align: right;
+      font-size: 14px;
+      text-align: center;
     }
 
     /* English label cell — leftmost, lighter green */
@@ -110,24 +107,24 @@
       background: #eef4ed;
       font-weight: 600;
       color: #3a5a3a;
-      font-size: 10.5px;
+      font-size: 12px;
       direction: ltr;
-      text-align: left;
+      text-align: center;
     }
 
     /* Value cell */
-    .val { font-weight: 600; color: #111; font-size: 12px; text-align: center; }
+    .val { font-weight: 600; color: #111; font-size: 14px; text-align: center; }
 
     /* permit number special row */
     .permit-no-ar {
       background: #dce8db;
       font-weight: 800;
       color: #173317;
-      font-size: 12px;
+      font-size: 14px;
       text-align: center;
     }
     .permit-no-val {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 800;
       letter-spacing: 0.06em;
       text-align: center;
@@ -136,7 +133,7 @@
       background: #eef4ed;
       font-weight: 600;
       color: #3a5a3a;
-      font-size: 10.5px;
+      font-size: 12px;
       direction: ltr;
       text-align: center;
     }
@@ -145,14 +142,14 @@
     .section-hdr td {
       background: #3d3d3d;
       color: #fff;
-      font-size: 12.5px;
+      font-size: 14px;
       font-weight: 800;
       text-align: center;
-      padding: 5px 8px;
+      padding: 6px 8px;
     }
 
     .section-hdr .en {
-      font-size: 10px;
+      font-size: 11.5px;
       font-weight: 600;
       direction: ltr;
       display: inline-block;
@@ -163,7 +160,7 @@
     /* banner */
     .banner-row td {
       background: #f0f5ef;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 800;
       text-align: center;
       color: #173317;
@@ -171,7 +168,7 @@
     }
 
     .banner-row .en {
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 600;
       direction: ltr;
       display: block;
@@ -184,28 +181,31 @@
       background: #dce8db;
       font-weight: 700;
       color: #173317;
-      font-size: 12px;
-      text-align: right;
+      font-size: 14px;
+      text-align: center;
       vertical-align: top;
       padding-top: 8px;
     }
     .act-val {
       font-weight: 600;
       color: #111;
-      padding: 6px 10px;
+      font-size: 14px;
+      padding: 8px 12px;
+      text-align: center;
     }
     .act-val ul {
-      margin: 0;
-      padding-inline-start: 18px;
-      line-height: 1.9;
+      margin: 0 auto;
+      padding: 0;
+      list-style: none;
+      line-height: 2;
     }
     .act-en {
       background: #eef4ed;
       font-weight: 600;
       color: #3a5a3a;
-      font-size: 10.5px;
+      font-size: 12px;
       direction: ltr;
-      text-align: left;
+      text-align: center;
       vertical-align: top;
       padding-top: 8px;
     }
@@ -404,48 +404,46 @@
     {% endif %}
   </table>
 
-  <!-- ── Permission banner ── -->
-  <table style="border-top:0;">
-    <tr class="banner-row">
-      <td>
-        يصرح له بمزاولة نشاط مكافحة آفات الصحة العامة
-        <span class="en">Permitted to practice Public Health Pest Control Activity</span>
-      </td>
-    </tr>
-  </table>
 
   <!-- ── Activities ── -->
   <table style="border-top:0;">
     <colgroup>
-      <col class="c-ar"><col style="width:55%;"><col class="c-en">
+      <col style="width:50%;"><col style="width:50%;">
     </colgroup>
+    <tr class="section-hdr">
+      <td colspan="2">
+        بيانات الأنشطة
+        <span class="en">/ Activity Details</span>
+      </td>
+    </tr>
     <tr>
-      <td class="act-ar">الأنشطة المصرح بها</td>
-      <td class="act-val">
+      <td class="act-ar" style="text-align:center;background:#dce8db;">
+        الأنشطة المصرح بها
+        <div style="font-size:10px;font-weight:600;color:#3a5a3a;direction:ltr;margin-top:2px;">Allowed Activities</div>
+      </td>
+      <td class="act-ar" style="text-align:center;background:#f5dada;color:#7a2a2a;">
+        الأنشطة غير المصرح بها
+        <div style="font-size:10px;font-weight:600;color:#7a2a2a;direction:ltr;margin-top:2px;">Restricted Activities</div>
+      </td>
+    </tr>
+    <tr>
+      <td class="act-val" style="vertical-align:top;">
         <ul>
-          {% if allowed_activities %}
-            {% for item in allowed_activities %}
-              <li>
-                {% if item == "public_health_pest_control" %}مكافحة آفات الصحة العامة
-                {% elif item == "flying_insects" %}مكافحة الحشرات الطائرة
-                {% elif item == "rodents" %}مكافحة القوارض
-                {% elif item == "termite_control" %}مكافحة النمل الأبيض
-                {% elif item == "grain_pests" %}مكافحة آفات الحبوب
-                {% else %}{{ item }}{% endif %}
-              </li>
-            {% endfor %}
-          {% else %}
-            <li>كما هو موضح بالرخصة التجارية</li>
-          {% endif %}
+          {% for item in allowed_activities %}
+            <li>
+              {% if item == "public_health_pest_control" %}مكافحة آفات الصحة العامة
+              {% elif item == "flying_insects" %}مكافحة الحشرات الطائرة
+              {% elif item == "rodents" %}مكافحة القوارض
+              {% elif item == "termite_control" %}مكافحة النمل الأبيض
+              {% elif item == "grain_pests" %}مكافحة آفات الحبوب
+              {% else %}{{ item }}{% endif %}
+            </li>
+          {% endfor %}
           {% if pirmet.allowed_other %}<li>أخرى: {{ pirmet.allowed_other }}</li>{% endif %}
         </ul>
       </td>
-      <td class="act-en">Allowed Activities</td>
-    </tr>
-    {% if restricted_activities or pirmet.restricted_other %}
-    <tr>
-      <td class="act-ar">الأنشطة غير المصرح بها</td>
-      <td class="act-val">
+      <td class="act-val" style="vertical-align:top;">
+        {% if restricted_activities or pirmet.restricted_other %}
         <ul>
           {% for item in restricted_activities %}
             <li>
@@ -459,10 +457,11 @@
           {% endfor %}
           {% if pirmet.restricted_other %}<li>أخرى: {{ pirmet.restricted_other }}</li>{% endif %}
         </ul>
+        {% else %}
+        <div style="color:#999;font-size:11px;text-align:center;padding:6px;">—</div>
+        {% endif %}
       </td>
-      <td class="act-en">Restricted Activities</td>
     </tr>
-    {% endif %}
   </table>
 
   <!-- ── Payment ── -->
@@ -495,6 +494,69 @@
       <div style="font-size:7pt;color:#555;margin-top:2px;">امسح للتحقق</div>
     </div>
     {% endif %}
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 2 — Conditions & Permit Terms
+     ══════════════════════════════════════════════════════════ -->
+<div class="page" style="page-break-before:always;">
+
+  <!-- Header -->
+  <div class="doc-header">
+    <div>
+      <div class="header-dept-ar">إدارة الرقابة والسلامة الصحية</div>
+      <div class="header-dept-ar">قسم رقابة وتنظيم النفايات</div>
+      <div class="header-dept-en" style="font-size:10px;">Waste Control Regulation Section </div>
+    </div>
+  </div>
+
+  <!-- Two-column conditions body -->
+  <div style="border:1.5px dashed #888;margin-top:8px;display:flex;direction:ltr;">
+
+    <!-- LEFT: English -->
+    <div style="width:50%;padding:10px 14px;border-left:1px solid #aaa;direction:ltr;font-size:13px;color:#000;font-weight:600;">
+      <div style="font-weight:800;font-size:14px;margin-bottom:8px;">Recommendations:</div>
+      <ol style="margin:0;padding-inline-start:18px;line-height:2.1;">
+        <li>All documents of pesticides handling must be kept.</li>
+        <li>Pesticides trading or pesticides sailing exhibit for individuals and facilities.</li>
+        <li>Emulsion concentrate (EC) in closed places is not allow.</li>
+        <li>Only approved pesticide from Ministry of Climate Change and Environment are allow to use.</li>
+        <li>In case of Engineer leave on vacation without inform Waste Control and regulating section in Sharjah City Municipality that exposed company to fine.</li>
+        <li>This permit is valid within Sharjah City only.</li>
+      </ol>
+
+      <div style="font-weight:800;font-size:14px;margin-top:16px;margin-bottom:8px;">Permit Requirements</div>
+      <ol style="margin:0;padding-inline-start:18px;line-height:2.1;">
+        <li>Original of Public health pest control must be showing to Sharjah City Municipality members if needed.</li>
+        <li>Company exposed to fine if not follow all the recommendations of permit mention above.</li>
+        <li>Public health pest control permit must be renewing or cancelling within one week before the date of expire.</li>
+        <li>Sharjah City Municipality has a right to suspend Public health pest control permit when the company don't follow the requirements also has a right to cancel if needed.</li>
+      </ol>
+    </div>
+
+    <!-- RIGHT: Arabic -->
+    <div style="width:50%;padding:10px 14px;direction:rtl;font-size:16px;color:#000;font-weight:600;text-align:right;font-family:'Noto Naskh Arabic','IBM Plex Sans Arabic','Tahoma',sans-serif;">
+      <div style="font-weight:700;font-size:17px;margin-bottom:8px;">الإشتراطات:</div>
+      <ol style="margin:0;padding-inline-start:18px;line-height:2.1;">
+        <li>يجب الاحتفاظ بسجلات تداول مبيدات المكافحة.</li>
+        <li>يمنع تجارة أو بيع المبيدات على الأفراد أو المؤسسات.</li>
+        <li>غير مصرح باستخدام المواد المستحلبة في الأماكن المغلقة.</li>
+        <li>يسمح بإستخدام المبيدات المصرحة والمسجلة لدى وزارة التغير المناخي والبيئة فقط.</li>
+        <li>في حال غياب المهندس دون إخطار البلدية برسالة رسمية فإن ذلك يعرض الشركة للإجراءات القانونية السارية في البلدية.</li>
+        <li>يسري هذا التصريح على ممارسة نشاط مكافحة الآفات الصحة العامة داخل حدود مدينة الشارقة.</li>
+      </ol>
+
+      <div style="font-weight:700;font-size:17px;margin-top:16px;margin-bottom:8px;">بنود التصريح:</div>
+      <ol style="margin:0;padding-inline-start:18px;line-height:2.1;">
+        <li>يتم إبراز التصريح الأصلي لموظف البلدية عند الطلب.</li>
+        <li>الإخلال بالإشتراطات المذكورة يعرضك للإجراءات القانونية السارية في البلدية.</li>
+        <li>يتم تجديد أو إلغاء هذا التصريح خلال مدة أسبوع قبل تاريخ انتهاء التصريح.</li>
+        <li>للبلدية الحق في إيقاف هذا التصريح في حال الاخلال بالاشتراطات المعمول بها أو إلغاءه عند الضرورة.</li>
+      </ol>
+    </div>
+
   </div>
 
 </div>

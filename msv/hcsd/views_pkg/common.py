@@ -443,6 +443,7 @@ def _permit_label_ar(permit_type):
         'pest_control': 'تصريح مزاولة نشاط مكافحة آفات الصحة العامة',
         'pesticide_transport': 'تصريح المركبة',
         'waste_disposal': 'تصريح التخلص من النفايات',
+        'engineer_addition': 'إضافة مهندس',
     }
     return labels.get(permit_type, permit_type)
 
@@ -452,6 +453,7 @@ def _permit_detail_url_name(permit_type):
         'pest_control': 'pest_control_permit_detail',
         'pesticide_transport': 'vehicle_permit_detail',
         'waste_disposal': 'waste_permit_detail',
+        'engineer_addition': 'engineer_addition_detail',
     }
     return mapping.get(permit_type, 'pest_control_permit_detail')
 
