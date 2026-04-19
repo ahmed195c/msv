@@ -266,6 +266,8 @@
   .ql-teal   { --ql-color: #0891b2; }
   .ql-green  { --ql-color: #059669; }
   .ql-violet { --ql-color: #7c3aed; }
+  .ql-orange { --ql-color: #d97706; }
+  .ql-emerald{ --ql-color: #2b7a4a; }
 
   /* ── Expiring soon ── */
   .expiring-alert {
@@ -394,6 +396,16 @@
       <a class="quick-link ql-teal" href="{% url 'permit_types' %}">
         <span class="quick-link-bar"></span>
         <span class="quick-link-label">التصاريح</span>
+        <span class="quick-link-arrow">←</span>
+      </a>
+      <a class="quick-link ql-orange" href="{% url 'complaints_dashboard' %}">
+        <span class="quick-link-bar"></span>
+        <span class="quick-link-label">الشكاوي</span>
+        <span class="quick-link-arrow">←</span>
+      </a>
+      <a class="quick-link ql-emerald" href="{% url 'field_work_list' %}">
+        <span class="quick-link-bar"></span>
+        <span class="quick-link-label">العمل الميداني</span>
         <span class="quick-link-arrow">←</span>
       </a>
       <a class="quick-link ql-green" href="{% url 'company_list' %}">
@@ -552,6 +564,16 @@
             <a class="quick-link ql-teal" href="{% url 'permit_types' %}">
               <span class="quick-link-bar"></span>
               <span class="quick-link-label">التصاريح</span>
+              <span class="quick-link-arrow">←</span>
+            </a>
+            <a class="quick-link ql-orange" href="{% url 'complaints_dashboard' %}">
+              <span class="quick-link-bar"></span>
+              <span class="quick-link-label">الشكاوي</span>
+              <span class="quick-link-arrow">←</span>
+            </a>
+            <a class="quick-link ql-emerald" href="{% url 'field_work_list' %}">
+              <span class="quick-link-bar"></span>
+              <span class="quick-link-label">العمل الميداني</span>
               <span class="quick-link-arrow">←</span>
             </a>
             <a class="quick-link ql-green" href="{% url 'company_list' %}">

@@ -16,6 +16,9 @@
       --complaints-color: #1d6f42;
       --complaints-dk:    #155735;
       --complaints-lt:    #f0fdf4;
+      --fieldwork-color:  #2b7a4a;
+      --fieldwork-dk:     #1e5c36;
+      --fieldwork-lt:     #edfaf3;
       --ink:   #1f2937;
       --ink-2: #4b5563;
       --ink-3: #9ca3af;
@@ -70,7 +73,7 @@
     .portal-divider {
       width: 48px;
       height: 3px;
-      background: linear-gradient(90deg, var(--permits-color), var(--complaints-color));
+      background: linear-gradient(90deg, var(--permits-color), var(--complaints-color), var(--fieldwork-color));
       border-radius: 2px;
       margin: 14px auto 0;
     }
@@ -114,16 +117,18 @@
       border-radius: 16px 16px 0 0;
     }
 
-    .portal-card--permits::before  { background: var(--permits-color); }
+    .portal-card--permits::before    { background: var(--permits-color); }
     .portal-card--complaints::before { background: var(--complaints-color); }
+    .portal-card--fieldwork::before  { background: var(--fieldwork-color); }
 
     .portal-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 12px 36px rgba(0,0,0,0.12);
     }
 
-    .portal-card--permits:hover  { border-color: var(--permits-color); }
+    .portal-card--permits:hover    { border-color: var(--permits-color); }
     .portal-card--complaints:hover { border-color: var(--complaints-color); }
+    .portal-card--fieldwork:hover  { border-color: var(--fieldwork-color); }
 
     .portal-card-icon {
       width: 64px;
@@ -145,6 +150,11 @@
       color: var(--complaints-color);
     }
 
+    .portal-card--fieldwork .portal-card-icon {
+      background: var(--fieldwork-lt);
+      color: var(--fieldwork-color);
+    }
+
     .portal-card-icon svg {
       width: 32px;
       height: 32px;
@@ -156,8 +166,9 @@
       letter-spacing: -0.2px;
     }
 
-    .portal-card--permits  .portal-card-name { color: var(--permits-color); }
+    .portal-card--permits    .portal-card-name { color: var(--permits-color); }
     .portal-card--complaints .portal-card-name { color: var(--complaints-color); }
+    .portal-card--fieldwork  .portal-card-name { color: var(--fieldwork-color); }
 
     .portal-card-desc {
       font-size: 13px;
@@ -180,10 +191,12 @@
       transition: background .15s;
     }
 
-    .portal-card--permits  .portal-card-btn { background: var(--permits-color); }
-    .portal-card--permits  .portal-card-btn:hover { background: var(--permits-dk); }
+    .portal-card--permits    .portal-card-btn { background: var(--permits-color); }
+    .portal-card--permits    .portal-card-btn:hover { background: var(--permits-dk); }
     .portal-card--complaints .portal-card-btn { background: var(--complaints-color); }
     .portal-card--complaints .portal-card-btn:hover { background: var(--complaints-dk); }
+    .portal-card--fieldwork  .portal-card-btn { background: var(--fieldwork-color); }
+    .portal-card--fieldwork  .portal-card-btn:hover { background: var(--fieldwork-dk); }
 
     /* ── Footer ── */
     .portal-footer {
@@ -203,7 +216,7 @@
 
   <header class="portal-header">
     <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="بلدية الشارقة" class="portal-logo">
-    <h1 class="portal-title">قسم الصحة والبيئة — بلدية الشارقة</h1>
+    <h1 class="portal-title">قسم البيئة — بلدية الشارقة</h1>
     <p class="portal-subtitle">اختر النظام المطلوب للمتابعة</p>
     <div class="portal-divider"></div>
   </header>
@@ -219,7 +232,6 @@
         </svg>
       </div>
       <div class="portal-card-name">نظام التصاريح</div>
-      <p class="portal-card-desc">إدارة تصاريح مكافحة الآفات والمركبات وتصاريح التخلص من النفايات ومتابعة إجراءات الفحص والإصدار.</p>
       <span class="portal-card-btn">الدخول للنظام</span>
     </a>
 
@@ -231,7 +243,18 @@
         </svg>
       </div>
       <div class="portal-card-name">نظام الشكاوي</div>
-      <p class="portal-card-desc">استقبال شكاوى المواطنين ومتابعة معالجتها وإسنادها للجهات المختصة والإشراف على الحلول المقدمة.</p>
+      <span class="portal-card-btn">الدخول للنظام</span>
+    </a>
+
+    <!-- Field Work System -->
+    <a href="{% url 'field_work_list' %}" class="portal-card portal-card--fieldwork">
+      <div class="portal-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <div class="portal-card-name">العمل الميداني</div>
       <span class="portal-card-btn">الدخول للنظام</span>
     </a>
 

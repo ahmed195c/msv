@@ -34,6 +34,7 @@ from .pest_control import (
 )
 from .misc import register, vehicle_permit_print, waste_disposal_permit_print, printer
 from .engineer_addition import engineer_addition_create, engineer_addition_detail
+from .field_work import field_work_list, field_work_create, field_work_detail, field_work_report
 
 __all__ = [
     'portal_landing', 'home', 'complaints_dashboard', 'complaint_submit', 'complaint_detail',
@@ -52,4 +53,5 @@ __all__ = [
     'pest_control_permit_print', 'pest_control_permit_view',
     'register', 'vehicle_permit_print', 'waste_disposal_permit_print', 'printer',
     'engineer_addition_create', 'engineer_addition_detail',
+    'field_work_list', 'field_work_create', 'field_work_detail', 'field_work_report',
 ]

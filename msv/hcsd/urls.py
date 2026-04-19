@@ -90,4 +90,8 @@ urlpatterns = [
         ),
         name='password_reset_complete',
     ),
+    path('field-work/', views.field_work_list, name='field_work_list'),
+    path('field-work/create/', views.field_work_create, name='field_work_create'),
+    path('field-work/<int:pk>/', views.field_work_detail, name='field_work_detail'),
+    path('field-work/<int:pk>/report/', views.field_work_report, name='field_work_report'),
 ]

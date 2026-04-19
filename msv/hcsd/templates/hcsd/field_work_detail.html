@@ -1,0 +1,375 @@
+{% extends "hcsd/base.html" %}
+{% block title %}أمر عمل #{{ order.pk }}{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink-1:#1a2a3a;--ink-2:#3a4a5a;--ink-3:#5a6a7a;--ink-4:#8a9aaa;
+  --surface-1:#f4f6f8;--surface-2:#e8ecf0;--border:#d0d8e0;
+  --accent:#1a5c9a;--accent-light:#e8f0f8;
+  --success:#1a7a3a;--success-bg:#e8f5ee;
+  --warn:#7a4500;--warn-bg:#fff4e0;
+  --danger:#8a1a1a;--danger-bg:#fdeaea;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);direction:rtl;}
+.fw-page{max-width:800px;margin:0 auto;padding:24px 16px;}
+.fw-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;}
+.fw-header-left h1{font-size:20px;font-weight:700;margin-bottom:4px;}
+.fw-header-left .fw-id{font-family:var(--mono);font-size:13px;color:var(--ink-4);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;border:none;transition:.15s;font-family:inherit;}
+.btn-outline{background:#fff;color:var(--ink-2);border:1.5px solid var(--border);}
+.btn-outline:hover{background:var(--surface-2);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#14487a;}
+.btn-success{background:#1a7a3a;color:#fff;}
+.btn-success:hover{background:#145c2a;}
+.btn-danger{background:#c94a4a;color:#fff;}
+.btn-danger:hover{background:#a83a3a;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-word{background:#2b579a;color:#fff;}
+.btn-word:hover{background:#1e3f72;}
+
+.card{background:#fff;border-radius:12px;border:1.5px solid var(--border);margin-bottom:20px;overflow:hidden;}
+.card-header{padding:14px 18px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.card-header h2{font-size:15px;font-weight:700;color:var(--ink-1);}
+.card-body{padding:18px;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.info-row{display:flex;flex-direction:column;gap:3px;}
+.info-row.full{grid-column:1/-1;}
+.info-label{font-size:12px;font-weight:600;color:var(--ink-4);text-transform:uppercase;letter-spacing:.4px;}
+.info-value{font-size:14px;color:var(--ink-1);font-weight:500;}
+
+.badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+.s-pending    {background:#fff8e0;color:#7a5500;}
+.s-in-progress{background:#e8f0f8;color:#1a3a6a;}
+.s-completed  {background:#e8f5ee;color:#1a5c35;}
+.s-incomplete {background:#fdeaea;color:#8a1a1a;}
+.s-cancelled  {background:#f0f0f0;color:#6a6a6a;}
+
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px;}
+.form-control{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;direction:rtl;background:#fff;color:var(--ink-1);transition:.15s;}
+.form-control:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,92,154,.12);}
+textarea.form-control{resize:vertical;min-height:80px;}
+select.form-control{cursor:pointer;}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+
+.alert{padding:12px 16px;border-radius:8px;font-size:14px;margin-bottom:16px;}
+.alert-error{background:var(--danger-bg);border:1.5px solid #f5c0c0;color:var(--danger);}
+.alert-error ul{padding-right:18px;margin-top:6px;}
+.alert-success{background:var(--success-bg);border:1.5px solid #b0d8c0;color:var(--success);}
+
+/* Photos */
+.photos-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:2px solid var(--border);padding-bottom:0;}
+.photo-tab{padding:8px 16px;font-size:13px;font-weight:600;color:var(--ink-3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s;font-family:inherit;}
+.photo-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.photo-panel{display:none;}.photo-panel.active{display:block;}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px;}
+.photo-item{position:relative;border-radius:8px;overflow:hidden;border:1.5px solid var(--border);background:var(--surface-2);}
+.photo-item img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
+.photo-delete{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:13px;line-height:1;}
+.photo-delete:hover{background:rgba(200,60,60,.9);}
+.photo-empty{color:var(--ink-4);font-size:14px;padding:20px 0;}
+
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:.15s;background:var(--surface-1);}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-light);}
+.upload-zone input{display:none;}
+.upload-zone-label{font-size:14px;color:var(--ink-3);cursor:pointer;}
+
+@media(max-width:600px){
+  .info-grid,.form-row{grid-template-columns:1fr;}
+  .photo-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
+}
+</style>
+
+<section class="fw-page">
+
+  <!-- Header -->
+  <div class="fw-header">
+    <div class="fw-header-left">
+      <div class="fw-id">أمر عمل ميداني #{{ order.pk }}</div>
+      <h1>{{ order.work_type }}</h1>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="{% url 'field_work_report' order.pk %}" class="btn btn-word">⬇ تحميل تقرير Word</a>
+      <a href="{% url 'field_work_list' %}" class="btn btn-outline">← رجوع للقائمة</a>
+    </div>
+  </div>
+
+  {% if errors %}
+  <div class="alert alert-error">
+    <strong>يرجى مراجعة الأخطاء:</strong>
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  {% if success %}
+  <div class="alert alert-success">{{ success }}</div>
+  {% endif %}
+
+  <!-- Info Card -->
+  <div class="card">
+    <div class="card-header">
+      <h2>معلومات الأمر</h2>
+      <span class="badge
+        {% if order.status == 'pending' %}s-pending
+        {% elif order.status == 'in_progress' %}s-in-progress
+        {% elif order.status == 'completed' %}s-completed
+        {% elif order.status == 'incomplete' %}s-incomplete
+        {% else %}s-cancelled{% endif %}">
+        {{ order.get_status_display }}
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="info-grid">
+        <div class="info-row">
+          <span class="info-label">اسم الموقع</span>
+          <span class="info-value">{{ order.site_name|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">تاريخ التنفيذ</span>
+          <span class="info-value">{{ order.work_date|date:"d/m/Y"|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">العنوان</span>
+          <span class="info-value">{{ order.location|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">تاريخ الإنشاء</span>
+          <span class="info-value">{{ order.created_at|date:"d/m/Y" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">عدد العمال</span>
+          <span class="info-value">{% if order.workers_count != None %}{{ order.workers_count }}{% else %}—{% endif %}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">اكتملت العملية</span>
+          <span class="info-value">
+            {% if order.work_completed is True %}✅ نعم
+            {% elif order.work_completed is False %}❌ لا
+            {% else %}—{% endif %}
+          </span>
+        </div>
+        {% if order.equipment_used %}
+        <div class="info-row full">
+          <span class="info-label">المعدات المستخدمة</span>
+          <span class="info-value">{{ order.equipment_used }}</span>
+        </div>
+        {% endif %}
+        {% if order.description %}
+        <div class="info-row full">
+          <span class="info-label">وصف العمل</span>
+          <span class="info-value">{{ order.description }}</span>
+        </div>
+        {% endif %}
+        {% if order.notes %}
+        <div class="info-row full">
+          <span class="info-label">ملاحظات</span>
+          <span class="info-value">{{ order.notes }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if can_edit %}
+  <!-- Update Details -->
+  <div class="card">
+    <div class="card-header"><h2>تعديل التفاصيل</h2></div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_details">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">نوع العمل *</label>
+            <input type="text" name="work_type" class="form-control" value="{{ order.work_type }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">اسم الموقع</label>
+            <input type="text" name="site_name" class="form-control" value="{{ order.site_name }}" placeholder="مثال: مجمع الشيخ خليفة...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">تاريخ التنفيذ</label>
+            <input type="date" name="work_date" class="form-control" value="{{ order.work_date|date:'Y-m-d'|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">عدد العمال</label>
+            <input type="number" name="workers_count" class="form-control" min="0"
+                   value="{% if order.workers_count != None %}{{ order.workers_count }}{% endif %}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">المعدات المستخدمة</label>
+          <textarea name="equipment_used" class="form-control" placeholder="اذكر المعدات المستخدمة...">{{ order.equipment_used }}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">وصف العمل</label>
+          <textarea name="description" class="form-control">{{ order.description }}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ملاحظات</label>
+          <textarea name="notes" class="form-control">{{ order.notes }}</textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">💾 حفظ التفاصيل</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Update Status -->
+  <div class="card">
+    <div class="card-header"><h2>تحديث الحالة</h2></div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_status">
+        <div class="form-group">
+          <label class="form-label">الحالة الجديدة</label>
+          <select name="status" class="form-control">
+            {% for val, label in order.STATUS_CHOICES %}
+            <option value="{{ val }}" {% if order.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-success">✔ تحديث الحالة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Photos -->
+  <div class="card">
+    <div class="card-header"><h2>الصور</h2></div>
+    <div class="card-body">
+
+      <!-- Tabs -->
+      <div class="photos-tabs">
+        <button class="photo-tab active" onclick="switchTab('before',this)">قبل العمل ({{ photos_before|length }})</button>
+        <button class="photo-tab" onclick="switchTab('during',this)">أثناء العمل ({{ photos_during|length }})</button>
+        <button class="photo-tab" onclick="switchTab('after',this)">بعد العمل ({{ photos_after|length }})</button>
+      </div>
+
+      <!-- Before -->
+      <div id="panel-before" class="photo-panel active">
+        {% if photos_before %}
+        <div class="photo-grid">
+          {% for photo in photos_before %}
+          <div class="photo-item">
+            <img src="{{ photo.file.url }}" alt="صورة قبل العمل">
+            {% if can_edit %}
+            <form method="post" style="display:contents;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_photo">
+              <input type="hidden" name="photo_id" value="{{ photo.pk }}">
+              <button type="submit" class="photo-delete" title="حذف"
+                      onclick="return confirm('حذف هذه الصورة؟')">✕</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="photo-empty">لا توجد صور قبل العمل.</p>
+        {% endif %}
+      </div>
+
+      <!-- During -->
+      <div id="panel-during" class="photo-panel">
+        {% if photos_during %}
+        <div class="photo-grid">
+          {% for photo in photos_during %}
+          <div class="photo-item">
+            <img src="{{ photo.file.url }}" alt="صورة أثناء العمل">
+            {% if can_edit %}
+            <form method="post" style="display:contents;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_photo">
+              <input type="hidden" name="photo_id" value="{{ photo.pk }}">
+              <button type="submit" class="photo-delete" title="حذف"
+                      onclick="return confirm('حذف هذه الصورة؟')">✕</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="photo-empty">لا توجد صور أثناء العمل.</p>
+        {% endif %}
+      </div>
+
+      <!-- After -->
+      <div id="panel-after" class="photo-panel">
+        {% if photos_after %}
+        <div class="photo-grid">
+          {% for photo in photos_after %}
+          <div class="photo-item">
+            <img src="{{ photo.file.url }}" alt="صورة بعد العمل">
+            {% if can_edit %}
+            <form method="post" style="display:contents;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_photo">
+              <input type="hidden" name="photo_id" value="{{ photo.pk }}">
+              <button type="submit" class="photo-delete" title="حذف"
+                      onclick="return confirm('حذف هذه الصورة؟')">✕</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="photo-empty">لا توجد صور بعد العمل.</p>
+        {% endif %}
+      </div>
+
+      <!-- Upload -->
+      {% if can_edit %}
+      <div style="margin-top:20px;border-top:1.5px solid var(--border);padding-top:18px;">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--ink-2);">رفع صور جديدة</h3>
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="upload_photos">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">المرحلة</label>
+              <select name="phase" class="form-control">
+                <option value="before">قبل العمل</option>
+                <option value="during">أثناء العمل</option>
+                <option value="after">بعد العمل</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">الصور (JPG/PNG)</label>
+              <input type="file" name="photos" class="form-control" multiple accept=".jpg,.jpeg,.png">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">⬆ رفع الصور</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</section>
+
+<script>
+function switchTab(phase, btn) {
+  document.querySelectorAll('.photo-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.photo-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + phase).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+{% endblock %}

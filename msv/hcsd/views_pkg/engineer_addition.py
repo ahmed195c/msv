@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from ..models import (
-    Company, Enginer, InspectorReview, PirmetChangeLog, PirmetClearance,
+    Company, Enginer, InspectorReview, PirmetChangeLog, PirmetClearance, PirmetDocument,
 )
 from .common import (
     ALLOWED_DOC_EXTENSIONS,
@@ -32,10 +32,12 @@ def engineer_addition_create(request):
         engineer_name = request.POST.get('engineer_name', '').strip()
         engineer_id_number = request.POST.get('engineer_id_number', '').strip()
         engineer_phone = request.POST.get('engineer_phone', '').strip()
+        request_email = request.POST.get('request_email', '').strip()
         has_general_cert = bool(request.POST.get('has_general_cert'))
         has_termite_cert = bool(request.POST.get('has_termite_cert'))
         general_cert_file = request.FILES.get('general_cert_file')
         termite_cert_file = request.FILES.get('termite_cert_file')
+        extra_docs = request.FILES.getlist('engineer_documents')
 
         if not company_id:
             errors.append('يرجى اختيار الشركة.')
@@ -51,6 +53,11 @@ def engineer_addition_create(request):
             ext = os.path.splitext(termite_cert_file.name)[1].lower()
             if ext not in ALLOWED_DOC_EXTENSIONS:
                 errors.append('صيغة شهادة النمل الأبيض غير مقبولة.')
+        for doc in extra_docs:
+            ext = os.path.splitext(doc.name)[1].lower()
+            if ext not in ALLOWED_DOC_EXTENSIONS:
+                errors.append(f'الملف "{doc.name}" غير مقبول — يُسمح بـ PDF أو صور فقط.')
+                break
 
         company = None
         if company_id and not errors:
@@ -77,7 +84,10 @@ def engineer_addition_create(request):
                     permit_type='engineer_addition',
                     status='order_received',
                     engineer_to_add=engineer,
+                    request_email=request_email or None,
                 )
+                for doc in extra_docs:
+                    PirmetDocument.objects.create(pirmet=pirmet, file=doc)
                 _log_pirmet_change(
                     pirmet, 'status_change', request.user,
                     old_status=None, new_status='order_received',
@@ -144,6 +154,7 @@ def engineer_addition_detail(request, id):
     can_receive_inspection = (
         is_inspector
         and pirmet.status == 'inspection_pending'
+        and inspection_receiver_name is None
     )
     can_submit_inspection_report = (
         is_inspector
@@ -226,30 +237,44 @@ def engineer_addition_detail(request, id):
                 review_errors.append('ليس لديك صلاحية.')
             decision = request.POST.get('inspection_decision', '').strip().lower()
             report_notes = request.POST.get('inspection_report_notes', '').strip()
+            inspection_files = request.FILES.getlist('inspection_files')
             if decision not in {'approved', 'rejected'}:
                 review_errors.append('يرجى اختيار نتيجة التقرير.')
             if decision == 'rejected' and not report_notes:
                 review_errors.append('يرجى كتابة ملاحظات سبب عدم الاعتماد.')
+            for f in inspection_files:
+                ext = os.path.splitext(f.name)[1].lower()
+                if ext not in ALLOWED_DOC_EXTENSIONS:
+                    review_errors.append(f'الملف "{f.name}" غير مقبول — يُسمح بـ PDF أو صور فقط.')
+                    break
             if not review_errors:
-                old_status = pirmet.status
-                pirmet.status = 'inspection_completed'
-                if decision == 'rejected':
-                    pirmet.unapprovedReason = report_notes or 'Inspection rejected.'
-                    pirmet.save(update_fields=['status', 'unapprovedReason'])
-                else:
-                    pirmet.save(update_fields=['status'])
-                InspectorReview.objects.update_or_create(
-                    pirmet=pirmet,
-                    defaults={'isApproved': decision == 'approved', 'comments': report_notes},
-                )
-                _log_pirmet_change(pirmet, 'status_change', request.user,
-                    old_status=old_status, new_status=pirmet.status,
-                    notes='Engineer addition inspection report submitted.')
-                _log_pirmet_change(pirmet, 'details_update', request.user,
-                    notes=f'inspection_report:{decision}')
-                if report_notes:
+                with transaction.atomic():
+                    old_status = pirmet.status
+                    pirmet.status = 'inspection_completed'
+                    if decision == 'rejected':
+                        pirmet.unapprovedReason = report_notes or 'Inspection rejected.'
+                        pirmet.save(update_fields=['status', 'unapprovedReason'])
+                    else:
+                        pirmet.save(update_fields=['status'])
+                    InspectorReview.objects.update_or_create(
+                        pirmet=pirmet,
+                        defaults={'isApproved': decision == 'approved', 'comments': report_notes},
+                    )
+                    for f in inspection_files:
+                        PirmetDocument.objects.create(
+                            pirmet=pirmet,
+                            file=f,
+                            doc_type=PirmetDocument.DOC_TYPE_INSPECTION,
+                            notes=report_notes,
+                        )
+                    _log_pirmet_change(pirmet, 'status_change', request.user,
+                        old_status=old_status, new_status=pirmet.status,
+                        notes='Engineer addition inspection report submitted.')
                     _log_pirmet_change(pirmet, 'details_update', request.user,
-                        notes=f'inspection_report_notes:{report_notes}')
+                        notes=f'inspection_report:{decision}')
+                    if report_notes:
+                        _log_pirmet_change(pirmet, 'details_update', request.user,
+                            notes=f'inspection_report_notes:{report_notes}')
                 return redirect('engineer_addition_detail', id=pirmet.id)
 
         elif action == 'record_payment_order':
@@ -330,6 +355,13 @@ def engineer_addition_detail(request, id):
                     notes=f'Admin closed: {close_reason}')
                 return redirect('engineer_addition_detail', id=pirmet.id)
 
+    inspection_photos = pirmet.documents.filter(
+        doc_type=PirmetDocument.DOC_TYPE_INSPECTION
+    ).order_by('uploadedAt')
+    engineer_docs = pirmet.documents.filter(
+        doc_type=PirmetDocument.DOC_TYPE_ENGINEER
+    ).order_by('uploadedAt')
+
     return render(request, 'hcsd/engineer_addition_detail.html', {
         'pirmet': pirmet,
         'engineer': engineer,
@@ -337,6 +369,8 @@ def engineer_addition_detail(request, id):
         'inspection_report_decision': inspection_report_decision,
         'assigned_inspector_user': assigned_inspector_user,
         'inspector_users': _inspector_users_qs(),
+        'inspection_photos': inspection_photos,
+        'engineer_docs': engineer_docs,
         'review_errors': review_errors,
         'can_record_inspection_order': can_record_inspection_order,
         'can_record_inspection_receipt': can_record_inspection_receipt,

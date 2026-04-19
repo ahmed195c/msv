@@ -137,8 +137,8 @@ class PirmetClearance(models.Model):
         ('disposal_rejected', 'Disposal Rejected'),
     ]
     unapprovedReason = models.TextField(null=True, blank=True)
-    unapprovedBy = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='unapproved_pirmets')
-    approvedBy = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='approved_pirmets')
+    unapprovedBy = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='unapproved_pirmets')
+    approvedBy = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_pirmets')
     approvedRemarks = models.TextField(null=True, blank=True)
     head_approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='head_approved_pirmets')
     head_approved_date = models.DateField(null=True, blank=True)
@@ -215,8 +215,17 @@ class PirmetClearance(models.Model):
 
 
 class PirmetDocument(models.Model):
+    DOC_TYPE_ENGINEER = 'engineer_doc'
+    DOC_TYPE_INSPECTION = 'inspection_photo'
+    DOC_TYPE_CHOICES = [
+        (DOC_TYPE_ENGINEER, 'مستند مهندس'),
+        (DOC_TYPE_INSPECTION, 'صورة/مستند تفتيش'),
+    ]
+
     pirmet = models.ForeignKey(PirmetClearance, on_delete=models.CASCADE, related_name='documents')
     file = models.FileField(upload_to='pirmet_documents/')
+    doc_type = models.CharField(max_length=30, choices=DOC_TYPE_CHOICES, default=DOC_TYPE_ENGINEER)
+    notes = models.TextField(blank=True, default='')
     uploadedAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -988,3 +997,76 @@ class ComplaintPhoto(models.Model):
 
     def __str__(self):
         return f"{self.get_phase_display()} — {self.complaint}"
+
+
+# ---------------------------------------------------------------------------
+# Field Work Orders
+# ---------------------------------------------------------------------------
+
+class FieldWorkOrder(models.Model):
+    STATUS_CHOICES = [
+        ('pending',     'بانتظار التنفيذ'),
+        ('in_progress', 'قيد التنفيذ'),
+        ('completed',   'مكتملة'),
+        ('incomplete',  'غير مكتملة'),
+        ('cancelled',   'ملغية'),
+    ]
+
+    site_name = models.CharField(max_length=200, blank=True, verbose_name='اسم الموقع')
+    work_type = models.CharField(max_length=200, verbose_name='نوع العمل')
+    location = models.CharField(max_length=300, blank=True, verbose_name='العنوان')
+    description = models.TextField(blank=True, verbose_name='وصف العمل')
+    work_date = models.DateField(null=True, blank=True, verbose_name='تاريخ التنفيذ')
+    workers_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='عدد العمال')
+    equipment_used = models.TextField(blank=True, verbose_name='المعدات المستخدمة')
+    work_completed = models.BooleanField(null=True, blank=True, verbose_name='اكتملت العملية')
+    notes = models.TextField(blank=True, verbose_name='ملاحظات')
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='الحالة',
+    )
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='field_work_orders_created', verbose_name='أنشئ بواسطة',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاريخ الإنشاء')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'أمر عمل ميداني'
+        verbose_name_plural = 'أوامر العمل الميداني'
+
+    def __str__(self):
+        return f"#{self.id} — {self.work_type} — {self.site_name or 'بدون موقع'}"
+
+    def photos_by_phase(self, phase):
+        return self.photos.filter(phase=phase)
+
+
+class FieldWorkPhoto(models.Model):
+    PHASE_CHOICES = [
+        ('before', 'قبل العمل'),
+        ('during', 'أثناء العمل'),
+        ('after',  'بعد العمل'),
+    ]
+
+    work_order = models.ForeignKey(
+        FieldWorkOrder, on_delete=models.CASCADE, related_name='photos',
+        verbose_name='أمر العمل',
+    )
+    phase = models.CharField(max_length=10, choices=PHASE_CHOICES, verbose_name='المرحلة')
+    file = models.ImageField(upload_to='field_work/photos/', verbose_name='الصورة')
+    caption = models.CharField(max_length=200, blank=True, verbose_name='وصف الصورة')
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='field_work_photos', verbose_name='رُفعت بواسطة',
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['phase', 'uploaded_at']
+        verbose_name = 'صورة عمل ميداني'
+        verbose_name_plural = 'صور العمل الميداني'
+
+    def __str__(self):
+        return f"{self.get_phase_display()} — {self.work_order}"

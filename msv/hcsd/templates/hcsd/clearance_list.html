@@ -324,6 +324,7 @@
 .stripe-approved    { background: #4a9a6e; }
 .stripe-needs       { background: #c94a4a; }
 .stripe-payment     { background: #c97d2a; }
+.stripe-pest-pay    { background: #e09030; }
 .stripe-paid        { background: #4aac6e; }
 .stripe-issued      { background: #304357; }
 .stripe-inspect     { background: #304357; }
@@ -379,6 +380,7 @@
 .st-inspection-completed    { background: var(--s-done);      color: #1a4a5c; }
 .st-head-approval-needed    { background: #ede8f7;            color: #4a2a8f; }
 .st-head-approved           { background: #7c5bbf;            color: #ffffff; }
+.st-pesticide-payment-link  { background: #fff4e0;            color: #7a4500; }
 .st-disposal-approved       { background: var(--s-dis-ok);    color: #1a5c35; }
 .st-disposal-rejected       { background: var(--s-dis-no);    color: var(--danger); }
 .st-fallback                { background: var(--surface-2);   color: var(--ink-2); }
@@ -777,6 +779,7 @@
                   {% elif clearance.status == 'violation_payment_link_pending' or clearance.status == 'violation_payment_pending' %}stripe-needs
                   {% elif clearance.status == 'issued' %}stripe-issued
                   {% elif clearance.status == 'inspection_pending' or clearance.status_key == 'inspection_received' %}stripe-inspect
+                  {% elif clearance.status_key == 'pesticide_payment_link_pending' %}stripe-pest-pay
                   {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}stripe-head
                   {% elif clearance.status == 'inspection_completed' %}stripe-done
                   {% elif clearance.status == 'head_approved' %}stripe-head
@@ -800,6 +803,7 @@
                       {% elif clearance.status == 'issued' %}st-issued
                       {% elif clearance.status_key == 'inspection_received' %}st-inspection-received
                       {% elif clearance.status == 'inspection_pending' %}st-inspection-pending
+                      {% elif clearance.status_key == 'pesticide_payment_link_pending' %}st-pesticide-payment-link
                       {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}st-head-approval-needed
                       {% elif clearance.status == 'inspection_completed' %}st-inspection-completed
                       {% elif clearance.status == 'head_approved' %}st-head-approved

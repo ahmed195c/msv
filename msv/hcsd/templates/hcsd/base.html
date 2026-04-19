@@ -591,6 +591,9 @@ body.is-navigating .app-main {
 
       <div class="nav-mobile-panel" id="nav-mobile-panel">
         <div class="nav-links">
+          <a class="{% if request.resolver_match.url_name == 'portal_landing' %}is-active{% endif %}"
+             href="{% url 'portal_landing' %}">الرئيسية</a>
+
           <a class="{% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' or request.resolver_match.url_name == 'add_company' %}is-active{% endif %}"
              href="{% url 'company_list' %}">الشركات</a>
 

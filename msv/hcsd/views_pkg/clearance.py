@@ -187,6 +187,12 @@ def clearance_list(request):
                 clearance.inspection_report_decision = 'approved'
             elif clearance.status == 'disposal_rejected':
                 clearance.inspection_report_decision = 'rejected'
+        if (
+            clearance.status == 'inspection_completed'
+            and clearance.inspection_report_decision == 'approved'
+            and clearance.permit_type == 'pesticide_transport'
+        ):
+            clearance.status_key = 'pesticide_payment_link_pending'
 
     finished_statuses = {
         'issued',
@@ -286,6 +292,7 @@ def clearance_list(request):
         'payment_pending': 'بانتظار دفع التصريح',
         'issued': 'تم إصدار التصريح',
         'inspection_completed': 'اكتمل التفتيش',
+        'pesticide_payment_link_pending': 'تصريح المركبة - بانتظار إرسال رابط الدفع',
         'violation_payment_link_pending': 'بانتظار إرسال رابط دفع المخالفة',
         'violation_payment_pending': 'بانتظار دفع المخالفة',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
@@ -306,7 +313,8 @@ def clearance_list(request):
         'violation_payment_link_pending': 'طلبات بانتظار إرسال رابط دفع المخالفة',
         'violation_payment_pending': 'طلبات بانتظار دفع المخالفة',
         'issued': 'طلبات صادرة',
-        'inspection_completed': 'طلبات بانتظار الاعتماد النهائي',
+        'inspection_completed': 'طلبات اكتمل تفتيشها',
+        'pesticide_payment_link_pending': 'تصاريح المركبات - بانتظار إرسال رابط الدفع',
         'closed_requirements_pending': 'طلبات مغلقة - اشتراطات واجبة الاستيفاء',
         'cancelled_admin': 'طلبات مغلقة',
         'disposal_approved': 'طلبات إتلاف معتمدة',
@@ -321,11 +329,12 @@ def clearance_list(request):
         'order_received',
         'inspection_payment_pending',
         'review_pending',
-        'needs_completion',
-        'rejected',
+        'payment_pending',
+        'pesticide_payment_link_pending',
         'violation_payment_link_pending',
         'violation_payment_pending',
-        'payment_pending',
+        'needs_completion',
+        'rejected',
     ]
     finished_status_order = [
         'issued',
