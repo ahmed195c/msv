@@ -269,9 +269,68 @@ body.app-shell {
 .page-title  { font-size: 20px; font-weight: 700; color: var(--ink); }
 .page-subtitle { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
 
-@media (max-width: 720px) {
-  .app-main { padding: 16px 12px; }
+/* ── Mobile toggle ── */
+.nav-toggle {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 6px;
+  color: rgba(255,255,255,.8);
+  cursor: pointer; padding: 0; flex-shrink: 0;
+}
+.nav-toggle svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+
+.nav-panel {
+  display: flex; align-items: center;
+  gap: 0; flex: 1; height: 100%;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    height: auto; min-height: var(--nav-h);
+    padding: 10px 16px;
+    flex-wrap: wrap; align-items: center;
+  }
+  .nav-brand { flex: 1; margin-left: 0; margin-right: 0; }
+  .nav-toggle { display: inline-flex; }
+  .nav-divider { display: none; }
+
+  .nav-panel {
+    display: none; width: 100%;
+    flex-direction: column; align-items: stretch;
+    height: auto; gap: 10px;
+    padding: 12px 0 4px;
+    border-top: 1px solid rgba(255,255,255,.1);
+    margin-top: 8px;
+  }
+  .navbar.is-open .nav-panel { display: flex; }
+
+  .nav-links {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6px; height: auto; width: 100%;
+  }
+  .nav-link {
+    height: auto; padding: 10px 12px;
+    border-radius: 6px; justify-content: center;
+    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.05);
+  }
+  .nav-link::after { display: none; }
+  .nav-link.active {
+    background: rgba(37,99,235,.2);
+    border-color: rgba(37,99,235,.4);
+    color: #fff;
+  }
+
+  .nav-end {
+    display: flex; flex-wrap: wrap;
+    gap: 8px; width: 100%; align-items: center;
+  }
+  .nav-username { display: none; }
   .nav-brand-label { display: none; }
+  .app-main { padding: 16px 12px; }
 }
 </style>
 
@@ -294,61 +353,67 @@ body.app-shell {
 
     <div class="nav-divider"></div>
 
-    <!-- Links -->
-    <div class="nav-links">
-      <a class="nav-link {% if request.resolver_match.url_name in 'complaints_dashboard,complaint_submit,complaint_detail,complaint_pdf_import,complaint_pdf_review' %}active{% endif %}"
-         href="{% url 'complaints_dashboard' %}">الشكاوي</a>
-      <a class="nav-link {% if request.resolver_match.url_name == 'all_requests' %}active{% endif %}"
-         href="{% url 'all_requests' %}">متابعة الطلبات</a>
-      <a class="nav-link {% if 'container' in request.resolver_match.url_name %}active{% endif %}"
-         href="{% url 'container_list' %}">نقل الحاويات</a>
-      <a class="nav-link {% if 'weed' in request.resolver_match.url_name %}active{% endif %}"
-         href="{% url 'weed_list' %}">إزالة الحشائش</a>
-    </div>
+    <!-- Hamburger -->
+    <button class="nav-toggle" id="navToggle" aria-label="القائمة">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
 
-    <!-- End -->
-    <div class="nav-end">
+    <div class="nav-panel" id="navPanel">
 
-      <!-- Language -->
-      <div class="lang-toggle">
-        <form method="post" action="{% url 'set_complaints_language' %}" style="display:contents;">
-          {% csrf_token %}
-          <input type="hidden" name="lang" value="ar">
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <button type="submit" class="lang-toggle__btn {% if lang == 'ar' %}active{% endif %}">ع</button>
-        </form>
-        <span class="lang-toggle__sep"></span>
-        <form method="post" action="{% url 'set_complaints_language' %}" style="display:contents;">
-          {% csrf_token %}
-          <input type="hidden" name="lang" value="en">
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <button type="submit" class="lang-toggle__btn {% if lang == 'en' %}active{% endif %}">EN</button>
-        </form>
+      <!-- Links -->
+      <div class="nav-links">
+        <a class="nav-link {% if request.resolver_match.url_name in 'complaints_dashboard,complaint_submit,complaint_detail,complaint_pdf_import,complaint_pdf_review' %}active{% endif %}"
+           href="{% url 'complaints_dashboard' %}">الشكاوي</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'all_requests' %}active{% endif %}"
+           href="{% url 'all_requests' %}">متابعة الطلبات</a>
+        <a class="nav-link {% if 'container' in request.resolver_match.url_name %}active{% endif %}"
+           href="{% url 'container_list' %}">نقل الحاويات</a>
+        <a class="nav-link {% if 'weed' in request.resolver_match.url_name %}active{% endif %}"
+           href="{% url 'weed_list' %}">إزالة الحشائش</a>
       </div>
 
-      <!-- Portal switch -->
-      <a href="{% url 'portal_landing' %}" class="nav-switch">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-        {% if lang == 'en' %}Home{% else %}الرئيسية{% endif %}
-      </a>
+      <!-- End -->
+      <div class="nav-end">
 
-      {% if request.user.is_authenticated %}
-      <!-- User chip -->
-      <div class="nav-user-chip">
-        <div class="nav-avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</div>
-        <span class="nav-username">{{ request.user.get_full_name|default:request.user.username }}</span>
+        <!-- Language -->
+        <div class="lang-toggle">
+          <form method="post" action="{% url 'set_complaints_language' %}" style="display:contents;">
+            {% csrf_token %}
+            <input type="hidden" name="lang" value="ar">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="lang-toggle__btn {% if lang == 'ar' %}active{% endif %}">ع</button>
+          </form>
+          <span class="lang-toggle__sep"></span>
+          <form method="post" action="{% url 'set_complaints_language' %}" style="display:contents;">
+            {% csrf_token %}
+            <input type="hidden" name="lang" value="en">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="lang-toggle__btn {% if lang == 'en' %}active{% endif %}">EN</button>
+          </form>
+        </div>
+
+        <!-- Portal switch -->
+        <a href="{% url 'portal_landing' %}" class="nav-switch">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          {% if lang == 'en' %}Home{% else %}الرئيسية{% endif %}
+        </a>
+
+        {% if request.user.is_authenticated %}
+        <div class="nav-user-chip">
+          <div class="nav-avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</div>
+          <span class="nav-username">{{ request.user.get_full_name|default:request.user.username }}</span>
+        </div>
+        <form method="post" action="{% url 'logout' %}" style="display:contents;">
+          {% csrf_token %}
+          <button type="submit" class="nav-logout" title="{% if lang == 'en' %}Logout{% else %}تسجيل الخروج{% endif %}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            {% if lang == 'en' %}Logout{% else %}خروج{% endif %}
+          </button>
+        </form>
+        {% endif %}
+
       </div>
-      <!-- Logout -->
-      <form method="post" action="{% url 'logout' %}" style="display:contents;">
-        {% csrf_token %}
-        <button type="submit" class="nav-logout" title="{% if lang == 'en' %}Logout{% else %}تسجيل الخروج{% endif %}">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          {% if lang == 'en' %}Logout{% else %}خروج{% endif %}
-        </button>
-      </form>
-      {% endif %}
-
-    </div>
+    </div><!-- /nav-panel -->
   </nav>
 </div>
 
@@ -357,5 +422,12 @@ body.app-shell {
 </main>
 
 {% block extra_js %}{% endblock %}
+<script>
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = btn && btn.closest('nav');
+  if(btn && nav) btn.addEventListener('click', function(){ nav.classList.toggle('is-open'); });
+})();
+</script>
 </body>
 </html>
