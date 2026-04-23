@@ -1,4 +1,4 @@
-{% extends "hcsd/base.html" %}
+{% extends "hcsd/field_work_base.html" %}
 {% block title %}أمر عمل #{{ order.pk }}{% endblock %}
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -48,6 +48,12 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
 .s-completed  {background:#e8f5ee;color:#1a5c35;}
 .s-incomplete {background:#fdeaea;color:#8a1a1a;}
 .s-cancelled  {background:#f0f0f0;color:#6a6a6a;}
+.s-private    {background:#f5f3ff;color:#6d28d9;}
+.s-declined   {background:#fff1f2;color:#be123c;}
+.s-phone      {background:#fff7ed;color:#c2410c;}
+.s-postponed  {background:#fef9c3;color:#854d0e;}
+.s-gov        {background:#f0f9ff;color:#0369a1;}
+.s-other-mun  {background:#f1f5f9;color:#475569;}
 
 .form-group{margin-bottom:16px;}
 .form-label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px;}
@@ -92,8 +98,11 @@ select.form-control{cursor:pointer;}
   <!-- Header -->
   <div class="fw-header">
     <div class="fw-header-left">
-      <div class="fw-id">أمر عمل ميداني #{{ order.pk }}</div>
-      <h1>{{ order.work_type }}</h1>
+      <div class="fw-id">
+        أمر عمل ميداني #{{ order.pk }}
+        {% if order.source == 'excel' %}<span style="background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;margin-right:6px;">Excel</span>{% endif %}
+      </div>
+      <h1>{% if order.order_number %}طلب رقم {{ order.order_number }}{% elif order.work_type %}{{ order.work_type }}{% else %}أمر عمل ميداني{% endif %}</h1>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <a href="{% url 'field_work_report' order.pk %}" class="btn btn-word">⬇ تحميل تقرير Word</a>
@@ -116,15 +125,124 @@ select.form-control{cursor:pointer;}
     <div class="card-header">
       <h2>معلومات الأمر</h2>
       <span class="badge
-        {% if order.status == 'pending' %}s-pending
-        {% elif order.status == 'in_progress' %}s-in-progress
-        {% elif order.status == 'completed' %}s-completed
-        {% elif order.status == 'incomplete' %}s-incomplete
+        {% if order.status == 'completed' %}s-completed
+        {% elif order.status == 'private_company' %}s-private
+        {% elif order.status == 'cust_declined' %}s-declined
+        {% elif order.status == 'wrong_phone' or order.status == 'phone_off' or order.status == 'no_answer' %}s-phone
+        {% elif order.status == 'postponed_client' %}s-postponed
+        {% elif order.status == 'gov_dept' %}s-gov
+        {% elif order.status == 'other_municipal' %}s-other-mun
         {% else %}s-cancelled{% endif %}">
         {{ order.get_status_display }}
       </span>
     </div>
     <div class="card-body">
+
+      {% if order.source == 'excel' %}
+      <!-- ── Excel import fields ── -->
+      <div class="info-grid">
+        <div class="info-row">
+          <span class="info-label">رقم الطلب</span>
+          <span class="info-value" style="font-family:var(--mono);font-weight:700;">{{ order.order_number|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">اسم المتعامل</span>
+          <span class="info-value">{{ order.customer_name|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">الموبايل</span>
+          <span class="info-value" style="font-family:var(--mono);">{{ order.mobile|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">المنطقة</span>
+          <span class="info-value">{{ order.area|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">رقم الشارع</span>
+          <span class="info-value">{{ order.street_number|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">رقم المنزل</span>
+          <span class="info-value">{{ order.house_number|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">تاريخ الطلب</span>
+          <span class="info-value">{{ order.request_date|date:"d/m/Y"|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">تاريخ الإغلاق</span>
+          <span class="info-value">{{ order.close_date|date:"d/m/Y"|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">حالة الطلب (Excel)</span>
+          <span class="info-value">{{ order.excel_status|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">ملاحظة الحالة</span>
+          <span class="info-value">{{ order.excel_status_note|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">المشرف المعالج</span>
+          <span class="info-value">{{ order.supervisor_name|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">العامل</span>
+          <span class="info-value">{{ order.worker_name|default:"—" }}</span>
+        </div>
+        <div class="info-row full">
+          <span class="info-label">نوع الحشرات</span>
+          <span class="info-value">{{ order.pest_types|default:"—" }}</span>
+        </div>
+      </div>
+
+      <!-- Pest treatment checkboxes -->
+      <div style="margin-top:16px;padding-top:14px;border-top:1.5px solid var(--border);">
+        <div class="info-label" style="margin-bottom:10px;">الحشرات التي تمت معالجتها</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          {% if order.treated_ant %}<span style="padding:3px 10px;background:#fef9c3;color:#713f12;border-radius:8px;font-size:12px;font-weight:600;">🐜 نمل</span>{% endif %}
+          {% if order.treated_cockroach %}<span style="padding:3px 10px;background:#fef9c3;color:#713f12;border-radius:8px;font-size:12px;font-weight:600;">🪲 صراصير</span>{% endif %}
+          {% if order.treated_mosquito %}<span style="padding:3px 10px;background:#fef9c3;color:#713f12;border-radius:8px;font-size:12px;font-weight:600;">🦟 بعوض</span>{% endif %}
+          {% if order.treated_fly %}<span style="padding:3px 10px;background:#fef9c3;color:#713f12;border-radius:8px;font-size:12px;font-weight:600;">🪰 ذباب</span>{% endif %}
+          {% if order.treated_rat %}<span style="padding:3px 10px;background:#fef9c3;color:#713f12;border-radius:8px;font-size:12px;font-weight:600;">🐀 فئران</span>{% endif %}
+          {% if order.treated_snake %}<span style="padding:3px 10px;background:#fef9c3;color:#713f12;border-radius:8px;font-size:12px;font-weight:600;">🐍 ثعبان</span>{% endif %}
+          {% if order.treated_scorpion %}<span style="padding:3px 10px;background:#fef9c3;color:#713f12;border-radius:8px;font-size:12px;font-weight:600;">🦂 عقارب</span>{% endif %}
+          {% if order.treated_wasps %}<span style="padding:3px 10px;background:#fef9c3;color:#713f12;border-radius:8px;font-size:12px;font-weight:600;">🐝 دبابير</span>{% endif %}
+          {% if order.treated_bees %}<span style="padding:3px 10px;background:#fef9c3;color:#713f12;border-radius:8px;font-size:12px;font-weight:600;">🍯 نحل</span>{% endif %}
+          {% if order.treated_other %}<span style="padding:3px 10px;background:#fef9c3;color:#713f12;border-radius:8px;font-size:12px;font-weight:600;">أخرى</span>{% endif %}
+          {% if not order.treated_ant and not order.treated_cockroach and not order.treated_mosquito and not order.treated_fly and not order.treated_rat and not order.treated_snake and not order.treated_scorpion and not order.treated_wasps and not order.treated_bees and not order.treated_other %}
+          <span style="color:var(--ink-4);">—</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Materials -->
+      {% with mats="" %}
+      {% if order.used_boom or order.used_kothreni or order.used_diesel or order.used_petrol or order.used_cyphorce or order.used_rat_poison or order.used_eco_larvacide or order.used_snake_deter or order.used_hymenopthor or order.used_permothor or order.used_rat_glue or order.used_rapetr_gel or order.used_graibait or order.used_difron or order.used_fly_attractant %}
+      <div style="margin-top:14px;padding-top:12px;border-top:1.5px solid var(--border);">
+        <div class="info-label" style="margin-bottom:10px;">المواد الكيميائية المستخدمة</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          {% if order.used_boom %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">BOOM</span>{% endif %}
+          {% if order.used_kothreni %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">K OTHRENI</span>{% endif %}
+          {% if order.used_diesel %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">DIESEL</span>{% endif %}
+          {% if order.used_petrol %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">PETROL</span>{% endif %}
+          {% if order.used_cyphorce %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">CYPHORCE</span>{% endif %}
+          {% if order.used_rat_poison %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">RAT POISON</span>{% endif %}
+          {% if order.used_eco_larvacide %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">ECO LARVACIDE</span>{% endif %}
+          {% if order.used_snake_deter %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">SNAKE DETER</span>{% endif %}
+          {% if order.used_hymenopthor %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">HYMENOPTHOR GR</span>{% endif %}
+          {% if order.used_permothor %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">PERMOTHOR DUST</span>{% endif %}
+          {% if order.used_rat_glue %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">RAT GLUE</span>{% endif %}
+          {% if order.used_rapetr_gel %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">RAPETR GEL</span>{% endif %}
+          {% if order.used_graibait %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">GRAIBAIT</span>{% endif %}
+          {% if order.used_difron %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">DIFRON 25 SC</span>{% endif %}
+          {% if order.used_fly_attractant %}<span style="padding:3px 9px;background:#e0f2fe;color:#075985;border-radius:7px;font-size:11px;font-weight:700;">FLY ATTRACTANT</span>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      {% else %}
+      <!-- ── Manual order fields ── -->
       <div class="info-grid">
         <div class="info-row">
           <span class="info-label">اسم الموقع</span>
@@ -173,78 +291,174 @@ select.form-control{cursor:pointer;}
         </div>
         {% endif %}
       </div>
+      {% endif %}
+
     </div>
   </div>
 
   {% if can_edit %}
-  <!-- Update Details -->
-  <div class="card">
-    <div class="card-header"><h2>تعديل التفاصيل</h2></div>
-    <div class="card-body">
-      <form method="post" novalidate>
-        {% csrf_token %}
-        <input type="hidden" name="action" value="update_details">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">نوع العمل *</label>
-            <input type="text" name="work_type" class="form-control" value="{{ order.work_type }}" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">اسم الموقع</label>
-            <input type="text" name="site_name" class="form-control" value="{{ order.site_name }}" placeholder="مثال: مجمع الشيخ خليفة...">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">تاريخ التنفيذ</label>
-            <input type="date" name="work_date" class="form-control" value="{{ order.work_date|date:'Y-m-d'|default:'' }}">
-          </div>
-          <div class="form-group">
-            <label class="form-label">عدد العمال</label>
-            <input type="number" name="workers_count" class="form-control" min="0"
-                   value="{% if order.workers_count != None %}{{ order.workers_count }}{% endif %}">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">المعدات المستخدمة</label>
-          <textarea name="equipment_used" class="form-control" placeholder="اذكر المعدات المستخدمة...">{{ order.equipment_used }}</textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">وصف العمل</label>
-          <textarea name="description" class="form-control">{{ order.description }}</textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">ملاحظات</label>
-          <textarea name="notes" class="form-control">{{ order.notes }}</textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">💾 حفظ التفاصيل</button>
-        </div>
-      </form>
+  <!-- Supervisor Report -->
+  <div class="card" style="border-color:#bfdbfe;">
+    <div class="card-header" style="background:#eff6ff;">
+      <h2 style="color:#1d4ed8;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:6px;"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        تقرير المراقب
+      </h2>
+      {% if order.report_submitted_at %}
+      <span style="font-size:11.5px;color:#1d4ed8;font-weight:500;">
+        آخر تحديث: {{ order.report_submitted_at|date:"d/m/Y H:i" }}
+        {% if order.report_submitted_by %} — {{ order.report_submitted_by.get_full_name|default:order.report_submitted_by.username }}{% endif %}
+      </span>
+      {% endif %}
     </div>
-  </div>
 
-  <!-- Update Status -->
-  <div class="card">
-    <div class="card-header"><h2>تحديث الحالة</h2></div>
+    {% if order.report_submitted_at %}
+    <!-- Summary row -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;padding:16px 18px;background:#f8fafc;border-bottom:1.5px solid #e2e8f0;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">الحالة</div>
+        <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ order.get_status_display }}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">عدد العمال</div>
+        <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ order.workers_count|default:"—" }}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">عدد السيارات</div>
+        <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ order.vehicles_count|default:"—" }}</div>
+      </div>
+      {% if order.pesticides_used %}
+      <div style="grid-column:1/-1;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">المبيدات المستخدمة</div>
+        <div style="font-size:13px;color:#0f172a;">{{ order.pesticides_used }}</div>
+      </div>
+      {% endif %}
+      {% if order.supervisor_notes %}
+      <div style="grid-column:1/-1;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">ملاحظات المراقب</div>
+        <div style="font-size:13px;color:#0f172a;">{{ order.supervisor_notes }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
     <div class="card-body">
       <form method="post" novalidate>
         {% csrf_token %}
-        <input type="hidden" name="action" value="update_status">
+        <input type="hidden" name="action" value="supervisor_report">
+
         <div class="form-group">
-          <label class="form-label">الحالة الجديدة</label>
+          <label class="form-label">الحالة <span style="color:#e11d48;">*</span></label>
           <select name="status" class="form-control">
             {% for val, label in order.STATUS_CHOICES %}
             <option value="{{ val }}" {% if order.status == val %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
         </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">عدد العمال</label>
+            <input type="number" name="workers_count" class="form-control" min="0"
+              value="{% if order.workers_count is not None %}{{ order.workers_count }}{% endif %}"
+              placeholder="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">عدد السيارات</label>
+            <input type="number" name="vehicles_count" class="form-control" min="0"
+              value="{% if order.vehicles_count is not None %}{{ order.vehicles_count }}{% endif %}"
+              placeholder="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">المبيدات المستخدمة</label>
+          <textarea name="pesticides_used" class="form-control" rows="2"
+            placeholder="مثال: سيبرمثرين 100مل، ديلتامثرين 50مل…">{{ order.pesticides_used }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ملاحظات المراقب</label>
+          <textarea name="supervisor_notes" class="form-control" rows="2"
+            placeholder="أي ملاحظات إضافية…">{{ order.supervisor_notes }}</textarea>
+        </div>
+
         <div class="form-actions">
-          <button type="submit" class="btn btn-success">✔ تحديث الحالة</button>
+          <button type="submit" class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+            حفظ التقرير
+          </button>
         </div>
       </form>
     </div>
   </div>
+
+  <!-- Update Details -->
+  <div class="card">
+    <div class="card-header">
+      <h2>تعديل التفاصيل</h2>
+      <button type="button" onclick="toggleEditForm()" id="btn-toggle-edit"
+        style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--accent-light);color:var(--accent);border:1.5px solid #bfdbfe;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;">
+        <svg id="edit-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span id="edit-btn-label">تعديل</span>
+      </button>
+    </div>
+    <div id="edit-form-body" style="display:none;">
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_details">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">نوع العمل *</label>
+              <input type="text" name="work_type" class="form-control" value="{{ order.work_type }}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">اسم الموقع</label>
+              <input type="text" name="site_name" class="form-control" value="{{ order.site_name }}">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">تاريخ التنفيذ</label>
+              <input type="date" name="work_date" class="form-control" value="{{ order.work_date|date:'Y-m-d'|default:'' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">عدد العمال</label>
+              <input type="number" name="workers_count" class="form-control" min="0"
+                     value="{% if order.workers_count != None %}{{ order.workers_count }}{% endif %}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">المعدات المستخدمة</label>
+            <textarea name="equipment_used" class="form-control">{{ order.equipment_used }}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">وصف العمل</label>
+            <textarea name="description" class="form-control">{{ order.description }}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ملاحظات</label>
+            <textarea name="notes" class="form-control">{{ order.notes }}</textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 حفظ التفاصيل</button>
+            <button type="button" onclick="toggleEditForm()" class="btn btn-outline">إلغاء</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>
+  function toggleEditForm() {
+    var body  = document.getElementById('edit-form-body');
+    var label = document.getElementById('edit-btn-label');
+    var open  = body.style.display === 'none';
+    body.style.display = open ? 'block' : 'none';
+    label.textContent  = open ? 'إغلاق' : 'تعديل';
+  }
+  </script>
+
   {% endif %}
 
   <!-- Photos -->

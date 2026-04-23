@@ -28,32 +28,47 @@ ALLOWED_PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
 
 @login_required
 def field_work_list(request):
-    can_admin = _can_admin(request.user)
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+
+    can_admin     = _can_admin(request.user)
     can_data_entry = _can_data_entry(request.user)
+
+    status_filter = (request.GET.get('status') or 'all').strip()
+    source_filter = (request.GET.get('source') or 'all').strip()
+    search        = (request.GET.get('q')      or '').strip()
 
     orders = FieldWorkOrder.objects.select_related('created_by').all()
 
-    status_filter = (request.GET.get('status') or 'all').strip()
-    status_options = [
-        ('all',        'كل الحالات'),
-        ('pending',    'بانتظار التنفيذ'),
-        ('in_progress','قيد التنفيذ'),
-        ('completed',  'مكتملة'),
-        ('incomplete', 'غير مكتملة'),
-        ('cancelled',  'ملغية'),
-    ]
     if status_filter != 'all':
         orders = orders.filter(status=status_filter)
+    if source_filter != 'all':
+        orders = orders.filter(source=source_filter)
+    if search:
+        orders = orders.filter(
+            Q(order_number__icontains=search)
+            | Q(customer_name__icontains=search)
+            | Q(area__icontains=search)
+            | Q(supervisor_name__icontains=search)
+            | Q(work_type__icontains=search)
+            | Q(site_name__icontains=search)
+        )
 
-    for order in orders:
-        order.photos_count = order.photos.count()
+    paginator = Paginator(orders, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    status_options = [('all', 'كل الحالات')] + list(FieldWorkOrder.STATUS_CHOICES)
 
     return render(request, 'hcsd/field_work_list.html', {
-        'orders': orders,
-        'can_admin': can_admin,
+        'page_obj':      page_obj,
+        'can_admin':     can_admin,
         'can_data_entry': can_data_entry,
         'status_filter': status_filter,
+        'source_filter': source_filter,
+        'search':        search,
         'status_options': status_options,
+        'total_count':   orders.count(),
     })
 
 
@@ -87,7 +102,6 @@ def field_work_create(request):
                 description=description,
                 work_date=work_date,
                 notes=notes,
-                status='pending',
                 created_by=request.user,
             )
             return redirect('field_work_detail', pk=order.pk)
@@ -199,6 +213,39 @@ def field_work_detail(request, pk):
                     photos_before = order.photos.filter(phase='before').order_by('uploaded_at')
                     photos_during = order.photos.filter(phase='during').order_by('uploaded_at')
                     photos_after  = order.photos.filter(phase='after').order_by('uploaded_at')
+
+        # ── Supervisor report ────────────────────────────────────────────────
+        elif action == 'supervisor_report':
+            new_status      = (request.POST.get('status') or '').strip()
+            workers_raw     = (request.POST.get('workers_count') or '').strip()
+            vehicles_raw    = (request.POST.get('vehicles_count') or '').strip()
+            pesticides      = (request.POST.get('pesticides_used') or '').strip()
+            sup_notes       = (request.POST.get('supervisor_notes') or '').strip()
+
+            valid_statuses = {s for s, _ in FieldWorkOrder.STATUS_CHOICES}
+            if new_status not in valid_statuses:
+                errors.append('يرجى اختيار الحالة.')
+            else:
+                def _to_int(val):
+                    try:
+                        v = int(val)
+                        return v if v >= 0 else None
+                    except (ValueError, TypeError):
+                        return None
+
+                order.status           = new_status
+                order.workers_count    = _to_int(workers_raw)
+                order.vehicles_count   = _to_int(vehicles_raw)
+                order.pesticides_used  = pesticides
+                order.supervisor_notes = sup_notes
+                order.report_submitted_by = request.user
+                order.report_submitted_at = timezone.now()
+                order.save(update_fields=[
+                    'status', 'workers_count', 'vehicles_count',
+                    'pesticides_used', 'supervisor_notes',
+                    'report_submitted_by', 'report_submitted_at',
+                ])
+                success = 'تم حفظ تقرير المراقب.'
 
         # ── Delete photo ─────────────────────────────────────────────────────
         elif action == 'delete_photo':

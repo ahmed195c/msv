@@ -1,0 +1,199 @@
+{% extends "hcsd/complaints/base.html" %}
+
+{% block title %}{% if lang == 'en' %}Review Extracted Data{% else %}مراجعة البيانات المستخرجة{% endif %}{% endblock %}
+
+
+
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">{% if lang == 'en' %}Review Extracted Data{% else %}مراجعة البيانات المستخرجة{% endif %}</h1>
+  <p class="page-subtitle">{% if lang == 'en' %}Review the data extracted from the PDF, edit if needed, then confirm to save{% else %}راجع البيانات المستخرجة من الملف، عدّل ما تحتاج، ثم أكّد الحفظ{% endif %}</p>
+</div>
+
+<div style="max-width:640px;">
+
+  <!-- PDF source banner -->
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;margin-bottom:20px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+    </svg>
+    <div>
+      <span style="font-size:12px;font-weight:700;color:#15803d;display:block;">
+        {% if lang == 'en' %}Data extracted from{% else %}البيانات مستخرجة من{% endif %}
+      </span>
+      <span style="font-size:13px;color:#166534;font-weight:500;">{{ pdf_original_name }}</span>
+    </div>
+    <a href="{% url 'complaint_pdf_import' %}"
+       style="margin-{% if lang == 'en' %}left{% else %}right{% endif %}:auto;font-size:12px;color:#16a34a;text-decoration:none;font-weight:600;white-space:nowrap;padding:4px 10px;border:1px solid #bbf7d0;border-radius:6px;">
+      {% if lang == 'en' %}← Upload different file{% else %}رفع ملف آخر ←{% endif %}
+    </a>
+  </div>
+
+  <div style="background:#fff;border-radius:12px;border:1.5px solid var(--line);padding:32px;box-shadow:var(--shadow-sm);">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <!-- Section: complaint info -->
+      <p style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;">
+        {% if lang == 'en' %}Complaint Information{% else %}معلومات الشكوى{% endif %}
+      </p>
+
+      <!-- Complaint number -->
+      <div style="margin-bottom:18px;">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink);">
+          {% if lang == 'en' %}Complaint Number{% else %}رقم الشكوى{% endif %}
+          <span style="color:#dc2626;">*</span>
+        </label>
+        <input type="text" name="complaint_number"
+          value="{{ form_data.complaint_number|default:'' }}"
+          dir="ltr"
+          style="width:100%;padding:10px 14px;border:1.5px solid {% if errors.complaint_number %}#dc2626{% else %}var(--line){% endif %};border-radius:8px;font-size:15px;font-family:inherit;outline:none;"
+          onfocus="this.style.borderColor='var(--accent)'"
+          onblur="this.style.borderColor='{% if errors.complaint_number %}#dc2626{% else %}var(--line){% endif %}'">
+        {% if errors.complaint_number %}
+          <p style="color:#dc2626;font-size:12px;margin-top:4px;">{{ errors.complaint_number }}</p>
+        {% endif %}
+      </div>
+
+      <hr style="border:none;border-top:1.5px solid var(--line);margin:22px 0;">
+
+      <!-- Section: complainant -->
+      <p style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;">
+        {% if lang == 'en' %}Complainant{% else %}بيانات المشتكي{% endif %}
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">
+            {% if lang == 'en' %}Name{% else %}اسم المتعامل{% endif %}
+          </label>
+          <input type="text" name="complainant_name"
+            value="{{ form_data.complainant_name|default:'' }}"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">
+            {% if lang == 'en' %}Mobile{% else %}رقم الموبايل{% endif %}
+          </label>
+          <input type="text" name="complainant_mobile"
+            value="{{ form_data.complainant_mobile|default:'' }}"
+            dir="ltr"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1.5px solid var(--line);margin:22px 0;">
+
+      <!-- Section: location -->
+      <p style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;">
+        {% if lang == 'en' %}Location{% else %}بيانات الموقع{% endif %}
+      </p>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:18px;">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">
+            {% if lang == 'en' %}Area{% else %}المنطقة{% endif %}
+          </label>
+          <input type="text" name="area"
+            value="{{ form_data.area|default:'' }}"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">
+            {% if lang == 'en' %}Street No.{% else %}رقم الشارع{% endif %}
+          </label>
+          <input type="text" name="street_number"
+            value="{{ form_data.street_number|default:'' }}"
+            dir="ltr"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">
+            {% if lang == 'en' %}House No.{% else %}رقم المنزل{% endif %}
+          </label>
+          <input type="text" name="house_number"
+            value="{{ form_data.house_number|default:'' }}"
+            dir="ltr"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1.5px solid var(--line);margin:22px 0;">
+
+      <!-- Section: pest types -->
+      <p style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;">
+        {% if lang == 'en' %}Type of Pest{% else %}نوع الآفة{% endif %}
+      </p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+        {% for key, label in pest_choices %}
+        <label class="pest-tag" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid var(--line);border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-2);transition:all .15s;">
+          <input type="checkbox" name="pest_types" value="{{ key }}"
+            {% if key in form_data.pest_types %}checked{% endif %}
+            style="accent-color:var(--accent);"
+            onchange="updateTag(this)">
+          {{ label }}
+        </label>
+        {% endfor %}
+      </div>
+
+      <hr style="border:none;border-top:1.5px solid var(--line);margin:22px 0;">
+
+      <!-- Notes / Details -->
+      <p style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;">
+        {% if lang == 'en' %}Complaint Details{% else %}تفاصيل الشكوى{% endif %}
+      </p>
+
+      <div style="margin-bottom:28px;">
+        <textarea name="notes" rows="4"
+          placeholder="{% if lang == 'en' %}Complaint details and notes…{% else %}تفاصيل الشكوى والملاحظات…{% endif %}"
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;direction:rtl;resize:vertical;outline:none;"
+          onfocus="this.style.borderColor='var(--accent)'"
+          onblur="this.style.borderColor='var(--line)'"
+        >{{ form_data.notes|default:'' }}</textarea>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:4px;border-top:1.5px solid var(--line);margin-top:4px;">
+        <button type="submit"
+          style="flex:1;padding:12px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          {% if lang == 'en' %}Confirm & Save{% else %}تأكيد وحفظ الشكوى{% endif %}
+        </button>
+        <a href="{% url 'complaint_pdf_import' %}"
+          style="padding:12px 18px;background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;">
+          {% if lang == 'en' %}← Back{% else %}رجوع{% endif %}
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.pest-tag').forEach(function(lbl) {
+  var cb = lbl.querySelector('input');
+  if (cb.checked) {
+    lbl.style.borderColor = 'var(--accent)';
+    lbl.style.background  = 'var(--accent-bg)';
+    lbl.style.color       = 'var(--accent)';
+  }
+});
+function updateTag(cb) {
+  var lbl = cb.closest('label');
+  lbl.style.borderColor = cb.checked ? 'var(--accent)' : 'var(--line)';
+  lbl.style.background  = cb.checked ? 'var(--accent-bg)' : '';
+  lbl.style.color       = cb.checked ? 'var(--accent)' : 'var(--ink-2)';
+}
+</script>
+
+{% endblock %}

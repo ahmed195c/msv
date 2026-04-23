@@ -14,4 +14,5 @@ from hcsd.views_pkg import (
     pest_control_permit, pest_control_permit_detail,
     pest_control_permit_print, pest_control_permit_view,
     register, vehicle_permit_print, waste_disposal_permit_print, printer,
+    all_requests,
 )

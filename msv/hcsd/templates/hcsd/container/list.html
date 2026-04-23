@@ -1,0 +1,91 @@
+{% extends "hcsd/complaints/base.html" %}
+
+{% block title %}طلبات نقل الحاويات{% endblock %}
+
+
+
+{% block content %}
+
+<div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h1 class="page-title">طلبات نقل الحاويات</h1>
+    <p class="page-subtitle">جميع طلبات نقل الحاويات المسجلة في النظام</p>
+  </div>
+  {% if can_manage %}
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="{% url 'container_create' %}"
+       style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:var(--accent);color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 2px 6px rgba(37,99,235,.22);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      طلب جديد
+    </a>
+    <a href="{% url 'container_pdf_import' %}"
+       style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+      استيراد من PDF
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Status filter tabs -->
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+  <a href="?" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid;
+      {% if status_filter == 'all' %}background:var(--accent);color:#fff;border-color:var(--accent);{% else %}background:#fff;color:var(--ink-2);border-color:var(--line);{% endif %}">
+    الكل
+  </a>
+  {% for key, label in status_choices %}
+  <a href="?status={{ key }}" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid;
+      {% if status_filter == key %}background:var(--accent);color:#fff;border-color:var(--accent);{% else %}background:#fff;color:var(--ink-2);border-color:var(--line);{% endif %}">
+    {{ label }}
+  </a>
+  {% endfor %}
+</div>
+
+{% if requests %}
+<div style="background:#fff;border-radius:12px;border:1.5px solid var(--line);overflow:hidden;box-shadow:var(--shadow-sm);">
+  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+    <thead>
+      <tr style="background:var(--surface-2);border-bottom:1.5px solid var(--line);">
+        <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">رقم الشكوى</th>
+        <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">المتعامل</th>
+        <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">المنطقة</th>
+        <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">الحالة</th>
+        <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">التاريخ</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in requests %}
+      <tr style="border-bottom:1px solid var(--line);transition:background .12s;"
+          onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
+        <td style="padding:13px 16px;font-weight:600;font-family:monospace;">{{ r.complaint_number }}</td>
+        <td style="padding:13px 16px;">{{ r.complainant_name|default:'—' }}</td>
+        <td style="padding:13px 16px;color:var(--ink-2);">{{ r.area|default:'—' }}</td>
+        <td style="padding:13px 16px;">
+          {% if r.status == 'new' %}<span class="c-badge badge-new">جديد</span>
+          {% elif r.status == 'assigned' %}<span class="c-badge badge-inspector">بانتظار المفتش</span>
+          {% elif r.status == 'location_saved' %}<span class="c-badge badge-done-insp">تم حفظ الموقع</span>
+          {% elif r.status == 'biaa_contacted' %}<span class="c-badge badge-supervisor">تم التواصل مع بيئة</span>
+          {% elif r.status == 'biaa_transferred' %}<span class="c-badge badge-inprogress">تم نقل الحاوية</span>
+          {% elif r.status == 'report_submitted' %}<span class="c-badge badge-resolved">تم تقديم التقرير</span>
+          {% elif r.status == 'closed' %}<span class="c-badge badge-closed">مغلق</span>
+          {% endif %}
+        </td>
+        <td style="padding:13px 16px;color:var(--ink-2);">{{ r.created_at|date:"d/m/Y" }}</td>
+        <td style="padding:13px 16px;">
+          <a href="{% url 'container_detail' r.pk %}" style="color:var(--accent);font-weight:600;font-size:12px;text-decoration:none;">عرض</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div style="text-align:center;padding:64px 24px;color:var(--ink-3);">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4m0-10v10"/></svg>
+  <p style="font-size:15px;font-weight:600;color:var(--ink-2);margin-bottom:6px;">لا توجد طلبات</p>
+  <p style="font-size:13px;">لم يتم تسجيل أي طلبات بعد.</p>
+</div>
+{% endif %}
+
+{% endblock %}

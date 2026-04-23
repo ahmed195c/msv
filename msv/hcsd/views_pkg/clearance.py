@@ -105,6 +105,7 @@ def clearance_list(request):
         clearance.permit_label_ar = _permit_label_ar(clearance.permit_type)
         clearance.detail_url_name = _permit_detail_url_name(clearance.permit_type)
         clearance.detail_url = reverse(clearance.detail_url_name, kwargs={'id': clearance.id})
+        clearance.active_waste_request = None
         if clearance.permit_type == 'waste_disposal':
             latest_waste_request = (
                 latest_active_waste_request_map.get(clearance.id)
@@ -116,6 +117,7 @@ def clearance_list(request):
                     'waste_disposal_request_detail',
                     kwargs={'permit_id': clearance.id, 'request_id': latest_waste_request.id},
                 )
+            clearance.active_waste_request = latest_active_waste_request_map.get(clearance.id)
         company = clearance.company
         engineer = company.enginer if company else None
         engineer_phone = (engineer.phone or '').strip() if engineer else ''
@@ -204,7 +206,13 @@ def clearance_list(request):
     active_clearances = []
     finished_clearances = []
     for _item in clearances:
-        if _item.status in finished_statuses:
+        has_active_waste_request = (
+            _item.permit_type == 'waste_disposal'
+            and _item.id in latest_active_waste_request_map
+        )
+        if has_active_waste_request:
+            active_clearances.append(_item)
+        elif _item.status in finished_statuses:
             finished_clearances.append(_item)
         elif (
             _item.status == 'inspection_completed'

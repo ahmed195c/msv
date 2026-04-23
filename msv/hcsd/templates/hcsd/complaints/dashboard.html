@@ -2,94 +2,429 @@
 
 {% block title %}{% if lang == 'en' %}Complaints{% else %}الشكاوي{% endif %}{% endblock %}
 
-{% block nav_links %}
-  <a class="nav-link active" href="{% url 'complaints_dashboard' %}">
-    {% if lang == 'en' %}Complaints{% else %}الشكاوي{% endif %}
-  </a>
+{% block extra_css %}
+<style>
+/* ── Stats strip ─────────────────────────────────────────────────────── */
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 11px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color .15s;
+}
+.stat-card:hover { border-color: var(--line-2); }
+.stat-card__num {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+}
+.stat-card__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: .02em;
+}
+.stat-card--total .stat-card__num { color: var(--accent); }
+.stat-card--new .stat-card__num    { color: #1d4ed8; }
+.stat-card--prog .stat-card__num   { color: #c2410c; }
+.stat-card--done .stat-card__num   { color: #15803d; }
+
+/* ── Toolbar ─────────────────────────────────────────────────────────── */
+.db-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+/* Search */
+.db-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  padding: 0 12px;
+  height: 40px;
+  transition: border-color .18s, box-shadow .18s;
+}
+.db-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.08);
+}
+.db-search svg { flex-shrink: 0; color: var(--ink-4); }
+.db-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--ink);
+  background: transparent;
+  height: 100%;
+}
+.db-search input::placeholder { color: var(--ink-4); }
+
+/* Filter tabs */
+.filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  transition: all .15s;
+  color: var(--ink-2);
+  background: #fff;
+  border-color: var(--line);
+  white-space: nowrap;
+}
+.filter-tab:hover { background: var(--surface-2); border-color: var(--line-2); }
+.filter-tab.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.filter-tab__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(0,0,0,.08);
+  color: inherit;
+}
+.filter-tab.active .filter-tab__count { background: rgba(255,255,255,.25); }
+
+/* ── Action buttons ──────────────────────────────────────────────────── */
+.db-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all .15s;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.btn-action--ghost {
+  background: #fff;
+  color: var(--ink-2);
+  border: 1.5px solid var(--line);
+}
+.btn-action--ghost:hover { background: var(--surface-2); border-color: var(--line-2); }
+
+.btn-action--sky {
+  background: #fff;
+  color: #0369a1;
+  border: 1.5px solid #bae6fd;
+}
+.btn-action--sky:hover { background: #f0f9ff; border-color: #7dd3fc; }
+
+.btn-action--primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(37,99,235,.22);
+}
+.btn-action--primary:hover {
+  background: var(--accent-dk);
+  box-shadow: 0 4px 12px rgba(37,99,235,.28);
+  transform: translateY(-1px);
+}
+
+/* ── Table ───────────────────────────────────────────────────────────── */
+.db-table-wrap {
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.db-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.db-table thead tr {
+  background: var(--surface-2);
+  border-bottom: 1.5px solid var(--line);
+}
+.db-table th {
+  padding: 11px 16px;
+  font-weight: 600;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  text-align: {% if lang == 'en' %}left{% else %}right{% endif %};
+  white-space: nowrap;
+}
+.db-table tbody tr {
+  border-bottom: 1px solid var(--line);
+  transition: background .1s;
+}
+.db-table tbody tr:last-child { border-bottom: none; }
+.db-table tbody tr:hover { background: var(--surface); }
+.db-table td { padding: 13px 16px; vertical-align: middle; }
+
+/* Complaint number */
+.complaint-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  letter-spacing: .02em;
+}
+.complaint-meta {
+  font-size: 11px;
+  color: var(--ink-4);
+  margin-top: 2px;
+}
+
+/* Status badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.badge-new      { background: #eff6ff; color: #1d4ed8; }
+.badge-new::before { background: #3b82f6; }
+.badge-awaiting { background: #f0f9ff; color: #0369a1; }
+.badge-awaiting::before { background: #0ea5e9; }
+.badge-inspect  { background: #f0fdf4; color: #15803d; }
+.badge-inspect::before  { background: #22c55e; }
+.badge-progress { background: #fff7ed; color: #c2410c; }
+.badge-progress::before { background: #f97316; }
+.badge-resolved { background: #f0fdf4; color: #15803d; }
+.badge-resolved::before { background: #16a34a; }
+.badge-closed   { background: #f1f5f9; color: #475569; }
+.badge-closed::before   { background: #94a3b8; }
+.badge-purple   { background: #faf5ff; color: #7c3aed; }
+.badge-purple::before   { background: #a855f7; }
+
+/* View link */
+.view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  background: var(--accent-bg);
+  border: 1.5px solid transparent;
+  transition: all .15s;
+}
+.view-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+/* Empty state */
+.db-empty {
+  text-align: center;
+  padding: 72px 24px;
+  color: var(--ink-3);
+}
+.db-empty__icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  background: var(--surface-2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.db-empty__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+}
+.db-empty__sub { font-size: 13px; color: var(--ink-3); }
+
+/* Result count */
+.result-count {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 640px) {
+  .stat-strip { grid-template-columns: repeat(2, 1fr); }
+  .db-toolbar { flex-direction: column; align-items: stretch; }
+  .db-actions { justify-content: flex-start; }
+  .db-table th:nth-child(3), .db-table td:nth-child(3),
+  .db-table th:nth-child(4), .db-table td:nth-child(4) { display: none; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
 
-<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+<!-- Page header -->
+<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:22px;">
   <div>
     <h1 class="page-title">{% if lang == 'en' %}Complaints{% else %}الشكاوي{% endif %}</h1>
-    <p class="page-subtitle">{% if lang == 'en' %}All registered complaints{% else %}جميع الشكاوي المسجلة في النظام{% endif %}</p>
+    <p class="page-subtitle">{% if lang == 'en' %}All registered complaints in the system{% else %}جميع الشكاوي المسجلة في النظام{% endif %}</p>
   </div>
-  <a href="{% url 'complaint_submit' %}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 20px;background:var(--accent);color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    {% if lang == 'en' %}Submit Complaint{% else %}تقديم شكوى{% endif %}
-  </a>
+  <div class="db-actions">
+    <a href="{% url 'complaint_pdf_import' %}" class="btn-action btn-action--ghost">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      {% if lang == 'en' %}Import PDF{% else %}استيراد PDF{% endif %}
+    </a>
+    <a href="{% url 'complaint_submit' %}" class="btn-action btn-action--primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      {% if lang == 'en' %}New Complaint{% else %}شكوى جديدة{% endif %}
+    </a>
+  </div>
 </div>
 
-<!-- Status filter tabs -->
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
-  <a href="?" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid;
-      {% if status_filter == 'all' %}background:var(--accent);color:#fff;border-color:var(--accent);{% else %}background:#fff;color:var(--ink-2);border-color:var(--line);{% endif %}">
-    {% if lang == 'en' %}All{% else %}الكل{% endif %}
-  </a>
-  {% for key, label_ar in status_choices %}
-  {% with label_en=key|lower %}
-  <a href="?status={{ key }}" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid;
-      {% if status_filter == key %}background:var(--accent);color:#fff;border-color:var(--accent);{% else %}background:#fff;color:var(--ink-2);border-color:var(--line);{% endif %}">
-    {% if lang == 'en' %}
-      {% if key == 'new' %}New{% elif key == 'in_progress' %}In Progress{% elif key == 'resolved' %}Resolved{% elif key == 'closed' %}Closed{% else %}{{ key }}{% endif %}
-    {% else %}
-      {{ label_ar }}
-    {% endif %}
-  </a>
-  {% endwith %}
-  {% endfor %}
+<!-- Stats strip -->
+<div class="stat-strip">
+  <div class="stat-card stat-card--total">
+    <div class="stat-card__num">{{ total_count }}</div>
+    <div class="stat-card__label">{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</div>
+  </div>
+  <div class="stat-card stat-card--new">
+    <div class="stat-card__num">{{ status_counts.new|default:0 }}</div>
+    <div class="stat-card__label">{% if lang == 'en' %}New{% else %}جديدة{% endif %}</div>
+  </div>
+  <div class="stat-card stat-card--prog">
+    <div class="stat-card__num">{{ status_counts.in_progress|default:0 }}</div>
+    <div class="stat-card__label">{% if lang == 'en' %}In Progress{% else %}قيد المعالجة{% endif %}</div>
+  </div>
+  <div class="stat-card stat-card--done">
+    <div class="stat-card__num">{{ status_counts.resolved|default:0 }}</div>
+    <div class="stat-card__label">{% if lang == 'en' %}Resolved{% else %}تم الحل{% endif %}</div>
+  </div>
 </div>
+
+<!-- Toolbar: search + filter tabs -->
+<form method="get">
+  <div class="db-toolbar">
+    <label class="db-search" style="cursor:text;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" name="q" value="{{ search }}"
+        placeholder="{% if lang == 'en' %}Search by number, name, area…{% else %}ابحث برقم الشكوى أو الاسم أو المنطقة…{% endif %}">
+      {% if search %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    </label>
+    <div class="filter-tabs">
+      <a href="?{% if search %}q={{ search }}&{% endif %}"
+         class="filter-tab {% if status_filter == 'all' %}active{% endif %}">
+        {% if lang == 'en' %}All{% else %}الكل{% endif %}
+        <span class="filter-tab__count">{{ total_count }}</span>
+      </a>
+      {% for key, label_ar in status_choices %}
+      <a href="?{% if search %}q={{ search }}&{% endif %}status={{ key }}"
+         class="filter-tab {% if status_filter == key %}active{% endif %}">
+        {% if lang == 'en' %}
+          {% if key == 'new' %}New{% elif key == 'in_progress' %}In Progress{% elif key == 'resolved' %}Resolved{% elif key == 'closed' %}Closed{% elif key == 'assigned_inspector' %}Assigned{% elif key == 'inspection_done' %}Inspected{% elif key == 'assigned_supervisor' %}Supervisor{% else %}{{ key }}{% endif %}
+        {% else %}{{ label_ar }}{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</form>
 
 {% if complaints %}
-<div style="background:#fff;border-radius:12px;border:1.5px solid var(--line);overflow:hidden;box-shadow:var(--shadow-sm);">
-  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+<div class="result-count">
+  {{ complaints|length }} {% if lang == 'en' %}result(s){% else %}نتيجة{% endif %}
+  {% if search %} — {% if lang == 'en' %}for "{{ search }}"{% else %}لـ "{{ search }}"{% endif %}{% endif %}
+</div>
+
+<div class="db-table-wrap">
+  <table class="db-table">
     <thead>
-      <tr style="background:var(--surface-2);border-bottom:1.5px solid var(--line);">
-        <th style="padding:12px 16px;text-align:{% if lang == 'en' %}left{% else %}right{% endif %};font-weight:600;color:var(--ink-2);">
-          {% if lang == 'en' %}Complaint No.{% else %}رقم الشكوى{% endif %}
-        </th>
-        <th style="padding:12px 16px;text-align:{% if lang == 'en' %}left{% else %}right{% endif %};font-weight:600;color:var(--ink-2);">
-          {% if lang == 'en' %}Status{% else %}الحالة{% endif %}
-        </th>
-        <th style="padding:12px 16px;text-align:{% if lang == 'en' %}left{% else %}right{% endif %};font-weight:600;color:var(--ink-2);">
-          {% if lang == 'en' %}Date{% else %}تاريخ التقديم{% endif %}
-        </th>
-        <th style="padding:12px 16px;text-align:{% if lang == 'en' %}left{% else %}right{% endif %};font-weight:600;color:var(--ink-2);">
-          {% if lang == 'en' %}Added By{% else %}أضيف بواسطة{% endif %}
-        </th>
+      <tr>
+        <th>{% if lang == 'en' %}Complaint No.{% else %}رقم الشكوى{% endif %}</th>
+        <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+        <th>{% if lang == 'en' %}Date{% else %}تاريخ التقديم{% endif %}</th>
+        <th>{% if lang == 'en' %}Added By{% else %}أضيف بواسطة{% endif %}</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
       {% for c in complaints %}
-      <tr style="border-bottom:1px solid var(--line);transition:background .12s;"
-          onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
-        <td style="padding:13px 16px;font-weight:600;font-family:monospace;">{{ c.complaint_number }}</td>
-        <td style="padding:13px 16px;">
+      <tr>
+        <td>
+          <div class="complaint-num">{{ c.complaint_number }}</div>
+          {% if c.area %}<div class="complaint-meta">{{ c.area }}</div>{% endif %}
+        </td>
+        <td>
           {% if c.status == 'new' %}
-            <span style="padding:3px 10px;border-radius:12px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;">{% if lang == 'en' %}New{% else %}جديدة{% endif %}</span>
+            <span class="badge badge-new">{% if lang == 'en' %}New{% else %}جديدة{% endif %}</span>
           {% elif c.status == 'assigned_inspector' %}
-            <span style="padding:3px 10px;border-radius:12px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;">{% if lang == 'en' %}Awaiting Inspection{% else %}بانتظار التفتيش{% endif %}</span>
+            <span class="badge badge-awaiting">{% if lang == 'en' %}Awaiting Inspection{% else %}بانتظار التفتيش{% endif %}</span>
           {% elif c.status == 'inspection_done' %}
-            <span style="padding:3px 10px;border-radius:12px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">{% if lang == 'en' %}Inspection Done{% else %}اكتمل التفتيش{% endif %}</span>
+            <span class="badge badge-inspect">{% if lang == 'en' %}Inspection Done{% else %}اكتمل التفتيش{% endif %}</span>
           {% elif c.status == 'assigned_supervisor' %}
-            <span style="padding:3px 10px;border-radius:12px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;">{% if lang == 'en' %}Awaiting Resolution{% else %}بانتظار المعالجة{% endif %}</span>
+            <span class="badge badge-purple">{% if lang == 'en' %}Awaiting Resolution{% else %}بانتظار المعالجة{% endif %}</span>
           {% elif c.status == 'in_progress' %}
-            <span style="padding:3px 10px;border-radius:12px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;">{% if lang == 'en' %}In Progress{% else %}قيد المعالجة{% endif %}</span>
+            <span class="badge badge-progress">{% if lang == 'en' %}In Progress{% else %}قيد المعالجة{% endif %}</span>
           {% elif c.status == 'resolved' %}
-            <span style="padding:3px 10px;border-radius:12px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">{% if lang == 'en' %}Resolved{% else %}تم الحل{% endif %}</span>
+            <span class="badge badge-resolved">{% if lang == 'en' %}Resolved{% else %}تم الحل{% endif %}</span>
           {% elif c.status == 'closed' %}
-            <span style="padding:3px 10px;border-radius:12px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;">{% if lang == 'en' %}Closed{% else %}مغلقة{% endif %}</span>
+            <span class="badge badge-closed">{% if lang == 'en' %}Closed{% else %}مغلقة{% endif %}</span>
           {% endif %}
         </td>
-        <td style="padding:13px 16px;color:var(--ink-2);">{{ c.created_at|date:"d/m/Y" }}</td>
-        <td style="padding:13px 16px;color:var(--ink-2);">
-          {{ c.created_by.get_full_name|default:c.created_by.username|default:"—" }}
-        </td>
-        <td style="padding:13px 16px;">
-          <a href="{% url 'complaint_detail' c.pk %}" style="color:var(--accent);font-weight:600;font-size:12px;text-decoration:none;">
+        <td style="color:var(--ink-2);white-space:nowrap;">{{ c.created_at|date:"d/m/Y" }}</td>
+        <td style="color:var(--ink-2);">{{ c.created_by.get_full_name|default:c.created_by.username|default:"—" }}</td>
+        <td style="text-align:center;">
+          <a href="{% url 'complaint_detail' c.pk %}" class="view-btn">
             {% if lang == 'en' %}View{% else %}عرض{% endif %}
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">{% if lang == 'en' %}<polyline points="9 18 15 12 9 6"/>{% else %}<polyline points="15 18 9 12 15 6"/>{% endif %}</svg>
           </a>
         </td>
       </tr>
@@ -97,17 +432,24 @@
     </tbody>
   </table>
 </div>
+
 {% else %}
-<div style="text-align:center;padding:64px 24px;color:var(--ink-3);">
-  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-  </svg>
-  <p style="font-size:15px;font-weight:600;color:var(--ink-2);margin-bottom:6px;">
+<div class="db-empty">
+  <div class="db-empty__icon">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </div>
+  <div class="db-empty__title">
     {% if lang == 'en' %}No complaints found{% else %}لا توجد شكاوي{% endif %}
-  </p>
-  <p style="font-size:13px;">
-    {% if lang == 'en' %}No complaints have been registered yet.{% else %}لم يتم تسجيل أي شكاوي بعد.{% endif %}
-  </p>
+  </div>
+  <div class="db-empty__sub">
+    {% if search %}
+      {% if lang == 'en' %}No results for "{{ search }}"{% else %}لا نتائج لـ "{{ search }}"{% endif %}
+    {% elif status_filter != 'all' %}
+      {% if lang == 'en' %}No complaints with this status{% else %}لا توجد شكاوي بهذه الحالة{% endif %}
+    {% else %}
+      {% if lang == 'en' %}No complaints registered yet{% else %}لم يتم تسجيل أي شكاوي بعد{% endif %}
+    {% endif %}
+  </div>
 </div>
 {% endif %}
 

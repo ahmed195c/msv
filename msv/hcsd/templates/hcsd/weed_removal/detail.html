@@ -1,0 +1,540 @@
+{% extends "hcsd/complaints/base.html" %}
+{% block title %}حشائش #{{ obj.complaint_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Workflow timeline */
+.wf-timeline{display:flex;align-items:flex-start;gap:0;margin-bottom:28px;overflow-x:auto;padding-bottom:4px;}
+.wf-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:70px;position:relative;}
+.wf-step:not(:last-child)::after{content:'';position:absolute;top:14px;width:100%;height:2px;background:var(--line);left:50%;z-index:0;}
+.wf-step.done::after{background:#16a34a;}
+.wf-step.rejected-line::after{background:#fca5a5;}
+.wf-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--line-2);background:#fff;z-index:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ink-3);}
+.wf-step.done .wf-dot{background:#16a34a;border-color:#16a34a;color:#fff;}
+.wf-step.active .wf-dot{background:#fff;border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg);}
+.wf-step.rejected-step .wf-dot{background:#fef2f2;border-color:#fca5a5;color:#dc2626;}
+.wf-label{font-size:9.5px;color:var(--ink-3);margin-top:6px;text-align:center;line-height:1.3;max-width:72px;}
+.wf-step.done .wf-label{color:#16a34a;font-weight:600;}
+.wf-step.active .wf-label{color:var(--accent);font-weight:600;}
+.wf-step.rejected-step .wf-label{color:#dc2626;font-weight:600;}
+
+/* Cards */
+.c-card{background:#fff;border-radius:12px;border:1.5px solid var(--line);padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:16px;}
+.c-card-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
+.meta-label{font-size:11px;color:var(--ink-3);font-weight:600;margin-bottom:3px;}
+.meta-value{font-size:14px;font-weight:500;color:var(--ink);}
+
+/* Form elements */
+.f-label{font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:5px;display:block;}
+.f-input,.f-textarea,.f-select{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:#fff;direction:rtl;transition:border-color .15s;box-sizing:border-box;}
+.f-input:focus,.f-textarea:focus,.f-select:focus{border-color:var(--accent);}
+.f-row{margin-bottom:14px;}
+.f-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* Action cards */
+.action-card{border-radius:12px;padding:22px;border:1.5px solid;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:16px;background:#fff;}
+.action-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:18px;}
+.action-num{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.action-title{font-size:14px;font-weight:700;}
+
+/* Buttons */
+.btn-primary{padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s;}
+.btn-primary:hover{background:var(--accent-dk);}
+.btn-green{padding:10px 22px;background:#15803d;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
+.btn-reject{padding:10px 20px;background:#fff;color:#dc2626;border:1.5px solid #fca5a5;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;}
+.btn-reject:hover{background:#fef2f2;border-color:#dc2626;}
+.btn-dark{padding:10px 22px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
+
+/* Photos */
+.photo-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+.photo-thumb{position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;border:1.5px solid var(--line);flex-shrink:0;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);border:none;border-radius:4px;color:#fff;font-size:11px;cursor:pointer;padding:2px 6px;line-height:1.4;}
+.upload-zone{border:2px dashed var(--line-2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;background:var(--surface);transition:border-color .15s;}
+.upload-zone:hover{border-color:var(--accent);}
+
+/* Status badge */
+.status-badge{padding:4px 12px;border-radius:10px;font-size:12px;font-weight:700;}
+
+/* Vehicle table */
+.v-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;}
+.v-table th{padding:8px 12px;background:var(--surface-2);border:1px solid var(--line);font-size:11px;font-weight:600;color:var(--ink-3);text-align:right;}
+.v-table td{padding:9px 12px;border:1px solid var(--line);color:var(--ink-2);}
+
+/* Reject modal */
+.reject-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.reject-modal.open{display:flex;}
+.reject-box{background:#fff;border-radius:14px;padding:28px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.reject-box textarea{width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;direction:rtl;resize:vertical;outline:none;transition:border-color .15s;box-sizing:border-box;}
+.reject-box textarea:focus{border-color:#dc2626;}
+.rbox-actions{display:flex;gap:10px;margin-top:14px;justify-content:flex-end;}
+.btn-cancel-m{padding:9px 18px;background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+
+@media(max-width:720px){.f-grid-2{grid-template-columns:1fr;}.meta-grid{grid-template-columns:1fr 1fr;}}
+</style>
+{% endblock %}
+
+
+
+{% block content %}
+
+<!-- Header -->
+<div class="page-header" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;">
+  <a href="{% url 'weed_list' %}" style="color:var(--ink-3);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:4px;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    إزالة الحشائش
+  </a>
+  <div style="flex:1;">
+    <h1 class="page-title">طلب إزالة حشائش #{{ obj.complaint_number }}</h1>
+    <p class="page-subtitle">{{ obj.created_at|date:"d/m/Y — H:i" }}</p>
+  </div>
+  {% if obj.status == 'new' %}<span class="status-badge" style="background:#eff6ff;color:#1d4ed8;">جديد</span>
+  {% elif obj.status == 'inspector_assigned' %}<span class="status-badge" style="background:#f0f9ff;color:#0369a1;">بانتظار المفتش</span>
+  {% elif obj.status == 'inspection_done' %}<span class="status-badge" style="background:#f0fdf4;color:#15803d;">اكتمل التفتيش</span>
+  {% elif obj.status == 'supervisor_assigned' %}<span class="status-badge" style="background:#faf5ff;color:#7c3aed;">بانتظار المراقب</span>
+  {% elif obj.status == 'work_in_progress' %}<span class="status-badge" style="background:#fff7ed;color:#c2410c;">العمل جارٍ</span>
+  {% elif obj.status == 'work_done' %}<span class="status-badge" style="background:#ecfdf5;color:#065f46;">تم إنهاء العمل</span>
+  {% elif obj.status == 'closed' %}<span class="status-badge" style="background:#f1f5f9;color:#475569;">مغلق</span>
+  {% elif obj.status == 'rejected' %}<span class="status-badge" style="background:#fef2f2;color:#dc2626;">مرفوض</span>{% endif %}
+</div>
+
+<!-- Workflow timeline (7 steps excl. rejected) -->
+{% with s=obj.status %}
+{% with steps="new,inspector_assigned,inspection_done,supervisor_assigned,work_in_progress,work_done,closed" %}
+<div class="wf-timeline">
+  {% comment %}Steps rendering{% endcomment %}
+  {% for step_key, step_label in status_choices %}
+  {% if step_key != 'rejected' %}
+  <div class="wf-step
+    {% if step_key == 'new' and s != 'new' and s != 'rejected' %}done
+    {% elif step_key == 'inspector_assigned' and s in 'inspection_done,supervisor_assigned,work_in_progress,work_done,closed' %}done
+    {% elif step_key == 'inspection_done' and s in 'supervisor_assigned,work_in_progress,work_done,closed' %}done
+    {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_done,closed' %}done
+    {% elif step_key == 'work_in_progress' and s in 'work_done,closed' %}done
+    {% elif step_key == 'work_done' and s == 'closed' %}done
+    {% elif step_key == s %}active
+    {% elif s == 'rejected' and step_key == 'inspector_assigned' %}rejected-step
+    {% endif %}">
+    <div class="wf-dot">
+      {% if step_key == 'new' and s != 'new' and s != 'rejected' %}✓
+      {% elif step_key == 'inspector_assigned' and s in 'inspection_done,supervisor_assigned,work_in_progress,work_done,closed' %}✓
+      {% elif step_key == 'inspection_done' and s in 'supervisor_assigned,work_in_progress,work_done,closed' %}✓
+      {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_done,closed' %}✓
+      {% elif step_key == 'work_in_progress' and s in 'work_done,closed' %}✓
+      {% elif step_key == 'work_done' and s == 'closed' %}✓
+      {% elif s == 'rejected' and step_key == 'inspector_assigned' %}✕
+      {% else %}{{ forloop.counter }}{% endif %}
+    </div>
+    <div class="wf-label">{{ step_label }}</div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endwith %}
+{% endwith %}
+
+<!-- ══ Request info ══ -->
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M7 12s1.5-2 5-2 5 2 5 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+    بيانات الطلب
+  </div>
+  <div class="meta-grid" style="margin-bottom:16px;">
+    <div><div class="meta-label">رقم الشكوى</div><div class="meta-value" style="font-family:monospace;font-size:16px;">{{ obj.complaint_number }}</div></div>
+    <div><div class="meta-label">تاريخ التقديم</div><div class="meta-value">{{ obj.created_at|date:"d/m/Y" }}</div></div>
+    <div><div class="meta-label">أضيف بواسطة</div><div class="meta-value">{{ obj.created_by.get_full_name|default:obj.created_by.username|default:"—" }}</div></div>
+    <div><div class="meta-label">آخر تحديث</div><div class="meta-value">{{ obj.updated_at|date:"d/m/Y" }}</div></div>
+  </div>
+  {% if obj.complainant_name or obj.area %}
+  <div class="meta-grid" style="padding-top:14px;border-top:1px solid var(--line);margin-bottom:0;">
+    {% if obj.complainant_name %}<div><div class="meta-label">المتعامل</div><div class="meta-value">{{ obj.complainant_name }}</div></div>{% endif %}
+    {% if obj.complainant_mobile %}<div><div class="meta-label">الموبايل</div><div class="meta-value" dir="ltr">{{ obj.complainant_mobile }}</div></div>{% endif %}
+    {% if obj.area %}<div><div class="meta-label">المنطقة</div><div class="meta-value">{{ obj.area }}</div></div>{% endif %}
+    {% if obj.house_number %}<div><div class="meta-label">رقم المنزل</div><div class="meta-value">{{ obj.house_number }}</div></div>{% endif %}
+  </div>
+  {% endif %}
+  {% if obj.notes %}<div style="border-top:1px solid var(--line);padding-top:14px;margin-top:14px;font-size:13px;color:var(--ink-2);line-height:1.7;">{{ obj.notes }}</div>{% endif %}
+  {% if obj.pdf_file %}
+  <div style="margin-top:14px;">
+    <a href="{{ obj.pdf_file.url }}" target="_blank" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:var(--surface);border:1.5px solid var(--line);border-radius:7px;color:var(--accent);font-weight:600;font-size:12px;text-decoration:none;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      عرض ملف PDF
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ══ STEP 1: Assign Inspector (admin) ══ -->
+{% if obj.status == 'new' and can_manage %}
+<div class="action-card" style="border-color:#fde68a;">
+  <div class="action-header" style="background:#fefce8;">
+    <div class="action-num" style="background:#fde68a;color:#92400e;">①</div>
+    <span class="action-title" style="color:#78350f;">تعيين مفتش للطلب</span>
+  </div>
+  <form method="post" action="{% url 'weed_assign_inspector' obj.pk %}">
+    {% csrf_token %}
+    <div style="display:flex;gap:10px;align-items:flex-end;">
+      <div style="flex:1;">
+        <label class="f-label">اختر المفتش</label>
+        <select name="inspector_id" class="f-select">
+          <option value="">— اختر مفتشاً —</option>
+          {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn-primary">تعيين</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<!-- ══ STEP 2: Inspector visits + before photos ══ -->
+{% if obj.status == 'inspector_assigned' and is_inspector %}
+<div class="action-card" style="border-color:#ddd6fe;">
+  <div class="action-header" style="background:#f5f3ff;">
+    <div class="action-num" style="background:#ddd6fe;color:#5b21b6;">②</div>
+    <span class="action-title" style="color:#4c1d95;">زيارة الموقع وتصوير الحالة قبل الإزالة</span>
+  </div>
+  <form method="post" action="{% url 'weed_inspector_done' obj.pk %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="f-row">
+      <label class="f-label">ملاحظات التفتيش</label>
+      <textarea name="inspection_notes" rows="3" class="f-textarea" placeholder="وصف حالة الموقع، مساحة الحشائش، ملاحظات…"></textarea>
+    </div>
+    <div class="f-row">
+      <label class="f-label">صور الموقع قبل العمل</label>
+      <label class="upload-zone">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span style="font-size:12px;color:var(--ink-3);display:block;">اضغط لاختيار صور (متعدد)</span>
+        <input type="file" name="before_photos" accept="image/*" multiple style="display:none;">
+      </label>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button type="submit" class="btn-green">✓ إتمام التفتيش</button>
+      <button type="button" class="btn-reject" onclick="openRejectModal()">رفض الطلب</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<!-- ══ STEP 3: Assign Supervisor (admin) ══ -->
+{% if obj.status == 'inspection_done' and can_manage %}
+<div class="action-card" style="border-color:#fbcfe8;">
+  <div class="action-header" style="background:#fdf2f8;">
+    <div class="action-num" style="background:#fbcfe8;color:#9d174d;">③</div>
+    <span class="action-title" style="color:#831843;">تعيين مراقب لتنفيذ الإزالة</span>
+  </div>
+  <form method="post" action="{% url 'weed_assign_supervisor' obj.pk %}">
+    {% csrf_token %}
+    <div style="display:flex;gap:10px;align-items:flex-end;">
+      <div style="flex:1;">
+        <label class="f-label">اختر المراقب</label>
+        <select name="supervisor_id" class="f-select">
+          <option value="">— اختر مراقباً —</option>
+          {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn-primary">تعيين</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<!-- ══ STEP 4: Supervisor — workers + vehicles ══ -->
+{% if obj.status == 'supervisor_assigned' and is_supervisor %}
+<div class="action-card" style="border-color:#bbf7d0;">
+  <div class="action-header" style="background:#f0fdf4;">
+    <div class="action-num" style="background:#bbf7d0;color:#14532d;">④</div>
+    <span class="action-title" style="color:#14532d;">تسجيل العمال والمركبات — بدء العمل</span>
+  </div>
+  <form method="post" action="{% url 'weed_supervisor_start' obj.pk %}">
+    {% csrf_token %}
+    <div class="f-row">
+      <label class="f-label">عدد العمال</label>
+      <input type="number" name="workers_count" min="1" max="999" class="f-input" style="width:160px;" value="{{ supervisor_task.workers_count|default:'' }}" placeholder="مثال: 4">
+    </div>
+    <button type="submit" class="btn-primary">بدء العمل</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- ══ STEP 5: Supervisor — upload photos + done ══ -->
+{% if obj.status == 'work_in_progress' and is_supervisor %}
+<div class="action-card" style="border-color:#bae6fd;">
+  <div class="action-header" style="background:#f0f9ff;">
+    <div class="action-num" style="background:#bae6fd;color:#0c4a6e;">⑤</div>
+    <span class="action-title" style="color:#0c4a6e;">صور العمل ورفع التقرير النهائي</span>
+  </div>
+
+  <!-- Upload during photos -->
+  <form method="post" action="{% url 'weed_upload_photos' obj.pk %}" enctype="multipart/form-data" style="margin-bottom:18px;">
+    {% csrf_token %}
+    <input type="hidden" name="phase" value="during">
+    <div class="f-row">
+      <label class="f-label">صور أثناء العمل</label>
+      <label class="upload-zone">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span style="font-size:12px;color:var(--ink-3);display:block;">اضغط لرفع صور أثناء العمل</span>
+        <input type="file" name="photos" accept="image/*" multiple style="display:none;">
+      </label>
+    </div>
+    <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">رفع صور أثناء العمل</button>
+  </form>
+
+  <!-- Upload after photos -->
+  <form method="post" action="{% url 'weed_upload_photos' obj.pk %}" enctype="multipart/form-data" style="margin-bottom:18px;padding-top:16px;border-top:1px solid var(--line);">
+    {% csrf_token %}
+    <input type="hidden" name="phase" value="after">
+    <div class="f-row">
+      <label class="f-label">صور بعد العمل</label>
+      <label class="upload-zone">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span style="font-size:12px;color:var(--ink-3);display:block;">اضغط لرفع صور بعد العمل</span>
+        <input type="file" name="photos" accept="image/*" multiple style="display:none;">
+      </label>
+    </div>
+    <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">رفع صور بعد العمل</button>
+  </form>
+
+  <!-- Final report -->
+  <form method="post" action="{% url 'weed_supervisor_done' obj.pk %}" style="padding-top:16px;border-top:1px solid var(--line);">
+    {% csrf_token %}
+    <div class="f-row">
+      <label class="f-label">ملاحظات التقرير النهائي</label>
+      <textarea name="report_notes" rows="4" class="f-textarea" placeholder="وصف العمل المنجز، ملاحظات الإزالة…"></textarea>
+    </div>
+    <button type="submit" class="btn-green">✓ إتمام العمل ورفع التقرير</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- ══ STEP 6: Add vehicles (supervisor, any active stage) ══ -->
+{% if supervisor_task and is_supervisor and obj.status in 'supervisor_assigned,work_in_progress' %}
+<div class="action-card" style="border-color:var(--line-2);">
+  <div class="c-card-title" style="margin-bottom:14px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4m0-10v10"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+    تسجيل المركبات المستخدمة
+  </div>
+  <form method="post" action="{% url 'weed_add_vehicle' obj.pk %}">
+    {% csrf_token %}
+    <div class="f-grid-2" style="gap:10px;margin-bottom:12px;">
+      <div>
+        <label class="f-label">نوع المركبة</label>
+        <select name="vehicle_type" class="f-select">
+          {% for key, label in vehicle_type_choices %}
+          <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="f-label">العدد</label>
+        <input type="number" name="vehicle_count" min="1" max="99" class="f-input" value="1" placeholder="1">
+      </div>
+    </div>
+    <div class="f-row" style="margin-bottom:12px;">
+      <label class="f-label">ملاحظات (اختياري)</label>
+      <input type="text" name="vehicle_notes" class="f-input" placeholder="مثال: لودر كبير، شاحنة 10 طن…">
+    </div>
+    <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">+ إضافة مركبة</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- ══ STEP 7: Close (admin) ══ -->
+{% if obj.status == 'work_done' and can_manage %}
+<div class="action-card" style="border-color:var(--line-2);">
+  <div class="action-header" style="background:var(--surface);">
+    <div class="action-num" style="background:var(--line);color:var(--ink-2);">⑥</div>
+    <span class="action-title" style="color:var(--ink);">إغلاق الطلب</span>
+  </div>
+  <p style="font-size:13px;color:var(--ink-2);margin:0 0 16px;">تم استلام التقرير والصور. يمكنك إغلاق الطلب الآن.</p>
+  <form method="post" action="{% url 'weed_close' obj.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="btn-dark">إغلاق الطلب</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- ══ Rejection card ══ -->
+{% if obj.status == 'rejected' and inspection and inspection.rejected_at %}
+<div class="c-card" style="border-color:#fca5a5;">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fef2f2;border-radius:8px;margin-bottom:16px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    <span style="font-size:14px;font-weight:700;color:#dc2626;">تم رفض هذا الطلب</span>
+  </div>
+  <div class="meta-grid" style="margin-bottom:14px;">
+    <div><div class="meta-label">رُفض بواسطة</div><div class="meta-value">{{ inspection.rejected_by.get_full_name|default:inspection.rejected_by.username|default:"—" }}</div></div>
+    <div><div class="meta-label">تاريخ الرفض</div><div class="meta-value">{{ inspection.rejected_at|date:"d/m/Y H:i" }}</div></div>
+  </div>
+  <div style="padding:12px 16px;background:#fff5f5;border:1.5px solid #fecaca;border-radius:8px;">
+    <div style="font-size:11.5px;font-weight:700;color:#991b1b;margin-bottom:6px;letter-spacing:.03em;">سبب الرفض</div>
+    <p style="font-size:13px;color:#7f1d1d;margin:0;line-height:1.7;">{{ inspection.rejection_reason }}</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- ══ Inspector record ══ -->
+{% if inspection %}
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    سجل المفتش
+  </div>
+  <div class="meta-grid" style="margin-bottom:{% if inspection.inspection_notes %}14px{% else %}0{% endif %};">
+    <div><div class="meta-label">المفتش</div><div class="meta-value">{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</div></div>
+    <div><div class="meta-label">تاريخ التعيين</div><div class="meta-value">{{ inspection.assigned_at|date:"d/m/Y H:i" }}</div></div>
+    {% if inspection.completed_at %}<div><div class="meta-label">تاريخ الإتمام</div><div class="meta-value">{{ inspection.completed_at|date:"d/m/Y H:i" }}</div></div>{% endif %}
+  </div>
+  {% if inspection.inspection_notes %}
+  <div style="padding-top:12px;border-top:1px solid var(--line);">
+    <div class="meta-label" style="margin-bottom:5px;">ملاحظات التفتيش</div>
+    <p style="font-size:13px;color:var(--ink-2);margin:0;line-height:1.7;">{{ inspection.inspection_notes }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- ══ Supervisor record ══ -->
+{% if supervisor_task %}
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    سجل المراقب
+  </div>
+  <div class="meta-grid" style="margin-bottom:14px;">
+    <div><div class="meta-label">المراقب</div><div class="meta-value">{{ supervisor_task.supervisor.get_full_name|default:supervisor_task.supervisor.username }}</div></div>
+    <div><div class="meta-label">تاريخ التعيين</div><div class="meta-value">{{ supervisor_task.assigned_at|date:"d/m/Y H:i" }}</div></div>
+    {% if supervisor_task.workers_count is not None %}
+    <div><div class="meta-label">عدد العمال</div><div class="meta-value" style="font-family:monospace;font-size:20px;font-weight:800;color:var(--accent);">{{ supervisor_task.workers_count }}</div></div>
+    {% endif %}
+    {% if supervisor_task.completed_at %}<div><div class="meta-label">تاريخ الإتمام</div><div class="meta-value">{{ supervisor_task.completed_at|date:"d/m/Y H:i" }}</div></div>{% endif %}
+  </div>
+
+  {% if vehicles %}
+  <div style="padding-top:14px;border-top:1px solid var(--line);">
+    <div class="meta-label" style="margin-bottom:8px;">المركبات المستخدمة</div>
+    <table class="v-table">
+      <thead><tr><th>نوع المركبة</th><th>العدد</th><th>ملاحظات</th>{% if is_supervisor and obj.status != 'closed' and obj.status != 'rejected' %}<th></th>{% endif %}</tr></thead>
+      <tbody>
+        {% for v in vehicles %}
+        <tr>
+          <td><strong>{{ v.get_vehicle_type_display }}</strong></td>
+          <td style="font-family:monospace;font-weight:700;">{{ v.count }}</td>
+          <td>{{ v.notes|default:"—" }}</td>
+          {% if is_supervisor and obj.status != 'closed' and obj.status != 'rejected' %}
+          <td>
+            <form method="post" action="{% url 'weed_delete_vehicle' obj.pk v.pk %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" onclick="return confirm('حذف؟')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:12px;">✕</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if supervisor_task.report_notes %}
+  <div style="padding-top:14px;border-top:1px solid var(--line);margin-top:14px;">
+    <div class="meta-label" style="margin-bottom:5px;">ملاحظات التقرير النهائي</div>
+    <p style="font-size:13px;color:var(--ink-2);margin:0;line-height:1.7;">{{ supervisor_task.report_notes }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- ══ Photos ══ -->
+{% if photos_before %}
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    صور قبل العمل ({{ photos_before.count }})
+  </div>
+  <div class="photo-grid">
+    {% for p in photos_before %}
+    <div class="photo-thumb">
+      <img src="{{ p.file.url }}" alt="قبل">
+      {% if can_manage or p.uploaded_by_id == request.user.id %}
+      <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
+        <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
+      </form>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if photos_during %}
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    صور أثناء العمل ({{ photos_during.count }})
+  </div>
+  <div class="photo-grid">
+    {% for p in photos_during %}
+    <div class="photo-thumb">
+      <img src="{{ p.file.url }}" alt="أثناء">
+      {% if can_manage or p.uploaded_by_id == request.user.id %}
+      <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
+        <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
+      </form>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if photos_after %}
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    صور بعد العمل ({{ photos_after.count }})
+  </div>
+  <div class="photo-grid">
+    {% for p in photos_after %}
+    <div class="photo-thumb">
+      <img src="{{ p.file.url }}" alt="بعد">
+      {% if can_manage or p.uploaded_by_id == request.user.id %}
+      <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
+        <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
+      </form>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ══ Reject Modal ══ -->
+{% if is_inspector and obj.status == 'inspector_assigned' %}
+<div class="reject-modal" id="rejectModal">
+  <div class="reject-box">
+    <div style="font-size:16px;font-weight:700;color:#dc2626;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      رفض الطلب
+    </div>
+    <p style="font-size:13px;color:var(--ink-3);margin-bottom:20px;">يرجى ذكر سبب الرفض بوضوح.</p>
+    <form method="post" action="{% url 'weed_reject' obj.pk %}">
+      {% csrf_token %}
+      <textarea name="rejection_reason" rows="4" placeholder="سبب عدم إمكانية تنفيذ الإزالة…" required id="rejectReason"></textarea>
+      <div class="rbox-actions">
+        <button type="button" class="btn-cancel-m" onclick="closeRejectModal()">إلغاء</button>
+        <button type="submit" class="btn-reject">تأكيد الرفض</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openRejectModal(){var m=document.getElementById('rejectModal');if(m){m.classList.add('open');setTimeout(function(){var r=document.getElementById('rejectReason');if(r)r.focus();},80);}}
+function closeRejectModal(){var m=document.getElementById('rejectModal');if(m)m.classList.remove('open');}
+var modal=document.getElementById('rejectModal');
+if(modal){modal.addEventListener('click',function(e){if(e.target===this)closeRejectModal();});}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeRejectModal();});
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends "hcsd/base.html" %}
+{% extends "hcsd/field_work_base.html" %}
 {% block title %}أوامر العمل الميداني{% endblock %}
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -7,54 +7,58 @@
   --ink-1:#1a2a3a;--ink-2:#3a4a5a;--ink-3:#5a6a7a;--ink-4:#8a9aaa;
   --surface-1:#f4f6f8;--surface-2:#e8ecf0;--border:#d0d8e0;
   --accent:#1a5c9a;--accent-light:#e8f0f8;
-  --success:#1a7a3a;--success-bg:#e8f5ee;
-  --warn:#7a4500;--warn-bg:#fff4e0;
-  --danger:#8a1a1a;--danger-bg:#fdeaea;
   --mono:'JetBrains Mono',monospace;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
+*{box-sizing:border-box;}
 body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);direction:rtl;}
-
-.fw-page{max-width:900px;margin:0 auto;padding:24px 16px;}
-.fw-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;}
+.fw-page{max-width:1100px;margin:0 auto;padding:24px 16px;}
+.fw-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
 .fw-title{font-size:22px;font-weight:700;color:var(--ink-1);}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;border:none;transition:.15s;}
-.btn-primary{background:var(--accent);color:#fff;}
-.btn-primary:hover{background:#14487a;}
-.btn-outline{background:#fff;color:var(--ink-2);border:1.5px solid var(--border);}
-.btn-outline:hover{background:var(--surface-2);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;border:none;transition:.15s;font-family:inherit;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#14487a;}
+.btn-outline{background:#fff;color:var(--ink-2);border:1.5px solid var(--border);}.btn-outline:hover{background:var(--surface-2);}
 
-.fw-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
-.fw-filter-btn{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid var(--border);background:#fff;color:var(--ink-2);cursor:pointer;text-decoration:none;transition:.15s;}
-.fw-filter-btn:hover,.fw-filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+/* Filters bar */
+.fw-filters{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+.fw-filter-group{display:flex;flex-direction:column;gap:4px;}
+.fw-filter-label{font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.04em;}
+.fw-filter-select{padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;color:var(--ink-1);background:#fff;}
+.fw-search{flex:1;min-width:200px;}
+.fw-search input{width:100%;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;}
 
-.fw-empty{text-align:center;padding:60px 20px;color:var(--ink-4);font-size:15px;}
+/* Table */
+.fw-table-wrap{background:#fff;border-radius:12px;border:1.5px solid var(--border);overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--surface-2);border-bottom:1.5px solid var(--border);}
+th{padding:10px 12px;text-align:right;font-weight:600;color:var(--ink-3);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:hover{background:var(--surface-1);}
+td{padding:10px 12px;vertical-align:middle;}
 
-.fw-cards{display:flex;flex-direction:column;gap:12px;}
-.fw-card{background:#fff;border-radius:12px;border:1.5px solid var(--border);overflow:hidden;transition:.15s;}
-.fw-card:hover{border-color:var(--accent);box-shadow:0 2px 12px rgba(26,92,154,.1);}
-.fw-card-inner{display:flex;align-items:stretch;}
-.fw-card-stripe{width:5px;flex-shrink:0;}
-.fw-card-body{flex:1;padding:14px 16px;}
-.fw-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
-.fw-card-title{font-size:15px;font-weight:700;color:var(--ink-1);}
-.fw-card-id{font-family:var(--mono);font-size:11px;color:var(--ink-4);}
-.fw-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
-.fw-card-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink-3);}
-.fw-card-meta span{display:flex;align-items:center;gap:4px;}
-.fw-card-actions{display:flex;gap:8px;margin-top:10px;}
+/* Status badges */
+.badge{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;}
+.s-pending        {background:#fff8e0;color:#7a5500;}
+.s-completed      {background:#e8f5ee;color:#1a5c35;}
+.s-cancelled      {background:#f0f0f0;color:#6a6a6a;}
+.s-incomplete     {background:#fdeaea;color:#8a1a1a;}
+.s-progress       {background:#e8f0f8;color:#1a3a6a;}
+.s-private        {background:#f5f3ff;color:#6d28d9;}
+.s-declined       {background:#fff1f2;color:#be123c;}
+.s-phone          {background:#fff7ed;color:#c2410c;}
+.s-postponed      {background:#fef9c3;color:#854d0e;}
+.s-gov            {background:#f0f9ff;color:#0369a1;}
+.s-other-mun      {background:#f1f5f9;color:#475569;}
 
-/* Status colors */
-.s-pending    {background:#fff8e0;color:#7a5500;}.stripe-pending-fw{background:#c9a84c;}
-.s-in-progress{background:#e8f0f8;color:#1a3a6a;}.stripe-progress {background:#4a7ab8;}
-.s-completed  {background:#e8f5ee;color:#1a5c35;}.stripe-completed{background:#4a9a6e;}
-.s-incomplete {background:#fdeaea;color:#8a1a1a;}.stripe-incomplete{background:#c94a4a;}
-.s-cancelled  {background:#f0f0f0;color:#6a6a6a;}.stripe-cancelled{background:#aaa;}
+/* Source badge */
+.src-excel {background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700;}
+.src-manual{background:#f0fdf4;color:#15803d;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700;}
 
-@media(max-width:600px){
-  .fw-header{flex-direction:column;align-items:flex-start;}
-  .fw-card-top{flex-direction:column;align-items:flex-start;}
-}
+/* Pagination */
+.fw-pag{display:flex;gap:4px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+.fw-pag a,.fw-pag span{padding:5px 11px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;border:1.5px solid var(--border);background:#fff;color:var(--ink-2);}
+.fw-pag .current{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.fw-count{font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:10px;}
 </style>
 
 <section class="fw-page">
@@ -70,61 +74,145 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
   </div>
 
   <!-- Filters -->
-  <div class="fw-filters">
-    {% for val, label in status_options %}
-    <a href="?status={{ val }}"
-       class="fw-filter-btn {% if status_filter == val %}active{% endif %}">
-      {{ label }}
-    </a>
-    {% endfor %}
-  </div>
+  <form method="get">
+    <div class="fw-filters">
 
-  {% if not orders %}
-    <div class="fw-empty">لا توجد أوامر عمل{% if status_filter != 'all' %} بهذه الحالة{% endif %}.</div>
-  {% else %}
-  <div class="fw-cards">
-    {% for order in orders %}
-    {% with s=order.status %}
-    <div class="fw-card">
-      <div class="fw-card-inner">
-        <div class="fw-card-stripe
-          {% if s == 'pending' %}stripe-pending-fw
-          {% elif s == 'in_progress' %}stripe-progress
-          {% elif s == 'completed' %}stripe-completed
-          {% elif s == 'incomplete' %}stripe-incomplete
-          {% else %}stripe-cancelled{% endif %}">
-        </div>
-        <div class="fw-card-body">
-          <div class="fw-card-top">
-            <div>
-              <span class="fw-card-id">#{{ order.pk }}</span>
-              <span class="fw-card-title" style="margin-right:8px;">{{ order.work_type }}</span>
-            </div>
-            <span class="fw-badge
-              {% if s == 'pending' %}s-pending
-              {% elif s == 'in_progress' %}s-in-progress
-              {% elif s == 'completed' %}s-completed
-              {% elif s == 'incomplete' %}s-incomplete
-              {% else %}s-cancelled{% endif %}">
+      <div class="fw-filter-group fw-search">
+        <label class="fw-filter-label">بحث</label>
+        <input type="text" name="q" value="{{ search }}" placeholder="رقم الطلب / اسم / منطقة / مشرف…">
+      </div>
+
+      <div class="fw-filter-group">
+        <label class="fw-filter-label">الحالة</label>
+        <select name="status" class="fw-filter-select">
+          {% for val, label in status_options %}
+          <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="fw-filter-group">
+        <label class="fw-filter-label">المصدر</label>
+        <select name="source" class="fw-filter-select">
+          <option value="all" {% if source_filter == 'all' %}selected{% endif %}>الكل</option>
+          <option value="excel"  {% if source_filter == 'excel'  %}selected{% endif %}>Excel</option>
+          <option value="manual" {% if source_filter == 'manual' %}selected{% endif %}>يدوي</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="align-self:flex-end;">بحث</button>
+      {% if search or status_filter != 'all' or source_filter != 'all' %}
+      <a href="{% url 'field_work_list' %}" class="btn btn-outline" style="align-self:flex-end;">مسح</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="fw-count">{{ total_count }} نتيجة — صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}</div>
+
+  {% if page_obj.object_list %}
+  <div class="fw-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>رقم الطلب</th>
+          <th>اسم المتعامل</th>
+          <th>المنطقة</th>
+          <th>نوع الحشرات</th>
+          <th>تاريخ الطلب</th>
+          <th>تاريخ الإغلاق</th>
+          <th>المشرف</th>
+          <th>الحالة</th>
+          <th>المصدر</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in page_obj %}
+        <tr>
+          <td style="font-family:var(--mono);font-weight:700;">
+            {% if order.order_number %}{{ order.order_number }}{% else %}#{{ order.pk }}{% endif %}
+          </td>
+          <td>
+            {% if order.customer_name %}
+              {{ order.customer_name }}
+            {% elif order.site_name %}
+              {{ order.site_name }}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if order.area %}{{ order.area }}
+            {% elif order.location %}{{ order.location }}
+            {% else %}—{% endif %}
+          </td>
+          <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ order.pest_types }}">
+            {{ order.pest_types|default:"—" }}
+          </td>
+          <td style="white-space:nowrap;">
+            {% if order.request_date %}{{ order.request_date|date:"d/m/Y" }}
+            {% elif order.work_date %}{{ order.work_date|date:"d/m/Y" }}
+            {% else %}—{% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            {{ order.close_date|date:"d/m/Y"|default:"—" }}
+          </td>
+          <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ order.supervisor_name }}">
+            {{ order.supervisor_name|default:"—" }}
+          </td>
+          <td>
+            <span class="badge
+              {% if order.status == 'completed' %}s-completed
+              {% elif order.status == 'private_company' %}s-private
+              {% elif order.status == 'cust_declined' %}s-declined
+              {% elif order.status == 'wrong_phone' or order.status == 'phone_off' or order.status == 'no_answer' %}s-phone
+              {% elif order.status == 'postponed_client' %}s-postponed
+              {% elif order.status == 'gov_dept' %}s-gov
+              {% elif order.status == 'other_municipal' %}s-other-mun
+              {% else %}s-pending{% endif %}">
               {{ order.get_status_display }}
             </span>
-          </div>
-          <div class="fw-card-meta">
-            {% if order.site_name %}<span>🏢 {{ order.site_name }}</span>{% endif %}
-            {% if order.location %}<span>📍 {{ order.location }}</span>{% endif %}
-            {% if order.work_date %}<span>📅 {{ order.work_date|date:"d/m/Y" }}</span>{% endif %}
-            <span>🖼 {{ order.photos_count }} صورة</span>
-          </div>
-          <div class="fw-card-actions">
-            <a href="{% url 'field_work_detail' order.pk %}" class="btn btn-outline" style="font-size:13px;padding:6px 12px;">عرض التفاصيل</a>
-            <a href="{% url 'field_work_report' order.pk %}" class="btn btn-outline" style="font-size:13px;padding:6px 12px;">⬇ تقرير Word</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% endwith %}
-    {% endfor %}
+            {% if order.excel_status %}
+            <div style="font-size:10px;color:var(--ink-3);margin-top:2px;" title="{{ order.excel_status }}">
+              {{ order.excel_status|truncatechars:30 }}
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            {% if order.source == 'excel' %}
+              <span class="src-excel">Excel</span>
+            {% else %}
+              <span class="src-manual">يدوي</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'field_work_detail' order.pk %}" class="btn btn-outline" style="padding:4px 10px;font-size:12px;">عرض</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+
+  <!-- Pagination -->
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="fw-pag">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&source={{ source_filter }}&month={{ month_filter }}&q={{ search }}">‹ السابق</a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <span class="current">{{ num }}</span>
+      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}&status={{ status_filter }}&source={{ source_filter }}&month={{ month_filter }}&q={{ search }}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&source={{ source_filter }}&month={{ month_filter }}&q={{ search }}">التالي ›</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div style="text-align:center;padding:60px 20px;color:var(--ink-4);font-size:15px;">لا توجد نتائج.</div>
   {% endif %}
 
 </section>

@@ -2,615 +2,427 @@
 {% load static %}
 {% block title %}لوحة النظام{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
 <style>
-  .home-page {
-    --pd-ink: #304357;
-    --pd-ink-2: #455c75;
-    --pd-ink-3: #6f8297;
-    --pd-paper: #ffffff;
-    --pd-surface: #f1f4f7;
-    --pd-surface-2: #e8eef4;
-    --pd-line: #d4dce5;
-    --pd-line-2: #bcc8d5;
-    --pd-accent: #304357;
-    --pd-accent-dark: #26384a;
-    --pd-radius: 8px;
-    --pd-shadow: 0 2px 8px rgba(48,67,87,0.07);
-    padding: 24px 10px 48px;
-    background: var(--pd-surface);
-    direction: rtl;
-    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
-    color: var(--pd-ink);
-  }
+/* ── 60-30-10 palette
+   60% : #f8fafc / #fff  (backgrounds, cards)
+   30% : #0f172a / #475569 / #94a3b8  (text, borders)
+   10% : #2563eb  (primary accent only)
+──────────────────────────────────────────── */
+.hp { max-width: 1160px; margin: 0 auto; direction: rtl; }
 
-  .home-wrap {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    gap: 20px;
-  }
+/* ── Page header ── */
+.hp-head {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+.hp-head__title { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
+.hp-head__sub   { font-size: 13px; color: #64748b; margin: 4px 0 0; }
 
-  /* ── Hero ── */
-  .home-hero {
-    background: linear-gradient(160deg, #3a4f66 0%, #304357 50%, #26384a 100%);
-    border-radius: var(--pd-radius);
-    padding: 22px 28px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    box-shadow: 0 4px 16px rgba(48,67,87,0.2);
-  }
+/* ── Metrics ── */
+.hp-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.hp-metric {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.hp-metric__label {
+  font-size: 11.5px; font-weight: 600;
+  color: #94a3b8; margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.hp-metric__value {
+  font-size: 34px; font-weight: 800;
+  color: #0f172a; line-height: 1;
+  letter-spacing: -.04em;
+}
+.hp-metric--accent .hp-metric__value { color: #2563eb; }
 
-  .hero-text h1 {
-    margin: 0 0 4px;
-    font-size: clamp(20px, 2.5vw, 26px);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
+/* ── Card ── */
+.hp-card {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.hp-card__head {
+  padding: 12px 18px;
+  border-bottom: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 12px; font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.hp-card__body { padding: 14px 16px; }
 
-  .hero-text p {
-    margin: 0;
-    font-size: 13px;
-    opacity: 0.65;
-  }
+/* ── Grid layout ── */
+.hp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
 
-  .hero-logo {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-    border: 1.5px solid rgba(255,255,255,0.18);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
+/* ── Status list ── */
+.hp-list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 7px;
+}
+.hp-list li {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 10px;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 7px;
+  font-size: 13px; font-weight: 500;
+  color: #475569;
+  background: #f8fafc;
+}
+.hp-list__count {
+  min-width: 34px; text-align: center;
+  font-size: 13px; font-weight: 700;
+  color: #0f172a;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 99px;
+  padding: 2px 10px;
+  flex-shrink: 0;
+}
 
-  .hero-logo img {
-    width: 34px;
-    height: 34px;
-    object-fit: contain;
-    filter: brightness(0) invert(1);
-    opacity: 0.85;
-  }
+/* ── Quick links ── */
+.hp-links { display: grid; gap: 8px; }
+.hp-link {
+  display: flex; align-items: center;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  text-decoration: none;
+  font-size: 13px; font-weight: 600;
+  overflow: hidden;
+  transition: border-color .15s, box-shadow .15s;
+}
+.hp-link:hover {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.07);
+}
+.hp-link__bar {
+  width: 3px; align-self: stretch;
+  background: #2563eb; flex-shrink: 0;
+  transition: width .15s;
+}
+.hp-link:hover .hp-link__bar { width: 5px; }
+.hp-link__label { flex: 1; padding: 13px 14px; }
+.hp-link__arrow {
+  padding-inline-end: 14px;
+  font-size: 13px; color: #94a3b8;
+  transition: transform .15s;
+}
+.hp-link:hover .hp-link__arrow { transform: translateX(-3px); color: #2563eb; }
 
-  /* ── Metrics ── */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
-    gap: 12px;
-  }
+/* ── Expiring alert ── */
+.hp-expiring {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-right: 3px solid #2563eb;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.hp-expiring__head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px;
+  border-bottom: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+}
+.hp-expiring__title {
+  font-size: 12px; font-weight: 700;
+  color: #94a3b8; text-transform: uppercase;
+  letter-spacing: .06em; flex: 1;
+}
+.hp-expiring__badge {
+  background: #2563eb; color: #fff;
+  font-size: 11px; font-weight: 700;
+  border-radius: 99px; padding: 2px 10px;
+}
+.hp-exp-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+.hp-exp-table th {
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .04em;
+  padding: 9px 16px;
+  border-bottom: 1.5px solid #e2e8f0;
+  text-align: right;
+}
+.hp-exp-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #475569;
+  vertical-align: middle;
+}
+.hp-exp-table tr:last-child td { border-bottom: none; }
+.hp-exp-table tr:hover td { background: #f8fafc; }
 
-  .metric-card {
-    background: var(--pd-paper);
-    border: 1.5px solid var(--pd-line);
-    border-radius: var(--pd-radius);
-    padding: 18px 20px;
-    box-shadow: var(--pd-shadow);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: box-shadow 0.15s;
-  }
+.hp-days {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 99px;
+  font-size: 11.5px; font-weight: 700;
+}
+.hp-days--urgent  { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
+.hp-days--warning { background: #fff7ed; color: #9a3412; border: 1.5px solid #fdba74; }
+.hp-days--notice  { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; }
 
-  .metric-card:hover {
-    box-shadow: 0 6px 20px rgba(48,67,87,0.11);
-  }
+.hp-exp-btn {
+  display: inline-flex; align-items: center;
+  padding: 4px 12px; border-radius: 6px;
+  font-size: 12px; font-weight: 600;
+  text-decoration: none;
+  background: #2563eb; color: #fff;
+  transition: background .15s;
+  margin-inline-end: 6px;
+}
+.hp-exp-btn:hover { background: #1d4ed8; }
+.hp-exp-btn.ghost {
+  background: transparent;
+  border: 1.5px solid #e2e8f0;
+  color: #475569;
+}
+.hp-exp-btn.ghost:hover { background: #f1f5f9; }
 
-  .metric-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--pd-ink-3);
-  }
+/* ── Mobile quick links ── */
+.hp-links-row { display: none; gap: 10px; margin-bottom: 20px; }
+.hp-card-quick { display: block; }
 
-  .metric-value {
-    font-size: 36px;
-    font-weight: 800;
-    color: var(--pd-ink);
-    line-height: 1;
-    letter-spacing: -0.04em;
-  }
-
-  .metric-card.accent-issued  { border-top: 3px solid #059669; }
-  .metric-card.accent-pending { border-top: 3px solid #d97706; }
-  .metric-card.accent-ext     { border-top: 3px solid #3b82f6; }
-  .metric-card.accent-leave   { border-top: 3px solid #94a3b8; }
-
-  .metric-card.accent-issued  .metric-value { color: #059669; }
-  .metric-card.accent-pending .metric-value { color: #d97706; }
-  .metric-card.accent-ext     .metric-value { color: #3b82f6; }
-
-  /* ── Shared card ── */
-  .home-card {
-    background: var(--pd-paper);
-    border: 1.5px solid var(--pd-line);
-    border-radius: var(--pd-radius);
-    box-shadow: var(--pd-shadow);
-    overflow: hidden;
-  }
-
-  .card-head {
-    padding: 13px 18px;
-    border-bottom: 1.5px solid var(--pd-line);
-    background: var(--pd-surface);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--pd-ink);
-    display: flex;
-    align-items: center;
-    gap: 9px;
-  }
-
-  .card-head::before {
-    content: '';
-    display: block;
-    width: 3px;
-    height: 14px;
-    background: var(--pd-accent);
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-
-  .card-body { padding: 14px 16px; }
-
-  /* ── Main grid ── */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  /* ── Status list ── */
-  .status-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 7px;
-  }
-
-  .status-list li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 10px 14px;
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    background: var(--pd-surface);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--pd-ink-2);
-    transition: background 0.12s, border-color 0.12s;
-  }
-
-  .status-list li:hover {
-    background: var(--pd-surface-2);
-    border-color: var(--pd-line-2);
-  }
-
-  .status-count {
-    min-width: 36px;
-    text-align: center;
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--pd-ink);
-    background: var(--pd-paper);
-    border: 1.5px solid var(--pd-line);
-    border-radius: 99px;
-    padding: 2px 10px;
-    flex-shrink: 0;
-  }
-
-  /* ── Quick links ── */
-  .quick-links { display: grid; gap: 9px; }
-
-  .quick-link {
-    display: flex;
-    align-items: center;
-    border: 1.5px solid var(--pd-line);
-    border-radius: 7px;
-    background: var(--pd-paper);
-    color: var(--pd-ink);
-    text-decoration: none;
-    font-size: 13.5px;
-    font-weight: 700;
-    overflow: hidden;
-    transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
-    box-shadow: var(--pd-shadow);
-  }
-
-  .quick-link:hover {
-    border-color: var(--pd-line-2);
-    box-shadow: 0 4px 14px rgba(48,67,87,0.12);
-    transform: translateX(-2px);
-  }
-
-  .quick-link-bar {
-    width: 4px;
-    align-self: stretch;
-    background: var(--ql-color, var(--pd-accent));
-    flex-shrink: 0;
-    transition: width 0.15s;
-  }
-
-  .quick-link:hover .quick-link-bar { width: 6px; }
-
-  .quick-link-label {
-    flex: 1;
-    padding: 14px 14px;
-    transition: color 0.15s;
-  }
-
-  .quick-link:hover .quick-link-label {
-    color: var(--ql-color, var(--pd-accent));
-  }
-
-  .quick-link-arrow {
-    padding-inline-end: 14px;
-    font-size: 14px;
-    opacity: 0.25;
-    transition: opacity 0.15s, transform 0.15s;
-  }
-
-  .quick-link:hover .quick-link-arrow {
-    opacity: 0.65;
-    transform: translateX(-3px);
-  }
-
-  .ql-blue   { --ql-color: #2563eb; }
-  .ql-teal   { --ql-color: #0891b2; }
-  .ql-green  { --ql-color: #059669; }
-  .ql-violet { --ql-color: #7c3aed; }
-  .ql-orange { --ql-color: #d97706; }
-  .ql-emerald{ --ql-color: #2b7a4a; }
-
-  /* ── Expiring soon ── */
-  .expiring-alert {
-    background: #fff;
-    border: 1.5px solid #fbbf24;
-    border-top: 3px solid #d97706;
-    border-radius: var(--pd-radius);
-    overflow: hidden;
-    box-shadow: var(--pd-shadow);
-  }
-
-  .expiring-alert-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 18px;
-    border-bottom: 1.5px solid #fde68a;
-    background: #fffbeb;
-  }
-
-  .expiring-alert-head-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #78350f;
-    flex: 1;
-  }
-
-  .expiring-count-badge {
-    background: #d97706;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 800;
-    border-radius: 99px;
-    padding: 2px 10px;
-  }
-
-  .expiring-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13.5px;
-  }
-
-  .expiring-table th {
-    background: #fefce8;
-    color: #92400e;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    padding: 9px 14px;
-    border-bottom: 1.5px solid #fde68a;
-    text-align: right;
-  }
-
-  .expiring-table td {
-    padding: 10px 14px;
-    border-bottom: 1px solid #fef3c7;
-    color: #78350f;
-    vertical-align: middle;
-  }
-
-  .expiring-table tr:last-child td { border-bottom: none; }
-  .expiring-table tr:hover td { background: #fffbeb; }
-
-  .days-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    border-radius: 99px;
-    font-size: 12px;
-    font-weight: 800;
-  }
-
-  .days-badge.urgent  { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
-  .days-badge.warning { background: #ffedd5; color: #9a3412; border: 1.5px solid #fdba74; }
-  .days-badge.notice  { background: #fef3c7; color: #78350f; border: 1.5px solid #fcd34d; }
-
-  .exp-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    text-decoration: none;
-    background: #d97706;
-    color: #fff;
-    transition: background .15s;
-    margin-inline-end: 6px;
-  }
-  .exp-btn:hover { background: #b45309; }
-  .exp-btn.ghost {
-    background: transparent;
-    border: 1.5px solid #d97706;
-    color: #92400e;
-  }
-  .exp-btn.ghost:hover { background: #fef3c7; }
-
-  /* ── Mobile quick links ── */
-  .quick-links-row { display: none; gap: 10px; }
-  .home-card-quick { display: block; }
-
-  @media (max-width: 800px) {
-    .main-grid { grid-template-columns: 1fr; }
-    .expiring-table { display: block; overflow-x: auto; white-space: nowrap; }
-    .home-card-quick { display: none; }
-    .quick-links-row { display: grid; grid-template-columns: repeat(2, 1fr); }
-  }
-
-  @media (max-width: 500px) {
-    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-  }
+@media (max-width: 800px) {
+  .hp-grid { grid-template-columns: 1fr; }
+  .hp-exp-table { display: block; overflow-x: auto; white-space: nowrap; }
+  .hp-card-quick { display: none; }
+  .hp-links-row { display: grid; grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .hp-metrics { grid-template-columns: repeat(2, 1fr); }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="home-page" lang="ar" dir="rtl">
-  <div class="home-wrap">
+<section class="hp" lang="ar" dir="rtl">
 
-    <!-- Quick links (mobile only) -->
-    <div class="quick-links-row">
-      <a class="quick-link ql-blue" href="{% url 'clearance_list' %}">
-        <span class="quick-link-bar"></span>
-        <span class="quick-link-label">متابعة الطلبات</span>
-        <span class="quick-link-arrow">←</span>
-      </a>
-      <a class="quick-link ql-teal" href="{% url 'permit_types' %}">
-        <span class="quick-link-bar"></span>
-        <span class="quick-link-label">التصاريح</span>
-        <span class="quick-link-arrow">←</span>
-      </a>
-      <a class="quick-link ql-orange" href="{% url 'complaints_dashboard' %}">
-        <span class="quick-link-bar"></span>
-        <span class="quick-link-label">الشكاوي</span>
-        <span class="quick-link-arrow">←</span>
-      </a>
-      <a class="quick-link ql-emerald" href="{% url 'field_work_list' %}">
-        <span class="quick-link-bar"></span>
-        <span class="quick-link-label">العمل الميداني</span>
-        <span class="quick-link-arrow">←</span>
-      </a>
-      <a class="quick-link ql-green" href="{% url 'company_list' %}">
-        <span class="quick-link-bar"></span>
-        <span class="quick-link-label">الشركات</span>
-        <span class="quick-link-arrow">←</span>
-      </a>
-      <a class="quick-link ql-violet" href="{% url 'enginer_list' %}">
-        <span class="quick-link-bar"></span>
-        <span class="quick-link-label">المهندسين</span>
-        <span class="quick-link-arrow">←</span>
-      </a>
+  <!-- Mobile quick links -->
+  <div class="hp-links-row">
+    <a class="hp-link" href="{% url 'clearance_list' %}">
+      <span class="hp-link__bar"></span>
+      <span class="hp-link__label">متابعة الطلبات</span>
+      <span class="hp-link__arrow">←</span>
+    </a>
+    <a class="hp-link" href="{% url 'permit_types' %}">
+      <span class="hp-link__bar"></span>
+      <span class="hp-link__label">التصاريح</span>
+      <span class="hp-link__arrow">←</span>
+    </a>
+    <a class="hp-link" href="{% url 'company_list' %}">
+      <span class="hp-link__bar"></span>
+      <span class="hp-link__label">الشركات</span>
+      <span class="hp-link__arrow">←</span>
+    </a>
+    <a class="hp-link" href="{% url 'enginer_list' %}">
+      <span class="hp-link__bar"></span>
+      <span class="hp-link__label">المهندسين</span>
+      <span class="hp-link__arrow">←</span>
+    </a>
+  </div>
+
+  <!-- Page header -->
+  <div class="hp-head">
+    <div>
+      <h1 class="hp-head__title">لوحة النظام</h1>
+      <p class="hp-head__sub">نظام التصاريح — إدارة الرقابة والسلامة الصحية</p>
     </div>
+  </div>
 
-    <!-- Hero -->
-    <div class="home-hero">
-      <div class="hero-text">
-        <h1>لوحة النظام</h1>
-        <p>نظام التصاريح — إدارة الرقابة والسلامة الصحية</p>
-      </div>
-      <div class="hero-logo">
-        <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
-      </div>
+  <!-- Metrics -->
+  <div class="hp-metrics">
+    <div class="hp-metric">
+      <div class="hp-metric__label">إجمالي الشركات</div>
+      <div class="hp-metric__value">{{ total_companies }}</div>
     </div>
-
-    <!-- Metrics -->
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-label">إجمالي الشركات</div>
-        <div class="metric-value">{{ total_companies }}</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">إجمالي المهندسين</div>
-        <div class="metric-value">{{ total_engineers }}</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">إجمالي الطلبات</div>
-        <div class="metric-value">{{ total_permits }}</div>
-      </div>
-      <div class="metric-card accent-issued">
-        <div class="metric-label">التصاريح الصادرة</div>
-        <div class="metric-value">{{ issued_permits }}</div>
-      </div>
-      <div class="metric-card accent-pending">
-        <div class="metric-label">طلبات قيد الإجراء</div>
-        <div class="metric-value">{{ pending_permits }}</div>
-      </div>
-      <div class="metric-card accent-ext">
-        <div class="metric-label">شركات داخل مهلة</div>
-        <div class="metric-value">{{ active_extension_companies }}</div>
-      </div>
-      <div class="metric-card accent-leave">
-        <div class="metric-label">مهندسون في إجازة</div>
-        <div class="metric-value">{{ engineers_on_leave }}</div>
-      </div>
+    <div class="hp-metric">
+      <div class="hp-metric__label">إجمالي المهندسين</div>
+      <div class="hp-metric__value">{{ total_engineers }}</div>
     </div>
+    <div class="hp-metric">
+      <div class="hp-metric__label">إجمالي الطلبات</div>
+      <div class="hp-metric__value">{{ total_permits }}</div>
+    </div>
+    <div class="hp-metric hp-metric--accent">
+      <div class="hp-metric__label">تصاريح صادرة</div>
+      <div class="hp-metric__value">{{ issued_permits }}</div>
+    </div>
+    <div class="hp-metric">
+      <div class="hp-metric__label">قيد الإجراء</div>
+      <div class="hp-metric__value">{{ pending_permits }}</div>
+    </div>
+    <div class="hp-metric">
+      <div class="hp-metric__label">شركات داخل مهلة</div>
+      <div class="hp-metric__value">{{ active_extension_companies }}</div>
+    </div>
+    <div class="hp-metric">
+      <div class="hp-metric__label">مهندسون في إجازة</div>
+      <div class="hp-metric__value">{{ engineers_on_leave }}</div>
+    </div>
+  </div>
 
-    <!-- Expiring soon alert -->
-    {% if expiring_soon %}
-    <div class="expiring-alert">
-      <div class="expiring-alert-head">
-        <span style="font-size:16px;">⚠</span>
-        <span class="expiring-alert-head-title">تصاريح توشك على الانتهاء خلال أسبوع</span>
-        <span class="expiring-count-badge">{{ expiring_soon|length }}</span>
-      </div>
-      <table class="expiring-table">
-        <thead>
-          <tr>
-            <th>الشركة</th>
-            <th>نوع التصريح</th>
-            <th>رقم التصريح</th>
-            <th>تاريخ الانتهاء</th>
-            <th>المتبقي</th>
-            <th>الإجراء</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in expiring_soon %}
-          <tr>
-            <td><strong>{{ item.permit.company.name }}</strong></td>
-            <td>{{ item.label }}</td>
-            <td>{{ item.permit.permit_no|default:"-" }}</td>
-            <td>{{ item.permit.dateOfExpiry|date:"d/m/Y" }}</td>
-            <td>
-              {% if item.days_left == 0 %}
-                <span class="days-badge urgent">ينتهي اليوم</span>
-              {% elif item.days_left <= 2 %}
-                <span class="days-badge urgent">{{ item.days_left }} يوم</span>
-              {% elif item.days_left <= 4 %}
-                <span class="days-badge warning">{{ item.days_left }} أيام</span>
-              {% else %}
-                <span class="days-badge notice">{{ item.days_left }} أيام</span>
-              {% endif %}
-            </td>
-            <td>
-              <a class="exp-btn ghost" href="{% url 'company_detail' item.permit.company.id %}">الشركة</a>
-              {% if item.permit.permit_type == 'pest_control' %}
-                <a class="exp-btn" href="{% url 'pest_control_permit' %}?company_id={{ item.permit.company.id }}">تصريح جديد</a>
-              {% elif item.permit.permit_type == 'pesticide_transport' %}
-                <a class="exp-btn" href="{% url 'vehicle_permit' %}?company_id={{ item.permit.company.id }}">تصريح جديد</a>
-              {% elif item.permit.permit_type == 'waste_disposal' %}
-                <a class="exp-btn" href="{% url 'waste_permit' %}?company_id={{ item.permit.company.id }}">تصريح جديد</a>
-              {% endif %}
-            </td>
-          </tr>
+  <!-- Expiring soon -->
+  {% if expiring_soon %}
+  <div class="hp-expiring">
+    <div class="hp-expiring__head">
+      <span class="hp-expiring__title">تصاريح توشك على الانتهاء خلال أسبوع</span>
+      <span class="hp-expiring__badge">{{ expiring_soon|length }}</span>
+    </div>
+    <table class="hp-exp-table">
+      <thead>
+        <tr>
+          <th>الشركة</th>
+          <th>نوع التصريح</th>
+          <th>رقم التصريح</th>
+          <th>تاريخ الانتهاء</th>
+          <th>المتبقي</th>
+          <th>الإجراء</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in expiring_soon %}
+        <tr>
+          <td><strong style="color:#0f172a;">{{ item.permit.company.name }}</strong></td>
+          <td>{{ item.label }}</td>
+          <td style="font-family:monospace;font-size:12px;">{{ item.permit.permit_no|default:"—" }}</td>
+          <td>{{ item.permit.dateOfExpiry|date:"d/m/Y" }}</td>
+          <td>
+            {% if item.days_left == 0 %}
+              <span class="hp-days hp-days--urgent">ينتهي اليوم</span>
+            {% elif item.days_left <= 2 %}
+              <span class="hp-days hp-days--urgent">{{ item.days_left }} يوم</span>
+            {% elif item.days_left <= 4 %}
+              <span class="hp-days hp-days--warning">{{ item.days_left }} أيام</span>
+            {% else %}
+              <span class="hp-days hp-days--notice">{{ item.days_left }} أيام</span>
+            {% endif %}
+          </td>
+          <td>
+            <a class="hp-exp-btn ghost" href="{% url 'company_detail' item.permit.company.id %}">الشركة</a>
+            {% if item.permit.permit_type == 'pest_control' %}
+              <a class="hp-exp-btn" href="{% url 'pest_control_permit' %}?company_id={{ item.permit.company.id }}">تصريح جديد</a>
+            {% elif item.permit.permit_type == 'pesticide_transport' %}
+              <a class="hp-exp-btn" href="{% url 'vehicle_permit' %}?company_id={{ item.permit.company.id }}">تصريح جديد</a>
+            {% elif item.permit.permit_type == 'waste_disposal' %}
+              <a class="hp-exp-btn" href="{% url 'waste_permit' %}?company_id={{ item.permit.company.id }}">تصريح جديد</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Main grid -->
+  <div class="hp-grid">
+
+    <div class="hp-card">
+      <div class="hp-card__head">توزيع حسب الحالة</div>
+      <div class="hp-card__body">
+        <ul class="hp-list">
+          {% for item in status_breakdown %}
+            <li>
+              <span>{{ item.label }}</span>
+              <span class="hp-list__count">{{ item.total }}</span>
+            </li>
+          {% empty %}
+            <li><span>لا توجد بيانات</span><span class="hp-list__count">0</span></li>
           {% endfor %}
-        </tbody>
-      </table>
+        </ul>
+      </div>
     </div>
-    {% endif %}
 
-    <!-- Main grid -->
-    <div class="main-grid">
-
-      <div class="home-card">
-        <div class="card-head">توزيع حسب الحالة</div>
-        <div class="card-body">
-          <ul class="status-list">
-            {% for item in status_breakdown %}
-              <li>
-                <span>{{ item.label }}</span>
-                <span class="status-count">{{ item.total }}</span>
-              </li>
-            {% empty %}
-              <li><span>لا توجد بيانات حالياً</span><span class="status-count">0</span></li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-
-      <div class="home-card">
-        <div class="card-head">توزيع حسب نوع التصريح</div>
-        <div class="card-body">
-          <ul class="status-list">
-            {% for item in permit_type_breakdown %}
-              <li>
-                <span>{{ item.label }}</span>
-                <span class="status-count">{{ item.total }}</span>
-              </li>
-            {% empty %}
-              <li><span>لا توجد بيانات حالياً</span><span class="status-count">0</span></li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-
-      <div class="home-card home-card-quick">
-        <div class="card-head">روابط سريعة</div>
-        <div class="card-body">
-          <div class="quick-links">
-            <a class="quick-link ql-blue" href="{% url 'clearance_list' %}">
-              <span class="quick-link-bar"></span>
-              <span class="quick-link-label">متابعة الطلبات</span>
-              <span class="quick-link-arrow">←</span>
-            </a>
-            <a class="quick-link ql-teal" href="{% url 'permit_types' %}">
-              <span class="quick-link-bar"></span>
-              <span class="quick-link-label">التصاريح</span>
-              <span class="quick-link-arrow">←</span>
-            </a>
-            <a class="quick-link ql-orange" href="{% url 'complaints_dashboard' %}">
-              <span class="quick-link-bar"></span>
-              <span class="quick-link-label">الشكاوي</span>
-              <span class="quick-link-arrow">←</span>
-            </a>
-            <a class="quick-link ql-emerald" href="{% url 'field_work_list' %}">
-              <span class="quick-link-bar"></span>
-              <span class="quick-link-label">العمل الميداني</span>
-              <span class="quick-link-arrow">←</span>
-            </a>
-            <a class="quick-link ql-green" href="{% url 'company_list' %}">
-              <span class="quick-link-bar"></span>
-              <span class="quick-link-label">الشركات</span>
-              <span class="quick-link-arrow">←</span>
-            </a>
-            <a class="quick-link ql-violet" href="{% url 'enginer_list' %}">
-              <span class="quick-link-bar"></span>
-              <span class="quick-link-label">المهندسين</span>
-              <span class="quick-link-arrow">←</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div class="home-card">
-        <div class="card-head">طلبات تحتاج متابعة</div>
-        <div class="card-body">
-          <ul class="status-list">
+    <div class="hp-card">
+      <div class="hp-card__head">توزيع حسب نوع التصريح</div>
+      <div class="hp-card__body">
+        <ul class="hp-list">
+          {% for item in permit_type_breakdown %}
             <li>
-              <span>طلبات مرفوضة أو مغلقة لاشتراطات</span>
-              <span class="status-count">{{ needs_completion_permits }}</span>
+              <span>{{ item.label }}</span>
+              <span class="hp-list__count">{{ item.total }}</span>
             </li>
-            <li>
-              <span>طلبات قيد الإجراء</span>
-              <span class="status-count">{{ pending_permits }}</span>
-            </li>
-            <li>
-              <span>تصاريح صادرة</span>
-              <span class="status-count">{{ issued_permits }}</span>
-            </li>
-          </ul>
-        </div>
+          {% empty %}
+            <li><span>لا توجد بيانات</span><span class="hp-list__count">0</span></li>
+          {% endfor %}
+        </ul>
       </div>
-
     </div>
+
+    <div class="hp-card hp-card-quick">
+      <div class="hp-card__head">روابط سريعة</div>
+      <div class="hp-card__body">
+        <div class="hp-links">
+          <a class="hp-link" href="{% url 'clearance_list' %}">
+            <span class="hp-link__bar"></span>
+            <span class="hp-link__label">متابعة الطلبات</span>
+            <span class="hp-link__arrow">←</span>
+          </a>
+          <a class="hp-link" href="{% url 'permit_types' %}">
+            <span class="hp-link__bar"></span>
+            <span class="hp-link__label">التصاريح</span>
+            <span class="hp-link__arrow">←</span>
+          </a>
+          <a class="hp-link" href="{% url 'company_list' %}">
+            <span class="hp-link__bar"></span>
+            <span class="hp-link__label">الشركات</span>
+            <span class="hp-link__arrow">←</span>
+          </a>
+          <a class="hp-link" href="{% url 'enginer_list' %}">
+            <span class="hp-link__bar"></span>
+            <span class="hp-link__label">المهندسين</span>
+            <span class="hp-link__arrow">←</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hp-card">
+      <div class="hp-card__head">طلبات تحتاج متابعة</div>
+      <div class="hp-card__body">
+        <ul class="hp-list">
+          <li>
+            <span>مرفوضة أو مغلقة لاشتراطات</span>
+            <span class="hp-list__count">{{ needs_completion_permits }}</span>
+          </li>
+          <li>
+            <span>قيد الإجراء</span>
+            <span class="hp-list__count">{{ pending_permits }}</span>
+          </li>
+          <li>
+            <span>تصاريح صادرة</span>
+            <span class="hp-list__count">{{ issued_permits }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
   </div>
 </section>
 {% endblock %}

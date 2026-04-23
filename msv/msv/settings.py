@@ -38,6 +38,7 @@ DEFAULT_ALLOWED_HOSTS = [
     '127.0.0.1',
     '192.168.50.74',
     '10.116.222.225',
+    '10.79.85.225',
 ]
 ALLOWED_HOSTS = [
     host.strip()

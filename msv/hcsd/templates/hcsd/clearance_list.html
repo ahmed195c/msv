@@ -1,719 +1,303 @@
 {% extends "hcsd/base.html" %}
-{% block title %}Clearance List{% endblock %}
+{% block title %}متابعة الطلبات{% endblock %}
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-
 <style>
+/* ── 60-30-10
+   60% : #fff / #f8fafc
+   30% : #0f172a / #475569 / #94a3b8 / #e2e8f0
+   10% : #2563eb
+──────────────────────────────────────────── */
+.cl { direction: rtl; font-family: 'IBM Plex Sans Arabic', sans-serif; }
 
-.cl-page {
-  --ink:        #304357;
-  --ink-2:      #41576f;
-  --ink-3:      #6f8194;
-  --ink-4:      #97a6b5;
-  --paper:      #ffffff;
-  --surface:    #F1F4F7;
-  --surface-2:  #e6ecf2;
-  --line:       #d7dfe8;
-  --line-2:     #bec9d5;
-
-  
-  --s-received:    #e8e6df;
-  --s-pending:     #eee8d6;
-  --s-review:      #e6e4f0;
-  --s-approved:    #daeade;
-  --s-needs:       #f2dede;
-  --s-payment:     #fdefd8;
-  --s-paid:        #d8eddf;
-  --s-issued-bg:   #304357;
-  --s-issued-fg:   #ffffff;
-  --s-inspect:     #304357;
-  --s-inspect-fg:  #ffffff;
-  --s-done:        #dce8ee;
-  --s-dis-ok:      #daeade;
-  --s-dis-no:      #f2dede;
-
-  --accent:     #304357;
-  --accent-lt:  #4a627c;
-  --warn:       #b86e00;
-  --danger:     #9b2020;
-  --mono:       'JetBrains Mono', monospace;
-
-  font-family: 'IBM Plex Sans Arabic', sans-serif;
-  color: var(--ink);
-  direction: rtl;
+/* ── Page header ── */
+.cl-head {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1.5px solid #e2e8f0;
 }
+.cl-head__title { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
 
-
-.cl-page {
-  padding: 24px 20px 48px;
-  background: var(--surface);
-  min-height: 100vh;
+.cl-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; text-decoration: none;
+  border: 1.5px solid #e2e8f0; background: #fff; color: #475569;
+  cursor: pointer; font-family: inherit;
+  transition: border-color .15s, background .15s; white-space: nowrap;
 }
+.cl-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.cl-btn--primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+.cl-btn--primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
 
-
-.cl-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-}
-
-.cl-title {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: -0.02em;
-  position: relative;
-}
-
-.cl-title::after {
-  content: '';
-  display: block;
-  margin-top: 4px;
-  height: 3px;
-  width: 48px;
-  background: var(--accent);
-  border-radius: 2px;
-}
-
-.cl-page .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1.5px solid var(--line-2);
-  border-radius: 6px;
-  background: var(--paper);
-  color: var(--ink-2);
-  font-family: inherit;
-  font-weight: 600;
-  font-size: 13px;
-  padding: 9px 16px;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-}
-
-.cl-page .btn:hover {
-  background: var(--surface-2);
-  border-color: var(--ink-3);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.cl-page .btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.cl-page .btn-primary:hover {
-  background: #26384a;
-  border-color: #26384a;
-}
-
+/* ── Filters ── */
 .cl-filters {
-  background: var(--paper);
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-  padding: 16px 18px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  background: #fff; border: 1.5px solid #e2e8f0;
+  border-radius: 10px; padding: 16px 18px; margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
 }
-
 .cl-filter-form {
   display: grid;
   grid-template-columns: minmax(220px, 1.8fr) minmax(180px, 1fr) auto;
-  gap: 12px;
-  align-items: end;
+  gap: 12px; align-items: end;
+}
+.cl-field { display: grid; gap: 5px; }
+.cl-field label {
+  font-size: 11px; font-weight: 700; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.cl-field select,
+.cl-field input[type="text"] {
+  width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px;
+  background: #f8fafc; color: #0f172a;
+  padding: 9px 12px; font-size: 13.5px; font-family: inherit;
+  transition: border-color .15s, box-shadow .15s;
+}
+.cl-field select:focus,
+.cl-field input[type="text"]:focus {
+  outline: none; border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: #fff;
+}
+.cl-filter-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cl-active-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 10px; padding: 4px 10px; border-radius: 99px;
+  background: #eff6ff; border: 1.5px solid #bfdbfe;
+  color: #1d4ed8; font-size: 11.5px; font-weight: 600;
 }
 
-.filter-field {
-  display: grid;
-  gap: 6px;
-}
-
-.filter-field label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ink-3);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.filter-field select,
-.filter-field input[type="text"] {
-  width: 100%;
-  border: 1.5px solid var(--line-2);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  padding: 10px 13px;
-  font-size: 14px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.filter-field select:focus,
-.filter-field input[type="text"]:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(48,67,87,0.14);
-}
-
-.filter-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.cl-active-filter {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 5px 12px;
-  border-radius: 6px;
-  background: #eaf0f6;
-  border: 1px solid #c4d2df;
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.cl-active-filter::before {
-  content: '⬤';
-  font-size: 6px;
-}
-
+/* ── Section wrapper ── */
 .cl-section {
-  background: var(--paper);
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  background: #fff; border: 1.5px solid #e2e8f0;
+  border-radius: 10px; padding: 20px; margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
 }
+.cl-section--finished { border-style: dashed; }
 
 .cl-section-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding-bottom: 14px;
-  border-bottom: 1.5px solid var(--line);
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; padding-bottom: 14px;
+  border-bottom: 1.5px solid #e2e8f0;
 }
-
 .cl-section-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--paper);
-  background: var(--ink);
-  padding: 7px 16px;
-  border-radius: 6px;
-  letter-spacing: 0.01em;
+  margin: 0; font-size: 12px; font-weight: 700; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: .06em;
+  background: #0f172a; color: #fff;
+  padding: 6px 14px; border-radius: 6px;
 }
-
-.cl-section-title.finished {
-  background: var(--ink-3);
-}
-
+.cl-section-title.finished { background: #64748b; }
 .cl-count-badge {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ink-3);
-  background: var(--surface-2);
-  border: 1px solid var(--line-2);
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-family: var(--mono);
+  font-size: 12px; font-weight: 700; color: #475569;
+  background: #f8fafc; border: 1.5px solid #e2e8f0;
+  border-radius: 99px; padding: 2px 10px;
+  font-family: monospace;
 }
 
-.cl-group {
-  margin-top: 20px;
-}
-
+/* ── Group ── */
+.cl-group { margin-top: 20px; }
 .cl-group:first-child { margin-top: 0; }
+.cl-group-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 12px; font-size: 12px; font-weight: 700;
+  color: #0f172a; background: #f1f5f9;
+  border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 5px 12px;
+}
+.cl-group-label .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #475569; flex-shrink: 0;
+}
 
+/* ── Pagination ── */
 .cl-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
 }
 .cl-pagination button {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  color: var(--ink-2);
-  border-radius: 6px;
-  padding: 5px 14px;
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
+  background: #f8fafc; border: 1.5px solid #e2e8f0;
+  color: #475569; border-radius: 6px; padding: 5px 14px;
+  font-size: 13px; font-family: inherit; cursor: pointer;
   transition: background .15s;
 }
-.cl-pagination button:hover:not(:disabled) { background: var(--surface-2); }
+.cl-pagination button:hover:not(:disabled) { background: #f1f5f9; }
 .cl-pagination button:disabled { opacity: .35; cursor: default; }
 .cl-pagination .pg-info {
-  font-size: 12px;
-  color: var(--ink-3);
-  font-family: var(--mono);
-  min-width: 80px;
-  text-align: center;
+  font-size: 12px; color: #94a3b8;
+  font-family: monospace; min-width: 60px; text-align: center;
 }
 
-.cl-group-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink-2);
-  background: var(--surface);
-  border: 1px solid var(--line-2);
-  border-radius: 6px;
-  padding: 5px 14px;
-}
-
-.cl-group-label .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--ink-3);
-  flex-shrink: 0;
-}
-
+/* ── Cards grid ── */
 .cl-cards {
-  display: grid;
-  gap: 14px;
+  display: grid; gap: 14px;
   grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
 }
 
+/* ── Card ── */
 .cl-card {
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-  background: var(--paper);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  background: #fff; overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: box-shadow .2s, border-color .2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  animation: fadeUp .3s ease both;
 }
+.cl-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.09); border-color: #cbd5e1; }
 
-.cl-card:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  transform: translateY(-2px);
-  border-color: var(--line-2);
-}
-
-.cl-card-stripe {
-  height: 4px;
-  background: var(--line-2);
-}
-
-.stripe-received    { background: #b0a888; }
-.stripe-pending     { background: #c9a84c; }
-.stripe-review      { background: #8b84c9; }
-.stripe-approved    { background: #4a9a6e; }
-.stripe-needs       { background: #c94a4a; }
-.stripe-payment     { background: #c97d2a; }
-.stripe-pest-pay    { background: #e09030; }
-.stripe-paid        { background: #4aac6e; }
-.stripe-issued      { background: #304357; }
-.stripe-inspect     { background: #304357; }
-.stripe-done        { background: #4a8aac; }
-.stripe-head        { background: #7c5bbf; }
-.stripe-dis-ok      { background: #4a9a6e; }
-.stripe-dis-no      { background: #c94a4a; }
+/* Status stripe — single accent color per semantic group */
+.cl-card-stripe { height: 3px; background: #e2e8f0; }
+.stripe--waiting  { background: #94a3b8; }
+.stripe--action   { background: #f59e0b; }
+.stripe--error    { background: #ef4444; }
+.stripe--process  { background: #2563eb; }
+.stripe--done     { background: #16a34a; }
+.stripe--issued   { background: #0f172a; }
+.stripe--head     { background: #7c3aed; }
 
 .cl-card-body {
-  padding: 14px 16px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  padding: 14px 16px; flex: 1;
+  display: flex; flex-direction: column; gap: 12px;
 }
 
-.cl-card-head {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* Status badge */
+.cl-status {
+  display: inline-flex; align-items: center;
+  font-size: 12px; font-weight: 700;
+  padding: 7px 14px; border-radius: 8px;
+  border: 1.5px solid;
+  white-space: nowrap;
+  width: 100%; justify-content: center;
+  text-align: center; letter-spacing: .01em;
+}
+.st--waiting  { background: rgba(100,116,139,.12); color: #334155;  border-color: #94a3b8; }
+.st--action   { background: rgba(245,158, 11,.15); color: #b45309;  border-color: #f59e0b; }
+.st--error    { background: rgba(239, 68, 68,.15); color: #b91c1c;  border-color: #ef4444; }
+.st--process  { background: rgba( 37, 99,235,.13); color: #1d4ed8;  border-color: #2563eb; }
+.st--done     { background: rgba( 22,163, 74,.13); color: #15803d;  border-color: #16a34a; }
+.st--issued   { background: rgba( 15, 23, 42,.88); color: #fff;     border-color: #0f172a; }
+.st--head     { background: rgba(109, 40,217,.13); color: #5b21b6;  border-color: #7c3aed; }
+
+.cl-company {
+  font-size: 15px; font-weight: 700; color: #0f172a; line-height: 1.3;
 }
 
-.cl-card-company {
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--ink);
+.cl-date {
+  font-size: 11px; font-weight: 600; color: #94a3b8;
+  font-family: monospace;
+  background: #f8fafc; border: 1.5px solid #e2e8f0;
+  border-radius: 6px; padding: 3px 8px; width: fit-content;
 }
 
-.cl-card-status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 6px;
-  width: 100%;
-  text-align: center;
-  letter-spacing: 0.01em;
+/* Data rows */
+.cl-data {
+  display: grid; gap: 0;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px; overflow: hidden;
 }
-
-.st-order-received          { background: var(--s-received);  color: #4a4640; }
-.st-inspection-payment-pending { background: var(--s-pending); color: #7a5500; }
-.st-review-pending          { background: var(--s-review);    color: #3d3880; }
-.st-approved                { background: var(--s-approved);  color: #1a5c35; }
-.st-needs-completion        { background: var(--s-needs);     color: var(--danger); }
-.st-payment-pending         { background: var(--s-payment);   color: var(--warn); }
-.st-payment-completed       { background: var(--s-paid);      color: #1a5c35; }
-.st-issued                  { background: var(--s-issued-bg); color: var(--s-issued-fg); }
-.st-inspection-pending      { background: var(--s-inspect);   color: var(--s-inspect-fg); }
-.st-inspection-received     { background: #d6e0ea;            color: #304357; }
-.st-inspection-completed    { background: var(--s-done);      color: #1a4a5c; }
-.st-head-approval-needed    { background: #ede8f7;            color: #4a2a8f; }
-.st-head-approved           { background: #7c5bbf;            color: #ffffff; }
-.st-pesticide-payment-link  { background: #fff4e0;            color: #7a4500; }
-.st-disposal-approved       { background: var(--s-dis-ok);    color: #1a5c35; }
-.st-disposal-rejected       { background: var(--s-dis-no);    color: var(--danger); }
-.st-fallback                { background: var(--surface-2);   color: var(--ink-2); }
-
-.cl-card-date {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink-4);
-  font-family: var(--mono);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 3px 8px;
-  width: fit-content;
-}
-
-.cl-card-data {
-  display: grid;
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
-}
-
 .cl-row {
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  background: var(--paper);
+  display: grid; grid-template-columns: 100px 1fr;
+  border-bottom: 1px solid #f1f5f9;
 }
-
+.cl-row:last-child { border-bottom: none; }
 .cl-lbl {
-  padding: 8px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--ink-3);
-  background: var(--surface);
-  display: flex;
-  align-items: center;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  border-left: 1px solid var(--line);
+  padding: 8px 10px; font-size: 10.5px; font-weight: 700;
+  color: #64748b; background: #f1f5f9;
+  border-left: 1px solid #e2e8f0;
+  text-transform: uppercase; letter-spacing: .03em;
+  display: flex; align-items: center;
 }
-
 .cl-val {
-  padding: 8px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-  line-height: 1.45;
-  word-break: break-word;
-  display: flex;
-  align-items: center;
+  padding: 8px 10px; font-size: 13px; font-weight: 600;
+  color: #0f172a; line-height: 1.45; word-break: break-word;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
 }
-
 .cl-val a {
-  color: var(--ink);
-  font-weight: 700;
-  text-decoration: none;
-  border-bottom: 1px dotted var(--ink-3);
+  color: #2563eb; font-weight: 600; text-decoration: none;
 }
+.cl-val a:hover { text-decoration: underline; }
 
-.cl-val a:hover { color: var(--accent); border-color: var(--accent); }
-
-.hint-text {
-  font-size: 11.5px;
-  color: var(--ink-3);
-  line-height: 1.5;
-  font-weight: 500;
-}
-
-.hint-error { color: var(--danger); }
+.hint { font-size: 12px; color: #475569; line-height: 1.5; font-weight: 500; }
+.hint--err { color: #b91c1c; font-weight: 600; }
 
 .phone-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 6px;
-  text-decoration: none;
-  color: var(--ink);
-  background: var(--surface-2);
-  border: 1px solid var(--line-2);
-  font-weight: 700;
-  font-size: 13px;
-  font-family: var(--mono);
-  direction: ltr;
-  transition: background 0.15s;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 6px; text-decoration: none;
+  color: #0f172a; background: #f8fafc; border: 1.5px solid #e2e8f0;
+  font-size: 13px; font-family: monospace; direction: ltr;
+  transition: background .15s;
 }
+.phone-link:hover { background: #f1f5f9; }
 
-.phone-link:hover { background: var(--line); }
-
-.cl-card-actions {
-  border-top: 1px solid var(--line);
-  padding-top: 12px;
-  margin-top: auto;
+/* Card actions */
+.cl-actions {
+  border-top: 1px solid #f1f5f9; padding-top: 12px; margin-top: auto;
 }
-
-.inspection-timer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: 6px;
-  width: 100%;
-  margin-top: 8px;
-  box-sizing: border-box;
+.cl-action-link {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 9px;
+  border: 1.5px solid #e2e8f0; border-radius: 8px;
+  background: #f8fafc; color: #475569; text-decoration: none;
+  font-size: 13px; font-weight: 600;
+  transition: background .15s, border-color .15s, color .15s;
 }
-.inspection-timer--green  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-.inspection-timer--yellow { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
-.inspection-timer--red    { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-.inspection-timer::before {
-  content: '';
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-  flex-shrink: 0;
-}
+.cl-action-link:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-.action-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  padding: 10px;
-  border: 1.5px solid var(--line-2);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 700;
-  transition: background 0.15s, border-color 0.15s;
+/* Inspection timer */
+.cl-timer {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 12px; font-weight: 600; padding: 5px 12px;
+  border-radius: 6px; width: 100%; margin-top: 8px;
+  border: 1.5px solid;
 }
-
-.action-link:hover {
-  background: var(--accent);
-  color: var(--paper);
-  border-color: var(--accent);
+.cl-timer::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; flex-shrink: 0;
 }
+.cl-timer--ok  { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+.cl-timer--mid { background: #fff7ed; color: #c2410c; border-color: #fdba74; }
+.cl-timer--late{ background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
 
-.cl-empty {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--ink-3);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.cl-empty::before {
-  content: '—';
-  display: block;
-  font-size: 28px;
-  margin-bottom: 8px;
-  color: var(--line-2);
-}
-
+/* ── Error box ── */
 .cl-errors {
-  border: 1.5px solid #f5c6c6;
-  background: #fff5f5;
-  border-radius: 8px;
-  padding: 14px 16px;
-  margin-bottom: 16px;
-  color: var(--danger);
-  font-size: 13px;
-  font-weight: 600;
+  border: 1.5px solid #fca5a5; background: #fef2f2;
+  border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;
+  color: #b91c1c; font-size: 13px; font-weight: 600;
 }
-
 .cl-errors ul { margin: 8px 0 0 18px; }
 
-@media (max-width: 860px) {
-  .cl-filter-form { grid-template-columns: 1fr; }
-  .filter-actions { width: 100%; }
-  .filter-actions .btn { width: 100%; justify-content: center; }
-}
-
-@media (max-width: 640px) {
-  .cl-page {
-    padding: 14px 10px 28px;
-  }
-
-  .cl-filters {
-    border-width: 1px;
-    box-shadow: none;
-    padding: 12px;
-    margin-bottom: 14px;
-  }
-
-  .cl-section {
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 0;
-    margin-bottom: 14px;
-    background: transparent;
-  }
-
-  .cl-section-head {
-    margin-bottom: 10px;
-    padding-bottom: 0;
-    border-bottom: none;
-    gap: 8px;
-  }
-
-  .cl-section-title,
-  .cl-count-badge,
-  .cl-group-label {
-    border: none;
-    box-shadow: none;
-  }
-
-  .cl-cards { grid-template-columns: 1fr; }
-  .cl-cards { gap: 10px; }
-
-  .cl-card {
-    border-width: 1px;
-    box-shadow: none;
-    border-radius: 8px;
-    background: #fff;
-  }
-
-  .cl-card:hover {
-    transform: none;
-    box-shadow: none;
-    border-color: var(--line);
-  }
-
-  .cl-card-stripe {
-    display: none;
-  }
-
-  .cl-card-body {
-    padding: 10px;
-    gap: 10px;
-  }
-
-  .cl-card-date {
-    background: #eef2f6;
-    border: 1px solid var(--line);
-    padding: 3px 9px;
-    align-self: flex-start;
-  }
-
-  .cl-card-data {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    gap: 0;
-    overflow: hidden;
-  }
-
-  .cl-row {
-    display: grid;
-    grid-template-columns: 86px 1fr;
-    background: #fff;
-    border: none;
-    border-bottom: 1px solid var(--line);
-    gap: 0;
-    padding: 0;
-  }
-
-  .cl-row:last-child {
-    border-bottom: none;
-  }
-
-  .cl-lbl {
-    border: none;
-    border-left: 1px solid var(--line);
-    background: #eef2f6;
-    padding: 8px 6px;
-    text-transform: none;
-    letter-spacing: 0;
-    font-size: 12px;
-    color: #6f8194;
-    justify-content: center;
-    text-align: center;
-    white-space: normal;
-  }
-
-  .cl-val {
-    padding: 8px 10px;
-    font-size: 13px;
-    text-align: center;
-    justify-content: center;
-    flex: 1;
-  }
-
-  .phone-link {
-    border: 1px solid #c9d3de;
-    background: #eaf0f6;
-    padding: 3px 10px;
-  }
-
-  .cl-card-actions {
-    border-top: none;
-    padding-top: 2px;
-  }
-
-  .action-link {
-    border-width: 1px;
-    box-shadow: none;
-  }
-
-  .cl-title { font-size: 20px; }
+/* ── Empty ── */
+.cl-empty {
+  text-align: center; padding: 40px 20px;
+  color: #94a3b8; font-size: 13.5px; font-weight: 500;
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+.cl-cards .cl-card:nth-child(1)  { animation-delay: .02s; }
+.cl-cards .cl-card:nth-child(2)  { animation-delay: .05s; }
+.cl-cards .cl-card:nth-child(3)  { animation-delay: .08s; }
+.cl-cards .cl-card:nth-child(4)  { animation-delay: .11s; }
+.cl-cards .cl-card:nth-child(5)  { animation-delay: .14s; }
+.cl-cards .cl-card:nth-child(n+6){ animation-delay: .17s; }
 
-.cl-card {
-  animation: fadeUp 0.3s ease both;
+@media (max-width: 860px) {
+  .cl-filter-form { grid-template-columns: 1fr; }
+  .cl-filter-actions { width: 100%; }
+  .cl-filter-actions .cl-btn { width: 100%; justify-content: center; }
 }
-
-.cl-cards .cl-card:nth-child(1)  { animation-delay: 0.02s; }
-.cl-cards .cl-card:nth-child(2)  { animation-delay: 0.05s; }
-.cl-cards .cl-card:nth-child(3)  { animation-delay: 0.08s; }
-.cl-cards .cl-card:nth-child(4)  { animation-delay: 0.11s; }
-.cl-cards .cl-card:nth-child(5)  { animation-delay: 0.14s; }
-.cl-cards .cl-card:nth-child(6)  { animation-delay: 0.17s; }
-.cl-cards .cl-card:nth-child(n+7){ animation-delay: 0.20s; }
+@media (max-width: 640px) {
+  .cl-cards { grid-template-columns: 1fr; gap: 10px; }
+  .cl-section { padding: 14px; }
+}
 </style>
 
-<section class="cl-page">
+<section class="cl">
 
-  <div class="cl-header">
-    <h1 class="cl-title">قائمة الطلبات</h1>
-    <a href="{% url 'company_list' %}" class="btn">← العودة إلى الشركات</a>
+  <div class="cl-head">
+    <h1 class="cl-head__title">متابعة الطلبات</h1>
+    <a href="{% url 'company_list' %}" class="cl-btn">← الشركات</a>
   </div>
 
   {% if form_errors %}
@@ -725,11 +309,11 @@
 
   <div class="cl-filters">
     <form method="get" class="cl-filter-form">
-      <div class="filter-field">
+      <div class="cl-field">
         <label for="clearance_query">بحث باسم الشركة أو رقم الرخصة</label>
-        <input id="clearance_query" type="text" name="q" value="{{ query }}" placeholder="اكتب اسم الشركة أو رقم الرخصة…">
+        <input id="clearance_query" type="text" name="q" value="{{ query }}" placeholder="اسم الشركة أو رقم الرخصة…">
       </div>
-      <div class="filter-field">
+      <div class="cl-field">
         <label for="status_filter">تصفية حسب الحالة</label>
         <select id="status_filter" name="status">
           {% for option in status_filter_options %}
@@ -737,17 +321,18 @@
           {% endfor %}
         </select>
       </div>
-      <div class="filter-actions">
-        <button type="submit" class="btn btn-primary">تطبيق</button>
+      <div class="cl-filter-actions">
+        <button type="submit" class="cl-btn cl-btn--primary">تطبيق</button>
         {% if status_filter != 'all' or query %}
-          <a href="{% url 'clearance_list' %}" class="btn">مسح</a>
+          <a href="{% url 'clearance_list' %}" class="cl-btn">مسح</a>
         {% endif %}
       </div>
     </form>
-    {% if status_filter != 'all' %}<div class="cl-active-filter">الفلتر: {{ status_filter_label }}</div>{% endif %}
-    {% if query %}<div class="cl-active-filter">نتائج البحث: {{ query }}</div>{% endif %}
+    {% if status_filter != 'all' %}<div class="cl-active-tag">{{ status_filter_label }}</div>{% endif %}
+    {% if query %}<div class="cl-active-tag">بحث: {{ query }}</div>{% endif %}
   </div>
 
+  {# ── Active section ── #}
   <div class="cl-section">
     <div class="cl-section-head">
       <h2 class="cl-section-title">طلبات قيد المتابعة</h2>
@@ -762,81 +347,70 @@
           <h3 class="cl-group-label">
             <span class="dot"></span>
             {{ group.label }}
-            <span style="font-family:var(--mono);font-size:11px;color:var(--ink-4);">({{ group.items|length }})</span>
+            <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
           </h3>
 
           <div class="cl-cards" data-pg-group="{{ forloop.counter }}">
             {% for clearance in group.items %}
               <article class="cl-card">
 
+                {# Stripe #}
                 <div class="cl-card-stripe
-                  {% if clearance.status == 'order_received' %}stripe-received
-                  {% elif clearance.status == 'inspection_payment_pending' %}stripe-pending
-                  {% elif clearance.status == 'review_pending' %}stripe-review
-                  {% elif clearance.status == 'approved' %}stripe-approved
-                  {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}stripe-needs
-                  {% elif clearance.status == 'payment_pending' %}stripe-payment
-                  {% elif clearance.status == 'violation_payment_link_pending' or clearance.status == 'violation_payment_pending' %}stripe-needs
-                  {% elif clearance.status == 'issued' %}stripe-issued
-                  {% elif clearance.status == 'inspection_pending' or clearance.status_key == 'inspection_received' %}stripe-inspect
-                  {% elif clearance.status_key == 'pesticide_payment_link_pending' %}stripe-pest-pay
-                  {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}stripe-head
-                  {% elif clearance.status == 'inspection_completed' %}stripe-done
-                  {% elif clearance.status == 'head_approved' %}stripe-head
-                  {% elif clearance.status == 'disposal_approved' %}stripe-dis-ok
-                  {% elif clearance.status == 'disposal_rejected' %}stripe-dis-no
-                  {% else %}{% endif %}">
+                  {% if clearance.active_waste_request %}
+                    {% if clearance.active_waste_request.status == 'payment_pending' %}stripe--action
+                    {% elif clearance.active_waste_request.status == 'inspection_pending' %}stripe--process
+                    {% else %}stripe--waiting{% endif %}
+                  {% elif clearance.status == 'issued' %}stripe--issued
+                  {% elif clearance.status in 'needs_completion,rejected' or clearance.status == 'violation_payment_link_pending' or clearance.status == 'violation_payment_pending' or clearance.status == 'disposal_rejected' %}stripe--error
+                  {% elif clearance.status == 'payment_pending' or clearance.status == 'inspection_payment_pending' %}stripe--action
+                  {% elif clearance.status == 'head_approved' %}stripe--head
+                  {% elif clearance.status == 'disposal_approved' %}stripe--done
+                  {% elif clearance.status == 'inspection_pending' or clearance.status == 'inspection_completed' or clearance.status == 'review_pending' or clearance.status == 'approved' %}stripe--process
+                  {% else %}stripe--waiting{% endif %}">
                 </div>
 
                 <div class="cl-card-body">
-                  <div class="cl-card-head">
+                  {# Status badge #}
+                  <span class="cl-status
+                    {% if clearance.active_waste_request %}
+                      {% if clearance.active_waste_request.status == 'payment_pending' %}st--action
+                      {% elif clearance.active_waste_request.status == 'inspection_pending' %}st--process
+                      {% else %}st--waiting{% endif %}
+                    {% elif clearance.status == 'issued' %}st--issued
+                    {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' or clearance.status == 'violation_payment_link_pending' or clearance.status == 'violation_payment_pending' or clearance.status == 'disposal_rejected' %}st--error
+                    {% elif clearance.status == 'payment_pending' or clearance.status == 'inspection_payment_pending' %}st--action
+                    {% elif clearance.status == 'head_approved' %}st--head
+                    {% elif clearance.status == 'disposal_approved' %}st--done
+                    {% elif clearance.status == 'approved' or clearance.status == 'inspection_completed' or clearance.status == 'review_pending' or clearance.status == 'inspection_pending' %}st--process
+                    {% else %}st--waiting{% endif %}">
+                    {% if clearance.active_waste_request %}
+                      {% if clearance.active_waste_request.status == 'payment_pending' %}بانتظار دفع طلب الإتلاف
+                      {% elif clearance.active_waste_request.status == 'inspection_pending' %}{% if clearance.inspection_receiver_name %}تم استلام الطلب — {{ clearance.inspection_receiver_name }}{% else %}جاهز للاستلام{% endif %}
+                      {% else %}{{ clearance.active_waste_request.get_status_display }}{% endif %}
+                    {% elif clearance.status == 'order_received' %}بانتظار رابط دفع التفتيش
+                    {% elif clearance.status == 'inspection_payment_pending' %}بانتظار دفع التفتيش
+                    {% elif clearance.status == 'review_pending' %}بانتظار المراجعة
+                    {% elif clearance.status == 'approved' %}معتمد من المفتش
+                    {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}غير معتمد
+                    {% elif clearance.status == 'payment_pending' %}بانتظار دفع التصريح
+                    {% elif clearance.status == 'violation_payment_link_pending' %}بانتظار إرسال رابط دفع المخالفة
+                    {% elif clearance.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
+                    {% elif clearance.status == 'issued' %}تم إصدار التصريح
+                    {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} — {{ clearance.inspection_receiver_name }}{% endif %}
+                    {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
+                    {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}بانتظار إرسال رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
+                    {% elif clearance.status == 'inspection_completed' %}تم التفتيش
+                    {% elif clearance.status == 'head_approved' %}تم الاعتماد النهائي
+                    {% elif clearance.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
+                    {% elif clearance.status == 'disposal_approved' %}إتلاف معتمد
+                    {% elif clearance.status == 'disposal_rejected' %}إتلاف مرفوض
+                    {% else %}{{ clearance.get_status_display }}{% endif %}
+                  </span>
 
-                    <div class="cl-card-status
-                      {% if clearance.status == 'order_received' %}st-order-received
-                      {% elif clearance.status == 'inspection_payment_pending' %}st-inspection-payment-pending
-                      {% elif clearance.status == 'review_pending' %}st-review-pending
-                      {% elif clearance.status == 'approved' %}st-approved
-                      {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}st-needs-completion
-                      {% elif clearance.status == 'payment_pending' %}st-payment-pending
-                      {% elif clearance.status == 'violation_payment_link_pending' %}st-needs-completion
-                      {% elif clearance.status == 'violation_payment_pending' %}st-needs-completion
-                      {% elif clearance.status == 'issued' %}st-issued
-                      {% elif clearance.status_key == 'inspection_received' %}st-inspection-received
-                      {% elif clearance.status == 'inspection_pending' %}st-inspection-pending
-                      {% elif clearance.status_key == 'pesticide_payment_link_pending' %}st-pesticide-payment-link
-                      {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}st-head-approval-needed
-                      {% elif clearance.status == 'inspection_completed' %}st-inspection-completed
-                      {% elif clearance.status == 'head_approved' %}st-head-approved
-                      {% elif clearance.status == 'closed_requirements_pending' %}st-needs-completion
-                      {% elif clearance.status == 'disposal_approved' %}st-disposal-approved
-                      {% elif clearance.status == 'disposal_rejected' %}st-disposal-rejected
-                      {% else %}st-fallback{% endif %}">
-                      {% if clearance.status == 'order_received' %}بانتظار اصدار رابط دفع التفتيش
-                      {% elif clearance.status == 'inspection_payment_pending' %}بانتظار دفع التفتيش
-                      {% elif clearance.status == 'review_pending' %}بانتظار المراجعة
-                      {% elif clearance.status == 'approved' %}معتمد
-                      {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}غير معتمد
-                      {% elif clearance.status == 'payment_pending' %}بانتظار دفع التصريح
-                      {% elif clearance.status == 'violation_payment_link_pending' %}بانتظار إرسال رابط دفع المخالفة
-                      {% elif clearance.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
-                      {% elif clearance.status == 'issued' %}تم إصدار التصريح
-                      {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
-                      {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
-                      {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}بانتظار إرسال رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
-                      {% elif clearance.status == 'inspection_completed' %}تم التفتيش
-                      {% elif clearance.status == 'head_approved' %}تم الاعتماد النهائي
-                      {% elif clearance.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
-                      {% elif clearance.status == 'disposal_approved' %}إتلاف معتمد
-                      {% elif clearance.status == 'disposal_rejected' %}إتلاف مرفوض
-                      {% else %}{{ clearance.get_status_display }}{% endif %}
-                    </div>
+                  <div class="cl-company">{{ clearance.company.name }}</div>
+                  <div class="cl-date">{{ clearance.dateOfCreation|date:"d/m/Y"|default:"—" }}</div>
 
-                    <div class="cl-card-company">{{ clearance.company.name }}</div>
-                  </div>
-
-                  <div class="cl-card-date">{{ clearance.dateOfCreation|date:"d/m/Y"|default:"—" }}</div>
-
-                  <div class="cl-card-data">
+                  <div class="cl-data">
                     <div class="cl-row">
                       <div class="cl-lbl">نوع التصريح</div>
                       <div class="cl-val">{{ clearance.permit_label_ar }}</div>
@@ -844,7 +418,7 @@
                     {% if clearance.permit_no %}
                     <div class="cl-row">
                       <div class="cl-lbl">رقم التصريح</div>
-                      <div class="cl-val" style="font-family:var(--mono);font-weight:600;">{{ clearance.permit_no }}</div>
+                      <div class="cl-val" style="font-family:monospace;">{{ clearance.permit_no }}</div>
                     </div>
                     {% endif %}
                     <div class="cl-row">
@@ -853,35 +427,39 @@
                     </div>
                     <div class="cl-row">
                       <div class="cl-lbl">تفاصيل</div>
-                      <div class="cl-val" style="flex-direction:column;align-items:flex-start;gap:4px;">
-                        <span class="hint-text">
-                          {% if clearance.status == 'order_received' %}بانتظار اصدار رابط دفع التفتيش
+                      <div class="cl-val" style="flex-direction:column;align-items:flex-start;">
+                        <span class="hint">
+                          {% if clearance.active_waste_request %}
+                            {% if clearance.active_waste_request.status == 'payment_pending' %}بانتظار دفع طلب الإتلاف — يرجى إرسال رابط الدفع للشركة
+                            {% elif clearance.active_waste_request.status == 'inspection_pending' %}{% if clearance.inspection_receiver_name %}تم استلام طلب الإتلاف — {{ clearance.inspection_receiver_name }}{% else %}طلب الإتلاف جاهز للاستلام{% endif %}
+                            {% else %}{{ clearance.active_waste_request.get_status_display }}{% endif %}
+                          {% elif clearance.status == 'order_received' %}بانتظار اصدار رابط دفع التفتيش
                           {% elif clearance.status == 'inspection_payment_pending' %}تم إرسال رابط دفع التفتيش وبانتظار الدفع
                           {% elif clearance.status == 'review_pending' %}بانتظار مراجعة المفتش
                           {% elif clearance.status == 'approved' %}تم الاعتماد من المفتش{% if clearance.inspector_name %} {{ clearance.inspector_name }}{% endif %}
-                          {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}تم إنهاء الطلب - غير معتمد
+                          {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}تم إنهاء الطلب — غير معتمد
                           {% elif clearance.status == 'payment_pending' %}بانتظار دفع التصريح
                           {% elif clearance.status == 'violation_payment_link_pending' %}بانتظار إرسال رابط دفع المخالفة
                           {% elif clearance.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
                           {% elif clearance.status == 'issued' %}تم إصدار التصريح
-                          {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} - {{ clearance.inspection_receiver_name }}{% endif %}
+                          {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} — {{ clearance.inspection_receiver_name }}{% endif %}
                           {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
-                          {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}تم التفتيش - بانتظار إرسال رابط دفع التصريح{% else %}تم التفتيش - بانتظار الاعتماد النهائي{% endif %}
-                          {% elif clearance.status == 'inspection_completed' %}{% if clearance.inspection_report_decision == 'rejected' %}تم التفتيش - غير معتمد{% else %}تم التفتيش{% endif %}
-                          {% elif clearance.status == 'head_approved' %}تم الاعتماد النهائي - بانتظار إدخال رقم الدفع
-                          {% elif clearance.status == 'closed_requirements_pending' %}تم إغلاق الطلب - اشتراطات واجبة الاستيفاء
+                          {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}تم التفتيش — بانتظار إرسال رابط دفع التصريح{% else %}تم التفتيش — بانتظار الاعتماد النهائي{% endif %}
+                          {% elif clearance.status == 'inspection_completed' %}{% if clearance.inspection_report_decision == 'rejected' %}تم التفتيش — غير معتمد{% else %}تم التفتيش{% endif %}
+                          {% elif clearance.status == 'head_approved' %}تم الاعتماد النهائي — بانتظار إدخال رقم الدفع
+                          {% elif clearance.status == 'closed_requirements_pending' %}تم إغلاق الطلب — اشتراطات واجبة الاستيفاء
                           {% elif clearance.status == 'disposal_approved' %}تمت الموافقة على الإتلاف
                           {% elif clearance.status == 'disposal_rejected' %}تم رفض الإتلاف
                           {% else %}{{ clearance.get_status_display }}{% endif %}
                         </span>
                         {% if clearance.unapprovedReason and clearance.status == 'needs_completion' or clearance.unapprovedReason and clearance.status == 'rejected' or clearance.unapprovedReason and clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'rejected' %}
-                          <span class="hint-text hint-error">{{ clearance.unapprovedReason }}</span>
+                          <span class="hint hint--err">{{ clearance.unapprovedReason }}</span>
                         {% endif %}
                         {% if clearance.permit_type != 'pesticide_transport' and clearance.inspection_payment_link %}
-                          <a href="{{ clearance.inspection_payment_link }}" target="_blank" rel="noopener" class="hint-text" style="color:var(--accent);">رابط دفع التفتيش ↗</a>
+                          <a href="{{ clearance.inspection_payment_link }}" target="_blank" rel="noopener" class="hint" style="color:#2563eb;">رابط دفع التفتيش ↗</a>
                         {% endif %}
                         {% if clearance.payment_link %}
-                          <a href="{{ clearance.payment_link }}" target="_blank" rel="noopener" class="hint-text" style="color:var(--accent);">رابط دفع التصريح ↗</a>
+                          <a href="{{ clearance.payment_link }}" target="_blank" rel="noopener" class="hint" style="color:#2563eb;">رابط دفع التصريح ↗</a>
                         {% endif %}
                       </div>
                     </div>
@@ -895,15 +473,15 @@
                     </div>
                   </div>
 
-                  <div class="cl-card-actions">
-                    <a href="{{ clearance.detail_url }}" class="action-link">عرض التفاصيل ←</a>
+                  <div class="cl-actions">
+                    <a href="{{ clearance.detail_url }}" class="cl-action-link">عرض التفاصيل ←</a>
                     {% if user_is_admin and clearance.inspection_duration_hours is not None %}
                       {% if clearance.inspection_duration_hours <= 24 %}
-                        <span class="inspection-timer inspection-timer--green">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
+                        <span class="cl-timer cl-timer--ok">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
                       {% elif clearance.inspection_duration_hours <= 72 %}
-                        <span class="inspection-timer inspection-timer--yellow">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
+                        <span class="cl-timer cl-timer--mid">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
                       {% else %}
-                        <span class="inspection-timer inspection-timer--red">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
+                        <span class="cl-timer cl-timer--late">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
                       {% endif %}
                     {% endif %}
                   </div>
@@ -923,8 +501,9 @@
     {% endif %}
   </div>
 
+  {# ── Finished section ── #}
   {% if show_finished_section %}
-  <div class="cl-section" style="border-style: dashed;">
+  <div class="cl-section cl-section--finished">
     <div class="cl-section-head">
       <h2 class="cl-section-title finished">طلبات منتهية</h2>
     </div>
@@ -935,43 +514,39 @@
           <h3 class="cl-group-label">
             <span class="dot"></span>
             {{ group.label }}
-            <span style="font-family:var(--mono);font-size:11px;color:var(--ink-4);">({{ group.items|length }})</span>
+            <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
           </h3>
 
           <div class="cl-cards" data-pg-group="f{{ forloop.counter }}">
             {% for clearance in group.items %}
-              <article class="cl-card" style="opacity:0.85;">
+              <article class="cl-card" style="opacity:.85;">
                 <div class="cl-card-stripe
-                  {% if clearance.status == 'issued' %}stripe-issued
-                  {% elif clearance.status == 'cancelled_admin' %}stripe-needs
-                  {% elif clearance.status == 'inspection_completed' %}stripe-done
-                  {% elif clearance.status == 'disposal_approved' %}stripe-dis-ok
-                  {% elif clearance.status == 'disposal_rejected' %}stripe-dis-no
-                  {% else %}{% endif %}">
+                  {% if clearance.status == 'issued' %}stripe--issued
+                  {% elif clearance.status == 'cancelled_admin' %}stripe--error
+                  {% elif clearance.status == 'disposal_approved' %}stripe--done
+                  {% elif clearance.status == 'disposal_rejected' %}stripe--error
+                  {% else %}stripe--waiting{% endif %}">
                 </div>
 
                 <div class="cl-card-body">
-                  <div class="cl-card-head">
-                    <div class="cl-card-status
-                      {% if clearance.status == 'issued' %}st-issued
-                      {% elif clearance.status == 'cancelled_admin' %}st-needs-completion
-                      {% elif clearance.status == 'inspection_completed' %}st-inspection-completed
-                      {% elif clearance.status == 'disposal_approved' %}st-disposal-approved
-                      {% elif clearance.status == 'disposal_rejected' %}st-disposal-rejected
-                      {% else %}st-fallback{% endif %}">
-                      {% if clearance.status == 'issued' %}تم إصدار التصريح
-                      {% elif clearance.status == 'cancelled_admin' %}مغلق
-                      {% elif clearance.status == 'inspection_completed' %}تم التفتيش
-                      {% elif clearance.status == 'disposal_approved' %}إتلاف معتمد
-                      {% elif clearance.status == 'disposal_rejected' %}إتلاف مرفوض
-                      {% else %}{{ clearance.get_status_display }}{% endif %}
-                    </div>
-                    <div class="cl-card-company">{{ clearance.company.name }}</div>
-                  </div>
+                  <span class="cl-status
+                    {% if clearance.status == 'issued' %}st--issued
+                    {% elif clearance.status == 'cancelled_admin' %}st--error
+                    {% elif clearance.status == 'disposal_approved' %}st--done
+                    {% elif clearance.status == 'disposal_rejected' %}st--error
+                    {% else %}st--waiting{% endif %}">
+                    {% if clearance.status == 'issued' %}تم إصدار التصريح
+                    {% elif clearance.status == 'cancelled_admin' %}مغلق
+                    {% elif clearance.status == 'inspection_completed' %}تم التفتيش
+                    {% elif clearance.status == 'disposal_approved' %}إتلاف معتمد
+                    {% elif clearance.status == 'disposal_rejected' %}إتلاف مرفوض
+                    {% else %}{{ clearance.get_status_display }}{% endif %}
+                  </span>
 
-                  <div class="cl-card-date">{{ clearance.dateOfCreation|date:"d/m/Y"|default:"—" }}</div>
+                  <div class="cl-company">{{ clearance.company.name }}</div>
+                  <div class="cl-date">{{ clearance.dateOfCreation|date:"d/m/Y"|default:"—" }}</div>
 
-                  <div class="cl-card-data">
+                  <div class="cl-data">
                     <div class="cl-row">
                       <div class="cl-lbl">نوع التصريح</div>
                       <div class="cl-val">{{ clearance.permit_label_ar }}</div>
@@ -979,7 +554,7 @@
                     {% if clearance.permit_no %}
                     <div class="cl-row">
                       <div class="cl-lbl">رقم التصريح</div>
-                      <div class="cl-val" style="font-family:var(--mono);font-weight:600;">{{ clearance.permit_no }}</div>
+                      <div class="cl-val" style="font-family:monospace;">{{ clearance.permit_no }}</div>
                     </div>
                     {% endif %}
                     <div class="cl-row">
@@ -996,15 +571,15 @@
                     </div>
                   </div>
 
-                  <div class="cl-card-actions">
-                    <a href="{{ clearance.detail_url }}" class="action-link">عرض التفاصيل ←</a>
+                  <div class="cl-actions">
+                    <a href="{{ clearance.detail_url }}" class="cl-action-link">عرض التفاصيل ←</a>
                     {% if user_is_admin and clearance.inspection_duration_hours is not None %}
                       {% if clearance.inspection_duration_hours <= 24 %}
-                        <span class="inspection-timer inspection-timer--green">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
+                        <span class="cl-timer cl-timer--ok">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
                       {% elif clearance.inspection_duration_hours <= 72 %}
-                        <span class="inspection-timer inspection-timer--yellow">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
+                        <span class="cl-timer cl-timer--mid">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
                       {% else %}
-                        <span class="inspection-timer inspection-timer--red">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
+                        <span class="cl-timer cl-timer--late">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
                       {% endif %}
                     {% endif %}
                   </div>
@@ -1030,34 +605,27 @@
 <script>
 (function () {
   var PAGE_SIZE = 10;
-
   function initPagination(cards, bar) {
     var items = Array.from(cards.querySelectorAll('.cl-card'));
     if (items.length <= PAGE_SIZE) return;
-
     var total = Math.ceil(items.length / PAGE_SIZE);
     var current = 1;
-
     var prevBtn = bar.querySelector('[data-pg-prev]');
     var nextBtn = bar.querySelector('[data-pg-next]');
     var info    = bar.querySelector('[data-pg-info]');
-
     function render() {
       items.forEach(function (el, i) {
-        el.style.display = (i >= (current - 1) * PAGE_SIZE && i < current * PAGE_SIZE) ? '' : 'none';
+        el.style.display = (i >= (current-1)*PAGE_SIZE && i < current*PAGE_SIZE) ? '' : 'none';
       });
       info.textContent = current + ' / ' + total;
       prevBtn.disabled = (current === 1);
       nextBtn.disabled = (current === total);
     }
-
     prevBtn.addEventListener('click', function () { if (current > 1)     { current--; render(); } });
     nextBtn.addEventListener('click', function () { if (current < total) { current++; render(); } });
-
     bar.style.display = '';
     render();
   }
-
   document.querySelectorAll('.cl-cards[data-pg-group]').forEach(function (cards) {
     var groupId = cards.getAttribute('data-pg-group');
     var bar = document.querySelector('.cl-pagination[data-pg-bar="' + groupId + '"]');

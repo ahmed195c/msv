@@ -1,406 +1,202 @@
 {% extends "hcsd/base.html" %}
-{% block title %}إنشاء التصاريح{% endblock %}
+{% block title %}التصاريح{% endblock %}
 {% block content %}
 <style>
-  .permit-types-page {
-    --ink: #304357;
-    --ink-2: #41576f;
-    --ink-3: #6f8194;
-    --paper: #ffffff;
-    --surface: #F1F4F7;
-    --surface-2: #e6ecf2;
-    --line: #d7dfe8;
-    --line-2: #bec9d5;
-    --accent: #304357;
-    --accent-dk: #26384a;
-    direction: rtl;
-    color: var(--ink);
-    background: var(--surface);
-    min-height: 100vh;
-    padding: 24px 20px 42px;
-  }
+/* ── 60-30-10 palette
+   60% : #f8fafc / #fff  (background, cards)
+   30% : #0f172a / #475569 / #94a3b8  (text, borders)
+   10% : #2563eb  (primary action only)
+──────────────────────────────────────────── */
+.pt-page { max-width: 1160px; margin: 0 auto; }
 
-  .permit-types-wrap {
-    max-width: 1160px;
-    margin: 0 auto;
-  }
+/* ── Page header ── */
+.pt-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 14px; margin-bottom: 28px;
+}
+.pt-header__title { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
+.pt-header__sub   { font-size: 13px; color: #64748b; margin: 4px 0 0; }
 
-  .permit-types-header {
-    margin-bottom: 20px;
-  }
+.pt-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  .permit-types-title {
-    margin: 0;
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    position: relative;
-  }
+.pt-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 18px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; text-decoration: none;
+  border: 1.5px solid #e2e8f0; background: #fff; color: #475569;
+  transition: border-color .15s, background .15s;
+  white-space: nowrap;
+}
+.pt-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.pt-btn--primary {
+  background: #2563eb; color: #fff; border-color: #2563eb;
+  box-shadow: 0 2px 6px rgba(37,99,235,.22);
+}
+.pt-btn--primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
 
-  .permit-types-title::after {
-    content: "";
-    display: block;
-    margin-top: 4px;
-    height: 3px;
-    width: 48px;
-    background: var(--accent);
-    border-radius: 2px;
-  }
+/* ── Section ── */
+.pt-section {
+  background: #fff; border: 1.5px solid #e2e8f0;
+  border-radius: 12px; padding: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  margin-bottom: 20px;
+}
+.pt-section__label {
+  font-size: 11px; font-weight: 700; color: #94a3b8;
+  letter-spacing: .06em; text-transform: uppercase;
+  margin: 0 0 16px;
+}
 
-  .permit-types-subtitle {
-    margin: 10px 0 0;
-    color: var(--ink-3);
-    font-size: 14px;
-    font-weight: 500;
-  }
+/* ── Permit cards ── */
+.permit-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.permit-card {
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  background: #fff; padding: 20px;
+  transition: border-color .15s, box-shadow .15s;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.permit-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+.permit-card__title { font-size: 14px; font-weight: 700; color: #0f172a; margin: 0; line-height: 1.4; }
+.permit-card__desc  { font-size: 12.5px; color: #64748b; line-height: 1.65; flex: 1; margin: 0; }
 
-  .permit-types-section {
-    background: var(--paper);
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
-    padding: 18px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-  }
+/* ── Skeleton ── */
+.permit-types__skeleton { display: none; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); }
+.permit-skeleton-card   { border: 1.5px solid #e2e8f0; border-radius: 10px; background: #fff; padding: 20px; display: grid; gap: 10px; }
+.permit-skeleton-line   { height: 13px; border-radius: 6px; background: linear-gradient(100deg,#f1f5f9 30%,#f8fafc 48%,#f1f5f9 66%); background-size: 220% 100%; animation: shimmer 1.2s linear infinite; }
+.permit-skeleton-line--title  { width: 80%; height: 18px; }
+.permit-skeleton-line--long   { width: 100%; }
+.permit-skeleton-line--mid    { width: 60%; }
+.permit-skeleton-line--button { width: 90px; height: 34px; margin-top: 4px; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.permit-types--loading .permit-grid            { display: none; }
+.permit-types--loading .permit-types__skeleton { display: grid; }
 
-  .permit-grid {
-    display: grid;
-    gap: 14px;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  }
+/* ── Tables ── */
+.pt-table-wrap { overflow-x: auto; }
+.pt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pt-table thead tr { border-bottom: 1.5px solid #e2e8f0; }
+.pt-table th {
+  padding: 9px 12px; text-align: right;
+  font-size: 11px; font-weight: 700; color: #94a3b8;
+  letter-spacing: .04em; text-transform: uppercase; white-space: nowrap;
+}
+.pt-table td { padding: 11px 12px; border-bottom: 1px solid #f1f5f9; color: #0f172a; vertical-align: middle; }
+.pt-table tbody tr:last-child td { border-bottom: none; }
+.pt-table tbody tr:hover td { background: #f8fafc; }
+.pt-table a { color: #2563eb; font-weight: 600; text-decoration: none; }
+.pt-table a:hover { text-decoration: underline; }
 
-  .permit-card {
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
-  }
+/* ── Expiring badge ── */
+.days-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+}
+.days-urgent { background: #fee2e2; color: #991b1b; }
+.days-warn   { background: #fef3c7; color: #92400e; }
+.days-ok     { background: #f0fdf4; color: #166534; }
 
-  .permit-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--line-2);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.1);
-  }
+/* ── Section title pill ── */
+.pt-pill {
+  display: inline-block; padding: 4px 12px;
+  background: #0f172a; color: #fff;
+  border-radius: 6px; font-size: 12px; font-weight: 700;
+  margin-bottom: 14px;
+}
+.pt-pill--warn { background: #92400e; }
 
-  .permit-card-stripe {
-    height: 4px;
-    background: var(--accent);
-  }
+/* ── Search ── */
+.pt-search {
+  flex: 1; min-width: 200px; max-width: 340px;
+  padding: 7px 12px; border: 1.5px solid #e2e8f0;
+  border-radius: 7px; font-family: inherit; font-size: 13px;
+  direction: rtl; outline: none; transition: border-color .15s;
+}
+.pt-search:focus { border-color: #2563eb; }
 
-  .permit-card-body {
-    padding: 14px;
-    display: grid;
-    gap: 10px;
-  }
-
-  .permit-card h3 {
-    margin: 0;
-    font-size: 16px;
-    color: var(--ink);
-  }
-
-  .permit-card p {
-    margin: 0;
-    color: var(--ink-3);
-    line-height: 1.7;
-    font-size: 13px;
-    min-height: 66px;
-  }
-
-  .permit-card-footer {
-    display: flex;
-    justify-content: flex-start;
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border: 1.5px solid var(--line-2);
-    border-radius: 6px;
-    background: var(--paper);
-    color: var(--ink-2);
-    font-size: 13px;
-    font-weight: 700;
-    min-height: 38px;
-    padding: 8px 14px;
-    text-decoration: none;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-  }
-
-  .btn:hover {
-    background: var(--surface-2);
-    border-color: var(--ink-3);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .btn-primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-
-  .btn-primary:hover {
-    background: var(--accent-dk);
-    border-color: var(--accent-dk);
-  }
-
-  .permit-denied {
-    margin: 0;
-    text-align: center;
-    border: 1.5px dashed var(--line-2);
-    border-radius: 8px;
-    background: var(--surface);
-    color: var(--ink-2);
-    font-size: 15px;
-    font-weight: 600;
-    padding: 22px 14px;
-  }
-
-  .permit-types__skeleton {
-    display: none;
-    gap: 14px;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  }
-
-  .permit-skeleton-card {
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
-    background: #fff;
-    padding: 14px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-    display: grid;
-    gap: 10px;
-  }
-
-  .permit-skeleton-line {
-    height: 14px;
-    border-radius: 6px;
-    background: linear-gradient(100deg, #ece8de 30%, #f7f5ee 48%, #ece8de 66%);
-    background-size: 220% 100%;
-    animation: permit-skeleton-shimmer 1.2s linear infinite;
-  }
-
-  .permit-skeleton-line--title {
-    width: 86%;
-    height: 20px;
-  }
-
-  .permit-skeleton-line--long {
-    width: 100%;
-  }
-
-  .permit-skeleton-line--mid {
-    width: 68%;
-  }
-
-  .permit-skeleton-line--button {
-    width: 98px;
-    height: 34px;
-    margin-top: 4px;
-  }
-
-  .permit-types--loading .permit-grid {
-    display: none;
-  }
-
-  .permit-types--loading .permit-types__skeleton {
-    display: grid;
-  }
-
-  @keyframes permit-skeleton-shimmer {
-    from { background-position: 100% 0; }
-    to { background-position: -100% 0; }
-  }
-
-  .pt-table-section {
-    background: var(--paper);
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
-    padding: 18px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-    margin-top: 20px;
-  }
-
-  .pt-table-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--paper);
-    background: var(--accent);
-    padding: 7px 16px;
-    border-radius: 6px;
-    display: inline-block;
-    margin-bottom: 16px;
-  }
-
-  .pt-table-title.expiring {
-    background: #b86e00;
-  }
-
-  .pt-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-
-  .pt-table th {
-    background: var(--surface);
-    color: var(--ink-3);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    padding: 8px 10px;
-    border-bottom: 2px solid var(--line);
-    text-align: right;
-    white-space: nowrap;
-  }
-
-  .pt-table td {
-    padding: 9px 10px;
-    border-bottom: 1px solid var(--line);
-    color: var(--ink);
-    vertical-align: middle;
-  }
-
-  .pt-table tr:last-child td { border-bottom: none; }
-  .pt-table tr:hover td { background: var(--surface); }
-
-  .pt-table a {
-    color: var(--accent);
-    font-weight: 700;
-    text-decoration: none;
-  }
-  .pt-table a:hover { text-decoration: underline; }
-
-  .days-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 64px;
-    padding: 3px 10px;
-    border-radius: 99px;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1;
-    white-space: nowrap;
-  }
-  .days-urgent { background: #fee2e2; color: #991b1b; }
-  .days-warn   { background: #fef3c7; color: #92400e; }
-  .days-ok     { background: #d1fae5; color: #065f46; }
-
-  @media (max-width: 760px) {
-    .permit-types-page { padding: 16px 12px 30px; }
-    .permit-card p { min-height: 0; }
-    .pt-table { display: block; overflow-x: auto; white-space: nowrap; }
-  }
+@media (max-width: 680px) {
+  .pt-header { flex-direction: column; }
+  .permit-grid { grid-template-columns: 1fr; }
+}
 </style>
 
-<section class="permit-types-page" lang="ar" dir="rtl">
-  <div class="permit-types-wrap">
-    <header class="permit-types-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-      <div>
-        <h1 class="permit-types-title">إنشاء تصريح جديد</h1>
-        <p class="permit-types-subtitle">اختر نوع التصريح المطلوب لبدء الطلب.</p>
+<div class="pt-page">
+
+  <!-- Header -->
+  <div class="pt-header">
+    <div>
+      <h1 class="pt-header__title">التصاريح</h1>
+      <p class="pt-header__sub">إنشاء التصاريح ومتابعة حالتها</p>
+    </div>
+    <div class="pt-btn-group">
+      <a href="{% url 'permits_report_excel' %}" class="pt-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        تقرير الشركات
+      </a>
+      <a href="{% url 'inspector_report_excel' %}" class="pt-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        تقرير المفتشين
+      </a>
+    </div>
+  </div>
+
+  <!-- Permit cards -->
+  <div class="pt-section">
+    <p class="pt-section__label">إنشاء تصريح جديد</p>
+
+    <div class="permit-types__skeleton" aria-hidden="true">
+      {% for _ in "123" %}
+      <div class="permit-skeleton-card">
+        <div class="permit-skeleton-line permit-skeleton-line--title"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--long"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--mid"></div>
+        <div class="permit-skeleton-line permit-skeleton-line--button"></div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="{% url 'permits_report_excel' %}"
-           style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#1d6f42;color:#fff;border-radius:7px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(29,111,66,.18);transition:background .15s;"
-           onmouseover="this.style.background='#155735'" onmouseout="this.style.background='#1d6f42'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          تقرير الشركات
-        </a>
-        <a href="{% url 'inspector_report_excel' %}"
-           style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#1e3a5f;color:#fff;border-radius:7px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;box-shadow:0 2px 8px rgba(30,58,95,.18);transition:background .15s;"
-           onmouseover="this.style.background='#152c48'" onmouseout="this.style.background='#1e3a5f'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          تقرير المفتشين
-        </a>
-      </div>
-    </header>
+      {% endfor %}
+    </div>
 
-    <section class="permit-types-section">
-      <div class="permit-types__skeleton" aria-hidden="true">
-        <div class="permit-skeleton-card">
-          <div class="permit-skeleton-line permit-skeleton-line--title"></div>
-          <div class="permit-skeleton-line permit-skeleton-line--long"></div>
-          <div class="permit-skeleton-line permit-skeleton-line--mid"></div>
-          <div class="permit-skeleton-line permit-skeleton-line--button"></div>
-        </div>
-        <div class="permit-skeleton-card">
-          <div class="permit-skeleton-line permit-skeleton-line--title"></div>
-          <div class="permit-skeleton-line permit-skeleton-line--long"></div>
-          <div class="permit-skeleton-line permit-skeleton-line--mid"></div>
-          <div class="permit-skeleton-line permit-skeleton-line--button"></div>
-        </div>
-        <div class="permit-skeleton-card">
-          <div class="permit-skeleton-line permit-skeleton-line--title"></div>
-          <div class="permit-skeleton-line permit-skeleton-line--long"></div>
-          <div class="permit-skeleton-line permit-skeleton-line--mid"></div>
-          <div class="permit-skeleton-line permit-skeleton-line--button"></div>
-        </div>
+    {% if can_create_pirmet %}
+    <div class="permit-grid">
+
+      <div class="permit-card">
+        <p class="permit-card__title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</p>
+        <p class="permit-card__desc">طلب تصريح لشركات مكافحة آفات الصحة العامة مع بيانات المهندس والمستندات اللازمة.</p>
+        <a class="pt-btn pt-btn--primary" href="{% url 'pest_control_permit' %}">بدء الطلب</a>
       </div>
 
-      {% if can_create_pirmet %}
-        <div class="permit-grid">
-          <article class="permit-card">
-            <div class="permit-card-stripe"></div>
-            <div class="permit-card-body">
-              <h3>تصريح مزاولة نشاط مكافحة آفات الصحة العامة</h3>
-              <p>طلب تصريح لشركات مكافحة آفات الصحة العامة مع بيانات المهندس والمستندات اللازمة.</p>
-              <div class="permit-card-footer">
-                <a class="btn btn-primary" href="{% url 'pest_control_permit' %}">بدء الطلب</a>
-              </div>
-            </div>
-          </article>
+      <div class="permit-card">
+        <p class="permit-card__title">تصريح المركبة للشركات</p>
+        <p class="permit-card__desc">تقديم مستندات المركبة ثم متابعة إجراءات المعالجة حتى إصدار التصريح النهائي.</p>
+        <a class="pt-btn pt-btn--primary" href="{% url 'vehicle_permit' %}">بدء الطلب</a>
+      </div>
 
-          <article class="permit-card">
-            <div class="permit-card-stripe"></div>
-            <div class="permit-card-body">
-              <h3>تصريح المركبة للشركات</h3>
-              <p>تقديم مستندات المركبة ثم متابعة إجراءات المعالجة حتى دفع التصريح النهائي.</p>
-              <div class="permit-card-footer">
-                <a class="btn btn-primary" href="{% url 'vehicle_permit' %}">بدء الطلب</a>
-              </div>
-            </div>
-          </article>
+      <div class="permit-card">
+        <p class="permit-card__title">تصريح التخلص من النفايات</p>
+        <p class="permit-card__desc">تقديم بيانات النفايات والوثائق المطلوبة ثم متابعة إجراءات التفتيش وإصدار التصريح.</p>
+        <a class="pt-btn pt-btn--primary" href="{% url 'waste_permit' %}">بدء الطلب</a>
+      </div>
 
-          <article class="permit-card">
-            <div class="permit-card-stripe"></div>
-            <div class="permit-card-body">
-              <h3>تصريح التخلص من النفايات</h3>
-              <p>تقديم بيانات النفايات والوثائق المطلوبة ثم متابعة إجراءات التفتيش وإصدار التصريح.</p>
-              <div class="permit-card-footer">
-                <a class="btn btn-primary" href="{% url 'waste_permit' %}">بدء الطلب</a>
-              </div>
-            </div>
-          </article>
+      <div class="permit-card">
+        <p class="permit-card__title">إضافة مهندس جديد</p>
+        <p class="permit-card__desc">طلب إضافة مهندس لشركة معينة مع بيانات الشهادات ومتابعة إجراءات التفتيش حتى التسجيل.</p>
+        <a class="pt-btn pt-btn--primary" href="{% url 'engineer_addition_create' %}">بدء الطلب</a>
+      </div>
 
-          <article class="permit-card">
-            <div class="permit-card-stripe"></div>
-            <div class="permit-card-body">
-              <h3>إضافة مهندس جديد</h3>
-              <p>تقديم طلب إضافة مهندس لشركة معينة مع بيانات الشهادات ومتابعة إجراءات التفتيش حتى تسجيل المهندس.</p>
-              <div class="permit-card-footer">
-                <a class="btn btn-primary" href="{% url 'engineer_addition_create' %}">بدء الطلب</a>
-              </div>
-            </div>
-          </article>
+    </div>
+    {% else %}
+    <p style="text-align:center;padding:24px;color:#64748b;font-size:14px;border:1.5px dashed #e2e8f0;border-radius:9px;">ليس لديك صلاحية إنشاء تصاريح.</p>
+    {% endif %}
+  </div>
 
-
-        </div>
-      {% else %}
-        <p class="permit-denied">ليس لديك صلاحية إنشاء تصاريح.</p>
-      {% endif %}
-    </section>
-
-    {% if expiring_permits %}
-    <div class="pt-table-section">
-      <div class="pt-table-title expiring">تصاريح توشك على الانتهاء خلال أسبوع ({{ expiring_permits|length }})</div>
+  <!-- Expiring permits -->
+  {% if expiring_permits %}
+  <div class="pt-section">
+    <p class="pt-pill pt-pill--warn">تصاريح توشك على الانتهاء — {{ expiring_permits|length }}</p>
+    <div class="pt-table-wrap">
       <table class="pt-table">
         <thead>
           <tr>
@@ -419,10 +215,10 @@
           {% for p in expiring_permits %}
           <tr>
             <td><strong>{{ p.company.name }}</strong></td>
-            <td style="font-family:monospace;">{{ p.company.number|default:"—" }}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.company.number|default:"—" }}</td>
             <td>{{ p.permit_label }}</td>
-            <td style="font-family:monospace;">{{ p.permit_no|default:"—" }}</td>
-            <td>{{ p.dateOfExpiry|date:"d/m/Y" }}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.permit_no|default:"—" }}</td>
+            <td style="white-space:nowrap;">{{ p.dateOfExpiry|date:"d/m/Y" }}</td>
             <td>
               {% if p.days_left == 0 %}
                 <span class="days-badge days-urgent">ينتهي اليوم</span>
@@ -435,14 +231,11 @@
               {% endif %}
             </td>
             <td>{{ p.company.address|default:"—" }}</td>
-            <td style="font-family:monospace;">{{ p.contact_phone }}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.contact_phone }}</td>
             <td>
-              {% if p.permit_type == 'pest_control' %}
-                <a href="{% url 'pest_control_permit_detail' p.id %}">عرض التصريح</a>
-              {% elif p.permit_type == 'pesticide_transport' %}
-                <a href="{% url 'vehicle_permit_detail' p.id %}">عرض التصريح</a>
-              {% elif p.permit_type == 'waste_disposal' %}
-                <a href="{% url 'waste_permit_detail' p.id %}">عرض التصريح</a>
+              {% if p.permit_type == 'pest_control' %}<a href="{% url 'pest_control_permit_detail' p.id %}">عرض</a>
+              {% elif p.permit_type == 'pesticide_transport' %}<a href="{% url 'vehicle_permit_detail' p.id %}">عرض</a>
+              {% elif p.permit_type == 'waste_disposal' %}<a href="{% url 'waste_permit_detail' p.id %}">عرض</a>
               {% endif %}
             </td>
           </tr>
@@ -450,23 +243,24 @@
         </tbody>
       </table>
     </div>
-    {% endif %}
+  </div>
+  {% endif %}
 
-    <div class="pt-table-section">
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
-        <div class="pt-table-title" style="margin-bottom:0;">آخر التصاريح المنتهية</div>
-        {% if finished_permits %}
-        <input
-          id="finished-search"
-          type="search"
-          placeholder="بحث بالشركة أو الرخصة أو المنطقة…"
-          autocomplete="off"
-          style="flex:1;min-width:200px;max-width:360px;padding:6px 12px;border:1.5px solid #ccd6e0;border-radius:6px;font-family:inherit;font-size:13px;direction:rtl;outline:none;"
-        >
-        <span id="finished-search-count" style="font-size:12px;color:#6f8297;white-space:nowrap;"></span>
-        {% endif %}
-      </div>
+  <!-- Finished permits -->
+  <div class="pt-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <p class="pt-pill" style="margin:0;">آخر التصاريح المنتهية</p>
       {% if finished_permits %}
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input id="finished-search" type="search" class="pt-search"
+               placeholder="بحث بالشركة أو الرخصة أو المنطقة…" autocomplete="off">
+        <span id="finished-search-count" style="font-size:12px;color:#94a3b8;white-space:nowrap;"></span>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if finished_permits %}
+    <div class="pt-table-wrap">
       <table class="pt-table" id="finished-permits-table">
         <thead>
           <tr>
@@ -482,105 +276,75 @@
         </thead>
         <tbody id="finished-permits-body">
           {% for p in finished_permits %}
-          <tr
-            data-name="{{ p.company.name|default:'' }}"
-            data-number="{{ p.company.number|default:'' }}"
-            data-address="{{ p.company.address|default:'' }}"
-          >
+          <tr data-name="{{ p.company.name|default:'' }}"
+              data-number="{{ p.company.number|default:'' }}"
+              data-address="{{ p.company.address|default:'' }}">
             <td><strong>{{ p.company.name }}</strong></td>
-            <td style="font-family:monospace;">{{ p.company.number|default:"—" }}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.company.number|default:"—" }}</td>
             <td>{{ p.permit_label }}</td>
-            <td style="font-family:monospace;">{{ p.permit_no|default:"—" }}</td>
-            <td>{{ p.dateOfExpiry|date:"d/m/Y"|default:"—" }}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.permit_no|default:"—" }}</td>
+            <td style="white-space:nowrap;color:#64748b;">{{ p.dateOfExpiry|date:"d/m/Y"|default:"—" }}</td>
             <td>{{ p.company.address|default:"—" }}</td>
-            <td style="font-family:monospace;">{{ p.contact_phone }}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.contact_phone }}</td>
             <td>
-              {% if p.permit_type == 'pest_control' %}
-                <a href="{% url 'pest_control_permit_detail' p.id %}">عرض التصريح</a>
-              {% elif p.permit_type == 'pesticide_transport' %}
-                <a href="{% url 'vehicle_permit_detail' p.id %}">عرض التصريح</a>
-              {% elif p.permit_type == 'waste_disposal' %}
-                <a href="{% url 'waste_permit_detail' p.id %}">عرض التصريح</a>
+              {% if p.permit_type == 'pest_control' %}<a href="{% url 'pest_control_permit_detail' p.id %}">عرض</a>
+              {% elif p.permit_type == 'pesticide_transport' %}<a href="{% url 'vehicle_permit_detail' p.id %}">عرض</a>
+              {% elif p.permit_type == 'waste_disposal' %}<a href="{% url 'waste_permit_detail' p.id %}">عرض</a>
               {% endif %}
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
-      <p id="finished-no-results" style="display:none;color:#8c2f2f;font-size:13px;padding:8px 0;">لا توجد نتائج مطابقة.</p>
-      {% else %}
-        <p style="color:var(--ink-3);font-size:13px;">لا توجد تصاريح منتهية.</p>
-      {% endif %}
+      <p id="finished-no-results" style="display:none;color:#dc2626;font-size:13px;padding:10px 0;">لا توجد نتائج مطابقة.</p>
     </div>
-
+    {% else %}
+    <p style="color:#94a3b8;font-size:13px;">لا توجد تصاريح منتهية.</p>
+    {% endif %}
   </div>
-</section>
+
+</div>
 
 <script>
-  (function () {
-    document.addEventListener("click", function (event) {
-      var link = event.target.closest(".permit-grid a.btn");
-      if (!link) return;
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      if (typeof event.button === "number" && event.button !== 0) return;
-      document.documentElement.classList.add("permit-types--loading");
+(function () {
+  document.addEventListener("click", function (e) {
+    var link = e.target.closest(".permit-grid a.pt-btn");
+    if (!link) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (typeof e.button === "number" && e.button !== 0) return;
+    document.documentElement.classList.add("permit-types--loading");
+  });
+  window.addEventListener("pageshow", function () {
+    document.documentElement.classList.remove("permit-types--loading");
+  });
+})();
+
+(function () {
+  var inp = document.getElementById("finished-search");
+  if (!inp) return;
+  var tbody = document.getElementById("finished-permits-body");
+  var noRes = document.getElementById("finished-no-results");
+  var cnt   = document.getElementById("finished-search-count");
+  var rows  = Array.from(tbody.querySelectorAll("tr"));
+  var total = rows.length;
+
+  function norm(s) {
+    return (s||"").replace(/[ً-ٰٟ]/g,"").replace(/[أإآٱ]/g,"ا")
+      .replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/[ؤئ]/g,function(c){return c==="ؤ"?"و":"ي";})
+      .toLowerCase().trim();
+  }
+  inp.addEventListener("input", function () {
+    var parts = norm(inp.value).split(/\s+/).filter(Boolean);
+    var vis = 0;
+    rows.forEach(function (r) {
+      var h = norm((r.dataset.name||"")+" "+(r.dataset.number||"")+" "+(r.dataset.address||""));
+      var ok = !parts.length || parts.every(function(p){return h.includes(p);});
+      r.style.display = ok ? "" : "none";
+      if (ok) vis++;
     });
-    // Remove loading state whenever the page becomes visible (back button, bfcache, etc.)
-    window.addEventListener("pageshow", function () {
-      document.documentElement.classList.remove("permit-types--loading");
-    });
-  })();
-
-  /* ── Fuzzy search for finished permits table ── */
-  (function () {
-    var searchInput = document.getElementById("finished-search");
-    if (!searchInput) return;
-
-    var tbody = document.getElementById("finished-permits-body");
-    var noResults = document.getElementById("finished-no-results");
-    var countEl = document.getElementById("finished-search-count");
-    var allRows = Array.from(tbody.querySelectorAll("tr"));
-    var total = allRows.length;
-
-    /* Normalize Arabic text: strip diacritics, unify alef forms, ة→ه, ى→ي */
-    function normalize(str) {
-      return (str || "")
-        .replace(/[\u064B-\u065F\u0670]/g, "")   /* harakat */
-        .replace(/[أإآٱ]/g, "ا")
-        .replace(/ة/g, "ه")
-        .replace(/ى/g, "ي")
-        .replace(/ؤ/g, "و")
-        .replace(/ئ/g, "ي")
-        .toLowerCase()
-        .trim();
-    }
-
-    function runSearch() {
-      var raw = normalize(searchInput.value);
-      var parts = raw.split(/\s+/).filter(Boolean);
-      var visible = 0;
-
-      allRows.forEach(function (row) {
-        var haystack = normalize(
-          (row.dataset.name || "") + " " +
-          (row.dataset.number || "") + " " +
-          (row.dataset.address || "")
-        );
-
-        /* كل كلمة في البحث لازم تظهر كـ substring في النص */
-        var matched = parts.length === 0 || parts.every(function (part) {
-          return haystack.includes(part);
-        });
-
-        row.style.display = matched ? "" : "none";
-        if (matched) visible++;
-      });
-
-      noResults.style.display = (visible === 0 && parts.length > 0) ? "" : "none";
-      countEl.textContent = parts.length > 0 ? (visible + " / " + total) : "";
-    }
-
-    searchInput.addEventListener("input", runSearch);
-  })();
+    noRes.style.display = (!vis && parts.length) ? "" : "none";
+    cnt.textContent = parts.length ? vis+" / "+total : "";
+  });
+})();
 </script>
 {% endblock %}

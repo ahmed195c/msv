@@ -57,25 +57,27 @@ body.app-shell {
   flex-direction: column;
 }
 
+/* ── Navbar ─────────────────────────────────────────────────────────── */
 .app-chrome {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: #1e293b;
-  border-bottom: 1.5px solid #0f172a;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  background: #0f172a;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 1px 24px rgba(0,0,0,.35);
 }
 
 .navbar {
   max-width: 1280px;
   margin: 0 auto;
   height: var(--nav-h);
-  padding: 0 20px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0;
 }
 
+/* Brand */
 .nav-brand {
   display: flex;
   align-items: center;
@@ -83,86 +85,183 @@ body.app-shell {
   text-decoration: none;
   color: #fff;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
+  flex-shrink: 0;
+  {% if lang == 'en' %}margin-right: 20px;{% else %}margin-left: 20px;{% endif %}
+}
+.nav-brand img {
+  height: 30px;
+  filter: brightness(0) invert(1);
+  opacity: .9;
+}
+.nav-brand-label { display: flex; flex-direction: column; line-height: 1.25; }
+.nav-brand-name  { font-size: 14px; font-weight: 700; color: #fff; }
+.nav-brand-sub   { font-size: 10.5px; font-weight: 400; color: rgba(255,255,255,.45); letter-spacing: .02em; }
+
+/* Divider */
+.nav-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255,255,255,.12);
+  flex-shrink: 0;
+  {% if lang == 'en' %}margin-right: 20px;{% else %}margin-left: 20px;{% endif %}
 }
 
-.nav-brand img { height: 34px; filter: brightness(0) invert(1); }
-
-.nav-brand-label { display: flex; flex-direction: column; line-height: 1.2; }
-.nav-brand-sub   { font-size: 11px; font-weight: 400; opacity: 0.8; }
-
+/* Links */
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 4px;
-  {% if lang == 'en' %}margin-left: 24px;{% else %}margin-right: 24px;{% endif %}
+  gap: 2px;
   flex: 1;
+  height: 100%;
 }
 
 .nav-link {
-  padding: 6px 14px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.85);
-  text-decoration: none;
-  transition: background .15s, color .15s;
-}
-.nav-link:hover, .nav-link.active { background: rgba(255,255,255,.15); color: #fff; }
-
-.nav-end {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  {% if lang == 'en' %}margin-left: auto;{% else %}margin-right: auto;{% endif %}
-}
-
-.nav-switch {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  background: rgba(255,255,255,.15);
-  color: #fff;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 600;
+  padding: 0 14px;
+  height: 100%;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,.55);
   text-decoration: none;
-  transition: background .15s;
+  transition: color .15s;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
 }
-.nav-switch:hover { background: rgba(255,255,255,.25); }
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  {% if lang == 'en' %}left: 10px; right: 10px;{% else %}right: 10px; left: 10px;{% endif %}
+  height: 2px;
+  background: var(--accent-lt);
+  border-radius: 2px 2px 0 0;
+  opacity: 0;
+  transform: scaleX(0);
+  transition: opacity .2s, transform .2s;
+}
+.nav-link:hover { color: rgba(255,255,255,.85); }
+.nav-link.active { color: #fff; font-weight: 600; }
+.nav-link.active::after { opacity: 1; transform: scaleX(1); }
 
-/* Language toggle */
+/* End area */
+.nav-end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Lang toggle */
 .lang-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
   border-radius: 6px;
   overflow: hidden;
-  border: 1.5px solid rgba(255,255,255,.35);
 }
 .lang-toggle__btn {
-  padding: 5px 11px;
-  font-size: 12px;
+  padding: 4px 10px;
+  font-size: 11.5px;
   font-weight: 600;
-  color: rgba(255,255,255,.7);
+  color: rgba(255,255,255,.5);
   background: transparent;
   border: none;
   cursor: pointer;
   font-family: inherit;
   transition: background .15s, color .15s;
+  letter-spacing: .03em;
 }
 .lang-toggle__btn.active {
-  background: rgba(255,255,255,.25);
+  background: rgba(255,255,255,.18);
   color: #fff;
 }
 .lang-toggle__sep {
   width: 1px;
-  height: 18px;
-  background: rgba(255,255,255,.3);
+  height: 16px;
+  background: rgba(255,255,255,.15);
 }
 
-.nav-user { font-size: 13px; color: rgba(255,255,255,.8); }
+/* Permits switch */
+.nav-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.7);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background .15s, color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.nav-switch:hover {
+  background: rgba(255,255,255,.13);
+  color: #fff;
+  border-color: rgba(255,255,255,.22);
+}
+
+/* User chip */
+.nav-user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.nav-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: .02em;
+}
+.nav-username {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: rgba(255,255,255,.7);
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Logout */
+.nav-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,.45);
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.nav-logout:hover {
+  color: #f87171;
+  border-color: rgba(248,113,113,.3);
+  background: rgba(248,113,113,.07);
+}
 
 .app-main { flex: 1; padding: 28px 20px; max-width: 1280px; margin: 0 auto; width: 100%; }
 
@@ -183,29 +282,43 @@ body.app-shell {
 
 <div class="app-chrome">
   <nav class="navbar">
+
+    <!-- Brand -->
     <a href="{% url 'complaints_dashboard' %}" class="nav-brand">
-      <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="Sharjah Municipality">
+      <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="">
       <span class="nav-brand-label">
-        {% if lang == 'en' %}Complaints System{% else %}نظام الشكاوي{% endif %}
-        <span class="nav-brand-sub">{% if lang == 'en' %}Environment Dept.{% else %}قسم البيئة{% endif %}</span>
+        <span class="nav-brand-name">{% if lang == 'en' %}Complaints System{% else %}نظام الشكاوي{% endif %}</span>
+        <span class="nav-brand-sub">{% if lang == 'en' %}Environment Dept.{% else %}قسم البيئة — بلدية الشارقة{% endif %}</span>
       </span>
     </a>
 
+    <div class="nav-divider"></div>
+
+    <!-- Links -->
     <div class="nav-links">
-      {% block nav_links %}{% endblock %}
+      <a class="nav-link {% if request.resolver_match.url_name in 'complaints_dashboard,complaint_submit,complaint_detail,complaint_pdf_import,complaint_pdf_review' %}active{% endif %}"
+         href="{% url 'complaints_dashboard' %}">الشكاوي</a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'all_requests' %}active{% endif %}"
+         href="{% url 'all_requests' %}">متابعة الطلبات</a>
+      <a class="nav-link {% if 'container' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'container_list' %}">نقل الحاويات</a>
+      <a class="nav-link {% if 'weed' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'weed_list' %}">إزالة الحشائش</a>
     </div>
 
+    <!-- End -->
     <div class="nav-end">
-      <!-- Language toggle -->
+
+      <!-- Language -->
       <div class="lang-toggle">
-        <form method="post" action="{% url 'set_complaints_language' %}" style="display:inline;">
+        <form method="post" action="{% url 'set_complaints_language' %}" style="display:contents;">
           {% csrf_token %}
           <input type="hidden" name="lang" value="ar">
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
           <button type="submit" class="lang-toggle__btn {% if lang == 'ar' %}active{% endif %}">ع</button>
         </form>
         <span class="lang-toggle__sep"></span>
-        <form method="post" action="{% url 'set_complaints_language' %}" style="display:inline;">
+        <form method="post" action="{% url 'set_complaints_language' %}" style="display:contents;">
           {% csrf_token %}
           <input type="hidden" name="lang" value="en">
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -213,18 +326,28 @@ body.app-shell {
         </form>
       </div>
 
-      <!-- Switch to permits -->
-      <a href="{% url 'home' %}" class="nav-switch">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h7M7 16h5"/></svg>
-        {% if lang == 'en' %}Permits System{% else %}نظام التصاريح{% endif %}
+      <!-- Portal switch -->
+      <a href="{% url 'portal_landing' %}" class="nav-switch">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        {% if lang == 'en' %}Home{% else %}الرئيسية{% endif %}
       </a>
 
       {% if request.user.is_authenticated %}
-      <span class="nav-user">{{ request.user.get_full_name|default:request.user.username }}</span>
-      <a href="{% url 'logout' %}" class="nav-link" style="color:rgba(255,255,255,.7);">
-        {% if lang == 'en' %}Logout{% else %}خروج{% endif %}
-      </a>
+      <!-- User chip -->
+      <div class="nav-user-chip">
+        <div class="nav-avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</div>
+        <span class="nav-username">{{ request.user.get_full_name|default:request.user.username }}</span>
+      </div>
+      <!-- Logout -->
+      <form method="post" action="{% url 'logout' %}" style="display:contents;">
+        {% csrf_token %}
+        <button type="submit" class="nav-logout" title="{% if lang == 'en' %}Logout{% else %}تسجيل الخروج{% endif %}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          {% if lang == 'en' %}Logout{% else %}خروج{% endif %}
+        </button>
+      </form>
       {% endif %}
+
     </div>
   </nav>
 </div>

@@ -17,16 +17,18 @@ Roles (re-use existing permit-system groups)
 
 import logging
 import os
+import re
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from ..models import (
     Complaint, ComplaintInspection, ComplaintMaterial, ComplaintPhoto,
-    ComplaintResolution, ComplaintVehicle,
+    ComplaintResolution, ComplaintVehicle, ContainerTransferRequest,
 )
 from .common import _can_admin, _can_data_entry
 
@@ -36,6 +38,87 @@ ALLOWED_PDF_EXTENSION = '.pdf'
 ALLOWED_PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp'}
 LANG_AR = 'ar'
 LANG_EN = 'en'
+_PDF_IMPORT_SESSION_KEY = 'complaint_pdf_import'
+
+
+# ── PDF extraction helpers ─────────────────────────────────────────────────────
+
+def _arabic_digits_to_western(text):
+    return text.translate(str.maketrans('٠١٢٣٤٥٦٧٨٩', '0123456789'))
+
+
+def _fix_rtl_pdf_text(text):
+    """
+    Sharjah Municipality PDFs store Arabic in visual/presentation order:
+    characters within each word are reversed, and word order per line is reversed.
+    This function restores logical (reading) order.
+    Numbers and punctuation-only tokens are left as-is.
+    """
+    import unicodedata
+    text = unicodedata.normalize('NFKC', text)
+    text = _arabic_digits_to_western(text)
+    fixed_lines = []
+    for line in text.splitlines():
+        words = line.split(' ')
+        fixed_words = [w if re.match(r'^[0-9:./\-]+$', w) else w[::-1] for w in words]
+        fixed_words.reverse()
+        fixed_lines.append(' '.join(fixed_words))
+    return '\n'.join(fixed_lines)
+
+
+def _extract_complaint_from_pdf(pdf_file):
+    """Read a Sharjah Municipality complaint PDF and return a dict of fields."""
+    try:
+        import pdfplumber
+    except ImportError:
+        logger.warning('pdfplumber not installed; PDF extraction skipped')
+        return {}
+
+    data = {
+        'complaint_number': '',
+        'complainant_name': '',
+        'complainant_mobile': '',
+        'area': '',
+        'street_number': '',
+        'house_number': '',
+        'notes': '',
+    }
+
+    try:
+        with pdfplumber.open(pdf_file) as pdf:
+            raw_lines = []
+            for page in pdf.pages:
+                page_text = page.extract_text(x_tolerance=3, y_tolerance=3) or ''
+                raw_lines.extend(page_text.splitlines())
+
+        full = _fix_rtl_pdf_text('\n'.join(raw_lines))
+
+        field_patterns = [
+            ('complaint_number',   [r'رقم الشكوى\s+([0-9]+)']),
+            # Name sits on the line immediately before the label
+            ('complainant_name',   [r'(.+)\nاسم المشتكي', r'اسم المشتكي\s+(.+)']),
+            ('complainant_mobile', [r'(?:متحرك|ثابت)\s+الرقم\s+([0-9]{7,15})',
+                                    r'الرقم\s+([0-9]{7,15})']),
+            ('area',               [r'موقع الشكوى\s+(.+)']),
+            ('notes',              [r'تفاصيل الشكوى\s+(.+)']),
+        ]
+
+        for field, patterns in field_patterns:
+            for pat in patterns:
+                m = re.search(pat, full, re.MULTILINE)
+                if m:
+                    data[field] = m.group(1).strip()
+                    break
+
+        if data['notes']:
+            m = re.search(r'منزل\s+([0-9]+)', data['notes'])
+            if m:
+                data['house_number'] = m.group(1)
+
+    except Exception:
+        logger.warning('PDF extraction error', exc_info=True)
+
+    return data
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -79,16 +162,35 @@ def set_complaints_language(request):
 
 @login_required
 def complaints_dashboard(request):
+    from django.db.models import Q, Count
     lang = _get_lang(request)
     status_filter = (request.GET.get('status') or 'all').strip()
-    complaints = Complaint.objects.select_related('created_by').all()
+    search = (request.GET.get('q') or '').strip()
+
+    all_complaints = Complaint.objects.select_related('created_by').all()
+
+    status_counts = {s: 0 for s, _ in Complaint.STATUS_CHOICES}
+    for row in all_complaints.values('status').annotate(n=Count('id')):
+        status_counts[row['status']] = row['n']
+    total_count = sum(status_counts.values())
+
+    complaints = all_complaints
     if status_filter != 'all':
         complaints = complaints.filter(status=status_filter)
+    if search:
+        complaints = complaints.filter(
+            Q(complaint_number__icontains=search)
+            | Q(complainant_name__icontains=search)
+            | Q(area__icontains=search)
+        )
 
     return render(request, 'hcsd/complaints/dashboard.html', {
         'complaints': complaints,
         'status_filter': status_filter,
         'status_choices': Complaint.STATUS_CHOICES,
+        'status_counts': status_counts,
+        'total_count': total_count,
+        'search': search,
         'lang': lang,
         'can_manage': _can_manage(request.user),
     })
@@ -114,6 +216,16 @@ def complaint_submit(request):
             if p in {k for k, _ in Complaint.PEST_CHOICES}
         )
 
+        # Geolocation
+        from decimal import Decimal, InvalidOperation
+        def _parse_coord(val):
+            try:
+                return Decimal(str(val).strip()) if val else None
+            except InvalidOperation:
+                return None
+        latitude  = _parse_coord(request.POST.get('latitude'))
+        longitude = _parse_coord(request.POST.get('longitude'))
+
         errors = {}
         if not complaint_number:
             errors['complaint_number'] = (
@@ -135,6 +247,8 @@ def complaint_submit(request):
                 street_number=street_number,
                 house_number=house_number,
                 pest_types=pest_types,
+                latitude=latitude,
+                longitude=longitude,
                 created_by=request.user,
             )
             logger.info('Complaint %s created by %s', complaint.complaint_number, request.user)
@@ -435,3 +549,172 @@ def complaint_photo_delete(request, pk, photo_pk):
         photo.file.delete(save=False)
         photo.delete()
     return redirect('complaint_detail', pk=pk)
+
+
+# ── PDF Import ────────────────────────────────────────────────────────────────
+
+@login_required
+def complaint_pdf_import(request):
+    lang = _get_lang(request)
+    error = None
+
+    if request.method == 'POST':
+        pdf_file = request.FILES.get('pdf_file')
+
+        if not pdf_file:
+            error = 'يرجى اختيار ملف PDF.' if lang == LANG_AR else 'Please select a PDF file.'
+        elif not _is_valid_pdf(pdf_file):
+            error = 'يجب أن يكون الملف بصيغة PDF فقط.' if lang == LANG_AR else 'Only PDF files are accepted.'
+        else:
+            extracted = _extract_complaint_from_pdf(pdf_file)
+            pdf_file.seek(0)
+            saved_name = default_storage.save(f'complaints/pdfs/{pdf_file.name}', pdf_file)
+            request.session[_PDF_IMPORT_SESSION_KEY] = {
+                **extracted,
+                'pdf_saved_name': saved_name,
+                'pdf_original_name': pdf_file.name,
+            }
+            return redirect('complaint_pdf_review')
+
+    return render(request, 'hcsd/complaints/pdf_import.html', {
+        'lang': lang,
+        'error': error,
+    })
+
+
+@login_required
+def complaint_pdf_review(request):
+    lang = _get_lang(request)
+    session_data = request.session.get(_PDF_IMPORT_SESSION_KEY)
+
+    if not session_data:
+        return redirect('complaint_pdf_import')
+
+    if request.method == 'POST':
+        complaint_number = (request.POST.get('complaint_number') or '').strip()
+        complainant_name = (request.POST.get('complainant_name') or '').strip()
+        complainant_mobile = (request.POST.get('complainant_mobile') or '').strip()
+        area = (request.POST.get('area') or '').strip()
+        street_number = (request.POST.get('street_number') or '').strip()
+        house_number = (request.POST.get('house_number') or '').strip()
+        notes = (request.POST.get('notes') or '').strip()
+        pest_types = ','.join(
+            p for p in request.POST.getlist('pest_types')
+            if p in {k for k, _ in Complaint.PEST_CHOICES}
+        )
+
+        if not complaint_number:
+            err_msg = 'رقم الشكوى مطلوب.' if lang == LANG_AR else 'Complaint number is required.'
+            return render(request, 'hcsd/complaints/pdf_review.html', {
+                'lang': lang,
+                'form_data': request.POST,
+                'pdf_original_name': session_data.get('pdf_original_name', ''),
+                'pest_choices': Complaint.PEST_CHOICES,
+                'errors': {'complaint_number': err_msg},
+            })
+
+        complaint = Complaint.objects.create(
+            complaint_number=complaint_number,
+            complainant_name=complainant_name,
+            complainant_mobile=complainant_mobile,
+            area=area,
+            street_number=street_number,
+            house_number=house_number,
+            notes=notes,
+            pest_types=pest_types,
+            created_by=request.user,
+        )
+
+        pdf_saved_name = session_data.get('pdf_saved_name', '')
+        if pdf_saved_name and default_storage.exists(pdf_saved_name):
+            Complaint.objects.filter(pk=complaint.pk).update(pdf_file=pdf_saved_name)
+
+        del request.session[_PDF_IMPORT_SESSION_KEY]
+        logger.info('Complaint %s created via PDF import by %s', complaint.complaint_number, request.user)
+        return redirect('complaint_detail', pk=complaint.pk)
+
+    form_data = {
+        'complaint_number': session_data.get('complaint_number', ''),
+        'complainant_name': session_data.get('complainant_name', ''),
+        'complainant_mobile': session_data.get('complainant_mobile', ''),
+        'area': session_data.get('area', ''),
+        'street_number': session_data.get('street_number', ''),
+        'house_number': session_data.get('house_number', ''),
+        'notes': session_data.get('notes', ''),
+        'pest_types': [],
+    }
+
+    return render(request, 'hcsd/complaints/pdf_review.html', {
+        'lang': lang,
+        'form_data': form_data,
+        'pdf_original_name': session_data.get('pdf_original_name', ''),
+        'pest_choices': Complaint.PEST_CHOICES,
+        'errors': {},
+    })
+
+
+# ── All requests (unified tracker) ────────────────────────────────────────────
+
+@login_required
+def all_requests(request):
+    lang = _get_lang(request)
+    type_filter   = (request.GET.get('type') or 'all').strip()
+    status_filter = (request.GET.get('status') or 'all').strip()
+    search        = (request.GET.get('q') or '').strip()
+
+    items = []
+
+    if type_filter in ('all', 'complaint'):
+        qs = Complaint.objects.select_related('created_by').order_by('-created_at')
+        if status_filter != 'all':
+            qs = qs.filter(status=status_filter)
+        if search:
+            qs = qs.filter(complaint_number__icontains=search) | qs.filter(complainant_name__icontains=search) | qs.filter(area__icontains=search)
+        for c in qs:
+            items.append({
+                'kind':        'complaint',
+                'kind_label':  'شكوى',
+                'pk':          c.pk,
+                'number':      c.complaint_number,
+                'name':        c.complainant_name,
+                'area':        c.area,
+                'status':      c.status,
+                'created_at':  c.created_at,
+                'created_by':  c.created_by,
+                'detail_url':  f'/complaints/{c.pk}/',
+            })
+
+    if type_filter in ('all', 'container'):
+        qs = ContainerTransferRequest.objects.select_related('created_by').order_by('-created_at')
+        if status_filter != 'all':
+            qs = qs.filter(status=status_filter)
+        if search:
+            qs = qs.filter(complaint_number__icontains=search) | qs.filter(complainant_name__icontains=search) | qs.filter(area__icontains=search)
+        for c in qs:
+            items.append({
+                'kind':        'container',
+                'kind_label':  'حاوية',
+                'pk':          c.pk,
+                'number':      c.complaint_number,
+                'name':        c.complainant_name,
+                'area':        c.area,
+                'status':      c.status,
+                'created_at':  c.created_at,
+                'created_by':  c.created_by,
+                'detail_url':  f'/container-transfers/{c.pk}/',
+            })
+
+    items.sort(key=lambda x: x['created_at'], reverse=True)
+
+    complaint_statuses  = Complaint.STATUS_CHOICES
+    container_statuses  = ContainerTransferRequest.STATUS_CHOICES
+
+    return render(request, 'hcsd/complaints/all_requests.html', {
+        'lang':               lang,
+        'items':              items,
+        'type_filter':        type_filter,
+        'status_filter':      status_filter,
+        'search':             search,
+        'complaint_statuses': complaint_statuses,
+        'container_statuses': container_statuses,
+    })

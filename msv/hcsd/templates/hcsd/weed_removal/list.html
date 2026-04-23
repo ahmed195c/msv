@@ -1,0 +1,150 @@
+{% extends "hcsd/complaints/base.html" %}
+{% block title %}إزالة الحشائش{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px;}
+.stat-card{background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;}
+.stat-num{font-size:22px;font-weight:800;color:var(--ink);font-family:'JetBrains Mono',monospace;line-height:1;}
+.stat-label{font-size:11px;font-weight:600;color:var(--ink-3);}
+.stat-card--total .stat-num{color:var(--accent);}
+
+.db-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.db-search{display:flex;align-items:center;gap:8px;flex:1;min-width:200px;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:0 12px;height:40px;transition:border-color .18s,box-shadow .18s;}
+.db-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08);}
+.db-search input{flex:1;border:none;outline:none;font-size:13px;font-family:inherit;color:var(--ink);background:transparent;}
+
+.filter-tabs{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.filter-tab{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;font-size:12.5px;font-weight:600;text-decoration:none;border:1.5px solid var(--line);color:var(--ink-2);background:#fff;white-space:nowrap;transition:all .15s;}
+.filter-tab:hover{background:var(--surface-2);}
+.filter-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.db-table-wrap{background:#fff;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.db-table{width:100%;border-collapse:collapse;font-size:13px;}
+.db-table thead tr{background:var(--surface-2);border-bottom:1.5px solid var(--line);}
+.db-table th{padding:10px 16px;font-weight:600;font-size:11px;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase;text-align:right;}
+.db-table tbody tr{border-bottom:1px solid var(--line);transition:background .1s;}
+.db-table tbody tr:last-child{border-bottom:none;}
+.db-table tbody tr:hover{background:var(--surface);}
+.db-table td{padding:12px 16px;vertical-align:middle;}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.b-new{background:#eff6ff;color:#1d4ed8;}.b-new::before{background:#3b82f6;}
+.b-insp-assigned{background:#f0f9ff;color:#0369a1;}.b-insp-assigned::before{background:#0ea5e9;}
+.b-insp-done{background:#f0fdf4;color:#15803d;}.b-insp-done::before{background:#22c55e;}
+.b-sup-assigned{background:#faf5ff;color:#7c3aed;}.b-sup-assigned::before{background:#a855f7;}
+.b-wip{background:#fff7ed;color:#c2410c;}.b-wip::before{background:#f97316;}
+.b-done{background:#ecfdf5;color:#065f46;}.b-done::before{background:#10b981;}
+.b-closed{background:#f1f5f9;color:#475569;}.b-closed::before{background:#94a3b8;}
+.b-rejected{background:#fef2f2;color:#dc2626;}.b-rejected::before{background:#f87171;}
+
+.view-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:6px;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;background:var(--accent-bg);border:1.5px solid transparent;transition:all .15s;}
+.view-btn:hover{background:#dbeafe;border-color:#93c5fd;}
+
+.btn-primary-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;font-family:inherit;box-shadow:0 2px 6px rgba(37,99,235,.22);transition:all .15s;}
+.btn-primary-sm:hover{background:var(--accent-dk);transform:translateY(-1px);}
+
+@media(max-width:640px){
+  .stat-strip{grid-template-columns:repeat(2,1fr);}
+  .db-toolbar{flex-direction:column;align-items:stretch;}
+}
+</style>
+{% endblock %}
+
+
+
+{% block content %}
+
+<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:22px;">
+  <div>
+    <h1 class="page-title">إزالة الحشائش</h1>
+    <p class="page-subtitle">جميع طلبات إزالة الحشائش المسجلة في النظام</p>
+  </div>
+  {% if can_manage %}
+  <a href="{% url 'weed_create' %}" class="btn-primary-sm">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    طلب جديد
+  </a>
+  {% endif %}
+</div>
+
+<!-- Stats -->
+<div class="stat-strip">
+  <div class="stat-card stat-card--total">
+    <div class="stat-num">{{ total_count }}</div>
+    <div class="stat-label">الإجمالي</div>
+  </div>
+  <div class="stat-card"><div class="stat-num" style="color:#1d4ed8;">{{ status_counts.new|default:0 }}</div><div class="stat-label">جديدة</div></div>
+  <div class="stat-card"><div class="stat-num" style="color:#f97316;">{{ status_counts.work_in_progress|default:0 }}</div><div class="stat-label">جارٍ</div></div>
+  <div class="stat-card"><div class="stat-num" style="color:#065f46;">{{ status_counts.work_done|default:0 }}</div><div class="stat-label">منتهية</div></div>
+  <div class="stat-card"><div class="stat-num" style="color:#475569;">{{ status_counts.closed|default:0 }}</div><div class="stat-label">مغلقة</div></div>
+</div>
+
+<!-- Toolbar -->
+<form method="get">
+  <div class="db-toolbar">
+    <label class="db-search" style="cursor:text;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" name="q" value="{{ search }}" placeholder="ابحث برقم الشكوى أو الاسم أو المنطقة…">
+    </label>
+    <div class="filter-tabs">
+      <a href="?{% if search %}q={{ search }}&{% endif %}" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">الكل <span style="background:rgba(0,0,0,.08);padding:1px 6px;border-radius:9px;font-size:10px;">{{ total_count }}</span></a>
+      {% for key, label in status_choices %}
+      <a href="?{% if search %}q={{ search }}&{% endif %}status={{ key }}" class="filter-tab {% if status_filter == key %}active{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</form>
+
+{% if requests %}
+<div style="font-size:12px;color:var(--ink-3);font-weight:500;margin-bottom:8px;">{{ requests|length }} نتيجة{% if search %} — لـ "{{ search }}"{% endif %}</div>
+<div class="db-table-wrap">
+  <table class="db-table">
+    <thead>
+      <tr>
+        <th>رقم الشكوى</th>
+        <th>الحالة</th>
+        <th>تاريخ التقديم</th>
+        <th>أضيف بواسطة</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in requests %}
+      <tr>
+        <td>
+          <div style="font-family:'JetBrains Mono',monospace;font-weight:700;">{{ r.complaint_number }}</div>
+          {% if r.area %}<div style="font-size:11px;color:var(--ink-4);margin-top:2px;">{{ r.area }}</div>{% endif %}
+        </td>
+        <td>
+          {% if r.status == 'new' %}<span class="badge b-new">جديد</span>
+          {% elif r.status == 'inspector_assigned' %}<span class="badge b-insp-assigned">بانتظار المفتش</span>
+          {% elif r.status == 'inspection_done' %}<span class="badge b-insp-done">اكتمل التفتيش</span>
+          {% elif r.status == 'supervisor_assigned' %}<span class="badge b-sup-assigned">بانتظار المراقب</span>
+          {% elif r.status == 'work_in_progress' %}<span class="badge b-wip">العمل جارٍ</span>
+          {% elif r.status == 'work_done' %}<span class="badge b-done">تم إنهاء العمل</span>
+          {% elif r.status == 'closed' %}<span class="badge b-closed">مغلق</span>
+          {% elif r.status == 'rejected' %}<span class="badge b-rejected">مرفوض</span>{% endif %}
+        </td>
+        <td style="color:var(--ink-2);white-space:nowrap;">{{ r.created_at|date:"d/m/Y" }}</td>
+        <td style="color:var(--ink-2);">{{ r.created_by.get_full_name|default:r.created_by.username|default:"—" }}</td>
+        <td style="text-align:center;">
+          <a href="{% url 'weed_detail' r.pk %}" class="view-btn">عرض <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div style="text-align:center;padding:72px 24px;color:var(--ink-3);">
+  <div style="width:56px;height:56px;margin:0 auto 16px;background:var(--surface-2);border-radius:16px;display:flex;align-items:center;justify-content:center;">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M7 12s1.5-2 5-2 5 2 5 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+  </div>
+  <p style="font-size:15px;font-weight:700;color:var(--ink-2);margin-bottom:6px;">لا توجد طلبات</p>
+  <p style="font-size:13px;">{% if search %}لا نتائج لـ "{{ search }}"{% elif status_filter != 'all' %}لا يوجد طلبات بهذه الحالة{% else %}لم يتم تسجيل أي طلبات بعد{% endif %}</p>
+</div>
+{% endif %}
+
+{% endblock %}

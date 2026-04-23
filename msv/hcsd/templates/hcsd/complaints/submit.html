@@ -2,163 +2,714 @@
 
 {% block title %}{% if lang == 'en' %}Submit Complaint{% else %}تقديم شكوى{% endif %}{% endblock %}
 
-{% block nav_links %}
-  <a class="nav-link" href="{% url 'complaints_dashboard' %}">
-    {% if lang == 'en' %}Complaints{% else %}الشكاوي{% endif %}
-  </a>
+{% block extra_css %}
+<style>
+/* ── Form shell ─────────────────────────────────────────────────────── */
+.sf-wrap {
+  max-width: 620px;
+}
+
+/* ── Section block ──────────────────────────────────────────────────── */
+.sf-card {
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: 28px 28px 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  margin-bottom: 16px;
+}
+
+.sf-section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1.5px solid var(--line);
+}
+.sf-section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sf-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.sf-section-sub {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin-top: 1px;
+}
+
+/* ── Field ──────────────────────────────────────────────────────────── */
+.sf-field { margin-bottom: 18px; }
+.sf-field:last-child { margin-bottom: 0; }
+
+.sf-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-bottom: 7px;
+  letter-spacing: .01em;
+}
+.sf-label .req { color: #e11d48; font-size: 14px; line-height: 1; }
+
+.sf-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  transition: border-color .18s, box-shadow .18s;
+  box-sizing: border-box;
+}
+.sf-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+.sf-input.has-error { border-color: #e11d48; }
+.sf-input.has-error:focus { box-shadow: 0 0 0 3px rgba(225,29,72,.1); }
+
+.sf-input--lg {
+  height: 52px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: .04em;
+}
+
+textarea.sf-input {
+  height: auto;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.sf-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  font-size: 12px;
+  color: #e11d48;
+  font-weight: 500;
+}
+
+.sf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sf-grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+
+/* ── Pest chips ─────────────────────────────────────────────────────── */
+.pest-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pest-chip {
+  position: relative;
+  cursor: pointer;
+}
+.pest-chip input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.pest-chip__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 22px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: #fff;
+  transition: all .16s;
+  user-select: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pest-chip input:checked ~ .pest-chip__inner {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.pest-chip:hover .pest-chip__inner {
+  border-color: #93c5fd;
+  background: #f0f7ff;
+}
+.pest-chip input:checked ~ .pest-chip__inner .chip-dot {
+  background: var(--accent);
+}
+.chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line-2);
+  flex-shrink: 0;
+  transition: background .16s;
+}
+
+/* ── Upload zone ────────────────────────────────────────────────────── */
+.sf-upload {
+  position: relative;
+  border: 2px dashed var(--line);
+  border-radius: 10px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--surface);
+  transition: border-color .18s, background .18s;
+}
+.sf-upload:hover, .sf-upload.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+.sf-upload input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.sf-upload__icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 10px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.sf-upload__main {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-bottom: 4px;
+}
+.sf-upload__sub {
+  font-size: 11.5px;
+  color: var(--ink-4);
+}
+.sf-upload__name {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: #fff;
+  border: 1.5px solid var(--accent);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ── Actions bar ────────────────────────────────────────────────────── */
+.sf-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .16s, transform .12s, box-shadow .16s;
+  box-shadow: 0 2px 8px rgba(37,99,235,.25);
+}
+.btn-submit:hover {
+  background: var(--accent-dk);
+  box-shadow: 0 4px 14px rgba(37,99,235,.3);
+  transform: translateY(-1px);
+}
+.btn-submit:active { transform: translateY(0); box-shadow: none; }
+
+.btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+  background: #fff;
+  color: var(--ink-2);
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .15s, border-color .15s;
+}
+.btn-cancel:hover { background: var(--surface-2); border-color: var(--line-2); }
+
+/* Global error banner */
+.sf-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 18px;
+  background: #fff1f2;
+  border: 1.5px solid #fecdd3;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #be123c;
+  font-weight: 500;
+}
+
+@media (max-width: 560px) {
+  .sf-card { padding: 20px 16px; }
+  .sf-grid-2 { grid-template-columns: 1fr; }
+  .sf-grid-3 { grid-template-columns: 1fr 1fr; }
+  .sf-wrap { max-width: 100%; }
+  .btn-submit { width: 100%; justify-content: center; }
+}
+</style>
 {% endblock %}
+
+
 
 {% block content %}
 
-<div class="page-header">
+<!-- Page header -->
+<div class="page-header" style="margin-bottom:24px;">
   <h1 class="page-title">{% if lang == 'en' %}Submit New Complaint{% else %}تقديم شكوى جديدة{% endif %}</h1>
-  <p class="page-subtitle">{% if lang == 'en' %}Enter the complaint number and upload the attached file{% else %}أدخل رقم الشكوى وارفع الملف المرفق{% endif %}</p>
+  <p class="page-subtitle">{% if lang == 'en' %}Fill in the form below to register a new complaint{% else %}أكمل البيانات أدناه لتسجيل شكوى جديدة في النظام{% endif %}</p>
 </div>
 
-<div style="max-width:560px;">
-  <div style="background:#fff;border-radius:12px;border:1.5px solid var(--line);padding:32px;box-shadow:var(--shadow-sm);">
-    <form method="post" enctype="multipart/form-data" novalidate>
-      {% csrf_token %}
+<div class="sf-wrap">
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
 
-      <!-- Complaint Number -->
-      <div style="margin-bottom:18px;">
-        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink);">
+    <!-- Global errors -->
+    {% if errors.general %}
+    <div class="sf-error-banner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {{ errors.general }}
+    </div>
+    {% endif %}
+
+    <!-- ① Complaint number ──────────────────────────────────────────── -->
+    <div class="sf-card">
+      <div class="sf-section-label">
+        <div class="sf-section-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div>
+          <div class="sf-section-title">{% if lang == 'en' %}Complaint Info{% else %}معلومات الشكوى{% endif %}</div>
+          <div class="sf-section-sub">{% if lang == 'en' %}Reference number from the system{% else %}الرقم المرجعي للشكوى من النظام{% endif %}</div>
+        </div>
+      </div>
+
+      <div class="sf-field">
+        <label class="sf-label" for="id_complaint_number">
           {% if lang == 'en' %}Complaint Number{% else %}رقم الشكوى{% endif %}
-          <span style="color:#dc2626;">*</span>
+          <span class="req">*</span>
         </label>
-        <input type="text" name="complaint_number" value="{{ form_data.complaint_number|default:'' }}"
-          placeholder="{% if lang == 'en' %}Enter complaint number{% else %}أدخل رقم الشكوى{% endif %}"
+        <input
+          type="text"
+          id="id_complaint_number"
+          name="complaint_number"
+          value="{{ form_data.complaint_number|default:'' }}"
+          placeholder="{% if lang == 'en' %}e.g. 2026-001234{% else %}مثال: 2026-001234{% endif %}"
           dir="ltr"
-          style="width:100%;padding:10px 14px;border:1.5px solid {% if errors.complaint_number %}#dc2626{% else %}var(--line){% endif %};border-radius:8px;font-size:15px;font-family:inherit;outline:none;"
-          onfocus="this.style.borderColor='var(--accent)'"
-          onblur="this.style.borderColor='{% if errors.complaint_number %}#dc2626{% else %}var(--line){% endif %}'">
-        {% if errors.complaint_number %}<p style="color:#dc2626;font-size:12px;margin-top:4px;">{{ errors.complaint_number }}</p>{% endif %}
+          autocomplete="off"
+          class="sf-input sf-input--lg {% if errors.complaint_number %}has-error{% endif %}">
+        {% if errors.complaint_number %}
+        <div class="sf-error">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          {{ errors.complaint_number }}
+        </div>
+        {% endif %}
       </div>
+    </div>
 
-      <!-- Complainant Info -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
-        <div>
-          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">{% if lang == 'en' %}Complainant Name{% else %}اسم المتعامل{% endif %}</label>
-          <input type="text" name="complainant_name" value="{{ form_data.complainant_name|default:'' }}"
-            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+    <!-- ② Complainant info ──────────────────────────────────────────── -->
+    <div class="sf-card">
+      <div class="sf-section-label">
+        <div class="sf-section-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <div>
-          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">{% if lang == 'en' %}Mobile{% else %}رقم الموبايل{% endif %}</label>
-          <input type="text" name="complainant_mobile" value="{{ form_data.complainant_mobile|default:'' }}" dir="ltr"
-            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+          <div class="sf-section-title">{% if lang == 'en' %}Complainant Details{% else %}بيانات المتعامل{% endif %}</div>
+          <div class="sf-section-sub">{% if lang == 'en' %}Personal info and location{% else %}المعلومات الشخصية وموقع الشكوى{% endif %}</div>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:18px;">
+      <div class="sf-grid-2 sf-field">
+        <div class="sf-field" style="margin-bottom:0;">
+          <label class="sf-label" for="id_complainant_name">{% if lang == 'en' %}Full Name{% else %}اسم المتعامل{% endif %}</label>
+          <input type="text" id="id_complainant_name" name="complainant_name"
+            value="{{ form_data.complainant_name|default:'' }}"
+            class="sf-input">
+        </div>
+        <div class="sf-field" style="margin-bottom:0;">
+          <label class="sf-label" for="id_complainant_mobile">{% if lang == 'en' %}Mobile{% else %}رقم الموبايل{% endif %}</label>
+          <input type="text" id="id_complainant_mobile" name="complainant_mobile"
+            value="{{ form_data.complainant_mobile|default:'' }}" dir="ltr"
+            placeholder="05xxxxxxxx"
+            class="sf-input">
+        </div>
+      </div>
+
+      <div class="sf-grid-3">
+        <div class="sf-field" style="margin-bottom:0;">
+          <label class="sf-label" for="id_area">{% if lang == 'en' %}Area{% else %}المنطقة{% endif %}</label>
+          <input type="text" id="id_area" name="area"
+            value="{{ form_data.area|default:'' }}"
+            class="sf-input">
+        </div>
+        <div class="sf-field" style="margin-bottom:0;">
+          <label class="sf-label" for="id_street">{% if lang == 'en' %}Street No.{% else %}رقم الشارع{% endif %}</label>
+          <input type="text" id="id_street" name="street_number"
+            value="{{ form_data.street_number|default:'' }}" dir="ltr"
+            class="sf-input">
+        </div>
+        <div class="sf-field" style="margin-bottom:0;">
+          <label class="sf-label" for="id_house">{% if lang == 'en' %}House No.{% else %}رقم المنزل{% endif %}</label>
+          <input type="text" id="id_house" name="house_number"
+            value="{{ form_data.house_number|default:'' }}" dir="ltr"
+            class="sf-input">
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ Location ──────────────────────────────────────────────────── -->
+    <div class="sf-card">
+      <div class="sf-section-label">
+        <div class="sf-section-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
         <div>
-          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">{% if lang == 'en' %}Area{% else %}المنطقة{% endif %}</label>
-          <input type="text" name="area" value="{{ form_data.area|default:'' }}"
-            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
-        </div>
-        <div>
-          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">{% if lang == 'en' %}Street No.{% else %}رقم الشارع{% endif %}</label>
-          <input type="text" name="street_number" value="{{ form_data.street_number|default:'' }}" dir="ltr"
-            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
-        </div>
-        <div>
-          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--ink-2);">{% if lang == 'en' %}House No.{% else %}رقم المنزل{% endif %}</label>
-          <input type="text" name="house_number" value="{{ form_data.house_number|default:'' }}" dir="ltr"
-            style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'">
+          <div class="sf-section-title">{% if lang == 'en' %}Location{% else %}موقع الشكوى{% endif %} <span style="font-weight:400;color:var(--ink-3);font-size:12px;"> — {% if lang == 'en' %}optional{% else %}اختياري{% endif %}</span></div>
+          <div class="sf-section-sub">{% if lang == 'en' %}Use GPS or paste a map link{% else %}استخدم GPS أو الصق رابط الموقع من واتساب / خرائط{% endif %}</div>
         </div>
       </div>
 
-      <!-- Pest Types -->
-      <div style="margin-bottom:18px;">
-        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:10px;color:var(--ink);">
-          {% if lang == 'en' %}Type of Pest{% else %}نوع الآفة{% endif %}
-        </label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          {% for key, label in pest_choices %}
-          <label style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid var(--line);border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-2);transition:all .15s;"
-            onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor=this.querySelector('input').checked?'var(--accent)':'var(--line)'">
-            <input type="checkbox" name="pest_types" value="{{ key }}"
-              {% if key in form_data.pest_types %}checked{% endif %}
-              style="accent-color:var(--accent);"
-              onchange="this.closest('label').style.borderColor=this.checked?'var(--accent)':'var(--line)';this.closest('label').style.background=this.checked?'var(--accent-bg)':'';this.closest('label').style.color=this.checked?'var(--accent)':'var(--ink-2)';">
-            {{ label }}
-          </label>
-          {% endfor %}
-        </div>
-      </div>
+      <!-- Hidden coordinate inputs submitted with the form -->
+      <input type="hidden" id="id_latitude"  name="latitude"  value="{{ form_data.latitude|default:'' }}">
+      <input type="hidden" id="id_longitude" name="longitude" value="{{ form_data.longitude|default:'' }}">
 
-      <!-- PDF File (optional) -->
-      <div style="margin-bottom:18px;">
-        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink);">
-          {% if lang == 'en' %}Complaint File (PDF){% else %}ملف الشكوى (PDF){% endif %}
-          <span style="color:var(--ink-3);font-weight:400;">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</span>
-        </label>
-        <label for="pdf_file_input" id="drop-zone"
-          style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;border:2px dashed {% if errors.pdf_file %}#dc2626{% else %}var(--line){% endif %};border-radius:10px;cursor:pointer;background:var(--surface);">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-          </svg>
-          <span id="file-label" style="font-size:12px;color:var(--ink-3);">{% if lang == 'en' %}Click to select a PDF{% else %}اضغط لاختيار ملف PDF{% endif %}</span>
-          <input type="file" id="pdf_file_input" name="pdf_file" accept=".pdf" style="display:none;" onchange="updateFileLabel(this)">
-        </label>
-        {% if errors.pdf_file %}<p style="color:#dc2626;font-size:12px;margin-top:4px;">{{ errors.pdf_file }}</p>{% endif %}
-      </div>
-
-      <!-- Notes -->
-      <div style="margin-bottom:24px;">
-        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink);">
-          {% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}
-          <span style="color:var(--ink-3);font-weight:400;">({% if lang == 'en' %}optional{% else %}اختياري{% endif %})</span>
-        </label>
-        <textarea name="notes" rows="3"
-          placeholder="{% if lang == 'en' %}Add any additional notes…{% else %}أضف أي ملاحظات إضافية…{% endif %}"
-          style="width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;direction:{% if lang == 'en' %}ltr{% else %}rtl{% endif %};resize:vertical;outline:none;"
-          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line)'"
-        >{{ form_data.notes|default:'' }}</textarea>
-      </div>
-
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button type="submit" style="padding:11px 28px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">
-          {% if lang == 'en' %}Submit Complaint{% else %}تقديم الشكوى{% endif %}
+      <!-- GPS button -->
+      <div class="sf-field">
+        <button type="button" id="btn-gps"
+          style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--accent-bg);color:var(--accent);border:1.5px solid #bfdbfe;border-radius:9px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          {% if lang == 'en' %}Get My Location{% else %}تحديد موقعي تلقائياً{% endif %}
         </button>
-        <a href="{% url 'complaints_dashboard' %}" style="padding:11px 20px;background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">
-          {% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}
-        </a>
+        <div id="gps-status" style="display:none;margin-top:8px;font-size:12.5px;font-weight:500;"></div>
       </div>
 
-    </form>
-  </div>
+      <!-- Paste map link -->
+      <div class="sf-field">
+        <label class="sf-label" for="id_map_link">{% if lang == 'en' %}Or paste a map link{% else %}أو الصق رابط الخريطة{% endif %}</label>
+        <input type="text" id="id_map_link" dir="ltr" placeholder="https://maps.google.com/?q=25.3548,55.4209  أو  https://maps.app.goo.gl/…"
+          class="sf-input" style="font-size:12px;"
+          autocomplete="off">
+        <div id="link-status" style="display:none;margin-top:5px;font-size:12px;font-weight:500;"></div>
+      </div>
+
+      <!-- Coordinates display -->
+      <div id="coords-display" style="display:none;padding:12px 14px;background:var(--surface-2);border-radius:9px;border:1.5px solid var(--line);margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--ink-3);margin-bottom:6px;letter-spacing:.04em;">{% if lang == 'en' %}COORDINATES{% else %}الإحداثيات{% endif %}</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+          <div>
+            <span style="font-size:11px;color:var(--ink-4);">{% if lang == 'en' %}Latitude{% else %}خط العرض{% endif %}</span>
+            <div id="disp-lat" style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--ink);"></div>
+          </div>
+          <div>
+            <span style="font-size:11px;color:var(--ink-4);">{% if lang == 'en' %}Longitude{% else %}خط الطول{% endif %}</span>
+            <div id="disp-lng" style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--ink);"></div>
+          </div>
+          <div style="margin-{% if lang == 'en' %}left{% else %}right{% endif %}:auto;align-self:flex-end;">
+            <a id="maps-link" href="#" target="_blank" rel="noopener"
+              style="font-size:12px;color:var(--accent);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              {% if lang == 'en' %}View on map{% else %}عرض على الخريطة{% endif %}
+            </a>
+            <button type="button" id="btn-clear-loc"
+              style="margin-{% if lang == 'en' %}left{% else %}right{% endif %}:10px;font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">
+              {% if lang == 'en' %}Clear{% else %}حذف{% endif %}
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ④ Pest types ────────────────────────────────────────────────── -->
+    <div class="sf-card">
+      <div class="sf-section-label">
+        <div class="sf-section-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div>
+          <div class="sf-section-title">{% if lang == 'en' %}Type of Pest{% else %}نوع الآفة{% endif %}</div>
+          <div class="sf-section-sub">{% if lang == 'en' %}Select all that apply{% else %}حدد نوع الآفة — يمكن اختيار أكثر من نوع{% endif %}</div>
+        </div>
+      </div>
+
+      <div class="pest-grid">
+        {% for key, label in pest_choices %}
+        <label class="pest-chip">
+          <input type="checkbox" name="pest_types" value="{{ key }}"
+            {% if key in form_data.pest_types %}checked{% endif %}>
+          <span class="pest-chip__inner">
+            <span class="chip-dot"></span>
+            {{ label }}
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ④ File upload ───────────────────────────────────────────────── -->
+    <div class="sf-card">
+      <div class="sf-section-label">
+        <div class="sf-section-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div>
+          <div class="sf-section-title">
+            {% if lang == 'en' %}Complaint File{% else %}ملف الشكوى{% endif %}
+            <span style="font-weight:400;color:var(--ink-3);font-size:12px;"> — {% if lang == 'en' %}optional{% else %}اختياري{% endif %}</span>
+          </div>
+          <div class="sf-section-sub">{% if lang == 'en' %}Attach a PDF file if available{% else %}أرفق ملف PDF إن وجد{% endif %}</div>
+        </div>
+      </div>
+
+      <div class="sf-upload {% if errors.pdf_file %}has-error{% endif %}" id="drop-zone">
+        <input type="file" name="pdf_file" id="pdf_file_input" accept=".pdf">
+        <div class="sf-upload__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="sf-upload__main">{% if lang == 'en' %}Drag & drop or click to select{% else %}اسحب الملف أو اضغط للاختيار{% endif %}</div>
+        <div class="sf-upload__sub">PDF — {% if lang == 'en' %}max 10 MB{% else %}الحجم الأقصى 10 ميغابايت{% endif %}</div>
+        <div class="sf-upload__name" id="file-name-badge" style="display:none;"></div>
+      </div>
+      {% if errors.pdf_file %}
+      <div class="sf-error" style="margin-top:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ errors.pdf_file }}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ⑤ Notes ─────────────────────────────────────────────────────── -->
+    <div class="sf-card">
+      <div class="sf-section-label">
+        <div class="sf-section-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <div>
+          <div class="sf-section-title">
+            {% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}
+            <span style="font-weight:400;color:var(--ink-3);font-size:12px;"> — {% if lang == 'en' %}optional{% else %}اختياري{% endif %}</span>
+          </div>
+          <div class="sf-section-sub">{% if lang == 'en' %}Any additional information{% else %}أي معلومات إضافية تود الإضافة{% endif %}</div>
+        </div>
+      </div>
+
+      <div class="sf-field" style="margin-bottom:0;">
+        <label class="sf-label" for="id_notes" style="display:none;">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</label>
+        <textarea
+          id="id_notes"
+          name="notes"
+          rows="3"
+          placeholder="{% if lang == 'en' %}Add any additional notes…{% else %}أضف أي ملاحظات إضافية…{% endif %}"
+          class="sf-input"
+          style="height:auto;">{{ form_data.notes|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="sf-actions" style="padding-bottom:16px;">
+      <button type="submit" class="btn-submit">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        {% if lang == 'en' %}Submit Complaint{% else %}تقديم الشكوى{% endif %}
+      </button>
+      <a href="{% url 'complaints_dashboard' %}" class="btn-cancel">
+        {% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}
+      </a>
+    </div>
+
+  </form>
 </div>
 
 <script>
-function updateFileLabel(input) {
-  var label = document.getElementById('file-label');
-  if (input.files && input.files[0]) {
-    label.textContent = input.files[0].name;
-    label.style.color = 'var(--accent)';
-    label.style.fontWeight = '600';
+(function () {
+  // ── PDF drop zone ──────────────────────────────────────────────────────
+  var input = document.getElementById('pdf_file_input');
+  var badge = document.getElementById('file-name-badge');
+  var zone  = document.getElementById('drop-zone');
+
+  function setFile(name) {
+    badge.style.display = 'inline-flex';
+    badge.textContent = name;
+    zone.style.borderColor = 'var(--accent)';
+    zone.style.background  = 'var(--accent-bg)';
   }
-}
-var dz = document.getElementById('drop-zone');
-dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.style.borderColor='var(--accent)'; });
-dz.addEventListener('dragleave', function() { dz.style.borderColor='var(--line)'; });
-dz.addEventListener('drop', function(e) {
-  e.preventDefault();
-  dz.style.borderColor = 'var(--line)';
-  var file = e.dataTransfer.files[0];
-  if (file) {
-    var inp = document.getElementById('pdf_file_input');
-    var dt = new DataTransfer();
-    dt.items.add(file);
-    inp.files = dt.files;
-    updateFileLabel(inp);
+
+  input.addEventListener('change', function () {
+    if (this.files && this.files[0]) setFile(this.files[0].name);
+  });
+
+  zone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    this.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', function () {
+    this.classList.remove('drag-over');
+  });
+  zone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+    var file = e.dataTransfer.files[0];
+    if (file) {
+      var dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      setFile(file.name);
+    }
+  });
+
+  // ── Geolocation ────────────────────────────────────────────────────────
+  var latInput  = document.getElementById('id_latitude');
+  var lngInput  = document.getElementById('id_longitude');
+  var display   = document.getElementById('coords-display');
+  var dispLat   = document.getElementById('disp-lat');
+  var dispLng   = document.getElementById('disp-lng');
+  var mapsLink  = document.getElementById('maps-link');
+  var gpsStatus = document.getElementById('gps-status');
+  var linkStatus= document.getElementById('link-status');
+
+  function applyCoords(lat, lng) {
+    var latR = parseFloat(lat).toFixed(6);
+    var lngR = parseFloat(lng).toFixed(6);
+    latInput.value = latR;
+    lngInput.value = lngR;
+    dispLat.textContent = latR;
+    dispLng.textContent = lngR;
+    mapsLink.href = 'https://www.google.com/maps?q=' + latR + ',' + lngR;
+    display.style.display = 'block';
   }
-});
+
+  function clearCoords() {
+    latInput.value = '';
+    lngInput.value = '';
+    display.style.display = 'none';
+    gpsStatus.style.display = 'none';
+    linkStatus.style.display = 'none';
+    document.getElementById('id_map_link').value = '';
+  }
+
+  // Restore saved coords on page load (validation re-render)
+  if (latInput.value && lngInput.value) {
+    applyCoords(latInput.value, lngInput.value);
+  }
+
+  // GPS button
+  document.getElementById('btn-gps').addEventListener('click', function () {
+    if (!navigator.geolocation) {
+      gpsStatus.style.display = 'block';
+      gpsStatus.style.color = '#dc2626';
+      gpsStatus.textContent = '{% if lang == "en" %}Geolocation not supported by this browser.{% else %}المتصفح لا يدعم تحديد الموقع.{% endif %}';
+      return;
+    }
+    gpsStatus.style.display = 'block';
+    gpsStatus.style.color = 'var(--ink-3)';
+    gpsStatus.textContent = '{% if lang == "en" %}Detecting location…{% else %}جاري تحديد الموقع…{% endif %}';
+
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        applyCoords(pos.coords.latitude, pos.coords.longitude);
+        gpsStatus.style.color = '#16a34a';
+        gpsStatus.textContent = '{% if lang == "en" %}Location detected successfully.{% else %}تم تحديد الموقع بنجاح ✓{% endif %}';
+      },
+      function (err) {
+        gpsStatus.style.color = '#dc2626';
+        var msg = {
+          1: '{% if lang == "en" %}Permission denied. Please allow location access.{% else %}تم رفض الإذن. يرجى السماح بالوصول للموقع.{% endif %}',
+          2: '{% if lang == "en" %}Location unavailable.{% else %}تعذّر تحديد الموقع.{% endif %}',
+          3: '{% if lang == "en" %}Request timed out.{% else %}انتهت مهلة الطلب.{% endif %}',
+        };
+        gpsStatus.textContent = msg[err.code] || '{% if lang == "en" %}Unknown error.{% else %}خطأ غير معروف.{% endif %}';
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  });
+
+  // Parse map link (Google Maps / WhatsApp / goo.gl shortened)
+  function extractCoordsFromUrl(url) {
+    // Formats:
+    // maps.google.com/?q=lat,lng
+    // maps.google.com/maps?q=lat,lng
+    // google.com/maps/place/.../@lat,lng,zoom
+    // maps.app.goo.gl/... (shortened — can't resolve without fetch, skip)
+    var patterns = [
+      /[?&]q=([-\d.]+),([-\d.]+)/,
+      /@([-\d.]+),([-\d.]+)/,
+      /ll=([-\d.]+),([-\d.]+)/,
+    ];
+    for (var i = 0; i < patterns.length; i++) {
+      var m = url.match(patterns[i]);
+      if (m) return { lat: m[1], lng: m[2] };
+    }
+    return null;
+  }
+
+  document.getElementById('id_map_link').addEventListener('input', function () {
+    var val = this.value.trim();
+    if (!val) { linkStatus.style.display = 'none'; return; }
+
+    var result = extractCoordsFromUrl(val);
+    linkStatus.style.display = 'block';
+    if (result) {
+      applyCoords(result.lat, result.lng);
+      linkStatus.style.color = '#16a34a';
+      linkStatus.textContent = '{% if lang == "en" %}Coordinates extracted ✓{% else %}تم استخراج الإحداثيات ✓{% endif %}';
+    } else {
+      linkStatus.style.color = '#c2410c';
+      linkStatus.textContent = '{% if lang == "en" %}Could not read coordinates from this link. Try a full Google Maps URL.{% else %}تعذّر قراءة الإحداثيات. جرب نسخ الرابط الكامل من خرائط جوجل.{% endif %}';
+    }
+  });
+
+  // Clear button
+  document.getElementById('btn-clear-loc').addEventListener('click', clearCoords);
+})();
 </script>
 
 {% endblock %}

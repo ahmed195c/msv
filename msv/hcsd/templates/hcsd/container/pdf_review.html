@@ -1,0 +1,86 @@
+{% extends "hcsd/complaints/base.html" %}
+
+{% block title %}مراجعة بيانات طلب الحاوية{% endblock %}
+
+
+
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">مراجعة البيانات المستخرجة</h1>
+  <p class="page-subtitle">راجع البيانات المستخرجة من الملف، عدّل ما تحتاج، ثم أكّد الحفظ</p>
+</div>
+
+<div style="max-width:620px;">
+
+  <!-- PDF source banner -->
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;margin-bottom:18px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <div>
+      <span style="font-size:11px;font-weight:700;color:#15803d;display:block;">البيانات مستخرجة من</span>
+      <span style="font-size:13px;color:#166534;font-weight:500;">{{ pdf_original_name }}</span>
+    </div>
+    <a href="{% url 'container_pdf_import' %}" style="margin-right:auto;font-size:12px;color:#16a34a;text-decoration:none;font-weight:600;white-space:nowrap;padding:4px 10px;border:1px solid #bbf7d0;border-radius:6px;">
+      رفع ملف آخر
+    </a>
+  </div>
+
+  <div class="c-card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <p style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;">معلومات الطلب</p>
+
+      <div class="f-row">
+        <label class="f-label">رقم الشكوى <span style="color:#dc2626;">*</span></label>
+        <input type="text" name="complaint_number" value="{{ form_data.complaint_number|default:'' }}" dir="ltr"
+          class="f-input" style="border-color:{% if errors.complaint_number %}#dc2626{% else %}var(--line){% endif %};">
+        {% if errors.complaint_number %}<p style="color:#dc2626;font-size:12px;margin-top:4px;">{{ errors.complaint_number }}</p>{% endif %}
+      </div>
+
+      <hr style="border:none;border-top:1.5px solid var(--line);margin:20px 0;">
+      <p style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;">بيانات المتعامل</p>
+
+      <div class="f-grid-2">
+        <div class="f-row">
+          <label class="f-label">الاسم</label>
+          <input type="text" name="complainant_name" value="{{ form_data.complainant_name|default:'' }}" class="f-input">
+        </div>
+        <div class="f-row">
+          <label class="f-label">رقم الموبايل</label>
+          <input type="text" name="complainant_mobile" value="{{ form_data.complainant_mobile|default:'' }}" dir="ltr" class="f-input">
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1.5px solid var(--line);margin:20px 0;">
+      <p style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;">الموقع</p>
+
+      <div class="f-grid-2">
+        <div class="f-row">
+          <label class="f-label">المنطقة</label>
+          <input type="text" name="area" value="{{ form_data.area|default:'' }}" class="f-input">
+        </div>
+        <div class="f-row">
+          <label class="f-label">رقم المنزل</label>
+          <input type="text" name="house_number" value="{{ form_data.house_number|default:'' }}" dir="ltr" class="f-input">
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1.5px solid var(--line);margin:20px 0;">
+      <p style="font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;">تفاصيل الطلب</p>
+
+      <div class="f-row" style="margin-bottom:26px;">
+        <textarea name="notes" rows="4" class="f-textarea" placeholder="تفاصيل الطلب والملاحظات…">{{ form_data.notes|default:'' }}</textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;padding-top:16px;border-top:1.5px solid var(--line);">
+        <button type="submit" class="btn-primary" style="flex:1;">
+          ✓ تأكيد وحفظ الطلب
+        </button>
+        <a href="{% url 'container_pdf_import' %}" class="btn-secondary">رجوع</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

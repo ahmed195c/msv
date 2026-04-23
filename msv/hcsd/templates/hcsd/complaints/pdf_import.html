@@ -1,0 +1,133 @@
+{% extends "hcsd/complaints/base.html" %}
+
+{% block title %}{% if lang == 'en' %}Import Complaint from PDF{% else %}استيراد شكوى من PDF{% endif %}{% endblock %}
+
+
+
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">{% if lang == 'en' %}Import Complaint from PDF{% else %}استيراد شكوى من ملف PDF{% endif %}</h1>
+  <p class="page-subtitle">{% if lang == 'en' %}Upload the municipality complaint PDF and we'll extract the data automatically{% else %}ارفع ملف الشكوى الصادر من البلدية وسيتم استخراج البيانات تلقائياً{% endif %}</p>
+</div>
+
+<div style="max-width:520px;">
+  <div style="background:#fff;border-radius:12px;border:1.5px solid var(--line);padding:36px;box-shadow:var(--shadow-sm);">
+
+    <!-- Info banner -->
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;margin-bottom:28px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p style="font-size:13px;color:#1d4ed8;margin:0;line-height:1.7;">
+        {% if lang == 'en' %}
+          The system will read the PDF and extract complaint data. You'll be able to review and edit all fields before saving.
+        {% else %}
+          سيقوم النظام بقراءة الملف واستخراج بيانات الشكوى تلقائياً. ستتمكن من مراجعة جميع الحقول وتعديلها قبل الحفظ.
+        {% endif %}
+      </p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <div style="margin-bottom:28px;">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px;color:var(--ink);">
+          {% if lang == 'en' %}Complaint PDF File{% else %}ملف الشكوى (PDF){% endif %}
+          <span style="color:#dc2626;">*</span>
+        </label>
+
+        <label for="pdf_file_input" id="drop-zone"
+          style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:36px 20px;border:2px dashed {% if error %}#dc2626{% else %}var(--line-2){% endif %};border-radius:12px;cursor:pointer;background:var(--surface);transition:all .2s;">
+          <div id="dz-icon" style="width:52px;height:52px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <polyline points="9 15 12 12 15 15"/>
+            </svg>
+          </div>
+          <div style="text-align:center;">
+            <span id="file-label-main" style="display:block;font-size:14px;font-weight:600;color:var(--accent);">
+              {% if lang == 'en' %}Click to select PDF{% else %}اضغط لاختيار ملف PDF{% endif %}
+            </span>
+            <span style="display:block;font-size:12px;color:var(--ink-4);margin-top:3px;">
+              {% if lang == 'en' %}or drag and drop here{% else %}أو اسحب الملف وأفلته هنا{% endif %}
+            </span>
+          </div>
+          <input type="file" id="pdf_file_input" name="pdf_file" accept=".pdf" style="display:none;" onchange="onFileSelected(this)">
+        </label>
+
+        {% if error %}
+          <p style="color:#dc2626;font-size:12px;margin-top:6px;display:flex;align-items:center;gap:5px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {{ error }}
+          </p>
+        {% endif %}
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button type="submit" id="submit-btn"
+          style="flex:1;padding:12px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          {% if lang == 'en' %}Read & Extract Data{% else %}قراءة واستخراج البيانات{% endif %}
+        </button>
+        <a href="{% url 'complaints_dashboard' %}"
+          style="padding:12px 18px;background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;">
+          {% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function onFileSelected(input) {
+  var label = document.getElementById('file-label-main');
+  var zone  = document.getElementById('drop-zone');
+  if (input.files && input.files[0]) {
+    label.textContent = input.files[0].name;
+    label.style.color = 'var(--success)';
+    zone.style.borderColor = 'var(--success)';
+    zone.style.background = '#f0fdf4';
+  }
+}
+
+var dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  dz.style.borderColor = 'var(--accent)';
+  dz.style.background = 'var(--accent-bg)';
+});
+dz.addEventListener('dragleave', function() {
+  dz.style.borderColor = 'var(--line-2)';
+  dz.style.background = 'var(--surface)';
+});
+dz.addEventListener('drop', function(e) {
+  e.preventDefault();
+  dz.style.borderColor = 'var(--line-2)';
+  dz.style.background = 'var(--surface)';
+  var file = e.dataTransfer.files[0];
+  if (file) {
+    var inp = document.getElementById('pdf_file_input');
+    var dt  = new DataTransfer();
+    dt.items.add(file);
+    inp.files = dt.files;
+    onFileSelected(inp);
+  }
+});
+
+document.querySelector('form').addEventListener('submit', function() {
+  var btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" opacity=".25"/><path d="M21 12a9 9 0 0 1-9 9"/></svg> {% if lang == "en" %}Reading…{% else %}جاري القراءة…{% endif %}';
+});
+</script>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+{% endblock %}

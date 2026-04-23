@@ -1,0 +1,457 @@
+{% extends "hcsd/complaints/base.html" %}
+
+{% block title %}طلب حاوية #{{ obj.complaint_number }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.wf-timeline { display:flex; align-items:flex-start; gap:0; margin-bottom:28px; overflow-x:auto; padding-bottom:4px; }
+.wf-step { display:flex; flex-direction:column; align-items:center; flex:1; min-width:80px; position:relative; }
+.wf-step:not(:last-child)::after { content:''; position:absolute; top:14px; width:100%; height:2px; background:var(--line); left:50%; z-index:0; }
+.wf-step.done::after  { background:#16a34a; }
+.wf-dot { width:28px; height:28px; border-radius:50%; border:2px solid var(--line-2); background:#fff; z-index:1; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--ink-3); }
+.wf-step.done .wf-dot  { background:#16a34a; border-color:#16a34a; color:#fff; }
+.wf-step.active .wf-dot { background:#fff; border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 3px var(--accent-bg); }
+.wf-label { font-size:10px; color:var(--ink-3); margin-top:6px; text-align:center; line-height:1.3; }
+.wf-step.done .wf-label  { color:#16a34a; font-weight:600; }
+.wf-step.active .wf-label { color:var(--accent); font-weight:600; }
+
+.c-card { background:#fff; border-radius:12px; border:1.5px solid var(--line); padding:24px; box-shadow:var(--shadow-sm); margin-bottom:20px; }
+.c-card-title { font-size:14px; font-weight:700; color:var(--ink); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+.c-badge { padding:3px 11px; border-radius:10px; font-size:11px; font-weight:700; }
+.badge-new        { background:#eff6ff; color:#1d4ed8; }
+.badge-inspector  { background:#f0f9ff; color:#0369a1; }
+.badge-done-insp  { background:#f0fdf4; color:#15803d; }
+.badge-supervisor { background:#faf5ff; color:#7c3aed; }
+.badge-inprogress { background:#fff7ed; color:#c2410c; }
+.badge-resolved   { background:#f0fdf4; color:#15803d; }
+.badge-closed     { background:#f1f5f9; color:#475569; }
+
+.meta-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; }
+.meta-item-label { font-size:11px; color:var(--ink-3); font-weight:600; margin-bottom:3px; }
+.meta-item-value { font-size:14px; font-weight:500; color:var(--ink); }
+
+.f-label { font-size:12px; font-weight:600; color:var(--ink-2); margin-bottom:5px; display:block; }
+.f-input, .f-textarea, .f-select { width:100%; padding:9px 12px; border:1.5px solid var(--line); border-radius:8px; font-size:14px; font-family:inherit; outline:none; background:#fff; direction:rtl; transition:border-color .15s; }
+.f-input:focus, .f-textarea:focus, .f-select:focus { border-color:var(--accent); }
+.f-row { margin-bottom:14px; }
+.f-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.btn-primary { padding:10px 22px; background:var(--accent); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; }
+.btn-secondary { padding:10px 22px; background:#fff; color:var(--ink-2); border:1.5px solid var(--line); border-radius:8px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; text-decoration:none; display:inline-block; }
+.btn-done { padding:10px 22px; background:#15803d; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; }
+.btn-reject { padding:10px 20px; background:#fff; color:#dc2626; border:1.5px solid #fca5a5; border-radius:8px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; transition:all .15s; }
+.btn-reject:hover { background:#fef2f2; border-color:#dc2626; }
+
+/* Reject modal overlay */
+.reject-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; align-items:center; justify-content:center; padding:20px; }
+.reject-modal.open { display:flex; }
+.reject-box { background:#fff; border-radius:14px; padding:28px; max-width:480px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.reject-box-title { font-size:16px; font-weight:700; color:#dc2626; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+.reject-box-sub { font-size:13px; color:var(--ink-3); margin-bottom:20px; }
+.reject-box textarea { width:100%; padding:10px 14px; border:1.5px solid var(--line); border-radius:8px; font-size:14px; font-family:inherit; direction:rtl; resize:vertical; outline:none; transition:border-color .15s; box-sizing:border-box; }
+.reject-box textarea:focus { border-color:#dc2626; }
+.reject-box-actions { display:flex; gap:10px; margin-top:14px; justify-content:flex-end; }
+.btn-cancel-modal { padding:9px 18px; background:#fff; color:var(--ink-2); border:1.5px solid var(--line); border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+
+.photo-grid { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+.photo-thumb { position:relative; width:100px; height:100px; border-radius:8px; overflow:hidden; border:1.5px solid var(--line); flex-shrink:0; }
+.photo-thumb img { width:100%; height:100%; object-fit:cover; }
+.photo-thumb-del { position:absolute; top:3px; right:3px; background:rgba(0,0,0,.55); border:none; border-radius:4px; color:#fff; font-size:11px; cursor:pointer; padding:2px 6px; line-height:1.4; }
+
+.upload-zone { border:2px dashed var(--line-2); border-radius:8px; padding:14px; text-align:center; cursor:pointer; background:var(--surface); transition:border-color .15s; }
+.upload-zone:hover { border-color:var(--accent); }
+
+.action-card { border-radius:12px; padding:22px; box-shadow:var(--shadow-sm); margin-bottom:16px; }
+@media(max-width:720px){ .f-grid-2{grid-template-columns:1fr;} .meta-grid{grid-template-columns:1fr 1fr;} }
+</style>
+{% endblock %}
+
+
+
+{% block content %}
+
+<!-- Back + Title -->
+<div class="page-header" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;">
+  <a href="{% url 'container_list' %}" style="color:var(--ink-3);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:4px;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    نقل الحاويات
+  </a>
+  <div style="flex:1;">
+    <h1 class="page-title">طلب نقل حاوية #{{ obj.complaint_number }}</h1>
+    <p class="page-subtitle">{{ obj.created_at|date:"d/m/Y — H:i" }}</p>
+  </div>
+  {% if obj.status == 'new' %}<span class="c-badge badge-new">جديد</span>
+  {% elif obj.status == 'assigned' %}<span class="c-badge badge-inspector">بانتظار المفتش</span>
+  {% elif obj.status == 'location_saved' %}<span class="c-badge badge-done-insp">تم حفظ الموقع</span>
+  {% elif obj.status == 'biaa_contacted' %}<span class="c-badge badge-supervisor">تم التواصل مع بيئة</span>
+  {% elif obj.status == 'biaa_transferred' %}<span class="c-badge badge-inprogress">تم نقل الحاوية</span>
+  {% elif obj.status == 'report_submitted' %}<span class="c-badge badge-resolved">تم تقديم التقرير</span>
+  {% elif obj.status == 'closed' %}<span class="c-badge badge-closed">مغلق</span>
+  {% elif obj.status == 'rejected' %}<span class="c-badge" style="background:#fef2f2;color:#dc2626;">مرفوض</span>{% endif %}
+</div>
+
+<!-- ═══ Workflow Timeline ═══ -->
+{% with s=obj.status %}
+<div class="wf-timeline">
+  {% for step_key, step_label in status_choices %}
+  <div class="wf-step
+    {% if step_key == 'new' and s != 'new' %}done
+    {% elif step_key == 'assigned' and s in 'location_saved,biaa_contacted,biaa_transferred,report_submitted,closed' %}done
+    {% elif step_key == 'location_saved' and s in 'biaa_contacted,biaa_transferred,report_submitted,closed' %}done
+    {% elif step_key == 'biaa_contacted' and s in 'biaa_transferred,report_submitted,closed' %}done
+    {% elif step_key == 'biaa_transferred' and s in 'report_submitted,closed' %}done
+    {% elif step_key == 'report_submitted' and s == 'closed' %}done
+    {% elif step_key == s %}active{% endif %}">
+    <div class="wf-dot">
+      {% if step_key == 'new' and s != 'new' %}✓
+      {% elif step_key == 'assigned' and s in 'location_saved,biaa_contacted,biaa_transferred,report_submitted,closed' %}✓
+      {% elif step_key == 'location_saved' and s in 'biaa_contacted,biaa_transferred,report_submitted,closed' %}✓
+      {% elif step_key == 'biaa_contacted' and s in 'biaa_transferred,report_submitted,closed' %}✓
+      {% elif step_key == 'biaa_transferred' and s in 'report_submitted,closed' %}✓
+      {% elif step_key == 'report_submitted' and s == 'closed' %}✓
+      {% else %}{{ forloop.counter }}{% endif %}
+    </div>
+    <div class="wf-label">{{ step_label }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endwith %}
+
+<!-- ═══ Request Info ═══ -->
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4m0-10v10"/></svg>
+    بيانات الطلب
+  </div>
+  <div class="meta-grid" style="margin-bottom:16px;">
+    <div><div class="meta-item-label">رقم الشكوى</div><div class="meta-item-value" style="font-family:monospace;font-size:16px;">{{ obj.complaint_number }}</div></div>
+    <div><div class="meta-item-label">تاريخ التقديم</div><div class="meta-item-value">{{ obj.created_at|date:"d/m/Y" }}</div></div>
+    <div><div class="meta-item-label">أضيف بواسطة</div><div class="meta-item-value">{{ obj.created_by.get_full_name|default:obj.created_by.username|default:"—" }}</div></div>
+    <div><div class="meta-item-label">آخر تحديث</div><div class="meta-item-value">{{ obj.updated_at|date:"d/m/Y" }}</div></div>
+  </div>
+
+  {% if obj.complainant_name or obj.area %}
+  <div class="meta-grid" style="margin-bottom:16px;padding-top:14px;border-top:1px solid var(--line);">
+    {% if obj.complainant_name %}<div><div class="meta-item-label">المتعامل</div><div class="meta-item-value">{{ obj.complainant_name }}</div></div>{% endif %}
+    {% if obj.complainant_mobile %}<div><div class="meta-item-label">الموبايل</div><div class="meta-item-value" dir="ltr">{{ obj.complainant_mobile }}</div></div>{% endif %}
+    {% if obj.area %}<div><div class="meta-item-label">المنطقة</div><div class="meta-item-value">{{ obj.area }}</div></div>{% endif %}
+    {% if obj.house_number %}<div><div class="meta-item-label">رقم المنزل</div><div class="meta-item-value">{{ obj.house_number }}</div></div>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if obj.notes %}<div style="border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--ink-2);line-height:1.7;">{{ obj.notes }}</div>{% endif %}
+
+  {% if obj.pdf_file %}
+  <div style="margin-top:14px;">
+    <a href="{{ obj.pdf_file.url }}" target="_blank" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:var(--surface);border:1.5px solid var(--line);border-radius:7px;color:var(--accent);font-weight:600;font-size:12px;text-decoration:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      عرض ملف PDF
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ═══ Step 1: Assign Inspector ═══ -->
+{% if obj.status == 'new' and can_manage %}
+<div class="action-card" style="background:#fff;border:1.5px solid #fde68a;">
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fefce8;border-radius:8px;margin-bottom:16px;">
+    <div style="width:28px;height:28px;background:#fde68a;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#92400e;flex-shrink:0;">①</div>
+    <span style="font-size:14px;font-weight:700;color:#78350f;">تعيين مفتش للطلب</span>
+  </div>
+  <form method="post" action="{% url 'container_assign_inspector' obj.pk %}">
+    {% csrf_token %}
+    <div style="display:flex;gap:10px;align-items:flex-end;">
+      <div style="flex:1;">
+        <label class="f-label">اختر المفتش</label>
+        <select name="inspector_id" class="f-select">
+          <option value="">— اختر مفتشاً —</option>
+          {% for u in staff_users %}
+          <option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn-primary">تعيين</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<!-- ═══ Step 2: Save Location + Before Photos ═══ -->
+{% if obj.status == 'assigned' and is_inspector %}
+<div class="action-card" style="background:#fff;border:1.5px solid #ddd6fe;">
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f5f3ff;border-radius:8px;margin-bottom:18px;">
+    <div style="width:28px;height:28px;background:#ddd6fe;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#5b21b6;flex-shrink:0;">②</div>
+    <span style="font-size:14px;font-weight:700;color:#4c1d95;">حفظ إحداثيات الموقع وصور ما قبل النقل</span>
+  </div>
+  <form method="post" action="{% url 'container_save_location' obj.pk %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="f-grid-2">
+      <div class="f-row">
+        <label class="f-label">خط العرض (Latitude)</label>
+        <input type="text" name="latitude" class="f-input" dir="ltr" placeholder="24.4539">
+      </div>
+      <div class="f-row">
+        <label class="f-label">خط الطول (Longitude)</label>
+        <input type="text" name="longitude" class="f-input" dir="ltr" placeholder="54.3773">
+      </div>
+    </div>
+    <div class="f-row">
+      <label class="f-label">ملاحظات الموقع</label>
+      <textarea name="location_notes" rows="2" class="f-textarea"></textarea>
+    </div>
+    <div class="f-row">
+      <label class="f-label">صور الموقع قبل النقل</label>
+      <label class="upload-zone">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span style="font-size:12px;color:var(--ink-3);display:block;">اضغط لاختيار صور</span>
+        <input type="file" name="before_photos" accept="image/*" multiple style="display:none;">
+      </label>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button type="submit" class="btn-primary">حفظ الموقع والصور</button>
+      <button type="button" class="btn-reject" onclick="openRejectModal()">رفض الطلب</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<!-- ═══ Step 3: Contact Bee'ah ═══ -->
+{% if obj.status == 'location_saved' and is_inspector %}
+<div class="action-card" style="background:#fff;border:1.5px solid #fbcfe8;">
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fdf2f8;border-radius:8px;margin-bottom:18px;">
+    <div style="width:28px;height:28px;background:#fbcfe8;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#9d174d;flex-shrink:0;">③</div>
+    <span style="font-size:14px;font-weight:700;color:#831843;">التواصل مع جهة بيئة لنقل الحاوية</span>
+  </div>
+  <form method="post" action="{% url 'container_contact_biaa' obj.pk %}">
+    {% csrf_token %}
+    <div class="f-row">
+      <label class="f-label">ملاحظات التواصل مع بيئة</label>
+      <textarea name="biaa_contact_notes" rows="3" class="f-textarea" placeholder="سجّل ملاحظات التواصل مع الجهة…"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button type="submit" class="btn-primary">تأكيد التواصل مع بيئة</button>
+      <button type="button" class="btn-reject" onclick="openRejectModal()">رفض الطلب</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<!-- ═══ Step 4: Mark Container Transferred ═══ -->
+{% if obj.status == 'biaa_contacted' and is_inspector %}
+<div class="action-card" style="background:#fff;border:1.5px solid #bbf7d0;">
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border-radius:8px;margin-bottom:16px;">
+    <div style="width:28px;height:28px;background:#bbf7d0;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#14532d;flex-shrink:0;">④</div>
+    <span style="font-size:14px;font-weight:700;color:#14532d;">تأكيد أن بيئة قامت بنقل الحاوية</span>
+  </div>
+  <p style="font-size:13px;color:var(--ink-2);margin:0 0 16px;">بعد قيام شركة بيئة بنقل الحاوية، اضغط الزر أدناه للمتابعة.</p>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <form method="post" action="{% url 'container_mark_transferred' obj.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn-done">✓ تم نقل الحاوية</button>
+    </form>
+    <button type="button" class="btn-reject" onclick="openRejectModal()">رفض الطلب</button>
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══ Step 5: Final Report + After Photos ═══ -->
+{% if obj.status == 'biaa_transferred' and is_inspector %}
+<div class="action-card" style="background:#fff;border:1.5px solid #bae6fd;">
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0f9ff;border-radius:8px;margin-bottom:18px;">
+    <div style="width:28px;height:28px;background:#bae6fd;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0c4a6e;flex-shrink:0;">⑤</div>
+    <span style="font-size:14px;font-weight:700;color:#0c4a6e;">تقرير ما بعد النقل وصور الموقع</span>
+  </div>
+  <form method="post" action="{% url 'container_submit_report' obj.pk %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="f-row">
+      <label class="f-label">ملاحظات التقرير النهائي</label>
+      <textarea name="report_notes" rows="4" class="f-textarea" placeholder="أدخل ملاحظات التقرير النهائي…"></textarea>
+    </div>
+    <div class="f-row">
+      <label class="f-label">صور الموقع بعد النقل</label>
+      <label class="upload-zone">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span style="font-size:12px;color:var(--ink-3);display:block;">اضغط لاختيار صور</span>
+        <input type="file" name="after_photos" accept="image/*" multiple style="display:none;">
+      </label>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button type="submit" class="btn-primary">رفع التقرير والصور</button>
+      <button type="button" class="btn-reject" onclick="openRejectModal()">رفض الطلب</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<!-- ═══ Step 6: Close Request ═══ -->
+{% if obj.status == 'report_submitted' and can_manage %}
+<div class="action-card" style="background:#fff;border:1.5px solid var(--line-2);">
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-radius:8px;margin-bottom:16px;">
+    <div style="width:28px;height:28px;background:var(--line);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--ink-2);flex-shrink:0;">⑥</div>
+    <span style="font-size:14px;font-weight:700;color:var(--ink);">إغلاق الطلب</span>
+  </div>
+  <p style="font-size:13px;color:var(--ink-2);margin:0 0 16px;">تم استلام التقرير والصور. يمكنك إغلاق الطلب الآن.</p>
+  <form method="post" action="{% url 'container_close' obj.pk %}">
+    {% csrf_token %}
+    <button type="submit" style="padding:10px 22px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">
+      إغلاق الطلب
+    </button>
+  </form>
+</div>
+{% endif %}
+
+<!-- ═══ Rejection Card ═══ -->
+{% if obj.status == 'rejected' and inspection and inspection.rejected_at %}
+<div class="c-card" style="border-color:#fca5a5;background:#fff;">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fef2f2;border-radius:8px;margin-bottom:16px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    <span style="font-size:14px;font-weight:700;color:#dc2626;">تم رفض هذا الطلب</span>
+  </div>
+  <div class="meta-grid" style="margin-bottom:14px;">
+    <div>
+      <div class="meta-item-label">رُفض بواسطة</div>
+      <div class="meta-item-value">{{ inspection.rejected_by.get_full_name|default:inspection.rejected_by.username|default:"—" }}</div>
+    </div>
+    <div>
+      <div class="meta-item-label">تاريخ الرفض</div>
+      <div class="meta-item-value">{{ inspection.rejected_at|date:"d/m/Y H:i" }}</div>
+    </div>
+  </div>
+  <div style="padding:12px 16px;background:#fff5f5;border:1.5px solid #fecaca;border-radius:8px;">
+    <div style="font-size:11.5px;font-weight:700;color:#991b1b;margin-bottom:6px;letter-spacing:.03em;">سبب الرفض</div>
+    <p style="font-size:13px;color:#7f1d1d;margin:0;line-height:1.7;">{{ inspection.rejection_reason }}</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══ Inspector Record (if exists) ═══ -->
+{% if inspection %}
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    سجل المفتش
+  </div>
+
+  <div class="meta-grid" style="margin-bottom:14px;">
+    <div><div class="meta-item-label">المفتش</div><div class="meta-item-value">{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</div></div>
+    <div><div class="meta-item-label">تاريخ التعيين</div><div class="meta-item-value">{{ inspection.assigned_at|date:"d/m/Y H:i" }}</div></div>
+  </div>
+
+  {% if inspection.latitude and inspection.longitude %}
+  <div style="padding:12px;background:var(--surface);border-radius:8px;margin-bottom:12px;">
+    <div class="meta-item-label" style="margin-bottom:4px;">إحداثيات الموقع</div>
+    <p style="font-size:13px;color:var(--ink-2);font-family:monospace;margin:0 0 6px;">{{ inspection.latitude }}, {{ inspection.longitude }}</p>
+    {% if inspection.location_notes %}<p style="font-size:12px;color:var(--ink-3);margin:0 0 6px;">{{ inspection.location_notes }}</p>{% endif %}
+    <a href="https://maps.google.com/?q={{ inspection.latitude }},{{ inspection.longitude }}" target="_blank"
+       style="font-size:12px;color:var(--accent);font-weight:600;text-decoration:none;">
+      عرض على خرائط Google ←
+    </a>
+  </div>
+  {% endif %}
+
+  {% if inspection.biaa_contacted_at %}
+  <div style="padding:10px 12px;background:#fdf2f8;border-radius:8px;margin-bottom:10px;">
+    <div style="font-size:12px;font-weight:700;color:#9d174d;margin-bottom:3px;">✓ تم التواصل مع بيئة — {{ inspection.biaa_contacted_at|date:"d/m/Y H:i" }}</div>
+    {% if inspection.biaa_contact_notes %}<p style="font-size:12px;color:var(--ink-2);margin:0;">{{ inspection.biaa_contact_notes }}</p>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if inspection.biaa_transferred_at %}
+  <div style="padding:10px 12px;background:#f0fdf4;border-radius:8px;margin-bottom:10px;">
+    <div style="font-size:12px;font-weight:700;color:#15803d;">✓ تم نقل الحاوية — {{ inspection.biaa_transferred_at|date:"d/m/Y H:i" }}</div>
+  </div>
+  {% endif %}
+
+  {% if inspection.report_notes %}
+  <div style="padding-top:12px;border-top:1px solid var(--line);">
+    <div class="meta-item-label" style="margin-bottom:6px;">ملاحظات التقرير النهائي</div>
+    <p style="font-size:13px;color:var(--ink-2);margin:0;line-height:1.7;">{{ inspection.report_notes }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- ═══ Photos ═══ -->
+{% if before_photos %}
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    صور قبل النقل ({{ before_photos.count }})
+  </div>
+  <div class="photo-grid">
+    {% for p in before_photos %}
+    <div class="photo-thumb">
+      <img src="{{ p.file.url }}" alt="قبل">
+      {% if can_manage or p.uploaded_by_id == request.user.id %}
+      <form method="post" action="{% url 'container_photo_delete' obj.pk p.pk %}">
+        {% csrf_token %}
+        <button class="photo-thumb-del" type="submit" onclick="return confirm('حذف الصورة؟')">✕</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if after_photos %}
+<div class="c-card">
+  <div class="c-card-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    صور بعد النقل ({{ after_photos.count }})
+  </div>
+  <div class="photo-grid">
+    {% for p in after_photos %}
+    <div class="photo-thumb">
+      <img src="{{ p.file.url }}" alt="بعد">
+      {% if can_manage or p.uploaded_by_id == request.user.id %}
+      <form method="post" action="{% url 'container_photo_delete' obj.pk p.pk %}">
+        {% csrf_token %}
+        <button class="photo-thumb-del" type="submit" onclick="return confirm('حذف الصورة؟')">✕</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══ Reject Modal ═══ -->
+{% if is_inspector and obj.status != 'closed' and obj.status != 'rejected' and obj.status != 'report_submitted' %}
+<div class="reject-modal" id="rejectModal">
+  <div class="reject-box">
+    <div class="reject-box-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      رفض طلب نقل الحاوية
+    </div>
+    <p class="reject-box-sub">يرجى ذكر سبب الرفض بوضوح. سيتم تسجيل هذا السبب في سجل الطلب.</p>
+    <form method="post" action="{% url 'container_reject' obj.pk %}">
+      {% csrf_token %}
+      <textarea name="rejection_reason" rows="4" placeholder="اذكر سبب عدم إمكانية نقل الحاوية…" required id="rejectReason"></textarea>
+      <div class="reject-box-actions">
+        <button type="button" class="btn-cancel-modal" onclick="closeRejectModal()">إلغاء</button>
+        <button type="submit" class="btn-reject" style="border-radius:8px;padding:9px 22px;">تأكيد الرفض</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openRejectModal() {
+  var m = document.getElementById('rejectModal');
+  if (m) { m.classList.add('open'); setTimeout(function(){ document.getElementById('rejectReason').focus(); }, 80); }
+}
+function closeRejectModal() {
+  var m = document.getElementById('rejectModal');
+  if (m) m.classList.remove('open');
+}
+var modal = document.getElementById('rejectModal');
+if (modal) {
+  modal.addEventListener('click', function(e) { if (e.target === this) closeRejectModal(); });
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeRejectModal(); });
+</script>
+{% endblock %}

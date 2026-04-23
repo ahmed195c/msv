@@ -1,0 +1,66 @@
+{% extends "hcsd/complaints/base.html" %}
+
+{% block title %}استيراد طلب حاوية من PDF{% endblock %}
+
+
+
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">استيراد طلب من ملف PDF</h1>
+  <p class="page-subtitle">ارفع ملف الطلب الصادر من البلدية وسيتم استخراج البيانات تلقائياً</p>
+</div>
+
+<div style="max-width:520px;">
+  <div class="c-card">
+
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;margin-bottom:26px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p style="font-size:13px;color:#1d4ed8;margin:0;line-height:1.7;">سيقوم النظام بقراءة الملف واستخراج بيانات الطلب تلقائياً. ستتمكن من مراجعة جميع الحقول وتعديلها قبل الحفظ.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <div style="margin-bottom:24px;">
+        <label for="pdf_in" id="dz"
+          style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:34px 20px;border:2px dashed {% if error %}#dc2626{% else %}var(--line-2){% endif %};border-radius:12px;cursor:pointer;background:var(--surface);transition:all .2s;">
+          <div style="width:50px;height:50px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+          </div>
+          <span id="dz-label" style="font-size:14px;font-weight:600;color:var(--accent);">اضغط لاختيار ملف PDF</span>
+          <span style="font-size:12px;color:var(--ink-4);">أو اسحب الملف وأفلته هنا</span>
+          <input type="file" id="pdf_in" name="pdf_file" accept=".pdf" style="display:none;" onchange="onSel(this)">
+        </label>
+        {% if error %}<p style="color:#dc2626;font-size:12px;margin-top:6px;">{{ error }}</p>{% endif %}
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button type="submit" id="sbtn" class="btn-primary" style="flex:1;">
+          قراءة واستخراج البيانات
+        </button>
+        <a href="{% url 'container_list' %}" class="btn-secondary">إلغاء</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function onSel(i){
+  var l=document.getElementById('dz-label'),z=document.getElementById('dz');
+  if(i.files&&i.files[0]){l.textContent=i.files[0].name;l.style.color='var(--success)';z.style.borderColor='var(--success)';z.style.background='#f0fdf4';}
+}
+var z=document.getElementById('dz');
+z.addEventListener('dragover',function(e){e.preventDefault();z.style.borderColor='var(--accent)';z.style.background='var(--accent-bg)';});
+z.addEventListener('dragleave',function(){z.style.borderColor='var(--line-2)';z.style.background='var(--surface)';});
+z.addEventListener('drop',function(e){
+  e.preventDefault();z.style.borderColor='var(--line-2)';z.style.background='var(--surface)';
+  var f=e.dataTransfer.files[0];
+  if(f){var i=document.getElementById('pdf_in'),dt=new DataTransfer();dt.items.add(f);i.files=dt.files;onSel(i);}
+});
+document.querySelector('form').addEventListener('submit',function(){
+  var b=document.getElementById('sbtn');b.disabled=true;b.textContent='جاري القراءة…';
+});
+</script>
+
+{% endblock %}

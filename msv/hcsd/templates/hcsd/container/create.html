@@ -1,0 +1,129 @@
+{% extends "hcsd/complaints/base.html" %}
+{% block title %}طلب نقل حاوية جديد{% endblock %}
+
+{% block extra_css %}
+<style>
+.sf-wrap{max-width:620px;}
+.sf-card{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:28px;box-shadow:0 1px 4px rgba(0,0,0,.04);margin-bottom:16px;}
+.sf-section{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:14px;border-bottom:1.5px solid var(--line);}
+.sf-icon{width:32px;height:32px;border-radius:8px;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sf-stitle{font-size:14px;font-weight:700;color:var(--ink);}
+.sf-ssub{font-size:11.5px;color:var(--ink-3);margin-top:1px;}
+.sf-label{display:flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:7px;}
+.sf-label .req{color:#e11d48;font-size:14px;}
+.sf-input,.sf-textarea{width:100%;height:44px;padding:0 14px;border:1.5px solid var(--line);border-radius:9px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff;outline:none;transition:border-color .18s,box-shadow .18s;box-sizing:border-box;}
+.sf-input:focus,.sf-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.sf-input.err{border-color:#e11d48;}
+.sf-textarea{height:auto;padding:12px 14px;resize:vertical;}
+.sf-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.sf-grid-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;}
+.sf-field{margin-bottom:16px;}
+.sf-field:last-child{margin-bottom:0;}
+.sf-err{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:12px;color:#e11d48;font-weight:500;}
+.btn-submit{display:inline-flex;align-items:center;gap:8px;padding:12px 32px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.25);transition:all .16s;}
+.btn-submit:hover{background:var(--accent-dk);transform:translateY(-1px);}
+.btn-cancel{display:inline-flex;align-items:center;gap:6px;padding:12px 20px;background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:9px;font-size:14px;font-weight:600;text-decoration:none;transition:background .15s;}
+.btn-cancel:hover{background:var(--surface-2);}
+@media(max-width:560px){.sf-grid-2,.sf-grid-3{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom:24px;">
+  <h1 class="page-title">طلب نقل حاوية جديد</h1>
+  <p class="page-subtitle">أكمل البيانات أدناه لتسجيل طلب جديد</p>
+</div>
+
+<div class="sf-wrap">
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <!-- رقم الشكوى -->
+    <div class="sf-card">
+      <div class="sf-section">
+        <div class="sf-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div><div class="sf-stitle">معلومات الطلب</div><div class="sf-ssub">الرقم المرجعي للشكوى</div></div>
+      </div>
+      <div class="sf-field">
+        <label class="sf-label" for="id_cn">رقم الشكوى <span class="req">*</span></label>
+        <input type="text" id="id_cn" name="complaint_number"
+               value="{{ post.complaint_number|default:'' }}"
+               dir="ltr" autocomplete="off"
+               class="sf-input {% if errors.complaint_number %}err{% endif %}"
+               style="height:52px;font-size:16px;font-weight:600;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;"
+               placeholder="مثال: 2026-001234">
+        {% if errors.complaint_number %}
+          <div class="sf-err">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {{ errors.complaint_number }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- بيانات المتعامل -->
+    <div class="sf-card">
+      <div class="sf-section">
+        <div class="sf-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div><div class="sf-stitle">بيانات المتعامل</div><div class="sf-ssub">المعلومات الشخصية والموقع</div></div>
+      </div>
+      <div class="sf-grid-2 sf-field">
+        <div>
+          <label class="sf-label" for="id_name">اسم المتعامل</label>
+          <input type="text" id="id_name" name="complainant_name" value="{{ post.complainant_name|default:'' }}" class="sf-input">
+        </div>
+        <div>
+          <label class="sf-label" for="id_mob">رقم الموبايل</label>
+          <input type="text" id="id_mob" name="complainant_mobile" value="{{ post.complainant_mobile|default:'' }}" dir="ltr" placeholder="05xxxxxxxx" class="sf-input">
+        </div>
+      </div>
+      <div class="sf-grid-3">
+        <div>
+          <label class="sf-label" for="id_area">المنطقة</label>
+          <input type="text" id="id_area" name="area" value="{{ post.area|default:'' }}" class="sf-input">
+        </div>
+        <div>
+          <label class="sf-label" for="id_house">رقم المنزل</label>
+          <input type="text" id="id_house" name="house_number" value="{{ post.house_number|default:'' }}" dir="ltr" class="sf-input">
+        </div>
+        <div></div>
+      </div>
+    </div>
+
+    <!-- ملاحظات وملف PDF -->
+    <div class="sf-card">
+      <div class="sf-section">
+        <div class="sf-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <div><div class="sf-stitle">ملاحظات وملف PDF <span style="font-weight:400;color:var(--ink-3);font-size:12px;">— اختياري</span></div></div>
+      </div>
+      <div class="sf-field">
+        <label class="sf-label" for="id_notes">ملاحظات</label>
+        <textarea id="id_notes" name="notes" rows="3" class="sf-textarea" placeholder="أضف أي ملاحظات…">{{ post.notes|default:'' }}</textarea>
+      </div>
+      <div class="sf-field" style="margin-bottom:0;">
+        <label class="sf-label" for="id_pdf">ملف الشكوى (PDF)</label>
+        <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px;border:2px dashed var(--line);border-radius:10px;cursor:pointer;background:var(--surface);transition:border-color .18s;" id="pdf-zone">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          <span id="pdf-label" style="font-size:12px;color:var(--ink-3);">اضغط لاختيار ملف PDF</span>
+          <input type="file" id="id_pdf" name="pdf_file" accept=".pdf" style="display:none;"
+                 onchange="document.getElementById('pdf-label').textContent=this.files[0]?.name||'اضغط لاختيار ملف PDF';">
+        </label>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;padding-bottom:16px;">
+      <button type="submit" class="btn-submit">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        حفظ الطلب
+      </button>
+      <a href="{% url 'container_list' %}" class="btn-cancel">إلغاء</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

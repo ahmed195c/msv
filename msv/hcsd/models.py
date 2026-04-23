@@ -841,6 +841,16 @@ class Complaint(models.Model):
         blank=True,
         verbose_name='ملاحظات',
     )
+    latitude = models.DecimalField(
+        max_digits=10, decimal_places=7,
+        null=True, blank=True,
+        verbose_name='خط العرض',
+    )
+    longitude = models.DecimalField(
+        max_digits=10, decimal_places=7,
+        null=True, blank=True,
+        verbose_name='خط الطول',
+    )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -1005,24 +1015,46 @@ class ComplaintPhoto(models.Model):
 
 class FieldWorkOrder(models.Model):
     STATUS_CHOICES = [
-        ('pending',     'بانتظار التنفيذ'),
-        ('in_progress', 'قيد التنفيذ'),
-        ('completed',   'مكتملة'),
-        ('incomplete',  'غير مكتملة'),
-        ('cancelled',   'ملغية'),
+        ('private_company',   'شركة خاصة'),
+        ('cust_declined',     'العميل رفض الخدمة'),
+        ('wrong_phone',       'رقم الهاتف خاطئ'),
+        ('phone_off',         'الهاتف مغلق'),
+        ('no_answer',         'لا يوجد رد'),
+        ('completed',         'تم إنجاز الخدمة'),
+        ('postponed_client',  'تأجيل من العميل'),
+        ('gov_dept',          'جهة حكومية — يلزم إرسال موافقة'),
+        ('other_municipal',   'تابعة لبلدية أخرى'),
     ]
 
-    site_name = models.CharField(max_length=200, blank=True, verbose_name='اسم الموقع')
-    work_type = models.CharField(max_length=200, verbose_name='نوع العمل')
-    location = models.CharField(max_length=300, blank=True, verbose_name='العنوان')
-    description = models.TextField(blank=True, verbose_name='وصف العمل')
-    work_date = models.DateField(null=True, blank=True, verbose_name='تاريخ التنفيذ')
-    workers_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='عدد العمال')
+    SOURCE_CHOICES = [
+        ('manual', 'يدوي'),
+        ('excel',  'مستورد من Excel'),
+    ]
+
+    # ── Original generic fields ───────────────────────────────────────────
+    site_name      = models.CharField(max_length=200, blank=True, verbose_name='اسم الموقع')
+    work_type      = models.CharField(max_length=200, blank=True, verbose_name='نوع العمل')
+    location       = models.CharField(max_length=300, blank=True, verbose_name='العنوان')
+    description    = models.TextField(blank=True, verbose_name='وصف العمل')
+    work_date      = models.DateField(null=True, blank=True, verbose_name='تاريخ التنفيذ')
+    workers_count  = models.PositiveIntegerField(null=True, blank=True, verbose_name='عدد العمال')
     equipment_used = models.TextField(blank=True, verbose_name='المعدات المستخدمة')
-    work_completed = models.BooleanField(null=True, blank=True, verbose_name='اكتملت العملية')
-    notes = models.TextField(blank=True, verbose_name='ملاحظات')
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='الحالة',
+    work_completed   = models.BooleanField(null=True, blank=True, verbose_name='اكتملت العملية')
+    notes            = models.TextField(blank=True, verbose_name='ملاحظات')
+    # ── Supervisor report fields ──────────────────────────────────────────
+    vehicles_count   = models.PositiveIntegerField(null=True, blank=True, verbose_name='عدد السيارات')
+    pesticides_used  = models.TextField(blank=True, verbose_name='المبيدات المستخدمة')
+    supervisor_notes = models.TextField(blank=True, verbose_name='ملاحظات المراقب')
+    report_submitted_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='field_work_reports', verbose_name='أدخل التقرير',
+    )
+    report_submitted_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ التقرير')
+    status         = models.CharField(
+        max_length=30, choices=STATUS_CHOICES, default='private_company', verbose_name='الحالة',
+    )
+    source = models.CharField(
+        max_length=10, choices=SOURCE_CHOICES, default='manual', verbose_name='المصدر',
     )
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -1031,12 +1063,59 @@ class FieldWorkOrder(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاريخ الإنشاء')
     updated_at = models.DateTimeField(auto_now=True)
 
+    # ── Excel import fields ───────────────────────────────────────────────
+    order_number        = models.CharField(max_length=30, blank=True, db_index=True, verbose_name='رقم الطلب')
+    request_date        = models.DateField(null=True, blank=True, verbose_name='تاريخ الطلب')
+    close_date          = models.DateField(null=True, blank=True, verbose_name='تاريخ الإغلاق')
+    customer_name       = models.CharField(max_length=200, blank=True, verbose_name='اسم المتعامل')
+    mobile              = models.CharField(max_length=30, blank=True, verbose_name='الموبايل')
+    street_number       = models.CharField(max_length=50, blank=True, verbose_name='رقم الشارع')
+    house_number        = models.CharField(max_length=50, blank=True, verbose_name='رقم المنزل')
+    area                = models.CharField(max_length=200, blank=True, verbose_name='المنطقة')
+    pest_types          = models.CharField(max_length=300, blank=True, verbose_name='نوع الحشرات')
+    supervisor_name     = models.CharField(max_length=200, blank=True, verbose_name='المشرف المعالج')
+    worker_name         = models.CharField(max_length=200, blank=True, verbose_name='العامل')
+    excel_status        = models.CharField(max_length=100, blank=True, verbose_name='حالة الطلب (Excel)')
+    excel_status_note   = models.CharField(max_length=100, blank=True, verbose_name='ملاحظة الحالة (Excel)')
+    month_sheet         = models.CharField(max_length=20, blank=True, verbose_name='الشهر')
+
+    # Pest treatment checkboxes
+    treated_ant       = models.BooleanField(default=False, verbose_name='نمل')
+    treated_cockroach = models.BooleanField(default=False, verbose_name='صراصير')
+    treated_mosquito  = models.BooleanField(default=False, verbose_name='بعوض')
+    treated_fly       = models.BooleanField(default=False, verbose_name='ذباب')
+    treated_rat       = models.BooleanField(default=False, verbose_name='فئران')
+    treated_snake     = models.BooleanField(default=False, verbose_name='ثعبان')
+    treated_scorpion  = models.BooleanField(default=False, verbose_name='عقارب')
+    treated_wasps     = models.BooleanField(default=False, verbose_name='دبابير')
+    treated_bees      = models.BooleanField(default=False, verbose_name='نحل')
+    treated_other     = models.BooleanField(default=False, verbose_name='أخرى')
+
+    # Chemical materials used
+    used_boom          = models.BooleanField(default=False, verbose_name='BOOM')
+    used_kothreni      = models.BooleanField(default=False, verbose_name='K OTHRENI')
+    used_diesel        = models.BooleanField(default=False, verbose_name='DIESEL')
+    used_petrol        = models.BooleanField(default=False, verbose_name='PETROL')
+    used_cyphorce      = models.BooleanField(default=False, verbose_name='CYPHORCE')
+    used_rat_poison    = models.BooleanField(default=False, verbose_name='RAT POISON')
+    used_eco_larvacide = models.BooleanField(default=False, verbose_name='ECO LARVACIDE')
+    used_snake_deter   = models.BooleanField(default=False, verbose_name='SNAKE DETER')
+    used_hymenopthor   = models.BooleanField(default=False, verbose_name='HYMENOPTHOR GR')
+    used_permothor     = models.BooleanField(default=False, verbose_name='PERMOTHOR DUST')
+    used_rat_glue      = models.BooleanField(default=False, verbose_name='RAT GLUE')
+    used_rapetr_gel    = models.BooleanField(default=False, verbose_name='RAPETR GEL')
+    used_graibait      = models.BooleanField(default=False, verbose_name='GRAIBAIT')
+    used_difron        = models.BooleanField(default=False, verbose_name='DIFRON 25 SC')
+    used_fly_attractant = models.BooleanField(default=False, verbose_name='FLY ATTRACTANT')
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'أمر عمل ميداني'
         verbose_name_plural = 'أوامر العمل الميداني'
 
     def __str__(self):
+        if self.order_number:
+            return f"#{self.order_number} — {self.customer_name or self.area or ''}"
         return f"#{self.id} — {self.work_type} — {self.site_name or 'بدون موقع'}"
 
     def photos_by_phase(self, phase):
@@ -1070,3 +1149,273 @@ class FieldWorkPhoto(models.Model):
 
     def __str__(self):
         return f"{self.get_phase_display()} — {self.work_order}"
+
+
+# ══════════════════════════════════════════
+#  Container Transfer Requests
+# ══════════════════════════════════════════
+
+class ContainerTransferRequest(models.Model):
+    STATUS_CHOICES = [
+        ('new',               'جديد'),
+        ('assigned',          'بانتظار المفتش'),
+        ('location_saved',    'تم حفظ الموقع'),
+        ('biaa_contacted',    'تم التواصل مع بيئة'),
+        ('biaa_transferred',  'تم نقل الحاوية'),
+        ('report_submitted',  'تم تقديم التقرير'),
+        ('closed',            'مغلق'),
+        ('rejected',          'مرفوض'),
+    ]
+
+    complaint_number = models.CharField(max_length=100, verbose_name='رقم الشكوى')
+    pdf_file = models.FileField(
+        upload_to='container_requests/pdfs/',
+        null=True, blank=True,
+        verbose_name='ملف PDF',
+    )
+    complainant_name   = models.CharField(max_length=200, blank=True, verbose_name='اسم المتعامل')
+    complainant_mobile = models.CharField(max_length=30,  blank=True, verbose_name='رقم الموبايل')
+    area               = models.CharField(max_length=200, blank=True, verbose_name='المنطقة')
+    house_number       = models.CharField(max_length=50,  blank=True, verbose_name='رقم المنزل')
+    notes              = models.TextField(blank=True, verbose_name='تفاصيل الطلب')
+    status = models.CharField(
+        max_length=30, choices=STATUS_CHOICES, default='new',
+        verbose_name='الحالة',
+    )
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='container_requests_created',
+        verbose_name='أضيف بواسطة',
+    )
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name        = 'طلب نقل حاوية'
+        verbose_name_plural = 'طلبات نقل الحاويات'
+
+    def __str__(self):
+        return f"حاوية #{self.complaint_number}"
+
+
+class ContainerTransferInspection(models.Model):
+    request = models.OneToOneField(
+        ContainerTransferRequest, on_delete=models.CASCADE,
+        related_name='inspection', verbose_name='الطلب',
+    )
+    inspector = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True,
+        related_name='container_inspections', verbose_name='المفتش',
+    )
+    assigned_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='container_inspections_assigned', verbose_name='أسند بواسطة',
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    # Location (saved by inspector before work)
+    latitude        = models.FloatField(null=True, blank=True, verbose_name='خط العرض')
+    longitude       = models.FloatField(null=True, blank=True, verbose_name='خط الطول')
+    location_notes  = models.TextField(blank=True, verbose_name='ملاحظات الموقع')
+    location_saved_at = models.DateTimeField(null=True, blank=True, verbose_name='وقت حفظ الموقع')
+
+    # Bee'ah contact
+    biaa_contacted_at    = models.DateTimeField(null=True, blank=True, verbose_name='وقت التواصل مع بيئة')
+    biaa_contact_notes   = models.TextField(blank=True, verbose_name='ملاحظات التواصل مع بيئة')
+    biaa_transferred_at  = models.DateTimeField(null=True, blank=True, verbose_name='وقت نقل الحاوية')
+
+    # Final report
+    report_notes   = models.TextField(blank=True, verbose_name='ملاحظات التقرير')
+    completed_at   = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ الإغلاق')
+
+    # Rejection
+    rejection_reason = models.TextField(blank=True, verbose_name='سبب الرفض')
+    rejected_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='container_inspections_rejected', verbose_name='رُفض بواسطة',
+    )
+    rejected_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ الرفض')
+
+    class Meta:
+        verbose_name        = 'تفتيش طلب حاوية'
+        verbose_name_plural = 'تفتيش طلبات الحاويات'
+
+    def __str__(self):
+        return f"تفتيش — {self.request}"
+
+
+class ContainerTransferPhoto(models.Model):
+    PHASE_CHOICES = [
+        ('before', 'صور قبل النقل'),
+        ('after',  'صور بعد النقل'),
+    ]
+    request = models.ForeignKey(
+        ContainerTransferRequest, on_delete=models.CASCADE,
+        related_name='photos', verbose_name='الطلب',
+    )
+    phase       = models.CharField(max_length=10, choices=PHASE_CHOICES, verbose_name='المرحلة')
+    file        = models.ImageField(upload_to='container_requests/photos/', verbose_name='الصورة')
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='container_photos', verbose_name='رُفعت بواسطة',
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['uploaded_at']
+        verbose_name        = 'صورة حاوية'
+        verbose_name_plural = 'صور الحاويات'
+
+    def __str__(self):
+        return f"{self.get_phase_display()} — {self.request}"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Weed Removal
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class WeedRemovalRequest(models.Model):
+    STATUS_CHOICES = [
+        ('new',                 'جديد'),
+        ('inspector_assigned',  'بانتظار المفتش'),
+        ('inspection_done',     'اكتمل التفتيش'),
+        ('supervisor_assigned', 'بانتظار المراقب'),
+        ('work_in_progress',    'العمل جارٍ'),
+        ('work_done',           'تم إنهاء العمل'),
+        ('closed',              'مغلق'),
+        ('rejected',            'مرفوض'),
+    ]
+
+    complaint_number   = models.CharField(max_length=100, verbose_name='رقم الشكوى')
+    pdf_file           = models.FileField(
+        upload_to='weed_removal/pdfs/', null=True, blank=True, verbose_name='ملف PDF',
+    )
+    complainant_name   = models.CharField(max_length=200, blank=True, verbose_name='اسم المتعامل')
+    complainant_mobile = models.CharField(max_length=30,  blank=True, verbose_name='رقم الموبايل')
+    area               = models.CharField(max_length=200, blank=True, verbose_name='المنطقة')
+    house_number       = models.CharField(max_length=50,  blank=True, verbose_name='رقم المنزل')
+    notes              = models.TextField(blank=True, verbose_name='ملاحظات')
+    status             = models.CharField(
+        max_length=30, choices=STATUS_CHOICES, default='new', verbose_name='الحالة',
+    )
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='weed_requests_created', verbose_name='أضيف بواسطة',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name        = 'طلب إزالة حشائش'
+        verbose_name_plural = 'طلبات إزالة الحشائش'
+
+    def __str__(self):
+        return f"حشائش #{self.complaint_number}"
+
+
+class WeedRemovalInspection(models.Model):
+    request = models.OneToOneField(
+        WeedRemovalRequest, on_delete=models.CASCADE, related_name='inspection',
+    )
+    inspector = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True,
+        related_name='weed_inspections', verbose_name='المفتش',
+    )
+    assigned_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='weed_inspections_assigned', verbose_name='عُيِّن بواسطة',
+    )
+    assigned_at      = models.DateTimeField(auto_now_add=True)
+    inspection_notes = models.TextField(blank=True, verbose_name='ملاحظات التفتيش')
+    completed_at     = models.DateTimeField(null=True, blank=True, verbose_name='وقت الإتمام')
+
+    # Rejection
+    rejection_reason = models.TextField(blank=True, verbose_name='سبب الرفض')
+    rejected_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='weed_inspections_rejected', verbose_name='رُفض بواسطة',
+    )
+    rejected_at = models.DateTimeField(null=True, blank=True, verbose_name='وقت الرفض')
+
+    class Meta:
+        verbose_name        = 'تفتيش إزالة حشائش'
+        verbose_name_plural = 'تفتيش طلبات إزالة الحشائش'
+
+    def __str__(self):
+        return f"تفتيش — {self.request}"
+
+
+class WeedRemovalSupervisorTask(models.Model):
+    request = models.OneToOneField(
+        WeedRemovalRequest, on_delete=models.CASCADE, related_name='supervisor_task',
+    )
+    supervisor = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True,
+        related_name='weed_supervisor_tasks', verbose_name='المراقب',
+    )
+    assigned_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='weed_supervisor_tasks_assigned', verbose_name='عُيِّن بواسطة',
+    )
+    assigned_at   = models.DateTimeField(auto_now_add=True)
+    workers_count = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='عدد العمال')
+    report_notes  = models.TextField(blank=True, verbose_name='ملاحظات التقرير')
+    completed_at  = models.DateTimeField(null=True, blank=True, verbose_name='وقت الإتمام')
+
+    class Meta:
+        verbose_name        = 'مهمة مراقب إزالة حشائش'
+        verbose_name_plural = 'مهام مراقبي إزالة الحشائش'
+
+    def __str__(self):
+        return f"مراقب — {self.request}"
+
+
+class WeedRemovalVehicle(models.Model):
+    VEHICLE_TYPE_CHOICES = [
+        ('pickup',  'بيك آب'),
+        ('tractor', 'تراكتور'),
+        ('truck',   'شاحنة'),
+        ('loader',  'لودر'),
+        ('other',   'أخرى'),
+    ]
+    task         = models.ForeignKey(
+        WeedRemovalSupervisorTask, on_delete=models.CASCADE, related_name='vehicles',
+    )
+    vehicle_type = models.CharField(max_length=20, choices=VEHICLE_TYPE_CHOICES, verbose_name='نوع المركبة')
+    count        = models.PositiveSmallIntegerField(default=1, verbose_name='العدد')
+    notes        = models.CharField(max_length=200, blank=True, verbose_name='ملاحظات')
+
+    class Meta:
+        verbose_name        = 'مركبة إزالة حشائش'
+        verbose_name_plural = 'مركبات إزالة الحشائش'
+
+    def __str__(self):
+        return f"{self.get_vehicle_type_display()} × {self.count}"
+
+
+class WeedRemovalPhoto(models.Model):
+    PHASE_CHOICES = [
+        ('before', 'صور قبل العمل'),
+        ('during', 'صور أثناء العمل'),
+        ('after',  'صور بعد العمل'),
+    ]
+    request = models.ForeignKey(
+        WeedRemovalRequest, on_delete=models.CASCADE, related_name='photos',
+    )
+    phase       = models.CharField(max_length=10, choices=PHASE_CHOICES, verbose_name='المرحلة')
+    file        = models.ImageField(upload_to='weed_removal/photos/', verbose_name='الصورة')
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='weed_photos_uploaded',
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['uploaded_at']
+        verbose_name        = 'صورة إزالة حشائش'
+        verbose_name_plural = 'صور إزالة الحشائش'
+
+    def __str__(self):
+        return f"{self.get_phase_display()} — {self.request}"
