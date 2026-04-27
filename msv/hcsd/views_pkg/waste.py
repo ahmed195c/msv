@@ -17,7 +17,7 @@ from ..models import (
     Enginer, EnginerStatusLog, InspectorReview, PesticideTransportPermit,
     PirmetChangeLog, PirmetClearance, PirmetDocument, PublicHealthExamRequest,
     PublicHealthExamRequestDocument, RequirementInsuranceRequest,
-    WasteDisposalRequest, WasteDisposalRequestDocument,
+    WasteDisposalRequest, WasteDisposalRequestDocument, WasteDisposalInspectionPhoto,
 )
 from ..forms import StaffRegistrationForm
 from .common import (
@@ -384,11 +384,14 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
         permit=permit,
     )
     request_documents = list(disposal_request.documents.order_by('-uploaded_at'))
+    inspection_photos = list(disposal_request.inspection_photos.select_related('uploaded_by').order_by('uploaded_at'))
     review_errors = []
     assigned_inspector = disposal_request.inspected_by
-    can_upload_request_documents = (
-        (_can_data_entry(request.user) or _can_admin(request.user))
-        and disposal_request.status == 'payment_pending'
+    can_upload_inspection_photos = (
+        _can_inspector(request.user)
+        and disposal_request.status == 'inspection_pending'
+        and assigned_inspector
+        and assigned_inspector.id == request.user.id
     )
     can_receive_disposal_request = (
         _can_inspector(request.user)
@@ -414,8 +417,6 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 review_errors.append('ليس لديك صلاحية لإدخال رقم الدفع.')
             if disposal_request.status != 'payment_pending':
                 review_errors.append('الطلب ليس بانتظار الدفع.')
-            if not request_documents:
-                review_errors.append('لا يمكن إدخال أمر الدفع قبل إرفاق مستندات طلب التخلص.')
             reference = (request.POST.get('disposal_reference') or '').strip()
             if not reference:
                 review_errors.append('يرجى إدخال رقم أمر دفع طلب التخلص.')
@@ -436,39 +437,39 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 )
                 return redirect('waste_disposal_request_detail', permit_id=permit.id, request_id=disposal_request.id)
 
-        if action == 'upload_request_documents':
-            if not (_can_data_entry(request.user) or _can_admin(request.user)):
-                review_errors.append('ليس لديك صلاحية لإرفاق مستندات طلب التخلص.')
-            if disposal_request.status != 'payment_pending':
-                review_errors.append('لا يمكن إرفاق مستندات الطلب بعد بدء مرحلة التفتيش.')
-            documents = request.FILES.getlist('request_documents')
-            invalid_docs = []
-            for doc in documents:
-                ext = os.path.splitext(doc.name)[1].lower()
-                if ext not in ALLOWED_DOC_EXTENSIONS:
-                    invalid_docs.append(doc.name)
-            if not documents:
-                review_errors.append('يرجى إرفاق مستند واحد على الأقل.')
-            if invalid_docs:
-                review_errors.append('يُسمح فقط بملفات PDF أو صور: ' + ', '.join(invalid_docs))
+        if action == 'upload_inspection_photos':
+            if not _can_inspector(request.user):
+                review_errors.append('ليس لديك صلاحية لرفع صور التفتيش.')
+            elif disposal_request.status != 'inspection_pending':
+                review_errors.append('لا يمكن رفع صور التفتيش في هذه المرحلة.')
+            elif not assigned_inspector or assigned_inspector.id != request.user.id:
+                review_errors.append('فقط المفتش المستلم يمكنه رفع صور التفتيش.')
+            else:
+                photos = request.FILES.getlist('inspection_photos')
+                invalid_photos = [
+                    f.name for f in photos
+                    if os.path.splitext(f.name)[1].lower() not in ALLOWED_DOC_EXTENSIONS
+                ]
+                if not photos:
+                    review_errors.append('يرجى اختيار صورة أو مستند واحد على الأقل.')
+                elif invalid_photos:
+                    review_errors.append('يُسمح فقط بملفات PDF أو صور: ' + ', '.join(invalid_photos))
+                else:
+                    for photo in photos:
+                        WasteDisposalInspectionPhoto.objects.create(
+                            disposal_request=disposal_request,
+                            file=photo,
+                            uploaded_by=request.user,
+                        )
+                    return redirect('waste_disposal_request_detail', permit_id=permit.id, request_id=disposal_request.id)
 
-            if not review_errors:
-                for doc in documents:
-                    WasteDisposalRequestDocument.objects.create(
-                        disposal_request=disposal_request,
-                        file=doc,
-                    )
-                _log_pirmet_change(
-                    permit,
-                    'document_upload',
-                    request.user,
-                    notes=f'waste_disposal_request_documents:{disposal_request.id}:{len(documents)}',
-                )
-                return redirect(
-                    'waste_disposal_request_detail',
-                    permit_id=permit.id,
-                    request_id=disposal_request.id,
-                )
+        if action == 'delete_inspection_photo':
+            photo_id = _parse_int(request.POST.get('photo_id'))
+            photo = WasteDisposalInspectionPhoto.objects.filter(id=photo_id, disposal_request=disposal_request).first()
+            if photo and _can_inspector(request.user):
+                photo.file.delete(save=False)
+                photo.delete()
+            return redirect('waste_disposal_request_detail', permit_id=permit.id, request_id=disposal_request.id)
 
         if action == 'payment':
             if not _can_admin(request.user):
@@ -614,7 +615,20 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 review_errors.append('يرجى اختيار نتيجة التقرير.')
             if decision == 'rejected' and not notes:
                 review_errors.append('يرجى كتابة سبب الرفض.')
+            photos = request.FILES.getlist('inspection_photos')
+            invalid_photos = [
+                f.name for f in photos
+                if os.path.splitext(f.name)[1].lower() not in ALLOWED_DOC_EXTENSIONS
+            ]
+            if invalid_photos:
+                review_errors.append('يُسمح فقط بملفات PDF أو صور: ' + ', '.join(invalid_photos))
             if not review_errors:
+                for photo in photos:
+                    WasteDisposalInspectionPhoto.objects.create(
+                        disposal_request=disposal_request,
+                        file=photo,
+                        uploaded_by=request.user,
+                    )
                 old_permit_status = permit.status
                 if decision == 'approved':
                     disposal_request.status = 'completed'
@@ -691,7 +705,8 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
             'can_receive_disposal_request': can_receive_disposal_request,
             'can_reassign_disposal_inspector': can_reassign_disposal_inspector,
             'can_submit_disposal_report': can_submit_disposal_report,
-            'can_upload_request_documents': can_upload_request_documents,
+            'can_upload_inspection_photos': can_upload_inspection_photos,
+            'inspection_photos': inspection_photos,
             'assigned_inspector_name': _display_user_name(assigned_inspector) if assigned_inspector else None,
             'assigned_inspector_id': assigned_inspector.id if assigned_inspector else None,
             'inspector_users': _inspector_users_qs(),

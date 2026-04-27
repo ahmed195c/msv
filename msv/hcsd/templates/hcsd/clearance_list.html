@@ -2,294 +2,229 @@
 {% block title %}متابعة الطلبات{% endblock %}
 {% block content %}
 <style>
-/* ── 60-30-10
-   60% : #fff / #f8fafc
-   30% : #0f172a / #475569 / #94a3b8 / #e2e8f0
-   10% : #2563eb
-──────────────────────────────────────────── */
-.cl { direction: rtl; font-family: 'IBM Plex Sans Arabic', sans-serif; }
-
-/* ── Page header ── */
-.cl-head {
-  display: flex; align-items: flex-start;
-  justify-content: space-between; flex-wrap: wrap;
-  gap: 12px; margin-bottom: 24px;
-  padding-bottom: 18px;
-  border-bottom: 1.5px solid #e2e8f0;
+:root {
+  --cl-ink:      #304357;
+  --cl-ink-2:    #455c75;
+  --cl-ink-3:    #6f8297;
+  --cl-surface:  #f1f4f7;
+  --cl-surface-2:#e8eef4;
+  --cl-line:     #d4dce5;
+  --cl-line-2:   #bcc8d5;
+  --cl-accent:   #304357;
+  --cl-accent-dk:#26384a;
 }
-.cl-head__title { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
+.cl { direction: rtl; }
 
+.cl-head {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 22px;
+  padding-bottom: 18px; border-bottom: 1.5px solid var(--cl-line);
+}
+.cl-head__title { font-size: 20px; font-weight: 800; color: var(--cl-ink); margin: 0; }
 .cl-btn {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px;
-  font-size: 13px; font-weight: 600; text-decoration: none;
-  border: 1.5px solid #e2e8f0; background: #fff; color: #475569;
+  padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 700;
+  text-decoration: none; border: 1.5px solid var(--cl-line-2);
+  background: var(--cl-surface); color: var(--cl-ink);
   cursor: pointer; font-family: inherit;
-  transition: border-color .15s, background .15s; white-space: nowrap;
+  transition: background .15s, border-color .15s; white-space: nowrap;
 }
-.cl-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
-.cl-btn--primary { background: #2563eb; color: #fff; border-color: #2563eb; }
-.cl-btn--primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+.cl-btn:hover { background: var(--cl-surface-2); border-color: var(--cl-ink-3); }
+.cl-btn--primary { background: var(--cl-accent); color: #fff; border-color: var(--cl-accent); }
+.cl-btn--primary:hover { background: var(--cl-accent-dk); border-color: var(--cl-accent-dk); }
 
-/* ── Filters ── */
-.cl-filters {
-  background: #fff; border: 1.5px solid #e2e8f0;
-  border-radius: 10px; padding: 16px 18px; margin-bottom: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+.cl-filter {
+  background: #fff; border: 1.5px solid var(--cl-line); border-radius: 10px;
+  padding: 14px 18px; margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.05);
 }
-.cl-filter-form {
-  display: grid;
-  grid-template-columns: minmax(220px, 1.8fr) minmax(180px, 1fr) auto;
-  gap: 12px; align-items: end;
-}
-.cl-field { display: grid; gap: 5px; }
-.cl-field label {
-  font-size: 11px; font-weight: 700; color: #94a3b8;
-  text-transform: uppercase; letter-spacing: .04em;
-}
-.cl-field select,
-.cl-field input[type="text"] {
-  width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px;
-  background: #f8fafc; color: #0f172a;
-  padding: 9px 12px; font-size: 13.5px; font-family: inherit;
+.cl-filter-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.cl-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px; }
+.cl-field label { font-size: 11px; font-weight: 700; color: var(--cl-ink-3); text-transform: uppercase; letter-spacing: .04em; }
+.cl-field input, .cl-field select {
+  border: 1.5px solid var(--cl-line); border-radius: 6px; background: var(--cl-surface);
+  color: var(--cl-ink); padding: 9px 12px; font-size: 13.5px; font-family: inherit;
   transition: border-color .15s, box-shadow .15s;
 }
-.cl-field select:focus,
-.cl-field input[type="text"]:focus {
-  outline: none; border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: #fff;
+.cl-field input:focus, .cl-field select:focus {
+  outline: none; border-color: var(--cl-accent);
+  box-shadow: 0 0 0 3px rgba(48,67,87,.12); background: #fff;
 }
-.cl-filter-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.cl-active-tag {
-  display: inline-flex; align-items: center; gap: 5px;
-  margin-top: 10px; padding: 4px 10px; border-radius: 99px;
-  background: #eff6ff; border: 1.5px solid #bfdbfe;
-  color: #1d4ed8; font-size: 11.5px; font-weight: 600;
+.cl-tag {
+  display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;
+  padding: 3px 10px; border-radius: 99px; background: var(--cl-surface-2);
+  border: 1.5px solid var(--cl-line-2); color: var(--cl-ink-2);
+  font-size: 11.5px; font-weight: 700;
 }
 
-/* ── Section wrapper ── */
 .cl-section {
-  background: #fff; border: 1.5px solid #e2e8f0;
-  border-radius: 10px; padding: 20px; margin-bottom: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  background: #fff; border: 1.5px solid var(--cl-line); border-radius: 10px;
+  overflow: hidden; margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.05);
 }
-.cl-section--finished { border-style: dashed; }
-
+.cl-section--finished { border-style: dashed; opacity: .9; }
 .cl-section-head {
   display: flex; align-items: center; gap: 10px;
-  margin-bottom: 20px; padding-bottom: 14px;
-  border-bottom: 1.5px solid #e2e8f0;
+  padding: 0; background: var(--cl-accent); border-bottom: none;
 }
 .cl-section-title {
-  margin: 0; font-size: 12px; font-weight: 700; color: #94a3b8;
-  text-transform: uppercase; letter-spacing: .06em;
-  background: #0f172a; color: #fff;
-  padding: 6px 14px; border-radius: 6px;
+  font-size: 13px; font-weight: 800; color: #fff; background: transparent;
+  padding: 13px 18px; border-radius: 0; margin: 0; letter-spacing: .02em;
 }
-.cl-section-title.finished { background: #64748b; }
-.cl-count-badge {
-  font-size: 12px; font-weight: 700; color: #475569;
-  background: #f8fafc; border: 1.5px solid #e2e8f0;
-  border-radius: 99px; padding: 2px 10px;
-  font-family: monospace;
+.cl-section-title.fin { opacity: .75; }
+.cl-count {
+  font-size: 12px; font-weight: 700; color: #fff;
+  background: rgba(255,255,255,.18); border: 1.5px solid rgba(255,255,255,.3);
+  border-radius: 99px; padding: 2px 10px; font-family: monospace;
 }
-
-/* ── Group ── */
-.cl-group { margin-top: 20px; }
-.cl-group:first-child { margin-top: 0; }
-.cl-group-label {
-  display: inline-flex; align-items: center; gap: 8px;
-  margin-bottom: 12px; font-size: 12px; font-weight: 700;
-  color: #0f172a; background: #f1f5f9;
-  border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 5px 12px;
-}
-.cl-group-label .dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #475569; flex-shrink: 0;
+.cl-group-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 18px; background: var(--cl-surface);
+  border-top: 1px solid var(--cl-line); border-bottom: 1px solid var(--cl-line);
+  font-size: 12px; font-weight: 700; color: var(--cl-ink-2);
 }
 
-/* ── Pagination ── */
-.cl-pagination {
-  display: flex; align-items: center; justify-content: center;
-  gap: 8px; margin-top: 14px; padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
+/* ── Row ── */
+.cl-item {
+  display: flex; align-items: stretch;
+  border-bottom: 1px solid var(--cl-line); transition: background .1s;
 }
-.cl-pagination button {
-  background: #f8fafc; border: 1.5px solid #e2e8f0;
-  color: #475569; border-radius: 6px; padding: 5px 14px;
-  font-size: 13px; font-family: inherit; cursor: pointer;
-  transition: background .15s;
-}
-.cl-pagination button:hover:not(:disabled) { background: #f1f5f9; }
-.cl-pagination button:disabled { opacity: .35; cursor: default; }
-.cl-pagination .pg-info {
-  font-size: 12px; color: #94a3b8;
-  font-family: monospace; min-width: 60px; text-align: center;
+.cl-item:last-child { border-bottom: none; }
+.cl-item:nth-child(odd)  { background: #fff; }
+.cl-item:nth-child(even) { background: var(--cl-surface); }
+.cl-item:hover { background: var(--cl-surface-2); }
+
+/* Left stripe */
+.cl-stripe { width: 5px; flex-shrink: 0; }
+.s-waiting { background: #8fa3b8; }
+.s-action  { background: #c8860a; }
+.s-error   { background: #b03a1a; }
+.s-process { background: #1e537a; }
+.s-done    { background: #1f6b3e; }
+.s-issued  { background: #155e2e; }
+.s-head    { background: #6b3fa0; }
+
+/* Body: two rows stacked */
+.cl-item-body {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 0;
+  padding: 14px 16px 12px;
 }
 
-/* ── Cards grid ── */
-.cl-cards {
-  display: grid; gap: 14px;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-}
-
-/* ── Card ── */
-.cl-card {
-  border: 1.5px solid #e2e8f0; border-radius: 10px;
-  background: #fff; overflow: hidden;
-  display: flex; flex-direction: column;
-  transition: box-shadow .2s, border-color .2s;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
-  animation: fadeUp .3s ease both;
-}
-.cl-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.09); border-color: #cbd5e1; }
-
-/* Status stripe — single accent color per semantic group */
-.cl-card-stripe { height: 3px; background: #e2e8f0; }
-.stripe--waiting  { background: #94a3b8; }
-.stripe--action   { background: #f59e0b; }
-.stripe--error    { background: #ef4444; }
-.stripe--process  { background: #2563eb; }
-.stripe--done     { background: #16a34a; }
-.stripe--issued   { background: #0f172a; }
-.stripe--head     { background: #7c3aed; }
-
-.cl-card-body {
-  padding: 14px 16px; flex: 1;
-  display: flex; flex-direction: column; gap: 12px;
+/* Top row: status badge + next step */
+.cl-row-top {
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap; margin-bottom: 10px;
 }
 
 /* Status badge */
 .cl-status {
-  display: inline-flex; align-items: center;
-  font-size: 12px; font-weight: 700;
-  padding: 7px 14px; border-radius: 8px;
-  border: 1.5px solid;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 6px;
+  font-size: 13.5px; font-weight: 700; white-space: nowrap; border: 1.5px solid;
+  flex-shrink: 0;
+}
+.cl-status::before { content:''; width:7px; height:7px; border-radius:50%; flex-shrink:0; background: currentColor; }
+.st-waiting { background:#f2f4f6; color:#3d4f5e; border-color:#bcc8d5; }
+.st-action  { background:#fef9ec; color:#7a5500; border-color:#b07d10; }
+.st-error   { background:#fdf0ea; color:#7a2c0d; border-color:#9c3a12; }
+.st-process { background:#e8f2fa; color:#1d4e6e; border-color:#4d8fb5; }
+.st-done    { background:#edf7f2; color:#1a5233; border-color:#1f6b3e; }
+.st-issued  { background:#d4f5e2; color:#0e3d1d; border-color:#155e2e; }
+.st-head    { background:#f0ebff; color:#4c1d95; border-color:#7c3aed; }
+
+/* Next step pill */
+.cl-next {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 11px; border-radius: 6px;
+  font-size: 12px; font-weight: 600;
+  background: var(--cl-surface); border: 1.5px solid var(--cl-line-2); color: var(--cl-ink-2);
   white-space: nowrap;
-  width: 100%; justify-content: center;
-  text-align: center; letter-spacing: .01em;
 }
-.st--waiting  { background: rgba(100,116,139,.12); color: #334155;  border-color: #94a3b8; }
-.st--action   { background: rgba(245,158, 11,.15); color: #b45309;  border-color: #f59e0b; }
-.st--error    { background: rgba(239, 68, 68,.15); color: #b91c1c;  border-color: #ef4444; }
-.st--process  { background: rgba( 37, 99,235,.13); color: #1d4ed8;  border-color: #2563eb; }
-.st--done     { background: rgba( 22,163, 74,.13); color: #15803d;  border-color: #16a34a; }
-.st--issued   { background: rgba( 15, 23, 42,.88); color: #fff;     border-color: #0f172a; }
-.st--head     { background: rgba(109, 40,217,.13); color: #5b21b6;  border-color: #7c3aed; }
+.cl-next svg { flex-shrink: 0; opacity: .6; }
+.cl-next--link {
+  color: #1d4e6e; background: #e8f2fa; border-color: #4d8fb5; text-decoration: none;
+}
+.cl-next--link:hover { background: #d4e8f5; }
+.cl-next--err { color: #7a2c0d; background: #fdf0ea; border-color: #9c3a12; }
 
-.cl-company {
-  font-size: 15px; font-weight: 700; color: #0f172a; line-height: 1.3;
+/* Bottom row: company + meta + action */
+.cl-row-bot {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
 }
+.cl-company-name { font-size: 13px; font-weight: 700; color: var(--cl-ink); }
+.cl-permit-type  { font-size: 12.5px; font-weight: 700; color: var(--cl-ink-2); }
+.cl-meta-col { display: inline-flex; align-items: center; gap: 6px; }
+.cl-sep { color: var(--cl-line-2); font-size: 12px; }
 
-.cl-date {
-  font-size: 11px; font-weight: 600; color: #94a3b8;
-  font-family: monospace;
-  background: #f8fafc; border: 1.5px solid #e2e8f0;
-  border-radius: 6px; padding: 3px 8px; width: fit-content;
-}
-
-/* Data rows */
-.cl-data {
-  display: grid; gap: 0;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px; overflow: hidden;
-}
-.cl-row {
-  display: grid; grid-template-columns: 100px 1fr;
-  border-bottom: 1px solid #f1f5f9;
-}
-.cl-row:last-child { border-bottom: none; }
-.cl-lbl {
-  padding: 8px 10px; font-size: 10.5px; font-weight: 700;
-  color: #64748b; background: #f1f5f9;
-  border-left: 1px solid #e2e8f0;
-  text-transform: uppercase; letter-spacing: .03em;
-  display: flex; align-items: center;
-}
-.cl-val {
-  padding: 8px 10px; font-size: 13px; font-weight: 600;
-  color: #0f172a; line-height: 1.45; word-break: break-word;
-  display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
-}
-.cl-val a {
-  color: #2563eb; font-weight: 600; text-decoration: none;
-}
-.cl-val a:hover { text-decoration: underline; }
-
-.hint { font-size: 12px; color: #475569; line-height: 1.5; font-weight: 500; }
-.hint--err { color: #b91c1c; font-weight: 600; }
-
-.phone-link {
+.cl-date  { font-size: 11.5px; color: var(--cl-ink-3); font-family: monospace; white-space: nowrap; }
+.cl-phone {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 9px; border-radius: 6px; text-decoration: none;
-  color: #0f172a; background: #f8fafc; border: 1.5px solid #e2e8f0;
-  font-size: 13px; font-family: monospace; direction: ltr;
-  transition: background .15s;
+  padding: 2px 10px; border-radius: 6px; text-decoration: none;
+  color: var(--cl-ink); background: var(--cl-surface);
+  border: 1.5px solid var(--cl-line-2);
+  font-size: 12px; font-family: monospace;
+  transition: background .15s; white-space: nowrap;
 }
-.phone-link:hover { background: #f1f5f9; }
+.cl-phone:hover { background: var(--cl-surface-2); }
 
-/* Card actions */
-.cl-actions {
-  border-top: 1px solid #f1f5f9; padding-top: 12px; margin-top: auto;
+.cl-spacer { flex: 1; }
+.cl-view {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 16px; border-radius: 6px;
+  background: var(--cl-accent); color: #fff; font-size: 12.5px; font-weight: 700;
+  text-decoration: none; white-space: nowrap; transition: background .15s; flex-shrink: 0;
 }
-.cl-action-link {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  width: 100%; padding: 9px;
-  border: 1.5px solid #e2e8f0; border-radius: 8px;
-  background: #f8fafc; color: #475569; text-decoration: none;
-  font-size: 13px; font-weight: 600;
-  transition: background .15s, border-color .15s, color .15s;
-}
-.cl-action-link:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+.cl-view:hover { background: var(--cl-accent-dk); }
 
-/* Inspection timer */
+/* Timer */
 .cl-timer {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  font-size: 12px; font-weight: 600; padding: 5px 12px;
-  border-radius: 6px; width: 100%; margin-top: 8px;
-  border: 1.5px solid;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600;
+  border: 1.5px solid; white-space: nowrap; flex-shrink: 0;
 }
-.cl-timer::before {
-  content: ''; width: 6px; height: 6px; border-radius: 50%;
-  background: currentColor; flex-shrink: 0;
-}
-.cl-timer--ok  { background: #f0fdf4; color: #15803d; border-color: #86efac; }
-.cl-timer--mid { background: #fff7ed; color: #c2410c; border-color: #fdba74; }
-.cl-timer--late{ background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
+.cl-timer::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.t-ok   { background:#edf7f2; color:#1a5233; border-color:#1f6b3e; }
+.t-ok::before   { background:#1f6b3e; }
+.t-mid  { background:#fef9ec; color:#7a5500; border-color:#b07d10; }
+.t-mid::before  { background:#b07d10; }
+.t-late { background:#fdf0ea; color:#7a2c0d; border-color:#9c3a12; }
+.t-late::before { background:#9c3a12; }
 
-/* ── Error box ── */
+.cl-pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 12px 18px;
+  border-top: 1px solid var(--cl-line); background: var(--cl-surface);
+}
+.cl-pagination button {
+  background: #fff; border: 1.5px solid var(--cl-line-2); color: var(--cl-ink-2);
+  border-radius: 6px; padding: 5px 16px; font-size: 13px;
+  font-family: inherit; cursor: pointer; transition: background .15s;
+}
+.cl-pagination button:hover:not(:disabled) { background: var(--cl-surface-2); border-color: var(--cl-ink-3); }
+.cl-pagination button:disabled { opacity: .35; cursor: default; }
+.cl-pagination .pg-info { font-size: 12px; color: var(--cl-ink-3); font-family: monospace; min-width: 52px; text-align: center; }
+
+.cl-empty { text-align: center; padding: 36px 20px; color: var(--cl-ink-3); font-size: 13.5px; font-weight: 500; }
 .cl-errors {
-  border: 1.5px solid #fca5a5; background: #fef2f2;
-  border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;
-  color: #b91c1c; font-size: 13px; font-weight: 600;
+  border: 1.5px solid #9c3a12; background: #fdf0ea; border-radius: 8px;
+  padding: 14px 16px; margin-bottom: 16px; color: #7a2c0d; font-size: 13px; font-weight: 600;
 }
 .cl-errors ul { margin: 8px 0 0 18px; }
 
-/* ── Empty ── */
-.cl-empty {
-  text-align: center; padding: 40px 20px;
-  color: #94a3b8; font-size: 13.5px; font-weight: 500;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.cl-cards .cl-card:nth-child(1)  { animation-delay: .02s; }
-.cl-cards .cl-card:nth-child(2)  { animation-delay: .05s; }
-.cl-cards .cl-card:nth-child(3)  { animation-delay: .08s; }
-.cl-cards .cl-card:nth-child(4)  { animation-delay: .11s; }
-.cl-cards .cl-card:nth-child(5)  { animation-delay: .14s; }
-.cl-cards .cl-card:nth-child(n+6){ animation-delay: .17s; }
-
-@media (max-width: 860px) {
-  .cl-filter-form { grid-template-columns: 1fr; }
-  .cl-filter-actions { width: 100%; }
-  .cl-filter-actions .cl-btn { width: 100%; justify-content: center; }
-}
-@media (max-width: 640px) {
-  .cl-cards { grid-template-columns: 1fr; gap: 10px; }
-  .cl-section { padding: 14px; }
+@media (max-width: 600px) {
+  .cl-filter-form { flex-direction: column; }
+  .cl-field { min-width: 0; }
+  .cl-item-body { padding: 12px; }
+  .cl-row-top { gap: 8px; }
+  .cl-status { font-size: 13px; width: 100%; justify-content: center; }
+  .cl-next   { font-size: 11.5px; }
+  .cl-row-bot { gap: 8px; }
+  .cl-sep { display: none; }
+  .cl-meta-col { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .cl-phone { width: 100%; justify-content: center; }
+  .cl-spacer { display: none; }
+  .cl-view { margin-top: 4px; width: 100%; justify-content: center; }
 }
 </style>
 
@@ -307,7 +242,7 @@
     </div>
   {% endif %}
 
-  <div class="cl-filters">
+  <div class="cl-filter">
     <form method="get" class="cl-filter-form">
       <div class="cl-field">
         <label for="clearance_query">بحث باسم الشركة أو رقم الرخصة</label>
@@ -321,179 +256,179 @@
           {% endfor %}
         </select>
       </div>
-      <div class="cl-filter-actions">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-self:flex-end;">
         <button type="submit" class="cl-btn cl-btn--primary">تطبيق</button>
-        {% if status_filter != 'all' or query %}
-          <a href="{% url 'clearance_list' %}" class="cl-btn">مسح</a>
-        {% endif %}
+        {% if status_filter != 'all' or query %}<a href="{% url 'clearance_list' %}" class="cl-btn">مسح</a>{% endif %}
       </div>
     </form>
-    {% if status_filter != 'all' %}<div class="cl-active-tag">{{ status_filter_label }}</div>{% endif %}
-    {% if query %}<div class="cl-active-tag">بحث: {{ query }}</div>{% endif %}
+    {% if status_filter != 'all' %}<span class="cl-tag">{{ status_filter_label }}</span>{% endif %}
+    {% if query %}<span class="cl-tag">بحث: {{ query }}</span>{% endif %}
   </div>
 
-  {# ── Active section ── #}
+  {# ══ Active ══ #}
   <div class="cl-section">
     <div class="cl-section-head">
       <h2 class="cl-section-title">طلبات قيد المتابعة</h2>
-      {% if active_clearances %}
-        <span class="cl-count-badge">{{ active_clearances|length }}</span>
-      {% endif %}
+      {% if active_clearances %}<span class="cl-count">{{ active_clearances|length }}</span>{% endif %}
     </div>
 
     {% if active_clearances %}
       {% for group in active_clearance_groups %}
-        <div class="cl-group">
-          <h3 class="cl-group-label">
-            <span class="dot"></span>
-            {{ group.label }}
-            <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
-          </h3>
+        <div class="cl-group-head">
+          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#94a3b8"/></svg>
+          {{ group.label }}
+          <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
+        </div>
 
-          <div class="cl-cards" data-pg-group="{{ forloop.counter }}">
-            {% for clearance in group.items %}
-              <article class="cl-card">
+        <div data-pg-group="{{ forloop.counter }}">
+        {% for c in group.items %}
+          <div class="cl-item">
 
-                {# Stripe #}
-                <div class="cl-card-stripe
-                  {% if clearance.active_waste_request %}
-                    {% if clearance.active_waste_request.status == 'payment_pending' %}stripe--action
-                    {% elif clearance.active_waste_request.status == 'inspection_pending' %}stripe--process
-                    {% else %}stripe--waiting{% endif %}
-                  {% elif clearance.status == 'issued' %}stripe--issued
-                  {% elif clearance.status in 'needs_completion,rejected' or clearance.status == 'violation_payment_link_pending' or clearance.status == 'violation_payment_pending' or clearance.status == 'disposal_rejected' %}stripe--error
-                  {% elif clearance.status == 'payment_pending' or clearance.status == 'inspection_payment_pending' %}stripe--action
-                  {% elif clearance.status == 'head_approved' %}stripe--head
-                  {% elif clearance.status == 'disposal_approved' %}stripe--done
-                  {% elif clearance.status == 'inspection_pending' or clearance.status == 'inspection_completed' or clearance.status == 'review_pending' or clearance.status == 'approved' %}stripe--process
-                  {% else %}stripe--waiting{% endif %}">
-                </div>
+            <div class="cl-stripe
+              {% if c.active_waste_request %}{% if c.active_waste_request.status == 'payment_pending' %}s-action{% elif c.active_waste_request.status == 'inspection_pending' %}s-process{% else %}s-waiting{% endif %}
+              {% elif c.status == 'issued' %}s-issued
+              {% elif c.status == 'needs_completion' or c.status == 'rejected' or c.status == 'violation_payment_link_pending' or c.status == 'violation_payment_pending' or c.status == 'disposal_rejected' %}s-error
+              {% elif c.status == 'payment_pending' or c.status == 'inspection_payment_pending' %}s-action
+              {% elif c.status == 'head_approved' %}s-head
+              {% elif c.status == 'disposal_approved' %}s-done
+              {% elif c.status == 'inspection_pending' or c.status == 'inspection_completed' or c.status == 'review_pending' or c.status == 'approved' %}s-process
+              {% else %}s-waiting{% endif %}">
+            </div>
 
-                <div class="cl-card-body">
-                  {# Status badge #}
-                  <span class="cl-status
-                    {% if clearance.active_waste_request %}
-                      {% if clearance.active_waste_request.status == 'payment_pending' %}st--action
-                      {% elif clearance.active_waste_request.status == 'inspection_pending' %}st--process
-                      {% else %}st--waiting{% endif %}
-                    {% elif clearance.status == 'issued' %}st--issued
-                    {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' or clearance.status == 'violation_payment_link_pending' or clearance.status == 'violation_payment_pending' or clearance.status == 'disposal_rejected' %}st--error
-                    {% elif clearance.status == 'payment_pending' or clearance.status == 'inspection_payment_pending' %}st--action
-                    {% elif clearance.status == 'head_approved' %}st--head
-                    {% elif clearance.status == 'disposal_approved' %}st--done
-                    {% elif clearance.status == 'approved' or clearance.status == 'inspection_completed' or clearance.status == 'review_pending' or clearance.status == 'inspection_pending' %}st--process
-                    {% else %}st--waiting{% endif %}">
-                    {% if clearance.active_waste_request %}
-                      {% if clearance.active_waste_request.status == 'payment_pending' %}بانتظار دفع طلب الإتلاف
-                      {% elif clearance.active_waste_request.status == 'inspection_pending' %}{% if clearance.inspection_receiver_name %}تم استلام الطلب — {{ clearance.inspection_receiver_name }}{% else %}جاهز للاستلام{% endif %}
-                      {% else %}{{ clearance.active_waste_request.get_status_display }}{% endif %}
-                    {% elif clearance.status == 'order_received' %}بانتظار رابط دفع التفتيش
-                    {% elif clearance.status == 'inspection_payment_pending' %}بانتظار دفع التفتيش
-                    {% elif clearance.status == 'review_pending' %}بانتظار المراجعة
-                    {% elif clearance.status == 'approved' %}معتمد من المفتش
-                    {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}غير معتمد
-                    {% elif clearance.status == 'payment_pending' %}بانتظار دفع التصريح
-                    {% elif clearance.status == 'violation_payment_link_pending' %}بانتظار إرسال رابط دفع المخالفة
-                    {% elif clearance.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
-                    {% elif clearance.status == 'issued' %}تم إصدار التصريح
-                    {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} — {{ clearance.inspection_receiver_name }}{% endif %}
-                    {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
-                    {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}بانتظار إرسال رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
-                    {% elif clearance.status == 'inspection_completed' %}تم التفتيش
-                    {% elif clearance.status == 'head_approved' %}تم الاعتماد النهائي
-                    {% elif clearance.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
-                    {% elif clearance.status == 'disposal_approved' %}إتلاف معتمد
-                    {% elif clearance.status == 'disposal_rejected' %}إتلاف مرفوض
-                    {% else %}{{ clearance.get_status_display }}{% endif %}
+            <div class="cl-item-body">
+
+              {# ── TOP: status badge + next step ── #}
+              <div class="cl-row-top">
+
+                <span class="cl-status
+                  {% if c.active_waste_request %}{% if c.active_waste_request.status == 'payment_pending' %}st-action{% elif c.active_waste_request.status == 'inspection_pending' %}st-process{% else %}st-waiting{% endif %}
+                  {% elif c.status == 'issued' %}st-issued
+                  {% elif c.status == 'needs_completion' or c.status == 'rejected' or c.status == 'violation_payment_link_pending' or c.status == 'violation_payment_pending' or c.status == 'disposal_rejected' %}st-error
+                  {% elif c.status == 'payment_pending' or c.status == 'inspection_payment_pending' %}st-action
+                  {% elif c.status == 'head_approved' %}st-head
+                  {% elif c.status == 'disposal_approved' %}st-done
+                  {% elif c.status == 'inspection_pending' or c.status == 'inspection_completed' or c.status == 'review_pending' or c.status == 'approved' %}st-process
+                  {% else %}st-waiting{% endif %}">
+                  {% if c.active_waste_request %}
+                    {% if c.active_waste_request.status == 'payment_pending' %}بانتظار دفع طلب الإتلاف
+                    {% elif c.active_waste_request.status == 'inspection_pending' %}{% if c.inspection_receiver_name %}تم استلام الطلب — {{ c.inspection_receiver_name }}{% else %}جاهز للاستلام{% endif %}
+                    {% else %}{{ c.active_waste_request.get_status_display }}{% endif %}
+                  {% elif c.status == 'order_received' %}بانتظار رابط دفع التفتيش
+                  {% elif c.status == 'inspection_payment_pending' %}بانتظار دفع التفتيش
+                  {% elif c.status == 'review_pending' %}بانتظار المراجعة
+                  {% elif c.status == 'approved' %}معتمد من المفتش
+                  {% elif c.status == 'needs_completion' or c.status == 'rejected' %}غير معتمد
+                  {% elif c.status == 'payment_pending' %}بانتظار دفع التصريح
+                  {% elif c.status == 'violation_payment_link_pending' %}بانتظار رابط دفع المخالفة
+                  {% elif c.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
+                  {% elif c.status == 'issued' %}تم إصدار التصريح
+                  {% elif c.status == 'inspection_pending' %}جاهز للاستلام
+                  {% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}{% if c.permit_type == 'pesticide_transport' %}بانتظار رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
+                  {% elif c.status == 'inspection_completed' %}تم التفتيش
+                  {% elif c.status == 'head_approved' %}تم الاعتماد النهائي
+                  {% elif c.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
+                  {% elif c.status == 'disposal_approved' %}إتلاف معتمد
+                  {% elif c.status == 'disposal_rejected' %}إتلاف مرفوض
+                  {% else %}{{ c.get_status_display }}{% endif %}
+                </span>
+
+                {# Next step pill #}
+                {% if c.active_waste_request and c.active_waste_request.status == 'payment_pending' %}
+                  <span class="cl-next">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    أرسل رابط الدفع للشركة
                   </span>
+                {% elif c.status == 'order_received' %}
+                  <span class="cl-next">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    أنشئ رابط دفع التفتيش
+                  </span>
+                {% elif c.status == 'inspection_payment_pending' %}
+                  <span class="cl-next">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    بانتظار الدفع من الشركة
+                  </span>
+                {% elif c.status == 'review_pending' %}
+                  <span class="cl-next">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    بانتظار مراجعة المفتش
+                  </span>
+                {% elif c.status == 'approved' %}
+                  <span class="cl-next">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    بانتظار الاعتماد النهائي
+                  </span>
+                {% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}
+                  <span class="cl-next">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    {% if c.permit_type == 'pesticide_transport' %}أنشئ رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
+                  </span>
+                {% elif c.status == 'head_approved' %}
+                  <span class="cl-next">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    أدخل رقم أمر الدفع
+                  </span>
+                {% elif c.status == 'payment_pending' and c.payment_link %}
+                  <a href="{{ c.payment_link }}" target="_blank" class="cl-next cl-next--link">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    رابط دفع التصريح ↗
+                  </a>
+                {% elif c.status == 'violation_payment_link_pending' %}
+                  <span class="cl-next">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    أنشئ رابط دفع المخالفة
+                  </span>
+                {% elif c.status == 'violation_payment_pending' %}
+                  <span class="cl-next">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    بانتظار دفع المخالفة
+                  </span>
+                {% elif c.unapprovedReason and c.status == 'needs_completion' %}
+                  <span class="cl-next cl-next--err">{{ c.unapprovedReason }}</span>
+                {% elif c.unapprovedReason and c.status == 'rejected' %}
+                  <span class="cl-next cl-next--err">{{ c.unapprovedReason }}</span>
+                {% elif c.status == 'approved' and c.inspector_name %}
+                  <span class="cl-next">{{ c.inspector_name }}</span>
+                {% elif c.inspection_payment_link and c.permit_type != 'pesticide_transport' %}
+                  <a href="{{ c.inspection_payment_link }}" target="_blank" class="cl-next cl-next--link">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    رابط دفع التفتيش ↗
+                  </a>
+                {% endif %}
 
-                  <div class="cl-company">{{ clearance.company.name }}</div>
-                  <div class="cl-date">{{ clearance.dateOfCreation|date:"d/m/Y"|default:"—" }}</div>
+                {% if user_is_admin and c.inspection_duration_hours is not None %}
+                  {% if c.inspection_duration_hours <= 24 %}<span class="cl-timer t-ok">{{ c.inspection_duration_display }}</span>
+                  {% elif c.inspection_duration_hours <= 72 %}<span class="cl-timer t-mid">{{ c.inspection_duration_display }}</span>
+                  {% else %}<span class="cl-timer t-late">{{ c.inspection_duration_display }}</span>{% endif %}
+                {% endif %}
 
-                  <div class="cl-data">
-                    <div class="cl-row">
-                      <div class="cl-lbl">نوع التصريح</div>
-                      <div class="cl-val">{{ clearance.permit_label_ar }}</div>
-                    </div>
-                    {% if clearance.permit_no %}
-                    <div class="cl-row">
-                      <div class="cl-lbl">رقم التصريح</div>
-                      <div class="cl-val" style="font-family:monospace;">{{ clearance.permit_no }}</div>
-                    </div>
-                    {% endif %}
-                    <div class="cl-row">
-                      <div class="cl-lbl">الموقع</div>
-                      <div class="cl-val">{{ clearance.company_location|default:"—" }}</div>
-                    </div>
-                    <div class="cl-row">
-                      <div class="cl-lbl">تفاصيل</div>
-                      <div class="cl-val" style="flex-direction:column;align-items:flex-start;">
-                        <span class="hint">
-                          {% if clearance.active_waste_request %}
-                            {% if clearance.active_waste_request.status == 'payment_pending' %}بانتظار دفع طلب الإتلاف — يرجى إرسال رابط الدفع للشركة
-                            {% elif clearance.active_waste_request.status == 'inspection_pending' %}{% if clearance.inspection_receiver_name %}تم استلام طلب الإتلاف — {{ clearance.inspection_receiver_name }}{% else %}طلب الإتلاف جاهز للاستلام{% endif %}
-                            {% else %}{{ clearance.active_waste_request.get_status_display }}{% endif %}
-                          {% elif clearance.status == 'order_received' %}بانتظار اصدار رابط دفع التفتيش
-                          {% elif clearance.status == 'inspection_payment_pending' %}تم إرسال رابط دفع التفتيش وبانتظار الدفع
-                          {% elif clearance.status == 'review_pending' %}بانتظار مراجعة المفتش
-                          {% elif clearance.status == 'approved' %}تم الاعتماد من المفتش{% if clearance.inspector_name %} {{ clearance.inspector_name }}{% endif %}
-                          {% elif clearance.status == 'needs_completion' or clearance.status == 'rejected' %}تم إنهاء الطلب — غير معتمد
-                          {% elif clearance.status == 'payment_pending' %}بانتظار دفع التصريح
-                          {% elif clearance.status == 'violation_payment_link_pending' %}بانتظار إرسال رابط دفع المخالفة
-                          {% elif clearance.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
-                          {% elif clearance.status == 'issued' %}تم إصدار التصريح
-                          {% elif clearance.status_key == 'inspection_received' %}تم استلام الطلب{% if clearance.inspection_receiver_name %} — {{ clearance.inspection_receiver_name }}{% endif %}
-                          {% elif clearance.status == 'inspection_pending' %}جاهز للاستلام
-                          {% elif clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'approved' %}{% if clearance.permit_type == 'pesticide_transport' %}تم التفتيش — بانتظار إرسال رابط دفع التصريح{% else %}تم التفتيش — بانتظار الاعتماد النهائي{% endif %}
-                          {% elif clearance.status == 'inspection_completed' %}{% if clearance.inspection_report_decision == 'rejected' %}تم التفتيش — غير معتمد{% else %}تم التفتيش{% endif %}
-                          {% elif clearance.status == 'head_approved' %}تم الاعتماد النهائي — بانتظار إدخال رقم الدفع
-                          {% elif clearance.status == 'closed_requirements_pending' %}تم إغلاق الطلب — اشتراطات واجبة الاستيفاء
-                          {% elif clearance.status == 'disposal_approved' %}تمت الموافقة على الإتلاف
-                          {% elif clearance.status == 'disposal_rejected' %}تم رفض الإتلاف
-                          {% else %}{{ clearance.get_status_display }}{% endif %}
-                        </span>
-                        {% if clearance.unapprovedReason and clearance.status == 'needs_completion' or clearance.unapprovedReason and clearance.status == 'rejected' or clearance.unapprovedReason and clearance.status == 'inspection_completed' and clearance.inspection_report_decision == 'rejected' %}
-                          <span class="hint hint--err">{{ clearance.unapprovedReason }}</span>
-                        {% endif %}
-                        {% if clearance.permit_type != 'pesticide_transport' and clearance.inspection_payment_link %}
-                          <a href="{{ clearance.inspection_payment_link }}" target="_blank" rel="noopener" class="hint" style="color:#2563eb;">رابط دفع التفتيش ↗</a>
-                        {% endif %}
-                        {% if clearance.payment_link %}
-                          <a href="{{ clearance.payment_link }}" target="_blank" rel="noopener" class="hint" style="color:#2563eb;">رابط دفع التصريح ↗</a>
-                        {% endif %}
-                      </div>
-                    </div>
-                    <div class="cl-row">
-                      <div class="cl-lbl">التواصل</div>
-                      <div class="cl-val">
-                        {% if clearance.contact_number %}
-                          <a href="tel:{{ clearance.contact_number }}" class="phone-link">{{ clearance.contact_number }}</a>
-                        {% else %}—{% endif %}
-                      </div>
-                    </div>
-                  </div>
+              </div>
 
-                  <div class="cl-actions">
-                    <a href="{{ clearance.detail_url }}" class="cl-action-link">عرض التفاصيل ←</a>
-                    {% if user_is_admin and clearance.inspection_duration_hours is not None %}
-                      {% if clearance.inspection_duration_hours <= 24 %}
-                        <span class="cl-timer cl-timer--ok">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
-                      {% elif clearance.inspection_duration_hours <= 72 %}
-                        <span class="cl-timer cl-timer--mid">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
-                      {% else %}
-                        <span class="cl-timer cl-timer--late">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
-                      {% endif %}
-                    {% endif %}
-                  </div>
-                </div>
-              </article>
-            {% endfor %}
+              {# ── BOTTOM: company info + meta + action ── #}
+              <div class="cl-row-bot">
+                <span class="cl-company-name">{{ c.company.name }}</span>
+                <span class="cl-sep">·</span>
+                <span class="cl-meta-col">
+                  <span class="cl-permit-type">{{ c.permit_label_ar }}{% if c.permit_no %} · {{ c.permit_no }}{% endif %}</span>
+                  <span class="cl-date">{{ c.dateOfCreation|date:"d/m/Y"|default:"—" }}</span>
+                </span>
+                {% if c.contact_number %}
+                  <span class="cl-sep">·</span>
+                  <a href="tel:{{ c.contact_number }}" class="cl-phone"><span dir="ltr">{{ c.contact_number }}</span></a>
+                {% endif %}
+                <span class="cl-spacer"></span>
+                <a href="{{ c.detail_url }}" class="cl-view">عرض</a>
+              </div>
+
+            </div>
           </div>
-          <div class="cl-pagination" data-pg-bar="{{ forloop.counter }}" style="display:none;">
-            <button data-pg-prev>&#8250; السابق</button>
-            <span class="pg-info" data-pg-info></span>
-            <button data-pg-next>التالي &#8249;</button>
-          </div>
+        {% endfor %}
+        </div>
+
+        <div class="cl-pagination" data-pg-bar="{{ forloop.counter }}" style="display:none;">
+          <button data-pg-prev>&#8250; السابق</button>
+          <span class="pg-info" data-pg-info></span>
+          <button data-pg-next>التالي &#8249;</button>
         </div>
       {% endfor %}
     {% else %}
@@ -501,97 +436,72 @@
     {% endif %}
   </div>
 
-  {# ── Finished section ── #}
+  {# ══ Finished ══ #}
   {% if show_finished_section %}
   <div class="cl-section cl-section--finished">
     <div class="cl-section-head">
-      <h2 class="cl-section-title finished">طلبات منتهية</h2>
+      <h2 class="cl-section-title fin">طلبات منتهية</h2>
     </div>
 
     {% if finished_clearance_groups %}
       {% for group in finished_clearance_groups %}
-        <div class="cl-group">
-          <h3 class="cl-group-label">
-            <span class="dot"></span>
-            {{ group.label }}
-            <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
-          </h3>
+        <div class="cl-group-head">
+          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#94a3b8"/></svg>
+          {{ group.label }}
+          <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
+        </div>
 
-          <div class="cl-cards" data-pg-group="f{{ forloop.counter }}">
-            {% for clearance in group.items %}
-              <article class="cl-card" style="opacity:.85;">
-                <div class="cl-card-stripe
-                  {% if clearance.status == 'issued' %}stripe--issued
-                  {% elif clearance.status == 'cancelled_admin' %}stripe--error
-                  {% elif clearance.status == 'disposal_approved' %}stripe--done
-                  {% elif clearance.status == 'disposal_rejected' %}stripe--error
-                  {% else %}stripe--waiting{% endif %}">
-                </div>
-
-                <div class="cl-card-body">
-                  <span class="cl-status
-                    {% if clearance.status == 'issued' %}st--issued
-                    {% elif clearance.status == 'cancelled_admin' %}st--error
-                    {% elif clearance.status == 'disposal_approved' %}st--done
-                    {% elif clearance.status == 'disposal_rejected' %}st--error
-                    {% else %}st--waiting{% endif %}">
-                    {% if clearance.status == 'issued' %}تم إصدار التصريح
-                    {% elif clearance.status == 'cancelled_admin' %}مغلق
-                    {% elif clearance.status == 'inspection_completed' %}تم التفتيش
-                    {% elif clearance.status == 'disposal_approved' %}إتلاف معتمد
-                    {% elif clearance.status == 'disposal_rejected' %}إتلاف مرفوض
-                    {% else %}{{ clearance.get_status_display }}{% endif %}
-                  </span>
-
-                  <div class="cl-company">{{ clearance.company.name }}</div>
-                  <div class="cl-date">{{ clearance.dateOfCreation|date:"d/m/Y"|default:"—" }}</div>
-
-                  <div class="cl-data">
-                    <div class="cl-row">
-                      <div class="cl-lbl">نوع التصريح</div>
-                      <div class="cl-val">{{ clearance.permit_label_ar }}</div>
-                    </div>
-                    {% if clearance.permit_no %}
-                    <div class="cl-row">
-                      <div class="cl-lbl">رقم التصريح</div>
-                      <div class="cl-val" style="font-family:monospace;">{{ clearance.permit_no }}</div>
-                    </div>
-                    {% endif %}
-                    <div class="cl-row">
-                      <div class="cl-lbl">الموقع</div>
-                      <div class="cl-val">{{ clearance.company_location|default:"—" }}</div>
-                    </div>
-                    <div class="cl-row">
-                      <div class="cl-lbl">التواصل</div>
-                      <div class="cl-val">
-                        {% if clearance.contact_number %}
-                          <a href="tel:{{ clearance.contact_number }}" class="phone-link">{{ clearance.contact_number }}</a>
-                        {% else %}—{% endif %}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="cl-actions">
-                    <a href="{{ clearance.detail_url }}" class="cl-action-link">عرض التفاصيل ←</a>
-                    {% if user_is_admin and clearance.inspection_duration_hours is not None %}
-                      {% if clearance.inspection_duration_hours <= 24 %}
-                        <span class="cl-timer cl-timer--ok">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
-                      {% elif clearance.inspection_duration_hours <= 72 %}
-                        <span class="cl-timer cl-timer--mid">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
-                      {% else %}
-                        <span class="cl-timer cl-timer--late">مدة الإنجاز: {{ clearance.inspection_duration_display }}</span>
-                      {% endif %}
-                    {% endif %}
-                  </div>
-                </div>
-              </article>
-            {% endfor %}
+        <div data-pg-group="f{{ forloop.counter }}">
+        {% for c in group.items %}
+          <div class="cl-item" style="opacity:.85;">
+            <div class="cl-stripe
+              {% if c.status == 'issued' %}s-issued
+              {% elif c.status == 'cancelled_admin' or c.status == 'disposal_rejected' %}s-error
+              {% elif c.status == 'disposal_approved' %}s-done
+              {% else %}s-waiting{% endif %}">
+            </div>
+            <div class="cl-item-body">
+              <div class="cl-row-top">
+                <span class="cl-status
+                  {% if c.status == 'issued' %}st-issued
+                  {% elif c.status == 'cancelled_admin' or c.status == 'disposal_rejected' %}st-error
+                  {% elif c.status == 'disposal_approved' %}st-done
+                  {% else %}st-waiting{% endif %}">
+                  {% if c.status == 'issued' %}تم إصدار التصريح
+                  {% elif c.status == 'cancelled_admin' %}مغلق
+                  {% elif c.status == 'disposal_approved' %}إتلاف معتمد
+                  {% elif c.status == 'disposal_rejected' %}إتلاف مرفوض
+                  {% else %}{{ c.get_status_display }}{% endif %}
+                </span>
+                {% if user_is_admin and c.inspection_duration_hours is not None %}
+                  {% if c.inspection_duration_hours <= 24 %}<span class="cl-timer t-ok">{{ c.inspection_duration_display }}</span>
+                  {% elif c.inspection_duration_hours <= 72 %}<span class="cl-timer t-mid">{{ c.inspection_duration_display }}</span>
+                  {% else %}<span class="cl-timer t-late">{{ c.inspection_duration_display }}</span>{% endif %}
+                {% endif %}
+              </div>
+              <div class="cl-row-bot">
+                <span class="cl-company-name">{{ c.company.name }}</span>
+                <span class="cl-sep">·</span>
+                <span class="cl-meta-col">
+                  <span class="cl-permit-type">{{ c.permit_label_ar }}{% if c.permit_no %} · {{ c.permit_no }}{% endif %}</span>
+                  <span class="cl-date">{{ c.dateOfCreation|date:"d/m/Y"|default:"—" }}</span>
+                </span>
+                {% if c.contact_number %}
+                  <span class="cl-sep">·</span>
+                  <a href="tel:{{ c.contact_number }}" class="cl-phone"><span dir="ltr">{{ c.contact_number }}</span></a>
+                {% endif %}
+                <span class="cl-spacer"></span>
+                <a href="{{ c.detail_url }}" class="cl-view">عرض</a>
+              </div>
+            </div>
           </div>
-          <div class="cl-pagination" data-pg-bar="f{{ forloop.counter }}" style="display:none;">
-            <button data-pg-prev>&#8250; السابق</button>
-            <span class="pg-info" data-pg-info></span>
-            <button data-pg-next>التالي &#8249;</button>
-          </div>
+        {% endfor %}
+        </div>
+
+        <div class="cl-pagination" data-pg-bar="f{{ forloop.counter }}" style="display:none;">
+          <button data-pg-prev>&#8250; السابق</button>
+          <span class="pg-info" data-pg-info></span>
+          <button data-pg-next>التالي &#8249;</button>
         </div>
       {% endfor %}
     {% else %}
@@ -604,32 +514,24 @@
 
 <script>
 (function () {
-  var PAGE_SIZE = 10;
-  function initPagination(cards, bar) {
-    var items = Array.from(cards.querySelectorAll('.cl-card'));
+  var PAGE_SIZE = 15;
+  function initPg(container, bar) {
+    var items = Array.from(container.querySelectorAll('.cl-item'));
     if (items.length <= PAGE_SIZE) return;
-    var total = Math.ceil(items.length / PAGE_SIZE);
-    var current = 1;
-    var prevBtn = bar.querySelector('[data-pg-prev]');
-    var nextBtn = bar.querySelector('[data-pg-next]');
-    var info    = bar.querySelector('[data-pg-info]');
+    var total = Math.ceil(items.length / PAGE_SIZE), cur = 1;
+    var prev = bar.querySelector('[data-pg-prev]'), next = bar.querySelector('[data-pg-next]'), info = bar.querySelector('[data-pg-info]');
     function render() {
-      items.forEach(function (el, i) {
-        el.style.display = (i >= (current-1)*PAGE_SIZE && i < current*PAGE_SIZE) ? '' : 'none';
-      });
-      info.textContent = current + ' / ' + total;
-      prevBtn.disabled = (current === 1);
-      nextBtn.disabled = (current === total);
+      items.forEach(function(el, i) { el.style.display = (i >= (cur-1)*PAGE_SIZE && i < cur*PAGE_SIZE) ? '' : 'none'; });
+      info.textContent = cur + ' / ' + total;
+      prev.disabled = cur === 1; next.disabled = cur === total;
     }
-    prevBtn.addEventListener('click', function () { if (current > 1)     { current--; render(); } });
-    nextBtn.addEventListener('click', function () { if (current < total) { current++; render(); } });
-    bar.style.display = '';
-    render();
+    prev.addEventListener('click', function() { if (cur > 1) { cur--; render(); } });
+    next.addEventListener('click', function() { if (cur < total) { cur++; render(); } });
+    bar.style.display = ''; render();
   }
-  document.querySelectorAll('.cl-cards[data-pg-group]').forEach(function (cards) {
-    var groupId = cards.getAttribute('data-pg-group');
-    var bar = document.querySelector('.cl-pagination[data-pg-bar="' + groupId + '"]');
-    if (bar) initPagination(cards, bar);
+  document.querySelectorAll('[data-pg-group]').forEach(function(c) {
+    var bar = document.querySelector('[data-pg-bar="' + c.getAttribute('data-pg-group') + '"]');
+    if (bar) initPg(c, bar);
   });
 })();
 </script>

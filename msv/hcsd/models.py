@@ -352,6 +352,23 @@ class WasteDisposalRequestDocument(models.Model):
         return f"{self.disposal_request.permit.company.name} - Waste Request Doc #{self.id}"
 
 
+class WasteDisposalInspectionPhoto(models.Model):
+    disposal_request = models.ForeignKey(
+        WasteDisposalRequest,
+        on_delete=models.CASCADE,
+        related_name='inspection_photos',
+    )
+    file = models.FileField(upload_to='pirmet_documents/waste_disposal_inspection_photos/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='waste_inspection_photos_uploaded',
+    )
+
+    def __str__(self):
+        return f"{self.disposal_request.permit.company.name} - Inspection Photo #{self.id}"
+
+
 class InspectorReview(models.Model):
     pirmet = models.OneToOneField(PirmetClearance, on_delete=models.CASCADE)
     inspector = models.ForeignKey(Enginer, on_delete=models.SET_NULL, null=True)
@@ -1330,6 +1347,12 @@ class WeedRemovalInspection(models.Model):
     assigned_at      = models.DateTimeField(auto_now_add=True)
     inspection_notes = models.TextField(blank=True, verbose_name='ملاحظات التفتيش')
     completed_at     = models.DateTimeField(null=True, blank=True, verbose_name='وقت الإتمام')
+
+    # Location
+    latitude         = models.FloatField(null=True, blank=True, verbose_name='خط العرض')
+    longitude        = models.FloatField(null=True, blank=True, verbose_name='خط الطول')
+    location_notes   = models.TextField(blank=True, verbose_name='ملاحظات الموقع')
+    location_saved_at = models.DateTimeField(null=True, blank=True, verbose_name='وقت حفظ الموقع')
 
     # Rejection
     rejection_reason = models.TextField(blank=True, verbose_name='سبب الرفض')

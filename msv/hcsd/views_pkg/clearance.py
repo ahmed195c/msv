@@ -173,7 +173,13 @@ def clearance_list(request):
                     pending_waste_request.inspected_by
                 )
         clearance.status_key = clearance.status
-        if (
+        if clearance.active_waste_request:
+            wr_status = clearance.active_waste_request.status
+            if wr_status == 'payment_pending':
+                clearance.status_key = 'waste_disposal_payment_pending'
+            elif wr_status == 'inspection_pending':
+                clearance.status_key = 'waste_disposal_inspection_pending'
+        elif (
             clearance.status == 'inspection_pending'
             and clearance.inspection_receiver_name
         ):
@@ -289,6 +295,8 @@ def clearance_list(request):
     )
 
     status_filter_label_map = {
+        'waste_disposal_payment_pending':   'بانتظار دفع طلب الإتلاف',
+        'waste_disposal_inspection_pending': 'طلب إتلاف جاهز للاستلام',
         'inspection_received': 'تم استلام الطلب للتفتيش',
         'inspection_pending': 'جاهز للاستلام',
         'order_received': 'بانتظار اصدار رابط دفع التفتيش',
@@ -309,6 +317,8 @@ def clearance_list(request):
         'disposal_rejected': 'إتلاف مرفوض',
     }
     status_section_label_map = {
+        'waste_disposal_payment_pending':   'طلبات إتلاف بانتظار الدفع',
+        'waste_disposal_inspection_pending': 'طلبات إتلاف جاهزة للاستلام',
         'inspection_received': 'طلبات تم استلامها للتفتيش',
         'inspection_pending': 'طلبات جاهزة للاستلام',
         'order_received': 'بانتظار اصدار رابط دفع التفتيش',
@@ -329,6 +339,8 @@ def clearance_list(request):
         'disposal_rejected': 'طلبات إتلاف مرفوضة',
     }
     active_status_order = [
+        'waste_disposal_payment_pending',
+        'waste_disposal_inspection_pending',
         'inspection_completed',
         'approved',
         'head_approved',

@@ -374,19 +374,6 @@
         {% endif %}
       </section>
 
-      {% if can_upload_request_documents and not request_documents %}
-        <section class="permit-section no-print">
-          <div class="section-title">إرفاق مستندات الطلب (إلزامي قبل الدفع)</div>
-          <form method="post" enctype="multipart/form-data" class="review-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="upload_request_documents">
-            <label for="request_documents_existing">مستندات طلب التخلص (PDF أو صور)</label>
-            <input id="request_documents_existing" name="request_documents" type="file" accept=".pdf,image/*" multiple required>
-            <button type="submit">حفظ المستندات</button>
-          </form>
-        </section>
-      {% endif %}
-
       {% if can_record_payment and disposal_request.status == "payment_pending" and not disposal_request.disposal_reference %}
         <section class="permit-section no-print">
           <div class="section-title">إدخال رقم دفع طلب التخلص</div>
@@ -454,7 +441,30 @@
       {% if can_submit_disposal_report %}
         <section class="permit-section no-print">
           <div class="section-title">تقرير التفتيش</div>
-          <form method="post" class="review-form">
+
+          {% if inspection_photos %}
+            <div class="inspection-photos" style="margin-bottom:14px;">
+              {% for photo in inspection_photos %}
+                {% if photo.file.url|lower|slice:"-4:" == ".pdf" %}
+                  <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
+                    <span>PDF</span>
+                  </a>
+                {% else %}
+                  <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
+                    <img src="{{ photo.file.url }}" alt="صورة تفتيش {{ forloop.counter }}">
+                  </a>
+                {% endif %}
+                <form method="post" style="display:inline;" onsubmit="return confirm('حذف الصورة؟')">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete_inspection_photo">
+                  <input type="hidden" name="photo_id" value="{{ photo.id }}">
+                  <button type="submit" style="background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer;">حذف</button>
+                </form>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <form method="post" enctype="multipart/form-data" class="review-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="submit_inspection_report">
             <label for="inspection_decision">النتيجة</label>
@@ -465,11 +475,63 @@
             </select>
             <label for="inspection_notes">ملاحظات التفتيش</label>
             <textarea id="inspection_notes" name="inspection_notes" rows="4"></textarea>
+
+            <label>صور ومستندات التفتيش</label>
+            <label for="inspection_photos_input" id="photo-drop-zone" style="
+              display:flex; flex-direction:column; align-items:center; justify-content:center;
+              gap:8px; padding:22px 16px; border:2px dashed #bcc8d5; border-radius:10px;
+              background:#f8fafc; cursor:pointer; transition:border-color .15s, background .15s;
+              text-align:center; color:#6f8297; font-size:13px; font-weight:600;
+            ">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#bcc8d5" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span id="photo-drop-label">اضغط لاختيار صور أو مستندات PDF</span>
+              <span style="font-size:11px;font-weight:400;color:#94a3b8;">يمكن اختيار أكثر من ملف</span>
+            </label>
+            <input id="inspection_photos_input" name="inspection_photos" type="file" accept=".pdf,image/*" multiple style="display:none;">
+
             <button type="submit">حفظ تقرير التفتيش</button>
           </form>
+        </section>
+      {% elif inspection_photos %}
+        <section class="permit-section">
+          <div class="section-title">صور ومستندات التفتيش</div>
+          <div class="inspection-photos">
+            {% for photo in inspection_photos %}
+              {% if photo.file.url|lower|slice:"-4:" == ".pdf" %}
+                <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
+                  <span>PDF</span>
+                </a>
+              {% else %}
+                <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
+                  <img src="{{ photo.file.url }}" alt="صورة تفتيش {{ forloop.counter }}">
+                </a>
+              {% endif %}
+            {% endfor %}
+          </div>
         </section>
       {% endif %}
     {% endif %}
   </div>
 </section>
+<script>
+(function(){
+  var input = document.getElementById('inspection_photos_input');
+  var zone  = document.getElementById('photo-drop-zone');
+  var lbl   = document.getElementById('photo-drop-label');
+  if (!input) return;
+  input.addEventListener('change', function(){
+    var n = input.files.length;
+    lbl.textContent = n ? 'تم اختيار ' + n + ' ملف' : 'اضغط لاختيار صور أو مستندات PDF';
+    zone.style.borderColor = n ? '#304357' : '#bcc8d5';
+    zone.style.background  = n ? '#f0f4f8' : '#f8fafc';
+  });
+  zone.addEventListener('dragover',  function(e){ e.preventDefault(); zone.style.borderColor='#304357'; zone.style.background='#e8eef4'; });
+  zone.addEventListener('dragleave', function(){ zone.style.borderColor='#bcc8d5'; zone.style.background='#f8fafc'; });
+  zone.addEventListener('drop', function(e){
+    e.preventDefault();
+    input.files = e.dataTransfer.files;
+    input.dispatchEvent(new Event('change'));
+  });
+})();
+</script>
 {% endblock %}

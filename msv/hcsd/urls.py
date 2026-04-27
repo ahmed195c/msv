@@ -37,6 +37,9 @@ urlpatterns = [
     # Weed Removal
     path('weed-removal/', views.weed_list, name='weed_list'),
     path('weed-removal/create/', views.weed_create, name='weed_create'),
+    path('weed-removal/<int:pk>/save-location/', views.weed_save_location, name='weed_save_location'),
+    path('weed-removal/pdf-import/', views.weed_pdf_import, name='weed_pdf_import'),
+    path('weed-removal/pdf-review/', views.weed_pdf_review, name='weed_pdf_review'),
     path('weed-removal/<int:pk>/', views.weed_detail, name='weed_detail'),
     path('weed-removal/<int:pk>/assign-inspector/', views.weed_assign_inspector, name='weed_assign_inspector'),
     path('weed-removal/<int:pk>/inspector-done/', views.weed_inspector_done, name='weed_inspector_done'),

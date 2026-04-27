@@ -44,6 +44,8 @@ from .weed_removal import (
     weed_add_vehicle, weed_delete_vehicle,
     weed_upload_photos, weed_supervisor_done,
     weed_reject, weed_close, weed_photo_delete,
+    weed_pdf_import, weed_pdf_review,
+    weed_save_location,
 )
 from .container_transfer import (
     container_list, container_create, container_pdf_import, container_pdf_review, container_detail,
@@ -81,4 +83,6 @@ __all__ = [
     'weed_add_vehicle', 'weed_delete_vehicle',
     'weed_upload_photos', 'weed_supervisor_done',
     'weed_reject', 'weed_close', 'weed_photo_delete',
+    'weed_pdf_import', 'weed_pdf_review', 'weed_save_location',
+    'all_requests',
 ]
