@@ -6,43 +6,73 @@
 :root{--ink-1:#1a2a3a;--ink-2:#3a4a5a;--ink-3:#5a6a7a;--ink-4:#8a9aaa;--surface-1:#f4f6f8;--surface-2:#e8ecf0;--border:#d0d8e0;--accent:#1a5c9a;--accent-light:#e8f0f8;}
 *{box-sizing:border-box;}
 body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);direction:rtl;}
-.page{max-width:1200px;margin:0 auto;padding:24px 16px;}
+.page{max-width:1300px;margin:0 auto;padding:24px 16px;}
 .page-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
 .page-title{font-size:20px;font-weight:700;margin:0;}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--ink-2);transition:.15s;font-family:inherit;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--ink-2);transition:.15s;font-family:inherit;}
 .btn:hover{background:var(--surface-2);}
 .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
-.btn-primary:hover{background:#14487a;border-color:#14487a;}
+.btn-primary:hover{background:#14487a;}
 .btn-success{background:#15803d;color:#fff;border-color:#15803d;}
 .btn-success:hover{background:#116630;}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:5px;}
+.btn-edit{background:#fff;color:var(--accent);border-color:#b8d0e8;}
+.btn-edit:hover{background:var(--accent-light);}
+.btn-save{background:var(--accent-light);color:var(--accent);border-color:var(--accent);}
+.btn-save:hover{background:#d0e4f4;}
 
-/* Summary cards */
-.summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
-.sum-card{flex:1;min-width:140px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;}
-.sum-card .num{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;}
-.sum-card .lbl{font-size:12px;color:var(--ink-3);font-weight:600;margin-top:2px;}
-.sum-card.new-card .num{color:var(--accent);}
-.sum-card.dup-card .num{color:#b07d10;}
-.sum-card.total-card .num{color:var(--ink-2);}
+/* Summary */
+.summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.sum-card{flex:1;min-width:130px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;text-align:center;}
+.sum-card .num{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;}
+.sum-card .lbl{font-size:11px;color:var(--ink-3);font-weight:600;margin-top:2px;}
+.new-card .num{color:var(--accent);}
+.dup-card .num{color:#b07d10;}
+.total-card .num{color:var(--ink-2);}
+.edit-card .num{color:#15803d;}
 
-/* Import options */
-.options-bar{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;flex-wrap:wrap;gap:16px;}
-.options-bar label{font-size:13px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:6px;cursor:pointer;}
-.options-bar input[type=radio]{accent-color:var(--accent);width:15px;height:15px;}
-.actions{display:flex;gap:10px;align-items:center;margin-right:auto;}
+/* Top bar */
+.top-bar{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;flex-wrap:wrap;gap:12px;}
+.top-bar label{font-size:13px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:6px;cursor:pointer;}
+.top-bar input[type=radio]{accent-color:var(--accent);width:14px;height:14px;}
+.top-bar-actions{display:flex;gap:8px;margin-right:auto;}
 
 /* Table */
 .tbl-wrap{background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:auto;}
 table{width:100%;border-collapse:collapse;font-size:12.5px;}
-thead th{background:var(--ink-1);color:#fff;padding:10px 12px;font-weight:700;white-space:nowrap;text-align:right;}
+thead th{background:var(--ink-1);color:#fff;padding:9px 10px;font-weight:700;white-space:nowrap;text-align:right;}
+thead th:last-child{text-align:center;}
+tbody tr{transition:background .1s;}
 tbody tr:nth-child(odd){background:#fff;}
 tbody tr:nth-child(even){background:var(--surface-1);}
-tbody tr.is-dup{opacity:.55;}
-tbody tr.is-dup td:first-child::before{content:'موجود';display:inline-block;background:#fef9ec;color:#b07d10;border:1px solid #b07d10;border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;}
-tbody tr:not(.is-dup) td:first-child::before{content:'جديد';display:inline-block;background:#edf7f2;color:#1a5233;border:1px solid #1f6b3e;border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;}
-td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap;}
-td.wrap{white-space:normal;min-width:120px;}
-.empty{color:var(--ink-4);}
+tbody tr.editing{background:#f0f7ff !important;outline:2px solid var(--accent);outline-offset:-1px;}
+tbody tr.excluded{opacity:.4;}
+
+td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
+td.wrap-col{white-space:normal;min-width:130px;}
+
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;}
+.badge-new{background:#edf7f2;color:#1a5233;border:1px solid #1f6b3e;}
+.badge-dup{background:#fef9ec;color:#b07d10;border:1px solid #b07d10;}
+
+/* Inline inputs (hidden by default) */
+.cell-view{display:inline;}
+.cell-edit{display:none;}
+tr.editing .cell-view{display:none;}
+tr.editing .cell-edit{display:inline-block;}
+
+.cell-edit input{
+  width:100%;min-width:80px;padding:4px 7px;
+  border:1.5px solid var(--accent);border-radius:5px;
+  font-size:12px;font-family:inherit;background:#fff;color:var(--ink-1);
+}
+
+.btn-exclude{background:#fff;color:#b91c1c;border-color:#fca5a5;}
+.btn-exclude:hover{background:#fef2f2;}
+.btn-restore{background:#fef2f2;color:#b91c1c;border-color:#b91c1c;}
+.btn-restore:hover{background:#fee2e2;}
+.btn-cancel{background:#fff;color:var(--ink-3);border-color:var(--border);}
+.btn-cancel:hover{background:var(--surface-2);}
 </style>
 
 <div class="page">
@@ -53,75 +83,209 @@ td.wrap{white-space:normal;min-width:120px;}
 
   <div class="summary">
     <div class="sum-card total-card">
-      <div class="num">{{ total }}</div>
-      <div class="lbl">إجمالي الصفوف</div>
+      <div class="num">{{ total }}</div><div class="lbl">إجمالي الصفوف</div>
     </div>
     <div class="sum-card new-card">
-      <div class="num">{{ new_count }}</div>
-      <div class="lbl">أوامر جديدة</div>
+      <div class="num">{{ new_count }}</div><div class="lbl">أوامر جديدة</div>
     </div>
     <div class="sum-card dup-card">
-      <div class="num">{{ dup_count }}</div>
-      <div class="lbl">موجودة مسبقاً</div>
+      <div class="num">{{ dup_count }}</div><div class="lbl">موجودة مسبقاً</div>
+    </div>
+    <div class="sum-card edit-card">
+      <div class="num" id="edit-count">0</div><div class="lbl">تم تعديلها</div>
     </div>
   </div>
 
-  <form method="post">
+  <form method="post" id="review-form">
     {% csrf_token %}
-    <div class="options-bar">
-      <label>
-        <input type="radio" name="import_mode" value="new_only" checked>
-        استيراد الجديدة فقط ({{ new_count }})
-      </label>
-      <label>
-        <input type="radio" name="import_mode" value="all">
-        استيراد الكل ({{ total }}) — بما فيها الموجودة
-      </label>
-      <div class="actions">
+    <input type="hidden" name="row_count" value="{{ total }}">
+
+    <div class="top-bar">
+      <label><input type="radio" name="import_mode" value="new_only" checked> الجديدة فقط ({{ new_count }})</label>
+      <label><input type="radio" name="import_mode" value="all"> الكل ({{ total }})</label>
+      <span style="font-size:12px;color:var(--ink-3);margin-right:4px;">المستبعدة لن تُستورد بغض النظر عن الاختيار</span>
+      <div class="top-bar-actions">
         <button type="submit" class="btn btn-success">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           تأكيد الاستيراد
         </button>
         <a href="{% url 'field_work_list' %}" class="btn">إلغاء</a>
       </div>
     </div>
-  </form>
 
-  <div class="tbl-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>رقم الطلب</th>
-          <th>اسم المتعامل</th>
-          <th>المنطقة</th>
-          <th>رقم المنزل</th>
-          <th>الموبايل</th>
-          <th>نوع الحشرات</th>
-          <th>المشرف</th>
-          <th>العامل</th>
-          <th>الحالة</th>
-          <th>تاريخ الطلب</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in rows %}
-        <tr {% if r.is_dup %}class="is-dup"{% endif %}>
-          <td>{{ r.order_number|default:"—" }}</td>
-          <td class="wrap">{{ r.customer_name|default:"—" }}</td>
-          <td>{{ r.area|default:"—" }}</td>
-          <td>{{ r.house_number|default:"—" }}</td>
-          <td style="font-family:'JetBrains Mono',monospace;">{{ r.mobile|default:"—" }}</td>
-          <td>{{ r.pest_types|default:"—" }}</td>
-          <td>{{ r.supervisor_name|default:"—" }}</td>
-          <td>{{ r.worker_name|default:"—" }}</td>
-          <td>{{ r.excel_status|default:"—" }}</td>
-          <td style="font-family:'JetBrains Mono',monospace;">{{ r.request_date|default:"—" }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="10" style="text-align:center;color:var(--ink-4);padding:24px;">لا توجد بيانات</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>رقم الطلب</th>
+            <th>اسم المتعامل</th>
+            <th>المنطقة</th>
+            <th>رقم المنزل</th>
+            <th>الموبايل</th>
+            <th>نوع الحشرات</th>
+            <th>المشرف</th>
+            <th>العامل</th>
+            <th>الحالة</th>
+            <th>تاريخ الطلب</th>
+            <th style="text-align:center;">تعديل</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr id="row-{{ forloop.counter0 }}" {% if r.is_dup %}class="is-dup"{% endif %}>
+            {% with i=forloop.counter0 %}
+            {# ── order_number ── #}
+            <td>
+              <input type="hidden" name="row_{{ i }}_include" value="1" id="inc-{{ i }}">
+              <span class="badge {% if r.is_dup %}badge-dup{% else %}badge-new{% endif %}">{% if r.is_dup %}موجود{% else %}جديد{% endif %}</span>
+              <span class="cell-view">{{ r.order_number|default:"—" }}</span>
+              <span class="cell-edit"><input type="text" name="row_{{ i }}_order_number" value="{{ r.order_number }}"></span>
+            </td>
+            {# ── customer_name ── #}
+            <td class="wrap-col">
+              <span class="cell-view">{{ r.customer_name|default:"—" }}</span>
+              <span class="cell-edit"><input type="text" name="row_{{ i }}_customer_name" value="{{ r.customer_name }}"></span>
+            </td>
+            {# ── area ── #}
+            <td>
+              <span class="cell-view">{{ r.area|default:"—" }}</span>
+              <span class="cell-edit"><input type="text" name="row_{{ i }}_area" value="{{ r.area }}"></span>
+            </td>
+            {# ── house_number ── #}
+            <td>
+              <span class="cell-view">{{ r.house_number|default:"—" }}</span>
+              <span class="cell-edit"><input type="text" name="row_{{ i }}_house_number" value="{{ r.house_number }}"></span>
+            </td>
+            {# ── mobile ── #}
+            <td style="font-family:'JetBrains Mono',monospace;">
+              <span class="cell-view">{{ r.mobile|default:"—" }}</span>
+              <span class="cell-edit"><input type="text" name="row_{{ i }}_mobile" value="{{ r.mobile }}"></span>
+            </td>
+            {# ── pest_types ── #}
+            <td>
+              <span class="cell-view">{{ r.pest_types|default:"—" }}</span>
+              <span class="cell-edit"><input type="text" name="row_{{ i }}_pest_types" value="{{ r.pest_types }}"></span>
+            </td>
+            {# ── supervisor_name ── #}
+            <td>
+              <span class="cell-view">{{ r.supervisor_name|default:"—" }}</span>
+              <span class="cell-edit"><input type="text" name="row_{{ i }}_supervisor_name" value="{{ r.supervisor_name }}"></span>
+            </td>
+            {# ── worker_name ── #}
+            <td>
+              <span class="cell-view">{{ r.worker_name|default:"—" }}</span>
+              <span class="cell-edit"><input type="text" name="row_{{ i }}_worker_name" value="{{ r.worker_name }}"></span>
+            </td>
+            {# ── excel_status ── #}
+            <td>
+              <span class="cell-view">{{ r.excel_status|default:"—" }}</span>
+              <span class="cell-edit"><input type="text" name="row_{{ i }}_excel_status" value="{{ r.excel_status }}"></span>
+            </td>
+            {# ── request_date ── #}
+            <td style="font-family:'JetBrains Mono',monospace;">
+              <span class="cell-view">{{ r.request_date|default:"—" }}</span>
+              <span class="cell-edit"><input type="date" name="row_{{ i }}_request_date" value="{{ r.request_date }}"></span>
+            </td>
+            <td style="text-align:center;white-space:nowrap;display:flex;gap:4px;justify-content:center;">
+              <button type="button" class="btn btn-sm btn-edit edit-btn" data-row="{{ i }}">تعديل</button>
+              <button type="button" class="btn btn-sm btn-cancel cancel-btn" data-row="{{ i }}" style="display:none;">إلغاء</button>
+              <button type="button" class="btn btn-sm btn-exclude exclude-btn" data-row="{{ i }}">استبعاد</button>
+            </td>
+            {% endwith %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </form>
 </div>
+
+<script>
+(function(){
+  var editCount = 0;
+  var editCountEl = document.getElementById('edit-count');
+
+  // Edit / Save / Cancel per row
+  document.querySelectorAll('.edit-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var i = btn.dataset.row;
+      var rowEl = document.getElementById('row-' + i);
+      var cancelBtn = rowEl.querySelector('.cancel-btn');
+      var excludeBtn = rowEl.querySelector('.exclude-btn');
+      var editing = rowEl.classList.contains('editing');
+
+      if(!editing){
+        // Enter edit mode — snapshot current input values for cancel
+        rowEl.querySelectorAll('.cell-edit input').forEach(function(inp){
+          inp.dataset.original = inp.value;
+        });
+        rowEl.classList.add('editing');
+        btn.textContent = 'حفظ';
+        btn.classList.remove('btn-edit');
+        btn.classList.add('btn-save');
+        cancelBtn.style.display = '';
+        excludeBtn.style.display = 'none';
+        editCount++;
+        editCountEl.textContent = editCount;
+      } else {
+        // Save — sync cell-view from inputs
+        rowEl.querySelectorAll('.cell-edit input').forEach(function(inp){
+          var view = inp.closest('td').querySelector('.cell-view');
+          if(view) view.textContent = inp.value || '—';
+        });
+        rowEl.classList.remove('editing');
+        btn.textContent = 'تعديل';
+        btn.classList.remove('btn-save');
+        btn.classList.add('btn-edit');
+        cancelBtn.style.display = 'none';
+        excludeBtn.style.display = '';
+      }
+    });
+  });
+
+  // Cancel edit — restore original values
+  document.querySelectorAll('.cancel-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var i = btn.dataset.row;
+      var rowEl = document.getElementById('row-' + i);
+      var editBtn = rowEl.querySelector('.edit-btn');
+      var excludeBtn = rowEl.querySelector('.exclude-btn');
+
+      // Restore inputs to snapshotted values
+      rowEl.querySelectorAll('.cell-edit input').forEach(function(inp){
+        if(inp.dataset.original !== undefined) inp.value = inp.dataset.original;
+      });
+      rowEl.classList.remove('editing');
+      editBtn.textContent = 'تعديل';
+      editBtn.classList.remove('btn-save');
+      editBtn.classList.add('btn-edit');
+      btn.style.display = 'none';
+      excludeBtn.style.display = '';
+      editCount = Math.max(0, editCount - 1);
+      editCountEl.textContent = editCount;
+    });
+  });
+
+  // Exclude / Restore toggle
+  document.querySelectorAll('.exclude-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var i = btn.dataset.row;
+      var rowEl = document.getElementById('row-' + i);
+      var incInput = document.getElementById('inc-' + i);
+      var excluded = rowEl.classList.toggle('excluded');
+      if(excluded){
+        incInput.disabled = true;
+        btn.textContent = 'استرجاع';
+        btn.classList.remove('btn-exclude');
+        btn.classList.add('btn-restore');
+      } else {
+        incInput.disabled = false;
+        btn.textContent = 'استبعاد';
+        btn.classList.remove('btn-restore');
+        btn.classList.add('btn-exclude');
+      }
+    });
+  });
+})();
+</script>
 {% endblock %}
