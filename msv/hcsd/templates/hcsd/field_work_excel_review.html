@@ -1,0 +1,127 @@
+{% extends "hcsd/field_work_base.html" %}
+{% block title %}مراجعة بيانات الاستيراد{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--ink-1:#1a2a3a;--ink-2:#3a4a5a;--ink-3:#5a6a7a;--ink-4:#8a9aaa;--surface-1:#f4f6f8;--surface-2:#e8ecf0;--border:#d0d8e0;--accent:#1a5c9a;--accent-light:#e8f0f8;}
+*{box-sizing:border-box;}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);direction:rtl;}
+.page{max-width:1200px;margin:0 auto;padding:24px 16px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+.page-title{font-size:20px;font-weight:700;margin:0;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--ink-2);transition:.15s;font-family:inherit;}
+.btn:hover{background:var(--surface-2);}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:#14487a;border-color:#14487a;}
+.btn-success{background:#15803d;color:#fff;border-color:#15803d;}
+.btn-success:hover{background:#116630;}
+
+/* Summary cards */
+.summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+.sum-card{flex:1;min-width:140px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;}
+.sum-card .num{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;}
+.sum-card .lbl{font-size:12px;color:var(--ink-3);font-weight:600;margin-top:2px;}
+.sum-card.new-card .num{color:var(--accent);}
+.sum-card.dup-card .num{color:#b07d10;}
+.sum-card.total-card .num{color:var(--ink-2);}
+
+/* Import options */
+.options-bar{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;flex-wrap:wrap;gap:16px;}
+.options-bar label{font-size:13px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:6px;cursor:pointer;}
+.options-bar input[type=radio]{accent-color:var(--accent);width:15px;height:15px;}
+.actions{display:flex;gap:10px;align-items:center;margin-right:auto;}
+
+/* Table */
+.tbl-wrap{background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:auto;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+thead th{background:var(--ink-1);color:#fff;padding:10px 12px;font-weight:700;white-space:nowrap;text-align:right;}
+tbody tr:nth-child(odd){background:#fff;}
+tbody tr:nth-child(even){background:var(--surface-1);}
+tbody tr.is-dup{opacity:.55;}
+tbody tr.is-dup td:first-child::before{content:'موجود';display:inline-block;background:#fef9ec;color:#b07d10;border:1px solid #b07d10;border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;}
+tbody tr:not(.is-dup) td:first-child::before{content:'جديد';display:inline-block;background:#edf7f2;color:#1a5233;border:1px solid #1f6b3e;border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;}
+td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap;}
+td.wrap{white-space:normal;min-width:120px;}
+.empty{color:var(--ink-4);}
+</style>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">مراجعة البيانات قبل الاستيراد</h1>
+    <a href="{% url 'field_work_excel_import' %}" class="btn">← رفع ملف آخر</a>
+  </div>
+
+  <div class="summary">
+    <div class="sum-card total-card">
+      <div class="num">{{ total }}</div>
+      <div class="lbl">إجمالي الصفوف</div>
+    </div>
+    <div class="sum-card new-card">
+      <div class="num">{{ new_count }}</div>
+      <div class="lbl">أوامر جديدة</div>
+    </div>
+    <div class="sum-card dup-card">
+      <div class="num">{{ dup_count }}</div>
+      <div class="lbl">موجودة مسبقاً</div>
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="options-bar">
+      <label>
+        <input type="radio" name="import_mode" value="new_only" checked>
+        استيراد الجديدة فقط ({{ new_count }})
+      </label>
+      <label>
+        <input type="radio" name="import_mode" value="all">
+        استيراد الكل ({{ total }}) — بما فيها الموجودة
+      </label>
+      <div class="actions">
+        <button type="submit" class="btn btn-success">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          تأكيد الاستيراد
+        </button>
+        <a href="{% url 'field_work_list' %}" class="btn">إلغاء</a>
+      </div>
+    </div>
+  </form>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>رقم الطلب</th>
+          <th>اسم المتعامل</th>
+          <th>المنطقة</th>
+          <th>رقم المنزل</th>
+          <th>الموبايل</th>
+          <th>نوع الحشرات</th>
+          <th>المشرف</th>
+          <th>العامل</th>
+          <th>الحالة</th>
+          <th>تاريخ الطلب</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr {% if r.is_dup %}class="is-dup"{% endif %}>
+          <td>{{ r.order_number|default:"—" }}</td>
+          <td class="wrap">{{ r.customer_name|default:"—" }}</td>
+          <td>{{ r.area|default:"—" }}</td>
+          <td>{{ r.house_number|default:"—" }}</td>
+          <td style="font-family:'JetBrains Mono',monospace;">{{ r.mobile|default:"—" }}</td>
+          <td>{{ r.pest_types|default:"—" }}</td>
+          <td>{{ r.supervisor_name|default:"—" }}</td>
+          <td>{{ r.worker_name|default:"—" }}</td>
+          <td>{{ r.excel_status|default:"—" }}</td>
+          <td style="font-family:'JetBrains Mono',monospace;">{{ r.request_date|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" style="text-align:center;color:var(--ink-4);padding:24px;">لا توجد بيانات</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

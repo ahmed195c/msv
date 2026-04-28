@@ -1,0 +1,122 @@
+{% extends "hcsd/field_work_base.html" %}
+{% block title %}استيراد أوامر عمل من Excel{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--ink-1:#1a2a3a;--ink-2:#3a4a5a;--ink-3:#5a6a7a;--ink-4:#8a9aaa;--surface-1:#f4f6f8;--surface-2:#e8ecf0;--border:#d0d8e0;--accent:#1a5c9a;--accent-light:#e8f0f8;}
+*{box-sizing:border-box;}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);direction:rtl;}
+.page{max-width:680px;margin:0 auto;padding:32px 16px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:28px;}
+.page-title{font-size:20px;font-weight:700;color:var(--ink-1);margin:0;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--ink-2);transition:.15s;font-family:inherit;}
+.btn:hover{background:var(--surface-2);}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:#14487a;border-color:#14487a;}
+
+.card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(26,44,58,.06);}
+
+/* Drop zone */
+.drop-zone{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:40px 24px;
+  border:2.5px dashed var(--border);border-radius:12px;
+  background:var(--surface-1);cursor:pointer;
+  transition:border-color .2s,background .2s;
+  text-align:center;
+}
+.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-light);}
+.drop-zone svg{opacity:.4;transition:opacity .2s;}
+.drop-zone.drag-over svg{opacity:.8;}
+.drop-zone .dz-title{font-size:15px;font-weight:700;color:var(--ink-2);}
+.drop-zone .dz-sub{font-size:12px;color:var(--ink-4);}
+.drop-zone .dz-file-name{font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-light);padding:4px 12px;border-radius:6px;display:none;}
+
+.info-box{background:var(--accent-light);border:1.5px solid #b8d0e8;border-radius:8px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:var(--ink-2);line-height:1.7;}
+.info-box strong{color:var(--accent);}
+
+.error-box{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#991b1b;font-weight:600;}
+
+.actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
+</style>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">استيراد من Excel</h1>
+    <a href="{% url 'field_work_list' %}" class="btn">← رجوع</a>
+  </div>
+
+  {% if error %}
+    <div class="error-box">{{ error }}</div>
+  {% endif %}
+
+  <div class="info-box">
+    يجب أن يحتوي الملف على صف أول بعناوين الأعمدة بالعربية أو الإنجليزية.<br>
+    الأعمدة المدعومة: <strong>رقم الطلب · اسم المتعامل · المنطقة · رقم المنزل · رقم الشارع · الموبايل · نوع الحشرات · المشرف المعالج · العامل · الحالة · ملاحظة · تاريخ الطلب · تاريخ الإغلاق · الشهر</strong>
+  </div>
+
+  <div class="card">
+    <form method="post" enctype="multipart/form-data" id="upload-form">
+      {% csrf_token %}
+      <input type="file" id="excel-input" name="excel_file" accept=".xlsx,.xls" style="display:none;" required>
+
+      <label for="excel-input" class="drop-zone" id="drop-zone">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#1a5c9a" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <polyline points="9 15 12 12 15 15"/>
+        </svg>
+        <span class="dz-title">اسحب ملف Excel وأفلته هنا</span>
+        <span class="dz-sub">أو اضغط لاختيار الملف</span>
+        <span class="dz-file-name" id="file-name-label"></span>
+      </label>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          معاينة البيانات
+        </button>
+        <a href="{% url 'field_work_list' %}" class="btn">إلغاء</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+  var input   = document.getElementById('excel-input');
+  var zone    = document.getElementById('drop-zone');
+  var label   = document.getElementById('file-name-label');
+  var btn     = document.getElementById('submit-btn');
+
+  function onFile(file){
+    if(!file) return;
+    label.textContent = file.name;
+    label.style.display = 'inline-block';
+    zone.querySelector('.dz-title').textContent = 'تم اختيار الملف';
+    zone.querySelector('.dz-sub').style.display = 'none';
+    zone.style.borderColor = '#1a5c9a';
+    zone.style.background  = '#e8f0f8';
+    btn.disabled = false;
+  }
+
+  input.addEventListener('change', function(){ onFile(input.files[0]); });
+
+  zone.addEventListener('dragover', function(e){
+    e.preventDefault(); zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', function(){ zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', function(e){
+    e.preventDefault(); zone.classList.remove('drag-over');
+    var f = e.dataTransfer.files[0];
+    if(f){
+      var dt = new DataTransfer();
+      dt.items.add(f);
+      input.files = dt.files;
+      onFile(f);
+    }
+  });
+})();
+</script>
+{% endblock %}

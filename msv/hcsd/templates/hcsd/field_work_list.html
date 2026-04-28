@@ -68,10 +68,20 @@ td{padding:10px 12px;vertical-align:middle;}
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       {% if can_admin or can_data_entry %}
       <a href="{% url 'field_work_create' %}" class="btn btn-primary">+ إنشاء أمر جديد</a>
+      <a href="{% url 'field_work_excel_import' %}" class="btn btn-outline">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+        استيراد Excel
+      </a>
       {% endif %}
       <a href="{% url 'permit_types' %}" class="btn btn-outline">← الرئيسية</a>
     </div>
   </div>
+
+  {% if request.GET.imported %}
+  <div style="background:#edf7f2;border:1.5px solid #1f6b3e;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#1a5233;font-size:13px;font-weight:700;">
+    ✓ تم استيراد {{ request.GET.imported }} أمر عمل بنجاح من ملف Excel.
+  </div>
+  {% endif %}
 
   <!-- Filters -->
   <form method="get">

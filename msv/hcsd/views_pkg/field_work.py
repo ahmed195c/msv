@@ -5,6 +5,7 @@ URL prefix : /field-work/
 Templates  : hcsd/field_work_*.html
 """
 
+import datetime as _dt
 import io
 import logging
 import os
@@ -12,6 +13,7 @@ import os
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from ..models import FieldWorkOrder, FieldWorkPhoto
@@ -401,3 +403,199 @@ def field_work_report(request, pk):
     )
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+
+# ---------------------------------------------------------------------------
+# Excel Import
+# ---------------------------------------------------------------------------
+
+_EXCEL_SESSION_KEY    = 'fw_excel_import'
+_MAX_EXCEL_ROWS       = 2000
+_ALLOWED_EXCEL_EXTS   = {'.xlsx', '.xls'}
+
+_COL_MAP = {
+    'رقم الطلب': 'order_number',    'رقم الامر': 'order_number',
+    'رقم الأمر': 'order_number',    'order no': 'order_number',
+    'order number': 'order_number', 'order_no': 'order_number',
+    'تاريخ الطلب': 'request_date',  'request date': 'request_date',
+    'تاريخ الإغلاق': 'close_date',  'تاريخ الاغلاق': 'close_date',
+    'close date': 'close_date',
+    'اسم المتعامل': 'customer_name','اسم العميل': 'customer_name',
+    'المتعامل': 'customer_name',    'customer': 'customer_name',
+    'customer name': 'customer_name',
+    'الموبايل': 'mobile',           'الجوال': 'mobile',
+    'رقم الهاتف': 'mobile',         'mobile': 'mobile',
+    'phone': 'mobile',
+    'المنطقة': 'area',              'area': 'area',
+    'رقم الشارع': 'street_number',  'الشارع': 'street_number',
+    'street': 'street_number',      'street no': 'street_number',
+    'رقم المنزل': 'house_number',   'house': 'house_number',
+    'house no': 'house_number',
+    'نوع الحشرات': 'pest_types',    'الحشرات': 'pest_types',
+    'pest': 'pest_types',           'pest type': 'pest_types',
+    'المشرف المعالج': 'supervisor_name', 'المشرف': 'supervisor_name',
+    'supervisor': 'supervisor_name',
+    'العامل': 'worker_name',        'worker': 'worker_name',
+    'حالة الطلب': 'excel_status',   'الحالة': 'excel_status',
+    'status': 'excel_status',
+    'ملاحظة الحالة': 'excel_status_note', 'ملاحظة': 'excel_status_note',
+    'note': 'excel_status_note',    'notes': 'excel_status_note',
+    'الشهر': 'month_sheet',         'month': 'month_sheet',
+}
+
+
+def _norm_header(h):
+    return ' '.join(str(h or '').strip().lower().split())
+
+
+def _parse_xl_date(val):
+    if val is None:
+        return ''
+    if isinstance(val, (_dt.datetime, _dt.date)):
+        d = val.date() if isinstance(val, _dt.datetime) else val
+        return d.isoformat()
+    s = str(val).strip()
+    for fmt in ('%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y'):
+        try:
+            return _dt.datetime.strptime(s, fmt).date().isoformat()
+        except ValueError:
+            pass
+    return s
+
+
+def _to_date(s):
+    if not s:
+        return None
+    try:
+        return _dt.date.fromisoformat(s)
+    except ValueError:
+        return None
+
+
+def _str_val(v):
+    return '' if v is None else str(v).strip()
+
+
+def _extract_excel_rows(file_obj):
+    """Return (rows, error_message). rows = list[dict]."""
+    try:
+        import openpyxl
+        wb = openpyxl.load_workbook(file_obj, read_only=True, data_only=True)
+    except Exception:
+        return [], 'تعذّر قراءة الملف — تأكد أنه ملف Excel صالح (.xlsx).'
+
+    ws = wb.active
+    it = ws.iter_rows(values_only=True)
+
+    header_row = None
+    for row in it:
+        if any(c is not None for c in row):
+            header_row = row
+            break
+    if header_row is None:
+        return [], 'الملف فارغ أو لا يحتوي على بيانات.'
+
+    col_map = {}
+    for idx, cell in enumerate(header_row):
+        field = _COL_MAP.get(_norm_header(cell))
+        if field:
+            col_map[idx] = field
+
+    if not col_map:
+        return [], 'لم يتم التعرف على أعمدة الملف. تأكد أن الصف الأول يحتوي على عناوين الأعمدة.'
+
+    rows = []
+    for row in it:
+        if not any(c is not None for c in row):
+            continue
+        rec = {}
+        for idx, field in col_map.items():
+            val = row[idx] if idx < len(row) else None
+            rec[field] = _parse_xl_date(val) if field in ('request_date', 'close_date') else _str_val(val)
+        if not any(v for v in rec.values()):
+            continue
+        rows.append(rec)
+        if len(rows) >= _MAX_EXCEL_ROWS:
+            break
+
+    return rows, ''
+
+
+@login_required
+def field_work_excel_import(request):
+    if not (_can_admin(request.user) or _can_data_entry(request.user)):
+        return redirect('field_work_list')
+
+    error = ''
+    if request.method == 'POST':
+        f = request.FILES.get('excel_file')
+        if not f:
+            error = 'يرجى اختيار ملف Excel.'
+        elif os.path.splitext(f.name)[1].lower() not in _ALLOWED_EXCEL_EXTS:
+            error = 'يُسمح فقط بملفات .xlsx أو .xls'
+        else:
+            rows, err = _extract_excel_rows(f)
+            if err:
+                error = err
+            elif not rows:
+                error = 'لم يتم العثور على صفوف بيانات في الملف.'
+            else:
+                request.session[_EXCEL_SESSION_KEY] = rows
+                return redirect('field_work_excel_review')
+
+    return render(request, 'hcsd/field_work_excel_import.html', {'error': error})
+
+
+@login_required
+def field_work_excel_review(request):
+    if not (_can_admin(request.user) or _can_data_entry(request.user)):
+        return redirect('field_work_list')
+
+    rows = request.session.get(_EXCEL_SESSION_KEY)
+    if not rows:
+        return redirect('field_work_excel_import')
+
+    order_numbers = {r.get('order_number', '') for r in rows if r.get('order_number')}
+    existing = set(
+        FieldWorkOrder.objects.filter(order_number__in=order_numbers)
+        .values_list('order_number', flat=True)
+    )
+
+    enriched = [{**r, 'is_dup': r.get('order_number', '') in existing} for r in rows]
+    new_count = sum(1 for r in enriched if not r['is_dup'])
+    dup_count = len(rows) - new_count
+
+    if request.method == 'POST':
+        mode = request.POST.get('import_mode', 'new_only')
+        created = 0
+        for r in rows:
+            if mode == 'new_only' and r.get('order_number', '') in existing:
+                continue
+            FieldWorkOrder.objects.create(
+                order_number   = r.get('order_number', ''),
+                request_date   = _to_date(r.get('request_date', '')),
+                close_date     = _to_date(r.get('close_date', '')),
+                customer_name  = r.get('customer_name', ''),
+                mobile         = r.get('mobile', ''),
+                area           = r.get('area', ''),
+                street_number  = r.get('street_number', ''),
+                house_number   = r.get('house_number', ''),
+                pest_types     = r.get('pest_types', ''),
+                supervisor_name= r.get('supervisor_name', ''),
+                worker_name    = r.get('worker_name', ''),
+                excel_status   = r.get('excel_status', ''),
+                excel_status_note = r.get('excel_status_note', ''),
+                month_sheet    = r.get('month_sheet', ''),
+                source         = 'excel',
+                created_by     = request.user,
+            )
+            created += 1
+        del request.session[_EXCEL_SESSION_KEY]
+        return redirect(reverse('field_work_list') + f'?imported={created}')
+
+    return render(request, 'hcsd/field_work_excel_review.html', {
+        'rows':      enriched,
+        'total':     len(rows),
+        'new_count': new_count,
+        'dup_count': dup_count,
+    })
