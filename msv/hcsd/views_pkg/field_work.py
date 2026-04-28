@@ -567,27 +567,32 @@ def field_work_excel_review(request):
 
     if request.method == 'POST':
         mode = request.POST.get('import_mode', 'new_only')
+        row_count = len(rows)
         created = 0
-        for r in rows:
-            if mode == 'new_only' and r.get('order_number', '') in existing:
+        for i in range(row_count):
+            include = request.POST.get(f'row_{i}_include')
+            if not include:
+                continue
+            order_number = (request.POST.get(f'row_{i}_order_number') or '').strip()
+            if mode == 'new_only' and order_number in existing:
                 continue
             FieldWorkOrder.objects.create(
-                order_number   = r.get('order_number', ''),
-                request_date   = _to_date(r.get('request_date', '')),
-                close_date     = _to_date(r.get('close_date', '')),
-                customer_name  = r.get('customer_name', ''),
-                mobile         = r.get('mobile', ''),
-                area           = r.get('area', ''),
-                street_number  = r.get('street_number', ''),
-                house_number   = r.get('house_number', ''),
-                pest_types     = r.get('pest_types', ''),
-                supervisor_name= r.get('supervisor_name', ''),
-                worker_name    = r.get('worker_name', ''),
-                excel_status   = r.get('excel_status', ''),
-                excel_status_note = r.get('excel_status_note', ''),
-                month_sheet    = r.get('month_sheet', ''),
-                source         = 'excel',
-                created_by     = request.user,
+                order_number    = order_number,
+                request_date    = _to_date((request.POST.get(f'row_{i}_request_date') or '').strip()),
+                customer_name   = (request.POST.get(f'row_{i}_customer_name') or '').strip(),
+                mobile          = (request.POST.get(f'row_{i}_mobile') or '').strip(),
+                area            = (request.POST.get(f'row_{i}_area') or '').strip(),
+                house_number    = (request.POST.get(f'row_{i}_house_number') or '').strip(),
+                pest_types      = (request.POST.get(f'row_{i}_pest_types') or '').strip(),
+                supervisor_name = (request.POST.get(f'row_{i}_supervisor_name') or '').strip(),
+                worker_name     = (request.POST.get(f'row_{i}_worker_name') or '').strip(),
+                excel_status    = (request.POST.get(f'row_{i}_excel_status') or '').strip(),
+                street_number   = rows[i].get('street_number', ''),
+                close_date      = _to_date(rows[i].get('close_date', '')),
+                excel_status_note = rows[i].get('excel_status_note', ''),
+                month_sheet     = rows[i].get('month_sheet', ''),
+                source          = 'excel',
+                created_by      = request.user,
             )
             created += 1
         del request.session[_EXCEL_SESSION_KEY]
