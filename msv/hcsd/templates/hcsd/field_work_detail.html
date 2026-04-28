@@ -297,6 +297,49 @@ select.form-control{cursor:pointer;}
   </div>
 
   {% if can_edit %}
+
+  <!-- Location Card -->
+  <div class="card" style="border-color:#d1fae5;">
+    <div class="card-header" style="background:#f0fdf4;">
+      <h2 style="color:#166534;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:6px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        حفظ الموقع
+      </h2>
+      {% if order.gps_lat %}
+      <span style="font-size:11.5px;color:#166534;font-weight:500;">
+        تم الحفظ {{ order.location_saved_at|date:"d/m/Y H:i" }}
+        {% if order.location_saved_by %} — {{ order.location_saved_by.get_full_name|default:order.location_saved_by.username }}{% endif %}
+      </span>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      {% if order.gps_lat %}
+      <div style="margin-bottom:14px;padding:10px 14px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;font-size:13px;color:#166534;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <span>
+          <strong>الإحداثيات:</strong>
+          <span style="font-family:var(--mono);">{{ order.gps_lat|floatformat:6 }}, {{ order.gps_lng|floatformat:6 }}</span>
+        </span>
+        <a href="https://www.google.com/maps?q={{ order.gps_lat }},{{ order.gps_lng }}"
+           target="_blank" rel="noopener"
+           style="font-size:12px;color:#166534;font-weight:700;text-decoration:underline;">
+          عرض على الخريطة ↗
+        </a>
+      </div>
+      {% endif %}
+      <form method="post" id="location-form" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_location">
+        <input type="hidden" name="lat" id="loc-lat">
+        <input type="hidden" name="lng" id="loc-lng">
+        <button type="button" id="btn-get-location" class="btn btn-success" style="gap:8px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="loc-btn-label">{% if order.gps_lat %}تحديث الموقع{% else %}حفظ الموقع الحالي{% endif %}</span>
+        </button>
+        <span id="loc-status" style="font-size:13px;color:var(--ink-3);margin-right:10px;display:none;"></span>
+      </form>
+    </div>
+  </div>
+
   <!-- Supervisor Report -->
   <div class="card" style="border-color:#bfdbfe;">
     <div class="card-header" style="background:#eff6ff;">
@@ -313,7 +356,6 @@ select.form-control{cursor:pointer;}
     </div>
 
     {% if order.report_submitted_at %}
-    <!-- Summary row -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;padding:16px 18px;background:#f8fafc;border-bottom:1.5px solid #e2e8f0;">
       <div>
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">الحالة</div>
@@ -339,21 +381,49 @@ select.form-control{cursor:pointer;}
         <div style="font-size:13px;color:#0f172a;">{{ order.supervisor_notes }}</div>
       </div>
       {% endif %}
+      {% if order.no_answer_screenshot %}
+      <div style="grid-column:1/-1;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;">صورة عدم الرد</div>
+        <img src="{{ order.no_answer_screenshot.url }}" alt="صورة عدم الرد"
+             style="max-width:260px;border-radius:8px;border:1.5px solid #e2e8f0;">
+      </div>
+      {% endif %}
     </div>
     {% endif %}
 
     <div class="card-body">
-      <form method="post" novalidate>
+      <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="supervisor_report">
 
         <div class="form-group">
           <label class="form-label">الحالة <span style="color:#e11d48;">*</span></label>
-          <select name="status" class="form-control">
+          <select name="status" class="form-control" id="status-select">
             {% for val, label in order.STATUS_CHOICES %}
             <option value="{{ val }}" {% if order.status == val %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
+        </div>
+
+        <!-- No-answer screenshot section -->
+        <div id="no-answer-section" style="display:none;margin-bottom:16px;padding:14px 16px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;">
+          <div style="font-size:13px;font-weight:700;color:#c2410c;margin-bottom:10px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:-2px;margin-left:5px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            يرجى رفع سكرين شوت يثبت عدم الرد
+          </div>
+          {% if order.no_answer_screenshot %}
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;color:#92400e;margin-bottom:6px;font-weight:600;">الصورة الحالية:</div>
+            <img src="{{ order.no_answer_screenshot.url }}" alt="صورة عدم الرد"
+                 style="max-width:200px;border-radius:7px;border:1.5px solid #fed7aa;">
+          </div>
+          {% endif %}
+          <label class="form-label" style="color:#92400e;">
+            {% if order.no_answer_screenshot %}تغيير الصورة{% else %}رفع الصورة{% endif %}
+          </label>
+          <input type="file" name="no_answer_screenshot" accept="image/*"
+                 class="form-control" id="screenshot-input"
+                 {% if not order.no_answer_screenshot %}required{% endif %}>
         </div>
 
         <div class="form-row">
@@ -585,5 +655,50 @@ function switchTab(phase, btn) {
   document.getElementById('panel-' + phase).classList.add('active');
   btn.classList.add('active');
 }
+
+// GPS location
+(function(){
+  var btn = document.getElementById('btn-get-location');
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    var status = document.getElementById('loc-status');
+    status.style.display = 'inline';
+    status.textContent = 'جاري تحديد الموقع…';
+    btn.disabled = true;
+    navigator.geolocation.getCurrentPosition(
+      function(pos){
+        document.getElementById('loc-lat').value = pos.coords.latitude;
+        document.getElementById('loc-lng').value = pos.coords.longitude;
+        status.textContent = 'تم تحديد الموقع — جاري الحفظ…';
+        document.getElementById('location-form').submit();
+      },
+      function(err){
+        status.style.color = '#b91c1c';
+        status.textContent = 'تعذّر تحديد الموقع. تأكد من منح صلاحية الموقع.';
+        btn.disabled = false;
+      },
+      {enableHighAccuracy: true, timeout: 10000}
+    );
+  });
+})();
+
+// No-answer screenshot section toggle
+(function(){
+  var sel = document.getElementById('status-select');
+  var sec = document.getElementById('no-answer-section');
+  var inp = document.getElementById('screenshot-input');
+  if(!sel || !sec) return;
+  var NO_ANSWER = ['no_answer','wrong_phone','phone_off'];
+  var hasExisting = {{ order.no_answer_screenshot|yesno:"true,false" }};
+  function update(){
+    var show = NO_ANSWER.indexOf(sel.value) !== -1;
+    sec.style.display = show ? 'block' : 'none';
+    if(inp){
+      inp.required = show && !hasExisting;
+    }
+  }
+  sel.addEventListener('change', update);
+  update();
+})();
 </script>
 {% endblock %}

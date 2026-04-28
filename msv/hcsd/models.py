@@ -1058,10 +1058,22 @@ class FieldWorkOrder(models.Model):
     equipment_used = models.TextField(blank=True, verbose_name='المعدات المستخدمة')
     work_completed   = models.BooleanField(null=True, blank=True, verbose_name='اكتملت العملية')
     notes            = models.TextField(blank=True, verbose_name='ملاحظات')
+    # ── GPS location ──────────────────────────────────────────────────────
+    gps_lat          = models.FloatField(null=True, blank=True, verbose_name='خط العرض')
+    gps_lng          = models.FloatField(null=True, blank=True, verbose_name='خط الطول')
+    location_saved_at = models.DateTimeField(null=True, blank=True, verbose_name='وقت حفظ الموقع')
+    location_saved_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='field_work_locations_saved', verbose_name='حفظ الموقع',
+    )
     # ── Supervisor report fields ──────────────────────────────────────────
     vehicles_count   = models.PositiveIntegerField(null=True, blank=True, verbose_name='عدد السيارات')
     pesticides_used  = models.TextField(blank=True, verbose_name='المبيدات المستخدمة')
     supervisor_notes = models.TextField(blank=True, verbose_name='ملاحظات المراقب')
+    no_answer_screenshot = models.ImageField(
+        upload_to='field_work/no_answer/', null=True, blank=True,
+        verbose_name='صورة عدم الرد',
+    )
     report_submitted_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='field_work_reports', verbose_name='أدخل التقرير',
