@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from ..models import FieldWorkOrder, FieldWorkPhoto
+from ..models import FieldWorkOrder, FieldWorkPhoto, FieldWorkSupervisorArea
 from .common import _can_admin, _can_data_entry, _can_fw_supervise, _fw_supervisor_users_qs
 
 logger = logging.getLogger(__name__)
@@ -41,6 +41,19 @@ def field_work_list(request):
     search        = (request.GET.get('q')      or '').strip()
 
     orders = FieldWorkOrder.objects.select_related('created_by').all()
+
+    # Supervisors see only their area orders + directly assigned/received
+    if _can_fw_supervise(request.user) and not _can_admin(request.user) and not _can_data_entry(request.user):
+        from django.db.models import Q as _Q
+        my_areas = list(
+            FieldWorkSupervisorArea.objects.filter(supervisor=request.user)
+            .values_list('area', flat=True)
+        )
+        orders = orders.filter(
+            _Q(area__in=my_areas)
+            | _Q(assigned_supervisor=request.user)
+            | _Q(received_by=request.user)
+        ).distinct()
 
     if status_filter != 'all':
         orders = orders.filter(status=status_filter)
@@ -676,4 +689,91 @@ def field_work_excel_review(request):
         'total':     len(rows),
         'new_count': new_count,
         'dup_count': dup_count,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Supervisors Management
+# ---------------------------------------------------------------------------
+
+@login_required
+def field_work_supervisors(request):
+    if not (_can_admin(request.user) or _can_data_entry(request.user)):
+        return redirect('field_work_list')
+
+    from django.contrib.auth.models import User
+    from django.db.models import Count, Q
+
+    supervisors = (
+        _fw_supervisor_users_qs()
+        .prefetch_related('fw_supervisor_areas')
+        .annotate(
+            active_count=Count(
+                'field_work_assigned',
+                filter=Q(field_work_assigned__status__in=[
+                    s for s, _ in FieldWorkOrder.STATUS_CHOICES
+                    if s != 'completed'
+                ]),
+                distinct=True,
+            ) + Count(
+                'field_work_received',
+                filter=Q(field_work_received__status__in=[
+                    s for s, _ in FieldWorkOrder.STATUS_CHOICES
+                    if s != 'completed'
+                ]),
+                distinct=True,
+            ),
+        )
+    )
+
+    # Collect all distinct areas from existing orders for the area dropdown
+    existing_areas = (
+        FieldWorkOrder.objects.exclude(area='')
+        .values_list('area', flat=True)
+        .distinct()
+        .order_by('area')
+    )
+
+    error = ''
+    success = ''
+
+    if request.method == 'POST':
+        if not _can_admin(request.user):
+            return redirect('field_work_supervisors')
+
+        action = request.POST.get('action', '')
+
+        if action == 'add_area':
+            sup_id = (request.POST.get('supervisor_id') or '').strip()
+            area = (request.POST.get('area') or '').strip()
+            if not sup_id or not area:
+                error = 'يرجى اختيار مراقب ومنطقة.'
+            else:
+                try:
+                    sup = User.objects.get(pk=int(sup_id), groups__name__in=['fw_supervisor', 'Field Work Supervisor'])
+                    _, created = FieldWorkSupervisorArea.objects.get_or_create(
+                        supervisor=sup, area=area,
+                        defaults={'assigned_by': request.user},
+                    )
+                    success = f'تمت إضافة منطقة "{area}" للمراقب {sup.get_full_name() or sup.username}.' if created else 'المنطقة مضافة مسبقاً.'
+                except (ValueError, User.DoesNotExist):
+                    error = 'المراقب غير صالح.'
+
+        elif action == 'remove_area':
+            area_id = (request.POST.get('area_id') or '').strip()
+            try:
+                FieldWorkSupervisorArea.objects.filter(pk=int(area_id)).delete()
+                success = 'تم حذف المنطقة.'
+            except (ValueError, Exception):
+                error = 'تعذّر الحذف.'
+
+        if not error:
+            return redirect('field_work_supervisors')
+
+    return render(request, 'hcsd/field_work_supervisors.html', {
+        'supervisors': supervisors,
+        'existing_areas': existing_areas,
+        'fw_supervisor_users': _fw_supervisor_users_qs(),
+        'error': error,
+        'success': success,
     })

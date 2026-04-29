@@ -1191,6 +1191,29 @@ class FieldWorkPhoto(models.Model):
         return f"{self.get_phase_display()} — {self.work_order}"
 
 
+class FieldWorkSupervisorArea(models.Model):
+    supervisor = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='fw_supervisor_areas', verbose_name='المراقب',
+        limit_choices_to={'groups__name__in': ['fw_supervisor', 'Field Work Supervisor']},
+    )
+    area = models.CharField(max_length=200, verbose_name='المنطقة')
+    assigned_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='fw_area_assignments_made', verbose_name='عُيِّن بواسطة',
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True, verbose_name='تاريخ التعيين')
+
+    class Meta:
+        unique_together = [('supervisor', 'area')]
+        ordering = ['supervisor__first_name', 'area']
+        verbose_name = 'منطقة مراقب عمل ميداني'
+        verbose_name_plural = 'مناطق مراقبي العمل الميداني'
+
+    def __str__(self):
+        return f"{self.supervisor.get_full_name() or self.supervisor.username} — {self.area}"
+
+
 # ══════════════════════════════════════════
 #  Container Transfer Requests
 # ══════════════════════════════════════════

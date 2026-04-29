@@ -130,6 +130,7 @@ urlpatterns = [
     ),
     path('field-work/', views.field_work_list, name='field_work_list'),
     path('field-work/create/', views.field_work_create, name='field_work_create'),
+    path('field-work/supervisors/', views.field_work_supervisors, name='field_work_supervisors'),
     path('field-work/excel-import/', views.field_work_excel_import, name='field_work_excel_import'),
     path('field-work/excel-review/', views.field_work_excel_review, name='field_work_excel_review'),
     path('field-work/<int:pk>/', views.field_work_detail, name='field_work_detail'),
