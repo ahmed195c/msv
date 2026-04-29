@@ -1058,6 +1058,12 @@ class FieldWorkOrder(models.Model):
     equipment_used = models.TextField(blank=True, verbose_name='المعدات المستخدمة')
     work_completed   = models.BooleanField(null=True, blank=True, verbose_name='اكتملت العملية')
     notes            = models.TextField(blank=True, verbose_name='ملاحظات')
+    # ── Assignment ────────────────────────────────────────────────────────
+    assigned_supervisor = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='field_work_assigned', verbose_name='المراقب المعيّن',
+    )
+    assigned_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ التعيين')
     # ── GPS location ──────────────────────────────────────────────────────
     gps_lat          = models.FloatField(null=True, blank=True, verbose_name='خط العرض')
     gps_lng          = models.FloatField(null=True, blank=True, verbose_name='خط الطول')

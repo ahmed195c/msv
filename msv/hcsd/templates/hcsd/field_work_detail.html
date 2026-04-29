@@ -296,7 +296,45 @@ select.form-control{cursor:pointer;}
     </div>
   </div>
 
-  {% if can_edit %}
+  {% if can_assign %}
+  <!-- Assign Supervisor -->
+  <div class="card" style="border-color:#e9d5ff;">
+    <div class="card-header" style="background:#faf5ff;">
+      <h2 style="color:#6d28d9;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:6px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        تعيين المراقب
+      </h2>
+      {% if order.assigned_supervisor %}
+      <span style="font-size:12px;color:#6d28d9;font-weight:600;">
+        المراقب الحالي: {{ order.assigned_supervisor.get_full_name|default:order.assigned_supervisor.username }}
+        {% if order.assigned_at %} — {{ order.assigned_at|date:"d/m/Y" }}{% endif %}
+      </span>
+      {% else %}
+      <span style="font-size:12px;color:#9ca3af;">لم يُعيَّن مراقب بعد</span>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="assign_supervisor">
+        <div class="form-group" style="margin:0;flex:1;min-width:200px;">
+          <label class="form-label">اختر المراقب</label>
+          <select name="supervisor_id" class="form-control">
+            <option value="">— إلغاء التعيين —</option>
+            {% for u in fw_supervisor_users %}
+            <option value="{{ u.pk }}" {% if order.assigned_supervisor_id == u.pk %}selected{% endif %}>
+              {{ u.get_full_name|default:u.username }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-bottom:16px;">تعيين</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if can_submit_report %}
 
   <!-- Location Card -->
   <div class="card" style="border-color:#d1fae5;">
@@ -465,6 +503,9 @@ select.form-control{cursor:pointer;}
     {% endif %}
   </div>
 
+  {% endif %}{# can_submit_report #}
+
+  {% if can_edit %}
   <!-- Update Details -->
   {% if order.status != 'completed' %}
   <div class="card">

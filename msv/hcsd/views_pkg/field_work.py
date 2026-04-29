@@ -17,7 +17,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from ..models import FieldWorkOrder, FieldWorkPhoto
-from .common import _can_admin, _can_data_entry
+from .common import _can_admin, _can_data_entry, _can_fw_supervise, _fw_supervisor_users_qs
 
 logger = logging.getLogger(__name__)
 
@@ -120,10 +120,17 @@ def field_work_create(request):
 
 @login_required
 def field_work_detail(request, pk):
-    order = get_object_or_404(FieldWorkOrder.objects.select_related('created_by'), pk=pk)
+    order = get_object_or_404(
+        FieldWorkOrder.objects.select_related('created_by', 'assigned_supervisor'), pk=pk
+    )
     can_admin = _can_admin(request.user)
     can_data_entry = _can_data_entry(request.user)
     can_edit = can_admin or can_data_entry
+    is_fw_supervisor = _can_fw_supervise(request.user)
+    can_assign = can_admin or can_data_entry
+    can_submit_report = can_admin or (
+        is_fw_supervisor and order.assigned_supervisor_id == request.user.id
+    )
 
     photos_before = order.photos.filter(phase='before').order_by('uploaded_at')
     photos_during = order.photos.filter(phase='during').order_by('uploaded_at')
@@ -132,11 +139,33 @@ def field_work_detail(request, pk):
     errors = []
     success = None
 
-    if request.method == 'POST' and can_edit:
+    if request.method == 'POST':
         action = (request.POST.get('action') or '').strip()
 
+        # ── Assign supervisor ────────────────────────────────────────────────
+        if action == 'assign_supervisor' and can_assign:
+            sup_id = (request.POST.get('supervisor_id') or '').strip()
+            if sup_id == '':
+                order.assigned_supervisor = None
+                order.assigned_at = None
+                order.save(update_fields=['assigned_supervisor', 'assigned_at'])
+                success = 'تم إلغاء تعيين المراقب.'
+            else:
+                try:
+                    from django.contrib.auth.models import User as _User
+                    sup_user = _fw_supervisor_users_qs().get(pk=int(sup_id))
+                    order.assigned_supervisor = sup_user
+                    order.assigned_at = timezone.now()
+                    order.save(update_fields=['assigned_supervisor', 'assigned_at'])
+                    success = f'تم تعيين {sup_user.get_full_name() or sup_user.username} مراقباً للأمر.'
+                except (ValueError, Exception):
+                    errors.append('المراقب المختار غير صالح.')
+
+        elif not can_edit and not can_submit_report:
+            errors.append('ليس لديك صلاحية لتنفيذ هذا الإجراء.')
+
         # ── Update work details ──────────────────────────────────────────────
-        if action == 'update_details':
+        elif action == 'update_details' and can_edit:
             site_name   = (request.POST.get('site_name') or '').strip()
             work_type   = (request.POST.get('work_type') or '').strip()
             location    = (request.POST.get('location') or '').strip()
@@ -173,7 +202,7 @@ def field_work_detail(request, pk):
                 success = 'تم حفظ التفاصيل.'
 
         # ── Update status ────────────────────────────────────────────────────
-        elif action == 'update_status':
+        elif action == 'update_status' and can_edit:
             new_status = (request.POST.get('status') or '').strip()
             work_completed_raw = request.POST.get('work_completed')
             valid_statuses = {s for s, _ in FieldWorkOrder.STATUS_CHOICES}
@@ -187,7 +216,7 @@ def field_work_detail(request, pk):
                 success = 'تم تحديث الحالة.'
 
         # ── Upload photos ────────────────────────────────────────────────────
-        elif action == 'upload_photos':
+        elif action == 'upload_photos' and can_edit:
             phase = (request.POST.get('phase') or '').strip()
             photos = request.FILES.getlist('photos')
             valid_phases = {'before', 'during', 'after'}
@@ -211,13 +240,12 @@ def field_work_detail(request, pk):
                             uploaded_by=request.user,
                         )
                     success = 'تم رفع الصور.'
-                    # Refresh photo querysets
                     photos_before = order.photos.filter(phase='before').order_by('uploaded_at')
                     photos_during = order.photos.filter(phase='during').order_by('uploaded_at')
                     photos_after  = order.photos.filter(phase='after').order_by('uploaded_at')
 
         # ── Save GPS location ────────────────────────────────────────────────
-        elif action == 'save_location':
+        elif action == 'save_location' and can_submit_report:
             try:
                 lat = float(request.POST.get('lat', ''))
                 lng = float(request.POST.get('lng', ''))
@@ -232,7 +260,7 @@ def field_work_detail(request, pk):
                 success = 'تم حفظ الموقع.'
 
         # ── Supervisor report ────────────────────────────────────────────────
-        elif action == 'supervisor_report':
+        elif action == 'supervisor_report' and can_submit_report:
             new_status      = (request.POST.get('status') or '').strip()
             workers_raw     = (request.POST.get('workers_count') or '').strip()
             vehicles_raw    = (request.POST.get('vehicles_count') or '').strip()
@@ -273,7 +301,7 @@ def field_work_detail(request, pk):
                 success = 'تم حفظ تقرير المراقب.'
 
         # ── Delete photo ─────────────────────────────────────────────────────
-        elif action == 'delete_photo':
+        elif action == 'delete_photo' and can_edit:
             photo_id = (request.POST.get('photo_id') or '').strip()
             try:
                 photo = FieldWorkPhoto.objects.get(id=photo_id, work_order=order)
@@ -289,10 +317,14 @@ def field_work_detail(request, pk):
         if not errors:
             return redirect('field_work_detail', pk=order.pk)
 
+    fw_supervisor_users = _fw_supervisor_users_qs() if can_assign else []
     return render(request, 'hcsd/field_work_detail.html', {
         'order': order,
         'can_edit': can_edit,
         'can_admin': can_admin,
+        'can_assign': can_assign,
+        'can_submit_report': can_submit_report,
+        'fw_supervisor_users': fw_supervisor_users,
         'photos_before': photos_before,
         'photos_during': photos_during,
         'photos_after': photos_after,

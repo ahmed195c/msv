@@ -24,12 +24,14 @@ GROUP_NAME_ALIASES = {
     'inspector': ['inspector', 'Inspector'],
     'data_entry': ['data_entry', 'Data Entry'],
     'head': ['head', 'Head'],
+    'fw_supervisor': ['fw_supervisor', 'Field Work Supervisor'],
 }
 ROLE_CAPABILITIES = {
-    'admin': {'admin', 'inspect', 'data_entry', 'head_approve'},
+    'admin': {'admin', 'inspect', 'data_entry', 'head_approve', 'fw_supervise'},
     'inspector': {'inspect'},
     'data_entry': {'data_entry'},
     'head': {'head_approve'},
+    'fw_supervisor': {'fw_supervise'},
 }
 INSPECTION_REPORT_PHOTO_PREFIX = 'inspection_report_photo_'
 VEHICLE_INSPECTION_REPORT_PHOTO_PREFIX = 'vehicle_inspection_report_photo_'
@@ -164,6 +166,8 @@ def _user_roles(user):
         roles.add('data_entry')
     if _role_is_head(user):
         roles.add('head')
+    if _has_any_group(user, GROUP_NAME_ALIASES['fw_supervisor']):
+        roles.add('fw_supervisor')
     setattr(user, '_hcsd_roles_cache', roles)
     return roles
 
@@ -189,6 +193,21 @@ def _can_data_entry(user):
 
 def _can_head(user):
     return _has_capability(user, 'head_approve')
+
+
+def _can_fw_supervise(user):
+    return _has_capability(user, 'fw_supervise')
+
+
+def _fw_supervisor_users_qs():
+    return (
+        User.objects.filter(
+            is_active=True,
+            groups__name__in=GROUP_NAME_ALIASES['fw_supervisor'],
+        )
+        .distinct()
+        .order_by('first_name', 'last_name', 'username')
+    )
 
 
 def _company_has_active_extension(company):
