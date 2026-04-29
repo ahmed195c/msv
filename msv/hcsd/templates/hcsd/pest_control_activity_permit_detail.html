@@ -1588,32 +1588,38 @@
         </div>
         <div id="violation-form-wrap" style="display:none;">
         <div class="doc-form-body">
-        <form method="post" enctype="multipart/form-data" class="review-form">
+        <form method="post" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="add_violation">
-
           <label for="violation_months">عدد الأشهر المتأخرة</label>
-          <input
-            id="violation_months"
-            name="violation_months"
-            type="number"
-            min="1"
-            step="1"
-            placeholder="مثال: 3"
-            required
-            style="max-width:160px;"
-          >
-
+          <input id="violation_months" name="violation_months" type="number"
+                 min="1" step="1" placeholder="مثال: 3" required style="max-width:160px;">
           <label for="violation_payment_order_number" style="margin-top:14px;">رقم أمر الدفع</label>
-          <input
-            id="violation_payment_order_number"
-            name="violation_payment_order_number"
-            type="text"
-            placeholder="رقم أمر دفع المخالفة"
-            required
-          >
+          <input id="violation_payment_order_number" name="violation_payment_order_number"
+                 type="text" placeholder="رقم أمر دفع المخالفة" required>
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <button type="submit" style="background:#b91c1c;">حفظ أمر الدفع</button>
+            <button type="button"
+                    onclick="document.getElementById('violation-form-wrap').style.display='none';document.getElementById('violation-toggle-btn').style.display='';"
+                    style="background:#6b7280;color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">
+              إلغاء
+            </button>
+          </div>
+        </form>
+        </div>
+        </div>
+      </section>
+    {% endif %}
 
-          <label style="margin-top:14px;">إيصال الدفع</label>
+    {% if can_upload_violation_receipt %}
+      <section class="permit-section permit-section--doc no-print">
+        <div class="doc-band">
+          <div class="doc-band-company">إيصال دفع المخالفة</div>
+        </div>
+        <div class="doc-form-body">
+        <form method="post" enctype="multipart/form-data" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="upload_violation_receipt">
           <div class="upload-stack">
             <div class="upload-card">
               <div class="upload-card-head">
@@ -1625,31 +1631,17 @@
                 <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
                 <span class="upload-dropzone-sub">يدعم PDF / JPG / PNG</span>
               </label>
-              <input
-                id="violation_payment_receipt"
-                name="violation_payment_receipt"
-                type="file"
-                accept=".pdf,image/*"
-                required
-                class="upload-hidden-input js-file-input"
-              >
+              <input id="violation_payment_receipt" name="violation_payment_receipt"
+                     type="file" accept=".pdf,image/*" required
+                     class="upload-hidden-input js-file-input">
               <div class="upload-file-chip js-file-chip" aria-live="polite">
                 <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
                 <span class="upload-file-chip-size js-file-size"></span>
               </div>
             </div>
           </div>
-
-          <div style="display:flex;gap:10px;margin-top:14px;">
-            <button type="submit" style="background:#b91c1c;">حفظ المخالفة</button>
-            <button type="button"
-                    onclick="document.getElementById('violation-form-wrap').style.display='none';document.getElementById('violation-toggle-btn').style.display='';"
-                    style="background:#6b7280;color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">
-              إلغاء
-            </button>
-          </div>
+          <button type="submit" style="margin-top:12px;background:#b91c1c;">رفع الإيصال</button>
         </form>
-        </div>
         </div>
       </section>
     {% endif %}

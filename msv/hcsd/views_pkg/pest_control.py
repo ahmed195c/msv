@@ -411,6 +411,12 @@ def pest_control_permit_detail(request, id):
         and pirmet.status == 'head_approved'
         and not violation_order_recorded
     )
+    can_upload_violation_receipt = (
+        _can_admin(request.user)
+        and pirmet.status == 'head_approved'
+        and violation_order_recorded
+        and not violation_receipt_recorded
+    )
     requirements_required = bool(pirmet.inspection_requires_insurance)
     can_record_inspection_payment_reference = (
         _can_admin(request.user)
@@ -597,11 +603,10 @@ def pest_control_permit_detail(request, id):
             if pirmet.status != 'head_approved':
                 review_errors.append('يمكن إدخال المخالفة فقط بعد اعتماد الرئيس.')
             if violation_order_recorded:
-                review_errors.append('تم إدخال بيانات المخالفة مسبقاً.')
+                review_errors.append('تم إدخال أمر دفع المخالفة مسبقاً.')
 
             months_raw = (request.POST.get('violation_months') or '').strip()
             violation_order = (request.POST.get('violation_payment_order_number') or '').strip()
-            violation_receipt = request.FILES.get('violation_payment_receipt')
 
             months = None
             if not months_raw:
@@ -617,6 +622,29 @@ def pest_control_permit_detail(request, id):
             if not violation_order:
                 review_errors.append('يرجى إدخال رقم أمر دفع المخالفة.')
 
+            if not review_errors:
+                pirmet.violation_payment_order_number = violation_order
+                pirmet.violation_amount = months * 100
+                pirmet.save(update_fields=['violation_payment_order_number', 'violation_amount'])
+                _log_pirmet_change(
+                    pirmet,
+                    'details_update',
+                    request.user,
+                    notes=f'Violation order recorded: {months} months, order {violation_order}',
+                )
+                return redirect('pest_control_permit_detail', id=pirmet.id)
+
+        if action == 'upload_violation_receipt':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لرفع إيصال المخالفة.')
+            if pirmet.status != 'head_approved':
+                review_errors.append('يمكن رفع إيصال المخالفة فقط بعد اعتماد الرئيس.')
+            if not violation_order_recorded:
+                review_errors.append('يرجى إدخال أمر دفع المخالفة أولاً.')
+            if violation_receipt_recorded:
+                review_errors.append('تم رفع إيصال المخالفة مسبقاً.')
+
+            violation_receipt = request.FILES.get('violation_payment_receipt')
             if not violation_receipt:
                 review_errors.append('يرجى إرفاق إيصال دفع المخالفة.')
             else:
@@ -625,19 +653,13 @@ def pest_control_permit_detail(request, id):
                     review_errors.append('يُسمح فقط بملفات PDF أو صور لإيصال المخالفة.')
 
             if not review_errors:
-                pirmet.violation_payment_order_number = violation_order
-                pirmet.violation_amount = months * 100
                 pirmet.violation_payment_receipt = violation_receipt
-                pirmet.save(update_fields=[
-                    'violation_payment_order_number',
-                    'violation_amount',
-                    'violation_payment_receipt',
-                ])
+                pirmet.save(update_fields=['violation_payment_receipt'])
                 _log_pirmet_change(
                     pirmet,
-                    'details_update',
+                    'document_upload',
                     request.user,
-                    notes=f'Violation recorded: {months} months, order {violation_order}',
+                    notes='Violation payment receipt uploaded.',
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
@@ -1255,6 +1277,7 @@ def pest_control_permit_detail(request, id):
             'violation_receipt_recorded': violation_receipt_recorded,
             'violation_payment_completed': violation_payment_completed,
             'can_add_violation': can_add_violation,
+            'can_upload_violation_receipt': can_upload_violation_receipt,
             'requirements_required': requirements_required,
             'can_record_inspection_payment_reference': can_record_inspection_payment_reference,
             'can_record_inspection_payment_receipt': can_record_inspection_payment_receipt,
