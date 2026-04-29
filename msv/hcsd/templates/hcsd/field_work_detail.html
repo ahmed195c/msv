@@ -391,6 +391,7 @@ select.form-control{cursor:pointer;}
     </div>
     {% endif %}
 
+    {% if order.status != 'completed' %}
     <div class="card-body">
       <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
@@ -461,6 +462,7 @@ select.form-control{cursor:pointer;}
         </div>
       </form>
     </div>
+    {% endif %}
   </div>
 
   <!-- Update Details -->
