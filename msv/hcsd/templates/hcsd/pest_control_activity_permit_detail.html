@@ -1751,6 +1751,27 @@
         <form method="post" enctype="multipart/form-data" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="submit_inspection_report">
+          <input type="hidden" name="company_lat" id="company-lat-inp">
+          <input type="hidden" name="company_lng" id="company-lng-inp">
+
+          <!-- موقع الشركة -->
+          <div style="margin-bottom:16px;padding:12px 14px;background:#f0f7ff;border:1.5px solid #bfdbfe;border-radius:9px;">
+            <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:8px;">موقع الشركة (اختياري)</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <button type="button" id="gps-btn"
+                      onclick="captureCompanyLocation()"
+                      style="background:#1d4ed8;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;">
+                ◎ تحديد الموقع الحالي
+              </button>
+              <span id="gps-status" style="font-size:12px;color:#374151;"></span>
+            </div>
+            <div id="gps-coords-wrap" style="display:none;margin-top:8px;">
+              <div id="gps-coords-text" style="font-size:12px;font-family:monospace;color:#1e40af;margin-bottom:4px;"></div>
+              <a id="gps-maps-link" href="#" target="_blank" rel="noopener"
+                 style="font-size:11px;color:#2563eb;">فتح في خرائط Google</a>
+            </div>
+          </div>
+
           <label for="inspection_decision">نتيجة التقرير</label>
           <select id="inspection_decision" name="inspection_decision" required>
             <option value="">-- اختيار --</option>
@@ -1913,5 +1934,44 @@
       });
     });
   })();
+
+  function captureCompanyLocation() {
+    var btn    = document.getElementById('gps-btn');
+    var status = document.getElementById('gps-status');
+    var wrap   = document.getElementById('gps-coords-wrap');
+    var text   = document.getElementById('gps-coords-text');
+    var link   = document.getElementById('gps-maps-link');
+    var latInp = document.getElementById('company-lat-inp');
+    var lngInp = document.getElementById('company-lng-inp');
+
+    if (!navigator.geolocation) {
+      status.textContent = 'المتصفح لا يدعم تحديد الموقع.';
+      return;
+    }
+    btn.disabled = true;
+    status.textContent = 'جارٍ تحديد الموقع…';
+
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        var lat = pos.coords.latitude.toFixed(6);
+        var lng = pos.coords.longitude.toFixed(6);
+        latInp.value = lat;
+        lngInp.value = lng;
+        text.textContent = lat + ', ' + lng;
+        link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+        wrap.style.display = 'block';
+        status.textContent = '✓ تم تحديد الموقع';
+        status.style.color = '#166534';
+        btn.textContent = '↺ تحديث الموقع';
+        btn.disabled = false;
+      },
+      function() {
+        status.textContent = 'تعذّر الحصول على الموقع. تأكد من منح الصلاحية.';
+        status.style.color = '#991b1b';
+        btn.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 12000 }
+    );
+  }
 </script>
 {% endblock %}

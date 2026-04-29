@@ -995,6 +995,15 @@ def pest_control_permit_detail(request, id):
             requirements_required = decision_raw == 'requirements_required'
             decision = 'approved' if decision_raw == 'approved' else decision_raw
             photos = request.FILES.getlist('inspection_report_photos')
+            company_lat_raw = (request.POST.get('company_lat') or '').strip()
+            company_lng_raw = (request.POST.get('company_lng') or '').strip()
+            company_lat = company_lng = None
+            if company_lat_raw and company_lng_raw:
+                try:
+                    company_lat = float(company_lat_raw)
+                    company_lng = float(company_lng_raw)
+                except ValueError:
+                    company_lat = company_lng = None
 
             if decision_raw not in {'approved', 'requirements_required', 'rejected'}:
                 review_errors.append('يرجى اختيار نتيجة التقرير.')
@@ -1100,6 +1109,16 @@ def pest_control_permit_detail(request, id):
                         'document_upload',
                         request.user,
                         notes=f'Inspection report photos uploaded: {len(photos)}',
+                    )
+                if company_lat is not None and company_lng is not None and pirmet.company:
+                    pirmet.company.latitude = company_lat
+                    pirmet.company.longitude = company_lng
+                    pirmet.company.save(update_fields=['latitude', 'longitude'])
+                    _log_company_change(
+                        pirmet.company,
+                        'updated',
+                        request.user,
+                        notes=f'موقع الشركة تم تحديثه من تقرير التفتيش: {company_lat}, {company_lng}',
                     )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
