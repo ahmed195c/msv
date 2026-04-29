@@ -710,17 +710,11 @@ def field_work_supervisors(request):
         .annotate(
             active_count=Count(
                 'field_work_assigned',
-                filter=Q(field_work_assigned__status__in=[
-                    s for s, _ in FieldWorkOrder.STATUS_CHOICES
-                    if s != 'completed'
-                ]),
+                filter=~Q(field_work_assigned__status='completed'),
                 distinct=True,
             ) + Count(
                 'field_work_received',
-                filter=Q(field_work_received__status__in=[
-                    s for s, _ in FieldWorkOrder.STATUS_CHOICES
-                    if s != 'completed'
-                ]),
+                filter=~Q(field_work_received__status='completed'),
                 distinct=True,
             ),
         )
