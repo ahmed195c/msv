@@ -247,14 +247,9 @@ def pest_control_permit(request):
                         notes='Company data updated from permit request form.',
                     )
 
-            violation_reference_expiry = _initial_violation_reference_expiry(
-                original_company_trade_license_exp,
-                trade_license_exp,
-            )
             permit = PirmetClearance.objects.create(
                 company=company,
                 dateOfExpiry=expiry_date,
-                violation_reference_expiry=violation_reference_expiry,
                 permit_type='pest_control',
                 status='order_received',
                 allowed_activities=','.join(allowed_activities) if allowed_activities else None,
@@ -408,35 +403,17 @@ def pest_control_permit_detail(request, id):
         and bool(pirmet.inspection_payment_receipt)
         and not can_submit_inspection_report
     )
-    renewal_reference_date = _violation_reference_expiry_date(
-        pirmet,
-        timezone.localdate(),
-    )
-    delay_months_after_grace = _delay_months_after_first_month(
-        renewal_reference_date,
-        timezone.localdate(),
-    )
-    delay_days_total = 0
-    if renewal_reference_date and timezone.localdate() > renewal_reference_date:
-        delay_days_total = (timezone.localdate() - renewal_reference_date).days
-    violation_amount_due = int(pirmet.violation_amount) if pirmet.violation_amount else delay_months_after_grace * 100
-    violation_required = delay_months_after_grace > 0
     violation_order_recorded = bool((pirmet.violation_payment_order_number or '').strip())
     violation_receipt_recorded = bool(pirmet.violation_payment_receipt)
-    violation_payment_completed = (
-        violation_order_recorded
-        and violation_receipt_recorded
-    )
+    violation_payment_completed = violation_order_recorded and violation_receipt_recorded
     can_record_violation_order = (
         _can_admin(request.user)
-        and pirmet.status == 'violation_payment_link_pending'
-        and violation_required
+        and pirmet.status == 'head_approved'
         and not violation_order_recorded
     )
     can_record_violation_receipt = (
         _can_admin(request.user)
-        and pirmet.status in {'violation_payment_pending', 'head_approved'}
-        and violation_required
+        and pirmet.status == 'head_approved'
         and violation_order_recorded
         and not violation_receipt_recorded
     )
@@ -457,7 +434,6 @@ def pest_control_permit_detail(request, id):
     can_record_permit_payment_reference = (
         _can_admin(request.user)
         and pirmet.status == 'head_approved'
-        and (not violation_required or violation_payment_completed)
     )
     show_admin_close_form = (
         _can_admin(request.user)
@@ -623,13 +599,11 @@ def pest_control_permit_detail(request, id):
 
         if action == 'save_violation_payment_order':
             if not _can_admin(request.user):
-                review_errors.append('ليس لديك صلاحية لإدخال بيانات مخالفة التأخير.')
-            if pirmet.status != 'violation_payment_link_pending':
-                review_errors.append('يمكن إدخال أمر دفع المخالفة فقط في مرحلة انتظار رابط دفع المخالفة.')
-            if not violation_required:
-                review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
-            if violation_receipt_recorded:
-                review_errors.append('تم حفظ إيصال المخالفة بالفعل، لا يمكن تعديل أمر الدفع.')
+                review_errors.append('ليس لديك صلاحية لإدخال بيانات المخالفة.')
+            if pirmet.status != 'head_approved':
+                review_errors.append('يمكن إدخال أمر دفع المخالفة فقط بعد اعتماد الرئيس.')
+            if violation_order_recorded:
+                review_errors.append('تم إدخال أمر دفع المخالفة مسبقاً.')
 
             violation_order = (request.POST.get('violation_payment_order_number') or '').strip()
             if not violation_order:
@@ -637,24 +611,20 @@ def pest_control_permit_detail(request, id):
 
             if not review_errors:
                 pirmet.violation_payment_order_number = violation_order
-                pirmet.violation_amount = violation_amount_due
-                pirmet.status = 'violation_payment_pending'
-                pirmet.save(update_fields=['violation_payment_order_number', 'violation_amount', 'status'])
+                pirmet.save(update_fields=['violation_payment_order_number'])
                 _log_pirmet_change(
                     pirmet,
                     'details_update',
                     request.user,
-                    notes=f'Violation order recorded. Amount: {violation_amount_due}',
+                    notes=f'Violation payment order recorded: {violation_order}',
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
         if action == 'save_violation_payment_receipt':
             if not _can_admin(request.user):
-                review_errors.append('ليس لديك صلاحية لإدخال إيصال مخالفة التأخير.')
-            if pirmet.status not in {'violation_payment_pending', 'head_approved'}:
-                review_errors.append('يمكن إدخال إيصال المخالفة فقط في مرحلة انتظار دفع المخالفة.')
-            if not violation_required:
-                review_errors.append('لا توجد مخالفة تأخير مطلوبة لهذا الطلب.')
+                review_errors.append('ليس لديك صلاحية لإدخال إيصال المخالفة.')
+            if pirmet.status != 'head_approved':
+                review_errors.append('يمكن إدخال إيصال المخالفة فقط بعد اعتماد الرئيس.')
             if not (pirmet.violation_payment_order_number or '').strip():
                 review_errors.append('يرجى إدخال رقم أمر دفع المخالفة أولاً.')
             if violation_receipt_recorded:
@@ -669,20 +639,12 @@ def pest_control_permit_detail(request, id):
                     review_errors.append('يُسمح فقط بملفات PDF أو صور لإيصال المخالفة.')
 
             if not review_errors:
-                old_status = pirmet.status
-                pirmet.violation_amount = violation_amount_due
                 pirmet.violation_payment_receipt = violation_receipt
-                if pirmet.status == 'violation_payment_pending':
-                    pirmet.status = 'head_approved'
-                    pirmet.save(update_fields=['violation_amount', 'violation_payment_receipt', 'status'])
-                else:
-                    pirmet.save(update_fields=['violation_amount', 'violation_payment_receipt'])
+                pirmet.save(update_fields=['violation_payment_receipt'])
                 _log_pirmet_change(
                     pirmet,
                     'document_upload',
                     request.user,
-                    old_status=old_status,
-                    new_status=pirmet.status,
                     notes='Violation payment receipt uploaded.',
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
@@ -853,10 +815,7 @@ def pest_control_permit_detail(request, id):
                     pirmet.head_approved_by = request.user
                     pirmet.head_approved_date = datetime.date.today()
                     pirmet.head_approved_notes = head_remarks or None
-                    if violation_required and not violation_payment_completed:
-                        pirmet.status = 'violation_payment_link_pending'
-                    else:
-                        pirmet.status = 'head_approved'
+                    pirmet.status = 'head_approved'
                     pirmet.save(update_fields=['status', 'head_approved_by', 'head_approved_date', 'head_approved_notes'])
                     _log_pirmet_change(
                         pirmet,
@@ -898,8 +857,6 @@ def pest_control_permit_detail(request, id):
                 review_errors.append('ليس لديك صلاحية لإدخال الرقم المرجعي للدفع.')
             if pirmet.status != 'head_approved':
                 review_errors.append('هذا الطلب ليس في مرحلة إدخال رقم دفع التصريح.')
-            if violation_required and not violation_payment_completed:
-                review_errors.append('يرجى استكمال أمر دفع المخالفة وإيصالها قبل إدخال رقم دفع التصريح.')
             payment_number = (request.POST.get('payment_number') or '').strip()
             if not payment_number:
                 review_errors.append('يرجى إدخال الرقم المرجعي لدفع التصريح.')
@@ -924,8 +881,6 @@ def pest_control_permit_detail(request, id):
                 review_errors.append('ليس لديك صلاحية لتأكيد الدفع.')
             if pirmet.status != 'payment_pending':
                 review_errors.append('هذا الطلب ليس بانتظار الدفع.')
-            if violation_required and not violation_payment_completed:
-                review_errors.append('يرجى استكمال سداد المخالفة أولاً.')
             if not (pirmet.PaymentNumber or '').strip():
                 review_errors.append('يرجى إدخال الرقم المرجعي لدفع التصريح أولاً.')
 
@@ -1200,8 +1155,6 @@ def pest_control_permit_detail(request, id):
                 review_errors.append('هذا الطلب ليس جاهزاً للإصدار. يجب إنهاء تقرير التفتيش أولاً.')
             if inspection_report_decision != 'approved':
                 review_errors.append('لا يمكن إصدار التصريح قبل اعتماد تقرير التفتيش.')
-            if violation_required and not violation_payment_completed:
-                review_errors.append('يرجى استكمال سداد مخالفة التأخير قبل إصدار التصريح.')
 
             if not review_errors:
                 old_status = pirmet.status
@@ -1306,11 +1259,6 @@ def pest_control_permit_detail(request, id):
             'can_submit_inspection_report': can_submit_inspection_report,
             'can_manage_inspection_photos': can_manage_inspection_photos,
             'can_add_inspection_photos': can_add_inspection_photos,
-            'delay_months_after_grace': delay_months_after_grace,
-            'delay_days_total': delay_days_total,
-            'renewal_reference_date': renewal_reference_date,
-            'violation_amount_due': violation_amount_due,
-            'violation_required': violation_required,
             'violation_order_recorded': violation_order_recorded,
             'violation_receipt_recorded': violation_receipt_recorded,
             'violation_payment_completed': violation_payment_completed,

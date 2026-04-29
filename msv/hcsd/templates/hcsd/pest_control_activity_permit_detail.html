@@ -1007,11 +1007,7 @@
         <span class="status-badge status-badge--warning">تم إنهاء الطلب - غير معتمد</span>
       {% elif pirmet.status == "inspection_completed" %}
         {% if inspection_report_decision == "approved" %}
-          {% if violation_required and not violation_payment_completed %}
-            <span class="status-badge status-badge--warning">تم إنهاء التفتيش - بانتظار سداد المخالفة</span>
-          {% else %}
-            <span class="status-badge status-badge--active">تم إنهاء التفتيش - معتمد</span>
-          {% endif %}
+          <span class="status-badge status-badge--active">تم إنهاء التفتيش - معتمد</span>
         {% elif inspection_report_decision == "rejected" %}
           <span class="status-badge status-badge--warning">تم إنهاء التفتيش - غير معتمد</span>
         {% else %}
@@ -1022,9 +1018,9 @@
       {% elif pirmet.status == "payment_pending" %}
         <span class="status-badge status-badge--pending">بانتظار دفع التصريح</span>
       {% elif pirmet.status == "violation_payment_link_pending" %}
-        <span class="status-badge status-badge--warning">بانتظار إرسال رابط دفع المخالفة</span>
+        <span class="status-badge status-badge--active">تم الاعتماد النهائي</span>
       {% elif pirmet.status == "violation_payment_pending" %}
-        <span class="status-badge status-badge--warning">بانتظار دفع المخالفة</span>
+        <span class="status-badge status-badge--active">تم الاعتماد النهائي</span>
       {% elif pirmet.status == "approved" %}
         <span class="status-badge status-badge--active">تم الاعتماد من المفتش</span>
       {% elif pirmet.status == "inspection_pending" %}
@@ -1063,7 +1059,7 @@
         <div class="wf-label">دفع التفتيش</div>
       </div>
 
-      {# 3: مراجعة المفتش — active: inspection_pending (and legacy review/needs); done: inspection_completed and beyond #}
+      {# 3: مراجعة المفتش #}
       <div class="wf-step
         {% if s == 'inspection_pending' or s == 'review_pending' or s == 'needs_completion' %}active
         {% elif s == 'approved' or s == 'inspection_completed' or s == 'head_approved' or s == 'violation_payment_link_pending' or s == 'violation_payment_pending' or s == 'payment_pending' or s == 'issued' or s == 'cancelled_admin' or s == 'closed_requirements_pending' %}done
@@ -1081,29 +1077,18 @@
         <div class="wf-label">الاعتماد النهائي</div>
       </div>
 
-      {# 5 دفع المخالفة #}
-      {% if violation_required %}
+      {# 5: دفع التصريح #}
       <div class="wf-step
-        {% if s == 'violation_payment_link_pending' or s == 'violation_payment_pending' %}active
-        {% elif s == 'head_approved' or s == 'payment_pending' or s == 'issued' %}done
-        {% endif %}">
-        <div class="wf-dot">{% if s == 'head_approved' or s == 'payment_pending' or s == 'issued' %}✓{% else %}٥{% endif %}</div>
-        <div class="wf-label">دفع المخالفة</div>
-      </div>
-      {% endif %}
-
-      {# 5/6: دفع التصريح #}
-      <div class="wf-step
-        {% if s == 'head_approved' or s == 'payment_pending' %}active
+        {% if s == 'head_approved' or s == 'violation_payment_link_pending' or s == 'violation_payment_pending' or s == 'payment_pending' %}active
         {% elif s == 'issued' %}done
         {% endif %}">
-        <div class="wf-dot">{% if s == 'issued' %}✓{% else %}{% if violation_required %}٦{% else %}٥{% endif %}{% endif %}</div>
+        <div class="wf-dot">{% if s == 'issued' %}✓{% else %}٥{% endif %}</div>
         <div class="wf-label">دفع التصريح</div>
       </div>
 
-      {# 6/7: إصدار التصريح — final step #}
+      {# 6: إصدار التصريح — final step #}
       <div class="wf-step {% if s == 'issued' %}active{% endif %}">
-        <div class="wf-dot">{% if violation_required %}٧{% else %}٦{% endif %}</div>
+        <div class="wf-dot">٦</div>
         <div class="wf-label">إصدار التصريح</div>
       </div>
 
@@ -1391,59 +1376,25 @@
 
     
 
-    {% if pirmet.status == "inspection_completed" and violation_required or violation_order_recorded or violation_receipt_recorded %}
-      <section class="permit-section permit-section--doc {% if user_is_admin or user_is_data_entry %}admin-inline-edit{% endif %}" {% if user_is_admin or user_is_data_entry %}data-admin-inline-edit{% endif %}>
+    {% if violation_order_recorded or violation_receipt_recorded %}
+      <section class="permit-section permit-section--doc">
         <div class="doc-band">
-          <div class="doc-band-company">بيانات مخالفة التأخير</div>
+          <div class="doc-band-company">بيانات مخالفة التأخير (اختياري)</div>
         </div>
-        {% if user_is_admin or user_is_data_entry %}
-        <form method="post" enctype="multipart/form-data" class="review-form" style="margin:0;">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="update_violation_data">
-          <div class="admin-edit-actions no-print">
-            <button type="button" class="admin-edit-toggle" data-edit-toggle>تعديل</button>
-            <button type="submit" class="js-save-actions" style="background:var(--pd-btn,#4a627c);color:#fff;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">حفظ التعديلات</button>
-          </div>
-        {% endif %}
         <div class="doc-table">
           <div class="detail-item">
-            <span class="label">تاريخ مرجع المخالفة</span>
-            <span class="value">{{ renewal_reference_date|date:"d/m/Y"|default:"-" }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">أيام التأخير</span>
-            <span class="value">{{ delay_days_total }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">أشهر التأخير المحتسبة</span>
-            <span class="value">{{ delay_months_after_grace }}</span>
-          </div>
-          <div class="detail-item">
             <span class="label">رقم أمر دفع المخالفة</span>
-            <span class="value">
-              <span class="js-read-value">{{ pirmet.violation_payment_order_number|default:"-" }}</span>
-              <input class="js-edit-input" name="violation_payment_order_number" type="text" value="{{ pirmet.violation_payment_order_number|default:'' }}" placeholder="رقم أمر الدفع">
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="label">قيمة المخالفة</span>
-            <span class="value">
-              {% if violation_amount_due %}{{ violation_amount_due }} درهم{% else %}-{% endif %}
-            </span>
+            <span class="value">{{ pirmet.violation_payment_order_number|default:"-" }}</span>
           </div>
           <div class="detail-item">
             <span class="label">إيصال دفع المخالفة</span>
             <span class="value">
-              <span class="js-read-value">
-                {% if pirmet.violation_payment_receipt %}
-                  <a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
-                {% else %}-{% endif %}
-              </span>
-              <input class="js-edit-input" name="violation_payment_receipt" type="file" accept=".pdf,.jpg,.jpeg,.png">
+              {% if pirmet.violation_payment_receipt %}
+                <a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
+              {% else %}-{% endif %}
             </span>
           </div>
         </div>
-        {% if user_is_admin or user_is_data_entry %}</form>{% endif %}
       </section>
     {% endif %}
 
@@ -1618,22 +1569,12 @@
     {% if can_record_violation_order %}
       <section class="permit-section permit-section--doc no-print">
         <div class="doc-band">
-          <div class="doc-band-company">إدخال أمر دفع مخالفة التأخير</div>
+          <div class="doc-band-company">إدخال أمر دفع مخالفة (اختياري)</div>
         </div>
         <div class="doc-form-body">
         <form method="post" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="save_violation_payment_order">
-          <div class="detail-grid" style="margin-bottom: 14px;">
-            <div class="detail-item">
-              <span class="label">أشهر التأخير بعد الشهر الأول</span>
-              <span class="value">{{ delay_months_after_grace }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">قيمة المخالفة</span>
-              <span class="value">{{ violation_amount_due }} درهم</span>
-            </div>
-          </div>
           <label for="violation_payment_order_number">رقم أمر دفع المخالفة</label>
           <input
             id="violation_payment_order_number"
