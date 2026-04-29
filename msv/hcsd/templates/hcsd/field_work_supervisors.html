@@ -59,7 +59,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
     <form method="post" novalidate>
       {% csrf_token %}
       <input type="hidden" name="action" value="add_area">
-      <div class="form-row">
+      <div style="display:flex;flex-direction:column;gap:14px;max-width:360px;">
         <div class="form-group">
           <label class="form-label">المراقب</label>
           <select name="supervisor_id" class="form-control" required>
@@ -69,7 +69,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
             {% endfor %}
           </select>
         </div>
-        <div class="form-group" style="min-width:220px;">
+        <div class="form-group">
           <label class="form-label">المنطقة</label>
           <input type="text" id="area-search" class="form-control" autocomplete="off"
                  placeholder="ابحث عن منطقة…" style="margin-bottom:5px;">
@@ -83,7 +83,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
             لا توجد نتائج — سيتم إضافة المنطقة كجديدة
           </div>
         </div>
-        <button type="submit" class="btn btn-primary" style="margin-bottom:1px;">إضافة</button>
+        <button type="submit" class="btn btn-primary" style="align-self:flex-start;">إضافة</button>
       </div>
     </form>
   </div>
