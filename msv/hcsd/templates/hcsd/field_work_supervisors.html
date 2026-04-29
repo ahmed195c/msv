@@ -69,18 +69,15 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
             {% endfor %}
           </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="position:relative;">
           <label class="form-label">المنطقة</label>
-          <input type="text" id="area-search" class="form-control" autocomplete="off"
-                 placeholder="ابحث عن منطقة…" style="margin-bottom:5px;">
-          <select name="area" id="area-select" class="form-control" size="5"
-                  style="height:auto;min-height:110px;overflow-y:auto;" required>
+          <input type="text" name="area" id="area-input" class="form-control" autocomplete="off"
+                 required placeholder="اكتب أو اختر منطقة…">
+          <div id="area-dropdown" style="display:none;position:absolute;right:0;left:0;top:100%;z-index:50;background:#fff;border:1.5px solid var(--accent);border-top:none;border-radius:0 0 7px 7px;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);">
             {% for a in existing_areas %}
-            <option value="{{ a }}">{{ a }}</option>
+            <div class="area-opt" data-value="{{ a }}"
+                 style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);">{{ a }}</div>
             {% endfor %}
-          </select>
-          <div id="area-no-match" style="display:none;font-size:11px;color:var(--ink-4);margin-top:4px;">
-            لا توجد نتائج — سيتم إضافة المنطقة كجديدة
           </div>
         </div>
         <button type="submit" class="btn btn-primary" style="align-self:flex-start;">إضافة</button>
@@ -138,38 +135,45 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
 
 <script>
 (function(){
-  var search = document.getElementById('area-search');
-  var select = document.getElementById('area-select');
-  var noMatch = document.getElementById('area-no-match');
-  if(!search || !select) return;
+  var inp      = document.getElementById('area-input');
+  var dropdown = document.getElementById('area-dropdown');
+  if(!inp || !dropdown) return;
 
-  var allOptions = Array.from(select.options).map(function(o){
-    return {value: o.value, text: o.text};
+  var allOpts = Array.from(dropdown.querySelectorAll('.area-opt'));
+
+  function show(){ dropdown.style.display = 'block'; }
+  function hide(){ dropdown.style.display = 'none'; }
+
+  function filter(){
+    var q = inp.value.trim().toLowerCase();
+    var any = false;
+    allOpts.forEach(function(el){
+      var match = !q || el.dataset.value.toLowerCase().includes(q);
+      el.style.display = match ? '' : 'none';
+      if(match) any = true;
+    });
+    if(any) show(); else hide();
+  }
+
+  inp.addEventListener('input', filter);
+  inp.addEventListener('focus', filter);
+
+  allOpts.forEach(function(el){
+    el.addEventListener('mousedown', function(e){
+      e.preventDefault();
+      inp.value = el.dataset.value;
+      hide();
+    });
+    el.addEventListener('mouseover', function(){
+      el.style.background = 'var(--accent-light)';
+    });
+    el.addEventListener('mouseout', function(){
+      el.style.background = '';
+    });
   });
 
-  search.addEventListener('input', function(){
-    var q = search.value.trim().toLowerCase();
-    var matched = 0;
-    select.innerHTML = '';
-    allOptions.forEach(function(o){
-      if(!q || o.text.toLowerCase().includes(q)){
-        var opt = document.createElement('option');
-        opt.value = o.value;
-        opt.text = o.text;
-        select.appendChild(opt);
-        matched++;
-      }
-    });
-    noMatch.style.display = (matched === 0) ? 'block' : 'none';
-    if(matched === 0){
-      var opt = document.createElement('option');
-      opt.value = search.value.trim();
-      opt.text = search.value.trim();
-      opt.selected = true;
-      select.appendChild(opt);
-    } else if(select.options.length > 0){
-      select.options[0].selected = true;
-    }
+  document.addEventListener('click', function(e){
+    if(!inp.contains(e.target) && !dropdown.contains(e.target)) hide();
   });
 })();
 </script>
