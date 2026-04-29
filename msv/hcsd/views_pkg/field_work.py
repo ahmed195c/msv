@@ -121,15 +121,25 @@ def field_work_create(request):
 @login_required
 def field_work_detail(request, pk):
     order = get_object_or_404(
-        FieldWorkOrder.objects.select_related('created_by', 'assigned_supervisor'), pk=pk
+        FieldWorkOrder.objects.select_related(
+            'created_by', 'assigned_supervisor', 'received_by'
+        ), pk=pk
     )
     can_admin = _can_admin(request.user)
     can_data_entry = _can_data_entry(request.user)
     can_edit = can_admin or can_data_entry
     is_fw_supervisor = _can_fw_supervise(request.user)
     can_assign = can_admin or can_data_entry
+    uid = request.user.id
     can_submit_report = can_admin or (
-        is_fw_supervisor and order.assigned_supervisor_id == request.user.id
+        is_fw_supervisor and (
+            order.assigned_supervisor_id == uid or order.received_by_id == uid
+        )
+    )
+    can_receive = (
+        is_fw_supervisor
+        and not can_submit_report
+        and order.status != 'completed'
     )
 
     photos_before = order.photos.filter(phase='before').order_by('uploaded_at')
@@ -142,8 +152,15 @@ def field_work_detail(request, pk):
     if request.method == 'POST':
         action = (request.POST.get('action') or '').strip()
 
+        # ── Receive order ────────────────────────────────────────────────────
+        if action == 'receive_order' and is_fw_supervisor and order.status != 'completed':
+            order.received_by = request.user
+            order.received_at = timezone.now()
+            order.save(update_fields=['received_by', 'received_at'])
+            success = 'تم استلام متابعة الأمر.'
+
         # ── Assign supervisor ────────────────────────────────────────────────
-        if action == 'assign_supervisor' and can_assign:
+        elif action == 'assign_supervisor' and can_assign:
             sup_id = (request.POST.get('supervisor_id') or '').strip()
             if sup_id == '':
                 order.assigned_supervisor = None
@@ -324,6 +341,7 @@ def field_work_detail(request, pk):
         'can_admin': can_admin,
         'can_assign': can_assign,
         'can_submit_report': can_submit_report,
+        'can_receive': can_receive,
         'fw_supervisor_users': fw_supervisor_users,
         'photos_before': photos_before,
         'photos_during': photos_during,

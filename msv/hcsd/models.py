@@ -1064,6 +1064,11 @@ class FieldWorkOrder(models.Model):
         related_name='field_work_assigned', verbose_name='المراقب المعيّن',
     )
     assigned_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ التعيين')
+    received_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='field_work_received', verbose_name='المراقب المستلِم',
+    )
+    received_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ الاستلام')
     # ── GPS location ──────────────────────────────────────────────────────
     gps_lat          = models.FloatField(null=True, blank=True, verbose_name='خط العرض')
     gps_lng          = models.FloatField(null=True, blank=True, verbose_name='خط الطول')
