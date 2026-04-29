@@ -313,7 +313,7 @@ select.form-control{cursor:pointer;}
   </div>
   {% endif %}
 
-  {% if can_assign %}
+  {% if can_assign and order.status != 'other_municipal' and not order.received_by %}
   <!-- Assign Supervisor -->
   <div class="card" style="border-color:#e9d5ff;">
     <div class="card-header" style="background:#faf5ff;">
