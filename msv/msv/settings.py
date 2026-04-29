@@ -66,6 +66,7 @@ SITE_URL = os.getenv('SITE_URL', 'https://www.msvshjminc.com')
 # Application definition
 
 INSTALLED_APPS = [
+    'django_extensions',
     'hcsd',
     'django.contrib.admin',
     'django.contrib.auth',

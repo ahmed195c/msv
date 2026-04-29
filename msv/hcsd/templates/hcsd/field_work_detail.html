@@ -360,7 +360,7 @@ select.form-control{cursor:pointer;}
   </div>
   {% endif %}
 
-  {% if can_submit_report %}
+  {% if can_submit_report and order.status != 'other_municipal' %}
 
   <!-- Location Card -->
   <div class="card" style="border-color:#d1fae5;">
@@ -533,7 +533,7 @@ select.form-control{cursor:pointer;}
 
   {% if can_edit %}
   <!-- Update Details -->
-  {% if order.status != 'completed' %}
+  {% if order.status != 'completed' and order.status != 'other_municipal' %}
   <div class="card">
     <div class="card-header">
       <h2>تعديل التفاصيل</h2>
@@ -621,7 +621,7 @@ select.form-control{cursor:pointer;}
           {% for photo in photos_before %}
           <div class="photo-item">
             <img src="{{ photo.file.url }}" alt="صورة قبل العمل">
-            {% if can_edit and order.status != 'completed' %}
+            {% if can_edit and order.status != 'completed' and order.status != 'other_municipal' %}
             <form method="post" style="display:contents;">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete_photo">
@@ -645,7 +645,7 @@ select.form-control{cursor:pointer;}
           {% for photo in photos_during %}
           <div class="photo-item">
             <img src="{{ photo.file.url }}" alt="صورة أثناء العمل">
-            {% if can_edit and order.status != 'completed' %}
+            {% if can_edit and order.status != 'completed' and order.status != 'other_municipal' %}
             <form method="post" style="display:contents;">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete_photo">
@@ -669,7 +669,7 @@ select.form-control{cursor:pointer;}
           {% for photo in photos_after %}
           <div class="photo-item">
             <img src="{{ photo.file.url }}" alt="صورة بعد العمل">
-            {% if can_edit and order.status != 'completed' %}
+            {% if can_edit and order.status != 'completed' and order.status != 'other_municipal' %}
             <form method="post" style="display:contents;">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete_photo">
@@ -687,7 +687,7 @@ select.form-control{cursor:pointer;}
       </div>
 
       <!-- Upload -->
-      {% if can_edit and order.status != 'completed' %}
+      {% if can_edit and order.status != 'completed' and order.status != 'other_municipal' %}
       <div style="margin-top:20px;border-top:1.5px solid var(--border);padding-top:18px;">
         <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--ink-2);">رفع صور جديدة</h3>
         <form method="post" enctype="multipart/form-data" novalidate>
