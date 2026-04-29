@@ -88,6 +88,7 @@ urlpatterns = [
     path('permits/waste/<int:permit_id>/disposals/<int:request_id>/', views.waste_disposal_request_detail, name='waste_disposal_request_detail'),
     path('permits/pest-control/<int:id>/view/', views.pest_control_permit_view, name='pest_control_permit_view'),
     path('permits/pest-control/<int:id>/print/', views.pest_control_permit_print, name='pest_control_permit_print'),
+    path('permits/pest-control/<int:id>/word/', views.pest_control_permit_word, name='pest_control_permit_word'),
     path('permits/waste/<int:permit_id>/print/', views.waste_disposal_permit_print, name='waste_disposal_permit_print'),
     path('permits/vehicle/<int:permit_id>/print/', views.vehicle_permit_print, name='vehicle_permit_print'),
     path('permits/engineer-addition/', views.engineer_addition_create, name='engineer_addition_create'),

@@ -295,6 +295,10 @@
 
 <div class="no-print">
   <button class="print-btn" onclick="window.print()">طباعة التصريح</button>
+  <a class="print-btn" href="{% url 'pest_control_permit_word' pirmet.id %}"
+     style="background:#1e5fa8;text-decoration:none;display:inline-block;margin-inline-start:8px;">
+    ⬇ تنزيل Word
+  </a>
   {% if user.is_authenticated %}
   <a class="back-btn" href="{% url 'pest_control_permit_view' pirmet.id %}">رجوع</a>
   {% endif %}
