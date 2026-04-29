@@ -1379,9 +1379,19 @@
     {% if violation_order_recorded or violation_receipt_recorded %}
       <section class="permit-section permit-section--doc">
         <div class="doc-band">
-          <div class="doc-band-company">بيانات مخالفة التأخير (اختياري)</div>
+          <div class="doc-band-company">بيانات مخالفة التأخير</div>
         </div>
         <div class="doc-table">
+          {% if pirmet.violation_amount %}
+          <div class="detail-item">
+            <span class="label">عدد الأشهر المتأخرة</span>
+            <span class="value">{% widthratio pirmet.violation_amount 100 1 %} شهر</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">قيمة المخالفة</span>
+            <span class="value">{{ pirmet.violation_amount|floatformat:0 }} درهم</span>
+          </div>
+          {% endif %}
           <div class="detail-item">
             <span class="label">رقم أمر دفع المخالفة</span>
             <span class="value">{{ pirmet.violation_payment_order_number|default:"-" }}</span>
@@ -1566,38 +1576,44 @@
       </section>
     {% endif %}
 
-    {% if can_record_violation_order %}
+    {% if can_add_violation %}
       <section class="permit-section permit-section--doc no-print">
-        <div class="doc-band">
-          <div class="doc-band-company">إدخال أمر دفع مخالفة (اختياري)</div>
+        <div class="doc-band" style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="doc-band-company">مخالفة التأخير</div>
+          <button type="button" id="violation-toggle-btn"
+                  onclick="document.getElementById('violation-form-wrap').style.display='block';this.style.display='none';"
+                  style="background:#b91c1c;color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">
+            + إضافة مخالفة
+          </button>
         </div>
+        <div id="violation-form-wrap" style="display:none;">
         <div class="doc-form-body">
-        <form method="post" class="review-form">
+        <form method="post" enctype="multipart/form-data" class="review-form">
           {% csrf_token %}
-          <input type="hidden" name="action" value="save_violation_payment_order">
-          <label for="violation_payment_order_number">رقم أمر دفع المخالفة</label>
+          <input type="hidden" name="action" value="add_violation">
+
+          <label for="violation_months">عدد الأشهر المتأخرة</label>
+          <input
+            id="violation_months"
+            name="violation_months"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="مثال: 3"
+            required
+            style="max-width:160px;"
+          >
+
+          <label for="violation_payment_order_number" style="margin-top:14px;">رقم أمر الدفع</label>
           <input
             id="violation_payment_order_number"
             name="violation_payment_order_number"
             type="text"
-            value="{{ pirmet.violation_payment_order_number|default:'' }}"
+            placeholder="رقم أمر دفع المخالفة"
             required
           >
-          <button type="submit">حفظ رقم أمر المخالفة</button>
-        </form>
-        </div>
-      </section>
-    {% endif %}
 
-    {% if can_record_violation_receipt %}
-      <section class="permit-section permit-section--doc no-print">
-        <div class="doc-band">
-          <div class="doc-band-company">إدخال إيصال دفع مخالفة التأخير</div>
-        </div>
-        <div class="doc-form-body">
-        <form method="post" enctype="multipart/form-data" class="review-form">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="save_violation_payment_receipt">
+          <label style="margin-top:14px;">إيصال الدفع</label>
           <div class="upload-stack">
             <div class="upload-card">
               <div class="upload-card-head">
@@ -1623,14 +1639,17 @@
               </div>
             </div>
           </div>
-          {% if pirmet.violation_payment_receipt %}
-            <p class="helper-text">
-              الإيصال الحالي:
-              <a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">عرض الإيصال</a>
-            </p>
-          {% endif %}
-          <button type="submit">حفظ إيصال المخالفة</button>
+
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <button type="submit" style="background:#b91c1c;">حفظ المخالفة</button>
+            <button type="button"
+                    onclick="document.getElementById('violation-form-wrap').style.display='none';document.getElementById('violation-toggle-btn').style.display='';"
+                    style="background:#6b7280;color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">
+              إلغاء
+            </button>
+          </div>
         </form>
+        </div>
         </div>
       </section>
     {% endif %}

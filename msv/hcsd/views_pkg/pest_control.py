@@ -406,16 +406,10 @@ def pest_control_permit_detail(request, id):
     violation_order_recorded = bool((pirmet.violation_payment_order_number or '').strip())
     violation_receipt_recorded = bool(pirmet.violation_payment_receipt)
     violation_payment_completed = violation_order_recorded and violation_receipt_recorded
-    can_record_violation_order = (
+    can_add_violation = (
         _can_admin(request.user)
         and pirmet.status == 'head_approved'
         and not violation_order_recorded
-    )
-    can_record_violation_receipt = (
-        _can_admin(request.user)
-        and pirmet.status == 'head_approved'
-        and violation_order_recorded
-        and not violation_receipt_recorded
     )
     requirements_required = bool(pirmet.inspection_requires_insurance)
     can_record_inspection_payment_reference = (
@@ -597,40 +591,32 @@ def pest_control_permit_detail(request, id):
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
-        if action == 'save_violation_payment_order':
+        if action == 'add_violation':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإدخال بيانات المخالفة.')
             if pirmet.status != 'head_approved':
-                review_errors.append('يمكن إدخال أمر دفع المخالفة فقط بعد اعتماد الرئيس.')
+                review_errors.append('يمكن إدخال المخالفة فقط بعد اعتماد الرئيس.')
             if violation_order_recorded:
-                review_errors.append('تم إدخال أمر دفع المخالفة مسبقاً.')
+                review_errors.append('تم إدخال بيانات المخالفة مسبقاً.')
 
+            months_raw = (request.POST.get('violation_months') or '').strip()
             violation_order = (request.POST.get('violation_payment_order_number') or '').strip()
+            violation_receipt = request.FILES.get('violation_payment_receipt')
+
+            months = None
+            if not months_raw:
+                review_errors.append('يرجى إدخال عدد الأشهر المتأخرة.')
+            else:
+                try:
+                    months = int(months_raw)
+                    if months <= 0:
+                        review_errors.append('عدد الأشهر يجب أن يكون أكبر من صفر.')
+                except (ValueError, TypeError):
+                    review_errors.append('عدد الأشهر يجب أن يكون رقماً صحيحاً.')
+
             if not violation_order:
                 review_errors.append('يرجى إدخال رقم أمر دفع المخالفة.')
 
-            if not review_errors:
-                pirmet.violation_payment_order_number = violation_order
-                pirmet.save(update_fields=['violation_payment_order_number'])
-                _log_pirmet_change(
-                    pirmet,
-                    'details_update',
-                    request.user,
-                    notes=f'Violation payment order recorded: {violation_order}',
-                )
-                return redirect('pest_control_permit_detail', id=pirmet.id)
-
-        if action == 'save_violation_payment_receipt':
-            if not _can_admin(request.user):
-                review_errors.append('ليس لديك صلاحية لإدخال إيصال المخالفة.')
-            if pirmet.status != 'head_approved':
-                review_errors.append('يمكن إدخال إيصال المخالفة فقط بعد اعتماد الرئيس.')
-            if not (pirmet.violation_payment_order_number or '').strip():
-                review_errors.append('يرجى إدخال رقم أمر دفع المخالفة أولاً.')
-            if violation_receipt_recorded:
-                review_errors.append('تم إدخال إيصال المخالفة مسبقاً.')
-
-            violation_receipt = request.FILES.get('violation_payment_receipt')
             if not violation_receipt:
                 review_errors.append('يرجى إرفاق إيصال دفع المخالفة.')
             else:
@@ -639,13 +625,19 @@ def pest_control_permit_detail(request, id):
                     review_errors.append('يُسمح فقط بملفات PDF أو صور لإيصال المخالفة.')
 
             if not review_errors:
+                pirmet.violation_payment_order_number = violation_order
+                pirmet.violation_amount = months * 100
                 pirmet.violation_payment_receipt = violation_receipt
-                pirmet.save(update_fields=['violation_payment_receipt'])
+                pirmet.save(update_fields=[
+                    'violation_payment_order_number',
+                    'violation_amount',
+                    'violation_payment_receipt',
+                ])
                 _log_pirmet_change(
                     pirmet,
-                    'document_upload',
+                    'details_update',
                     request.user,
-                    notes='Violation payment receipt uploaded.',
+                    notes=f'Violation recorded: {months} months, order {violation_order}',
                 )
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
@@ -1262,9 +1254,8 @@ def pest_control_permit_detail(request, id):
             'violation_order_recorded': violation_order_recorded,
             'violation_receipt_recorded': violation_receipt_recorded,
             'violation_payment_completed': violation_payment_completed,
+            'can_add_violation': can_add_violation,
             'requirements_required': requirements_required,
-            'can_record_violation_order': can_record_violation_order,
-            'can_record_violation_receipt': can_record_violation_receipt,
             'can_record_inspection_payment_reference': can_record_inspection_payment_reference,
             'can_record_inspection_payment_receipt': can_record_inspection_payment_receipt,
             'can_head_approve': can_head_approve,
