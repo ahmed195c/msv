@@ -511,6 +511,21 @@
         </section>
       {% endif %}
     {% endif %}
+
+    {% if show_admin_close_form %}
+    <section class="permit-section no-print">
+      <div class="section-title">إغلاق الطلب</div>
+      <form method="post" class="review-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="cancel_admin">
+        <label for="cancel_reason_wd">سبب الإغلاق *</label>
+        <textarea id="cancel_reason_wd" name="cancel_reason" rows="3" required
+          placeholder="أدخل سبب إغلاق الطلب…"></textarea>
+        <button type="submit" style="background:#8c2f2f;"
+          onclick="return confirm('هل أنت متأكد من إغلاق هذا الطلب؟')">إغلاق الطلب</button>
+      </form>
+    </section>
+    {% endif %}
   </div>
 </section>
 <script>

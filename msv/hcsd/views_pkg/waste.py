@@ -257,6 +257,29 @@ def waste_permit_detail(request, id):
                 )
                 return redirect('waste_permit_detail', id=pirmet.id)
 
+        if action == 'cancel_admin':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لإغلاق الطلب.')
+            elif pirmet.status in {'issued', 'cancelled_admin'}:
+                review_errors.append('لا يمكن إغلاق هذا الطلب في حالته الحالية.')
+            else:
+                cancel_reason = (request.POST.get('cancel_reason') or '').strip()
+                if not cancel_reason:
+                    review_errors.append('يرجى كتابة سبب الإغلاق.')
+                else:
+                    old_status = pirmet.status
+                    pirmet.status = 'cancelled_admin'
+                    pirmet.save(update_fields=['status'])
+                    _log_pirmet_change(
+                        pirmet,
+                        'status_change',
+                        request.user,
+                        old_status=old_status,
+                        new_status=pirmet.status,
+                        notes=f'Administrative cancellation: {cancel_reason}',
+                    )
+                    return redirect('waste_permit_detail', id=pirmet.id)
+
     disposal_requests = list(
         pirmet.waste_disposal_requests.select_related('inspected_by').order_by('-created_at')
     )
@@ -274,6 +297,10 @@ def waste_permit_detail(request, id):
             'can_issue_pirmet': _can_admin(request.user),
             'is_active': is_active,
             'disposal_requests': disposal_requests,
+            'show_admin_close_form': (
+                _can_admin(request.user)
+                and pirmet.status not in {'issued', 'cancelled_admin'}
+            ),
         },
     )
 
@@ -692,6 +719,27 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 )
                 return redirect('waste_disposal_request_detail', permit_id=permit.id, request_id=disposal_request.id)
 
+        if action == 'cancel_admin':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لإغلاق الطلب.')
+            elif disposal_request.status in {'approved', 'completed', 'cancelled_admin'}:
+                review_errors.append('لا يمكن إغلاق هذا الطلب في حالته الحالية.')
+            else:
+                cancel_reason = (request.POST.get('cancel_reason') or '').strip()
+                if not cancel_reason:
+                    review_errors.append('يرجى كتابة سبب الإغلاق.')
+                else:
+                    disposal_request.status = 'cancelled_admin'
+                    disposal_request.save(update_fields=['status', 'updated_at'])
+                    _log_pirmet_change(
+                        permit,
+                        'status_change',
+                        request.user,
+                        notes=f'waste_disposal_request_cancelled:{disposal_request.id}:{cancel_reason}',
+                    )
+                    return redirect('waste_disposal_request_detail', permit_id=permit.id, request_id=disposal_request.id)
+
+    _final_statuses = {'approved', 'completed', 'cancelled_admin', 'rejected'}
     return render(
         request,
         'hcsd/waste_disposal_request_detail.html',
@@ -711,6 +759,10 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
             'assigned_inspector_id': assigned_inspector.id if assigned_inspector else None,
             'inspector_users': _inspector_users_qs(),
             'create_mode': False,
+            'show_admin_close_form': (
+                _can_admin(request.user)
+                and disposal_request.status not in _final_statuses
+            ),
         },
     )
 

@@ -274,6 +274,7 @@ class WasteDisposalRequest(models.Model):
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
         ('completed', 'Completed'),
+        ('cancelled_admin', 'Cancelled Administratively'),
     ]
 
     WASTE_CLASSIFICATION_CHOICES = [
