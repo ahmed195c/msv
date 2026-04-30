@@ -399,6 +399,31 @@ def clearance_list(request):
     active_clearance_groups = _group_clearances_by_status(active_clearances, active_status_order, status_section_label_map)
     finished_clearance_groups = _group_clearances_by_status(finished_clearances, finished_status_order, status_section_label_map)
 
+    _permit_type_tabs = [
+        ('pest_control',        'تصاريح مزاولة النشاط'),
+        ('pesticide_transport', 'تصاريح المركبة'),
+        ('waste_disposal',      'تصاريح التخلص من النفايات'),
+        ('engineer_addition',   'طلبات إضافة مهندس'),
+    ]
+    _valid_tab_keys = {k for k, _ in _permit_type_tabs}
+    active_tab = (request.GET.get('tab') or '').strip()
+    if active_tab not in _valid_tab_keys:
+        active_tab = 'pest_control'
+
+    permit_type_tab_data = []
+    for pt_key, pt_label in _permit_type_tabs:
+        tab_active = [c for c in active_clearances if c.permit_type == pt_key]
+        tab_finished = [c for c in finished_clearances if c.permit_type == pt_key]
+        permit_type_tab_data.append({
+            'key': pt_key,
+            'label': pt_label,
+            'active_clearances': tab_active,
+            'finished_clearances': tab_finished,
+            'active_groups': _group_clearances_by_status(tab_active, active_status_order, status_section_label_map),
+            'finished_groups': _group_clearances_by_status(tab_finished, finished_status_order, status_section_label_map),
+            'active_count': len(tab_active),
+        })
+
     return render(
         request,
         'hcsd/clearance_list.html',
@@ -408,6 +433,8 @@ def clearance_list(request):
             'finished_clearances': finished_clearances,
             'active_clearance_groups': active_clearance_groups,
             'finished_clearance_groups': finished_clearance_groups,
+            'permit_type_tab_data': permit_type_tab_data,
+            'active_tab': active_tab,
             'query': search_query,
             'status_filter': status_filter,
             'status_filter_label': status_filter_label,

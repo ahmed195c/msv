@@ -35,7 +35,7 @@
 
 .cl-filter {
   background: #fff; border: 1.5px solid var(--cl-line); border-radius: 10px;
-  padding: 14px 18px; margin-bottom: 20px;
+  padding: 14px 18px; margin-bottom: 16px;
   box-shadow: 0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.05);
 }
 .cl-filter-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
@@ -55,6 +55,36 @@
   padding: 3px 10px; border-radius: 99px; background: var(--cl-surface-2);
   border: 1.5px solid var(--cl-line-2); color: var(--cl-ink-2);
   font-size: 11.5px; font-weight: 700;
+}
+
+/* ── Tabs ── */
+.cl-tabs {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-bottom: 16px;
+  background: #fff; border: 1.5px solid var(--cl-line); border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.05);
+}
+.cl-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 6px;
+  font-size: 13px; font-weight: 700; font-family: inherit;
+  border: 1.5px solid var(--cl-line-2);
+  background: var(--cl-surface); color: var(--cl-ink-2);
+  cursor: pointer; transition: background .15s, border-color .15s, color .15s;
+  white-space: nowrap;
+}
+.cl-tab:hover { background: var(--cl-surface-2); border-color: var(--cl-ink-3); color: var(--cl-ink); }
+.cl-tab--active { background: var(--cl-accent); color: #fff; border-color: var(--cl-accent); }
+.cl-tab--active:hover { background: var(--cl-accent-dk); border-color: var(--cl-accent-dk); }
+.cl-tab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.25); border: 1px solid rgba(255,255,255,.4);
+  border-radius: 99px; font-size: 11px; font-weight: 700;
+  padding: 1px 7px; font-family: monospace; min-width: 20px;
+}
+.cl-tab:not(.cl-tab--active) .cl-tab-count {
+  background: var(--cl-line); border-color: var(--cl-line-2); color: var(--cl-ink-3);
 }
 
 .cl-section {
@@ -215,6 +245,8 @@
 @media (max-width: 600px) {
   .cl-filter-form { flex-direction: column; }
   .cl-field { min-width: 0; }
+  .cl-tabs { gap: 6px; }
+  .cl-tab { font-size: 12px; padding: 7px 12px; }
   .cl-item-body { padding: 12px; }
   .cl-row-top { gap: 8px; }
   .cl-status { font-size: 13px; width: 100%; justify-content: center; }
@@ -244,6 +276,7 @@
 
   <div class="cl-filter">
     <form method="get" class="cl-filter-form">
+      <input type="hidden" name="tab" id="active_tab_input" value="{{ active_tab }}">
       <div class="cl-field">
         <label for="clearance_query">بحث باسم الشركة أو رقم الرخصة</label>
         <input id="clearance_query" type="text" name="q" value="{{ query }}" placeholder="اسم الشركة أو رقم الرخصة…">
@@ -265,256 +298,95 @@
     {% if query %}<span class="cl-tag">بحث: {{ query }}</span>{% endif %}
   </div>
 
-  {# ══ Active ══ #}
-  <div class="cl-section">
-    <div class="cl-section-head">
-      <h2 class="cl-section-title">طلبات قيد المتابعة</h2>
-      {% if active_clearances %}<span class="cl-count">{{ active_clearances|length }}</span>{% endif %}
-    </div>
-
-    {% if active_clearances %}
-      {% for group in active_clearance_groups %}
-        <div class="cl-group-head">
-          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#94a3b8"/></svg>
-          {{ group.label }}
-          <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
-        </div>
-
-        <div data-pg-group="{{ forloop.counter }}">
-        {% for c in group.items %}
-          <div class="cl-item">
-
-            <div class="cl-stripe
-              {% if c.active_waste_request %}{% if c.active_waste_request.status == 'payment_pending' %}s-action{% elif c.active_waste_request.status == 'inspection_pending' %}s-process{% else %}s-waiting{% endif %}
-              {% elif c.status == 'issued' %}s-issued
-              {% elif c.status == 'needs_completion' or c.status == 'rejected' or c.status == 'violation_payment_link_pending' or c.status == 'violation_payment_pending' or c.status == 'disposal_rejected' %}s-error
-              {% elif c.status == 'payment_pending' or c.status == 'inspection_payment_pending' %}s-action
-              {% elif c.status == 'head_approved' %}s-head
-              {% elif c.status == 'disposal_approved' %}s-done
-              {% elif c.status == 'inspection_pending' or c.status == 'inspection_completed' or c.status == 'review_pending' or c.status == 'approved' %}s-process
-              {% else %}s-waiting{% endif %}">
-            </div>
-
-            <div class="cl-item-body">
-
-              {# ── TOP: status badge + next step ── #}
-              <div class="cl-row-top">
-
-                <span class="cl-status
-                  {% if c.active_waste_request %}{% if c.active_waste_request.status == 'payment_pending' %}st-action{% elif c.active_waste_request.status == 'inspection_pending' %}st-process{% else %}st-waiting{% endif %}
-                  {% elif c.status == 'issued' %}st-issued
-                  {% elif c.status == 'needs_completion' or c.status == 'rejected' or c.status == 'violation_payment_link_pending' or c.status == 'violation_payment_pending' or c.status == 'disposal_rejected' %}st-error
-                  {% elif c.status == 'payment_pending' or c.status == 'inspection_payment_pending' %}st-action
-                  {% elif c.status == 'head_approved' %}st-head
-                  {% elif c.status == 'disposal_approved' %}st-done
-                  {% elif c.status == 'inspection_pending' or c.status == 'inspection_completed' or c.status == 'review_pending' or c.status == 'approved' %}st-process
-                  {% else %}st-waiting{% endif %}">
-                  {% if c.active_waste_request %}
-                    {% if c.active_waste_request.status == 'payment_pending' %}بانتظار دفع طلب الإتلاف
-                    {% elif c.active_waste_request.status == 'inspection_pending' %}{% if c.inspection_receiver_name %}تم استلام الطلب — {{ c.inspection_receiver_name }}{% else %}جاهز للاستلام{% endif %}
-                    {% else %}{{ c.active_waste_request.get_status_display }}{% endif %}
-                  {% elif c.status == 'order_received' %}بانتظار رابط دفع التفتيش
-                  {% elif c.status == 'inspection_payment_pending' %}بانتظار دفع التفتيش
-                  {% elif c.status == 'review_pending' %}بانتظار المراجعة
-                  {% elif c.status == 'approved' %}معتمد من المفتش
-                  {% elif c.status == 'needs_completion' or c.status == 'rejected' %}غير معتمد
-                  {% elif c.status == 'payment_pending' %}بانتظار دفع التصريح
-                  {% elif c.status == 'violation_payment_link_pending' %}بانتظار رابط دفع المخالفة
-                  {% elif c.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
-                  {% elif c.status == 'issued' %}تم إصدار التصريح
-                  {% elif c.status == 'inspection_pending' %}جاهز للاستلام
-                  {% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}{% if c.permit_type == 'pesticide_transport' %}بانتظار رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
-                  {% elif c.status == 'inspection_completed' %}تم التفتيش
-                  {% elif c.status == 'head_approved' %}تم الاعتماد النهائي
-                  {% elif c.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
-                  {% elif c.status == 'disposal_approved' %}إتلاف معتمد
-                  {% elif c.status == 'disposal_rejected' %}إتلاف مرفوض
-                  {% else %}{{ c.get_status_display }}{% endif %}
-                </span>
-
-                {# Next step pill #}
-                {% if c.active_waste_request and c.active_waste_request.status == 'payment_pending' %}
-                  <span class="cl-next">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    أرسل رابط الدفع للشركة
-                  </span>
-                {% elif c.status == 'order_received' %}
-                  <span class="cl-next">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    أنشئ رابط دفع التفتيش
-                  </span>
-                {% elif c.status == 'inspection_payment_pending' %}
-                  <span class="cl-next">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    بانتظار الدفع من الشركة
-                  </span>
-                {% elif c.status == 'review_pending' %}
-                  <span class="cl-next">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    بانتظار مراجعة المفتش
-                  </span>
-                {% elif c.status == 'approved' %}
-                  <span class="cl-next">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    بانتظار الاعتماد النهائي
-                  </span>
-                {% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}
-                  <span class="cl-next">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    {% if c.permit_type == 'pesticide_transport' %}أنشئ رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
-                  </span>
-                {% elif c.status == 'head_approved' %}
-                  <span class="cl-next">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    أدخل رقم أمر الدفع
-                  </span>
-                {% elif c.status == 'payment_pending' and c.payment_link %}
-                  <a href="{{ c.payment_link }}" target="_blank" class="cl-next cl-next--link">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    رابط دفع التصريح ↗
-                  </a>
-                {% elif c.status == 'violation_payment_link_pending' %}
-                  <span class="cl-next">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    أنشئ رابط دفع المخالفة
-                  </span>
-                {% elif c.status == 'violation_payment_pending' %}
-                  <span class="cl-next">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    بانتظار دفع المخالفة
-                  </span>
-                {% elif c.unapprovedReason and c.status == 'needs_completion' %}
-                  <span class="cl-next cl-next--err">{{ c.unapprovedReason }}</span>
-                {% elif c.unapprovedReason and c.status == 'rejected' %}
-                  <span class="cl-next cl-next--err">{{ c.unapprovedReason }}</span>
-                {% elif c.status == 'approved' and c.inspector_name %}
-                  <span class="cl-next">{{ c.inspector_name }}</span>
-                {% elif c.inspection_payment_link and c.permit_type != 'pesticide_transport' %}
-                  <a href="{{ c.inspection_payment_link }}" target="_blank" class="cl-next cl-next--link">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    رابط دفع التفتيش ↗
-                  </a>
-                {% endif %}
-
-                {% if user_is_admin and c.inspection_duration_hours is not None %}
-                  {% if c.inspection_duration_hours <= 24 %}<span class="cl-timer t-ok">{{ c.inspection_duration_display }}</span>
-                  {% elif c.inspection_duration_hours <= 72 %}<span class="cl-timer t-mid">{{ c.inspection_duration_display }}</span>
-                  {% else %}<span class="cl-timer t-late">{{ c.inspection_duration_display }}</span>{% endif %}
-                {% endif %}
-
-              </div>
-
-              {# ── BOTTOM: company info + meta + action ── #}
-              <div class="cl-row-bot">
-                <span class="cl-company-name">{{ c.company.name }}</span>
-                <span class="cl-sep">·</span>
-                <span class="cl-meta-col">
-                  <span class="cl-permit-type">{{ c.permit_label_ar }}{% if c.permit_no %} · {{ c.permit_no }}{% endif %}</span>
-                  <span class="cl-date">{{ c.dateOfCreation|date:"d/m/Y"|default:"—" }}</span>
-                </span>
-                {% if c.contact_number %}
-                  <span class="cl-sep">·</span>
-                  <a href="tel:{{ c.contact_number }}" class="cl-phone"><span dir="ltr">{{ c.contact_number }}</span></a>
-                {% endif %}
-                <span class="cl-spacer"></span>
-                <a href="{{ c.detail_url }}" class="cl-view">عرض</a>
-              </div>
-
-            </div>
-          </div>
-        {% endfor %}
-        </div>
-
-        <div class="cl-pagination" data-pg-bar="{{ forloop.counter }}" style="display:none;">
-          <button data-pg-prev>&#8250; السابق</button>
-          <span class="pg-info" data-pg-info></span>
-          <button data-pg-next>التالي &#8249;</button>
-        </div>
-      {% endfor %}
-    {% else %}
-      <div class="cl-empty">لا توجد طلبات قيد المتابعة حالياً</div>
-    {% endif %}
+  {# ══ Tab bar ══ #}
+  <div class="cl-tabs">
+    {% for tab in permit_type_tab_data %}
+    <button class="cl-tab{% if tab.key == active_tab %} cl-tab--active{% endif %}" data-tab="{{ tab.key }}">
+      {{ tab.label }}
+      {% if tab.active_count %}<span class="cl-tab-count">{{ tab.active_count }}</span>{% endif %}
+    </button>
+    {% endfor %}
   </div>
 
-  {# ══ Finished ══ #}
-  {% if show_finished_section %}
-  <div class="cl-section cl-section--finished">
-    <div class="cl-section-head">
-      <h2 class="cl-section-title fin">طلبات منتهية</h2>
-    </div>
+  {# ══ Tab panes ══ #}
+  {% for tab in permit_type_tab_data %}
+  <div class="cl-tab-pane" data-pane="{{ tab.key }}"{% if tab.key != active_tab %} style="display:none"{% endif %}>
 
-    {% if finished_clearance_groups %}
-      {% for group in finished_clearance_groups %}
-        <div class="cl-group-head">
-          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#94a3b8"/></svg>
-          {{ group.label }}
-          <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
-        </div>
+    {# Active section #}
+    <div class="cl-section">
+      <div class="cl-section-head">
+        <h2 class="cl-section-title">طلبات قيد المتابعة</h2>
+        {% if tab.active_clearances %}<span class="cl-count">{{ tab.active_clearances|length }}</span>{% endif %}
+      </div>
 
-        <div data-pg-group="f{{ forloop.counter }}">
-        {% for c in group.items %}
-          <div class="cl-item" style="opacity:.85;">
-            <div class="cl-stripe
-              {% if c.status == 'issued' %}s-issued
-              {% elif c.status == 'cancelled_admin' or c.status == 'disposal_rejected' %}s-error
-              {% elif c.status == 'disposal_approved' %}s-done
-              {% else %}s-waiting{% endif %}">
-            </div>
-            <div class="cl-item-body">
-              <div class="cl-row-top">
-                <span class="cl-status
-                  {% if c.status == 'issued' %}st-issued
-                  {% elif c.status == 'cancelled_admin' or c.status == 'disposal_rejected' %}st-error
-                  {% elif c.status == 'disposal_approved' %}st-done
-                  {% else %}st-waiting{% endif %}">
-                  {% if c.status == 'issued' %}تم إصدار التصريح
-                  {% elif c.status == 'cancelled_admin' %}مغلق
-                  {% elif c.status == 'disposal_approved' %}إتلاف معتمد
-                  {% elif c.status == 'disposal_rejected' %}إتلاف مرفوض
-                  {% else %}{{ c.get_status_display }}{% endif %}
-                </span>
-                {% if user_is_admin and c.inspection_duration_hours is not None %}
-                  {% if c.inspection_duration_hours <= 24 %}<span class="cl-timer t-ok">{{ c.inspection_duration_display }}</span>
-                  {% elif c.inspection_duration_hours <= 72 %}<span class="cl-timer t-mid">{{ c.inspection_duration_display }}</span>
-                  {% else %}<span class="cl-timer t-late">{{ c.inspection_duration_display }}</span>{% endif %}
-                {% endif %}
-              </div>
-              <div class="cl-row-bot">
-                <span class="cl-company-name">{{ c.company.name }}</span>
-                <span class="cl-sep">·</span>
-                <span class="cl-meta-col">
-                  <span class="cl-permit-type">{{ c.permit_label_ar }}{% if c.permit_no %} · {{ c.permit_no }}{% endif %}</span>
-                  <span class="cl-date">{{ c.dateOfCreation|date:"d/m/Y"|default:"—" }}</span>
-                </span>
-                {% if c.contact_number %}
-                  <span class="cl-sep">·</span>
-                  <a href="tel:{{ c.contact_number }}" class="cl-phone"><span dir="ltr">{{ c.contact_number }}</span></a>
-                {% endif %}
-                <span class="cl-spacer"></span>
-                <a href="{{ c.detail_url }}" class="cl-view">عرض</a>
-              </div>
-            </div>
+      {% if tab.active_clearances %}
+        {% for group in tab.active_groups %}
+          <div class="cl-group-head">
+            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#94a3b8"/></svg>
+            {{ group.label }}
+            <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
+          </div>
+
+          <div data-pg-group="{{ tab.key }}-a{{ forloop.counter }}">
+          {% for c in group.items %}
+            {% include "hcsd/_cl_item_active.html" %}
+          {% endfor %}
+          </div>
+
+          <div class="cl-pagination" data-pg-bar="{{ tab.key }}-a{{ forloop.counter }}" style="display:none;">
+            <button data-pg-prev>&#8250; السابق</button>
+            <span class="pg-info" data-pg-info></span>
+            <button data-pg-next>التالي &#8249;</button>
           </div>
         {% endfor %}
-        </div>
+      {% else %}
+        <div class="cl-empty">لا توجد طلبات قيد المتابعة حالياً</div>
+      {% endif %}
+    </div>
 
-        <div class="cl-pagination" data-pg-bar="f{{ forloop.counter }}" style="display:none;">
-          <button data-pg-prev>&#8250; السابق</button>
-          <span class="pg-info" data-pg-info></span>
-          <button data-pg-next>التالي &#8249;</button>
-        </div>
-      {% endfor %}
-    {% else %}
-      <div class="cl-empty">لا توجد طلبات منتهية حالياً</div>
+    {# Finished section #}
+    {% if show_finished_section %}
+    <div class="cl-section cl-section--finished">
+      <div class="cl-section-head">
+        <h2 class="cl-section-title fin">طلبات منتهية</h2>
+        {% if tab.finished_clearances %}<span class="cl-count">{{ tab.finished_clearances|length }}</span>{% endif %}
+      </div>
+
+      {% if tab.finished_clearances %}
+        {% for group in tab.finished_groups %}
+          <div class="cl-group-head">
+            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#94a3b8"/></svg>
+            {{ group.label }}
+            <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
+          </div>
+
+          <div data-pg-group="{{ tab.key }}-f{{ forloop.counter }}">
+          {% for c in group.items %}
+            {% include "hcsd/_cl_item_finished.html" %}
+          {% endfor %}
+          </div>
+
+          <div class="cl-pagination" data-pg-bar="{{ tab.key }}-f{{ forloop.counter }}" style="display:none;">
+            <button data-pg-prev>&#8250; السابق</button>
+            <span class="pg-info" data-pg-info></span>
+            <button data-pg-next>التالي &#8249;</button>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="cl-empty">لا توجد طلبات منتهية حالياً</div>
+      {% endif %}
+    </div>
     {% endif %}
+
   </div>
-  {% endif %}
+  {% endfor %}
 
 </section>
 
 <script>
 (function () {
   var PAGE_SIZE = 15;
+
   function initPg(container, bar) {
     var items = Array.from(container.querySelectorAll('.cl-item'));
     if (items.length <= PAGE_SIZE) return;
@@ -529,9 +401,27 @@
     next.addEventListener('click', function() { if (cur < total) { cur++; render(); } });
     bar.style.display = ''; render();
   }
+
   document.querySelectorAll('[data-pg-group]').forEach(function(c) {
     var bar = document.querySelector('[data-pg-bar="' + c.getAttribute('data-pg-group') + '"]');
     if (bar) initPg(c, bar);
+  });
+
+  // Tab switching
+  var tabs  = document.querySelectorAll('.cl-tab');
+  var panes = document.querySelectorAll('.cl-tab-pane');
+  var tabInput = document.getElementById('active_tab_input');
+
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var key = this.getAttribute('data-tab');
+      tabs.forEach(function(t) { t.classList.remove('cl-tab--active'); });
+      panes.forEach(function(p) { p.style.display = 'none'; });
+      this.classList.add('cl-tab--active');
+      var pane = document.querySelector('.cl-tab-pane[data-pane="' + key + '"]');
+      if (pane) pane.style.display = '';
+      if (tabInput) tabInput.value = key;
+    });
   });
 })();
 </script>

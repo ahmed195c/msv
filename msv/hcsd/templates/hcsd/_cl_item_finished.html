@@ -1,0 +1,42 @@
+<div class="cl-item" style="opacity:.85;">
+  <div class="cl-stripe
+    {% if c.status == 'issued' %}s-issued
+    {% elif c.status == 'cancelled_admin' or c.status == 'disposal_rejected' %}s-error
+    {% elif c.status == 'disposal_approved' %}s-done
+    {% else %}s-waiting{% endif %}">
+  </div>
+  <div class="cl-item-body">
+    <div class="cl-row-top">
+      <span class="cl-status
+        {% if c.status == 'issued' %}st-issued
+        {% elif c.status == 'cancelled_admin' or c.status == 'disposal_rejected' %}st-error
+        {% elif c.status == 'disposal_approved' %}st-done
+        {% else %}st-waiting{% endif %}">
+        {% if c.status == 'issued' %}تم إصدار التصريح
+        {% elif c.status == 'cancelled_admin' %}مغلق
+        {% elif c.status == 'disposal_approved' %}إتلاف معتمد
+        {% elif c.status == 'disposal_rejected' %}إتلاف مرفوض
+        {% else %}{{ c.get_status_display }}{% endif %}
+      </span>
+      {% if user_is_admin and c.inspection_duration_hours is not None %}
+        {% if c.inspection_duration_hours <= 24 %}<span class="cl-timer t-ok">{{ c.inspection_duration_display }}</span>
+        {% elif c.inspection_duration_hours <= 72 %}<span class="cl-timer t-mid">{{ c.inspection_duration_display }}</span>
+        {% else %}<span class="cl-timer t-late">{{ c.inspection_duration_display }}</span>{% endif %}
+      {% endif %}
+    </div>
+    <div class="cl-row-bot">
+      <span class="cl-company-name">{{ c.company.name }}</span>
+      <span class="cl-sep">·</span>
+      <span class="cl-meta-col">
+        <span class="cl-permit-type">{{ c.permit_label_ar }}{% if c.permit_no %} · {{ c.permit_no }}{% endif %}</span>
+        <span class="cl-date">{{ c.dateOfCreation|date:"d/m/Y"|default:"—" }}</span>
+      </span>
+      {% if c.contact_number %}
+        <span class="cl-sep">·</span>
+        <a href="tel:{{ c.contact_number }}" class="cl-phone"><span dir="ltr">{{ c.contact_number }}</span></a>
+      {% endif %}
+      <span class="cl-spacer"></span>
+      <a href="{{ c.detail_url }}" class="cl-view">عرض</a>
+    </div>
+  </div>
+</div>

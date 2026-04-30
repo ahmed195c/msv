@@ -1,0 +1,137 @@
+<div class="cl-item">
+
+  <div class="cl-stripe
+    {% if c.active_waste_request %}{% if c.active_waste_request.status == 'payment_pending' %}s-action{% elif c.active_waste_request.status == 'inspection_pending' %}s-process{% else %}s-waiting{% endif %}
+    {% elif c.status == 'issued' %}s-issued
+    {% elif c.status == 'needs_completion' or c.status == 'rejected' or c.status == 'violation_payment_link_pending' or c.status == 'violation_payment_pending' or c.status == 'disposal_rejected' %}s-error
+    {% elif c.status == 'payment_pending' or c.status == 'inspection_payment_pending' %}s-action
+    {% elif c.status == 'head_approved' %}s-head
+    {% elif c.status == 'disposal_approved' %}s-done
+    {% elif c.status == 'inspection_pending' or c.status == 'inspection_completed' or c.status == 'review_pending' or c.status == 'approved' %}s-process
+    {% else %}s-waiting{% endif %}">
+  </div>
+
+  <div class="cl-item-body">
+
+    <div class="cl-row-top">
+
+      <span class="cl-status
+        {% if c.active_waste_request %}{% if c.active_waste_request.status == 'payment_pending' %}st-action{% elif c.active_waste_request.status == 'inspection_pending' %}st-process{% else %}st-waiting{% endif %}
+        {% elif c.status == 'issued' %}st-issued
+        {% elif c.status == 'needs_completion' or c.status == 'rejected' or c.status == 'violation_payment_link_pending' or c.status == 'violation_payment_pending' or c.status == 'disposal_rejected' %}st-error
+        {% elif c.status == 'payment_pending' or c.status == 'inspection_payment_pending' %}st-action
+        {% elif c.status == 'head_approved' %}st-head
+        {% elif c.status == 'disposal_approved' %}st-done
+        {% elif c.status == 'inspection_pending' or c.status == 'inspection_completed' or c.status == 'review_pending' or c.status == 'approved' %}st-process
+        {% else %}st-waiting{% endif %}">
+        {% if c.active_waste_request %}
+          {% if c.active_waste_request.status == 'payment_pending' %}بانتظار دفع طلب الإتلاف
+          {% elif c.active_waste_request.status == 'inspection_pending' %}{% if c.inspection_receiver_name %}تم استلام الطلب — {{ c.inspection_receiver_name }}{% else %}جاهز للاستلام{% endif %}
+          {% else %}{{ c.active_waste_request.get_status_display }}{% endif %}
+        {% elif c.status == 'order_received' %}بانتظار رابط دفع التفتيش
+        {% elif c.status == 'inspection_payment_pending' %}بانتظار دفع التفتيش
+        {% elif c.status == 'review_pending' %}بانتظار المراجعة
+        {% elif c.status == 'approved' %}معتمد من المفتش
+        {% elif c.status == 'needs_completion' or c.status == 'rejected' %}غير معتمد
+        {% elif c.status == 'payment_pending' %}بانتظار دفع التصريح
+        {% elif c.status == 'violation_payment_link_pending' %}بانتظار رابط دفع المخالفة
+        {% elif c.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
+        {% elif c.status == 'issued' %}تم إصدار التصريح
+        {% elif c.status == 'inspection_pending' %}جاهز للاستلام
+        {% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}{% if c.permit_type == 'pesticide_transport' %}بانتظار رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
+        {% elif c.status == 'inspection_completed' %}تم التفتيش
+        {% elif c.status == 'head_approved' %}تم الاعتماد النهائي
+        {% elif c.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
+        {% elif c.status == 'disposal_approved' %}إتلاف معتمد
+        {% elif c.status == 'disposal_rejected' %}إتلاف مرفوض
+        {% else %}{{ c.get_status_display }}{% endif %}
+      </span>
+
+      {% if c.active_waste_request and c.active_waste_request.status == 'payment_pending' %}
+        <span class="cl-next">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          أرسل رابط الدفع للشركة
+        </span>
+      {% elif c.status == 'order_received' %}
+        <span class="cl-next">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          أنشئ رابط دفع التفتيش
+        </span>
+      {% elif c.status == 'inspection_payment_pending' %}
+        <span class="cl-next">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          بانتظار الدفع من الشركة
+        </span>
+      {% elif c.status == 'review_pending' %}
+        <span class="cl-next">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          بانتظار مراجعة المفتش
+        </span>
+      {% elif c.status == 'approved' %}
+        <span class="cl-next">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          بانتظار الاعتماد النهائي
+        </span>
+      {% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}
+        <span class="cl-next">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          {% if c.permit_type == 'pesticide_transport' %}أنشئ رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
+        </span>
+      {% elif c.status == 'head_approved' %}
+        <span class="cl-next">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          أدخل رقم أمر الدفع
+        </span>
+      {% elif c.status == 'payment_pending' and c.payment_link %}
+        <a href="{{ c.payment_link }}" target="_blank" class="cl-next cl-next--link">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          رابط دفع التصريح ↗
+        </a>
+      {% elif c.status == 'violation_payment_link_pending' %}
+        <span class="cl-next">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          أنشئ رابط دفع المخالفة
+        </span>
+      {% elif c.status == 'violation_payment_pending' %}
+        <span class="cl-next">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          بانتظار دفع المخالفة
+        </span>
+      {% elif c.unapprovedReason and c.status == 'needs_completion' %}
+        <span class="cl-next cl-next--err">{{ c.unapprovedReason }}</span>
+      {% elif c.unapprovedReason and c.status == 'rejected' %}
+        <span class="cl-next cl-next--err">{{ c.unapprovedReason }}</span>
+      {% elif c.status == 'approved' and c.inspector_name %}
+        <span class="cl-next">{{ c.inspector_name }}</span>
+      {% elif c.inspection_payment_link and c.permit_type != 'pesticide_transport' %}
+        <a href="{{ c.inspection_payment_link }}" target="_blank" class="cl-next cl-next--link">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          رابط دفع التفتيش ↗
+        </a>
+      {% endif %}
+
+      {% if user_is_admin and c.inspection_duration_hours is not None %}
+        {% if c.inspection_duration_hours <= 24 %}<span class="cl-timer t-ok">{{ c.inspection_duration_display }}</span>
+        {% elif c.inspection_duration_hours <= 72 %}<span class="cl-timer t-mid">{{ c.inspection_duration_display }}</span>
+        {% else %}<span class="cl-timer t-late">{{ c.inspection_duration_display }}</span>{% endif %}
+      {% endif %}
+
+    </div>
+
+    <div class="cl-row-bot">
+      <span class="cl-company-name">{{ c.company.name }}</span>
+      <span class="cl-sep">·</span>
+      <span class="cl-meta-col">
+        <span class="cl-permit-type">{{ c.permit_label_ar }}{% if c.permit_no %} · {{ c.permit_no }}{% endif %}</span>
+        <span class="cl-date">{{ c.dateOfCreation|date:"d/m/Y"|default:"—" }}</span>
+      </span>
+      {% if c.contact_number %}
+        <span class="cl-sep">·</span>
+        <a href="tel:{{ c.contact_number }}" class="cl-phone"><span dir="ltr">{{ c.contact_number }}</span></a>
+      {% endif %}
+      <span class="cl-spacer"></span>
+      <a href="{{ c.detail_url }}" class="cl-view">عرض</a>
+    </div>
+
+  </div>
+</div>
