@@ -121,9 +121,9 @@ def clearance_list(request):
         company = clearance.company
         engineer = company.enginer if company else None
         engineer_phone = (engineer.phone or '').strip() if engineer else ''
+        owner_phone = (company.owner_phone or '').strip() if company else ''
         landline_phone = (company.landline or '').strip() if company else ''
-        company_phone = (company.owner_phone or '').strip() if company else ''
-        clearance.contact_number = engineer_phone or landline_phone or company_phone or None
+        clearance.contact_number = engineer_phone or owner_phone or landline_phone or None
         clearance.company_location = (company.address or '').strip() if company and company.address else '-'
         review = review_map.get(clearance.id)
         clearance.inspector_name = _inspector_review_name(review)
