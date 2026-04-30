@@ -1190,22 +1190,6 @@
             {% endif %}
           </span>
         </div>
-        {% if can_record_payment %}
-          <div class="detail-item">
-            <span class="label">بريد الشركة</span>
-            <span class="value">
-              <span class="js-read-value">{{ pirmet.company.email|default:"-" }}</span>
-              <input class="js-edit-input" name="company_email" type="email" value="{{ pirmet.company.email|default:'' }}">
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="label">بريد المهندس</span>
-            <span class="value">
-              <span class="js-read-value">{{ pirmet.company.enginer.email|default:"-" }}</span>
-              <input class="js-edit-input" name="engineer_email" type="email" value="{{ pirmet.company.enginer.email|default:'' }}">
-            </span>
-          </div>
-        {% endif %}
           <div class="doc-table-divider">
             <span>بيانات الدفع</span>
           </div>
