@@ -127,6 +127,7 @@ def clearance_list(request):
         clearance.company_location = (company.address or '').strip() if company and company.address else '-'
         review = review_map.get(clearance.id)
         clearance.inspector_name = _inspector_review_name(review)
+        clearance.inspector_number = review.inspector_user.username if review and review.inspector_user_id else None
         clearance.inspection_assigned_user_id = review.inspector_user_id if review and review.inspector_user_id else None
         if (
             not clearance.inspection_assigned_user_id
