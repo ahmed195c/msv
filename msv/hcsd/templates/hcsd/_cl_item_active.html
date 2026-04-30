@@ -129,13 +129,6 @@
         <span class="cl-sep">·</span>
         <a href="tel:{{ c.contact_number }}" class="cl-phone"><span dir="ltr">{{ c.contact_number }}</span></a>
       {% endif %}
-      {% if c.inspector_name %}
-        <span class="cl-sep">·</span>
-        <span class="cl-inspector-chip">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          {{ c.inspector_name }}{% if c.inspector_number %} · <span dir="ltr" style="font-family:monospace">{{ c.inspector_number }}</span>{% endif %}
-        </span>
-      {% endif %}
       <span class="cl-spacer"></span>
       <a href="{{ c.detail_url }}" class="cl-view">عرض</a>
     </div>

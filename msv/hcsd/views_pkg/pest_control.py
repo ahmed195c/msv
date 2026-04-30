@@ -1327,11 +1327,21 @@ def pest_control_permit_print(request, id):
     enginer = pirmet.company.enginer if pirmet.company else None
     allowed = _activities_for_enginer(enginer)
     restricted = _restricted_activities_for_enginer(enginer)
+    review = (
+        InspectorReview.objects
+        .select_related('inspector_user', 'inspector')
+        .filter(pirmet=pirmet)
+        .first()
+    )
+    inspector_name = _inspector_review_name(review)
+    inspector_number = review.inspector_user.username if review and review.inspector_user_id else None
     return render(request, 'hcsd/pest_control_activity_permit_print.html', {
         'pirmet': pirmet,
         'allowed_activities': allowed,
         'restricted_activities': restricted,
         'permit_detail_path': reverse('pest_control_permit_print', args=[pirmet.id]),
+        'inspector_name': inspector_name,
+        'inspector_number': inspector_number,
     })
 
 

@@ -483,6 +483,25 @@
     </tr>
   </table>
 
+  <!-- ── Inspector ── -->
+  {% if inspector_name %}
+  <table style="border-top:0;">
+    <colgroup><col class="c-ar"><col class="c-val"><col class="c-en"></colgroup>
+    <tr>
+      <td class="lbl-ar">اسم المفتش</td>
+      <td class="val">{{ inspector_name }}</td>
+      <td class="lbl-en">Inspector Name</td>
+    </tr>
+    {% if inspector_number %}
+    <tr>
+      <td class="lbl-ar">الرقم الإداري</td>
+      <td class="val" style="font-family:monospace;letter-spacing:.04em;">{{ inspector_number }}</td>
+      <td class="lbl-en">Admin No.</td>
+    </tr>
+    {% endif %}
+  </table>
+  {% endif %}
+
   <!-- ── Footer ── -->
   {% permit_qr_png_b64 permit_detail_path as qr_src %}
   <div class="footer-block" style="margin-top:10px; align-items:flex-end;">
