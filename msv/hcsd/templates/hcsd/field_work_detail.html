@@ -88,6 +88,22 @@ select.form-control{cursor:pointer;}
 .upload-zone input{display:none;}
 .upload-zone-label{font-size:14px;color:var(--ink-3);cursor:pointer;}
 
+/* ── Modern image drop zone ─────────────────────────── */
+.img-drop{position:relative;border:2px dashed var(--border);border-radius:12px;background:var(--surface-1);transition:border-color .15s,background .15s;overflow:hidden;}
+.img-drop.drag-over{border-color:var(--accent);background:var(--accent-light);}
+.img-drop-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:28px 20px;cursor:pointer;}
+.img-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-drop-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid var(--border);border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.img-drop-title{font-size:13.5px;font-weight:600;color:var(--ink-2);}
+.img-drop-title span{color:var(--accent);text-decoration:underline;}
+.img-drop-hint{font-size:11.5px;color:var(--ink-4);}
+.img-preview-list{display:flex;flex-wrap:wrap;gap:10px;padding:12px 14px;border-top:1.5px solid var(--border);background:#fff;}
+.img-preview-item{position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border);flex-shrink:0;}
+.img-preview-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.img-preview-rm{position:absolute;top:3px;right:3px;width:18px;height:18px;background:rgba(0,0,0,.55);border:none;border-radius:50%;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.img-preview-rm:hover{background:rgba(200,40,40,.85);}
+.img-drop-status{font-size:12px;font-weight:600;color:var(--ink-3);padding:8px 14px;border-top:1.5px solid var(--border);background:#fff;display:none;}
+
 @media(max-width:600px){
   .info-grid,.form-row{grid-template-columns:1fr;}
   .photo-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
@@ -393,11 +409,19 @@ select.form-control{cursor:pointer;}
           </div>
 
           <div class="form-group">
-            <label class="form-label">
-              صورة الإثبات <span style="color:#e11d48;">*</span>
-              <span style="font-size:11px;font-weight:400;color:#6b7280;margin-right:6px;">(JPG أو PNG)</span>
-            </label>
-            <input type="file" name="closure_proof" accept=".jpg,.jpeg,.png" class="form-control" required>
+            <label class="form-label">صورة الإثبات <span style="color:#e11d48;">*</span></label>
+            <div class="img-drop" id="drop-closure">
+              <div class="img-drop-inner">
+                <div class="img-drop-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                </div>
+                <div class="img-drop-title">اسحب الصورة هنا أو <span>اضغط للاختيار</span></div>
+                <div class="img-drop-hint">JPG أو PNG</div>
+              </div>
+              <input type="file" name="closure_proof" accept=".jpg,.jpeg,.png" required id="inp-closure">
+              <div class="img-preview-list" id="prev-closure" style="display:none;"></div>
+              <div class="img-drop-status" id="status-closure"></div>
+            </div>
           </div>
 
           <div class="form-actions">
@@ -756,18 +780,27 @@ select.form-control{cursor:pointer;}
         <form method="post" enctype="multipart/form-data" novalidate>
           {% csrf_token %}
           <input type="hidden" name="action" value="upload_photos">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">المرحلة</label>
-              <select name="phase" class="form-control">
-                <option value="before">قبل العمل</option>
-                <option value="during">أثناء العمل</option>
-                <option value="after">بعد العمل</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">الصور (JPG/PNG)</label>
-              <input type="file" name="photos" class="form-control" multiple accept=".jpg,.jpeg,.png">
+          <div class="form-group">
+            <label class="form-label">المرحلة</label>
+            <select name="phase" class="form-control">
+              <option value="before">قبل العمل</option>
+              <option value="during">أثناء العمل</option>
+              <option value="after">بعد العمل</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">الصور</label>
+            <div class="img-drop" id="drop-photos">
+              <div class="img-drop-inner">
+                <div class="img-drop-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                </div>
+                <div class="img-drop-title">اسحب الصور هنا أو <span>اضغط للاختيار</span></div>
+                <div class="img-drop-hint">JPG أو PNG — يمكن اختيار أكثر من صورة</div>
+              </div>
+              <input type="file" name="photos" multiple accept=".jpg,.jpeg,.png" id="inp-photos">
+              <div class="img-preview-list" id="prev-photos" style="display:none;"></div>
+              <div class="img-drop-status" id="status-photos"></div>
             </div>
           </div>
           <div class="form-actions">
@@ -833,6 +866,59 @@ function switchTab(phase, btn) {
   }
   sel.addEventListener('change', update);
   update();
+})();
+
+// ── Modern image drop zones ───────────────────────────────────────────────
+(function(){
+  function initDrop(dropId, inputId, prevId, statusId) {
+    var zone   = document.getElementById(dropId);
+    var input  = document.getElementById(inputId);
+    var prev   = document.getElementById(prevId);
+    var status = document.getElementById(statusId);
+    if (!zone || !input) return;
+
+    // drag feedback
+    zone.addEventListener('dragover', function(e){
+      e.preventDefault(); zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', function(){ zone.classList.remove('drag-over'); });
+    zone.addEventListener('drop', function(e){
+      e.preventDefault(); zone.classList.remove('drag-over');
+      var dt = e.dataTransfer;
+      if (dt && dt.files.length) {
+        input.files = dt.files;
+        renderPreviews(input.files);
+      }
+    });
+
+    input.addEventListener('change', function(){ renderPreviews(input.files); });
+
+    function renderPreviews(files) {
+      if (!files || !files.length) {
+        prev.style.display = 'none';
+        prev.innerHTML = '';
+        status.style.display = 'none';
+        return;
+      }
+      prev.innerHTML = '';
+      Array.from(files).forEach(function(file, i) {
+        var item = document.createElement('div');
+        item.className = 'img-preview-item';
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.onload = function(){ URL.revokeObjectURL(img.src); };
+        item.appendChild(img);
+        prev.appendChild(item);
+      });
+      prev.style.display = 'flex';
+      var n = files.length;
+      status.textContent = n === 1 ? ('تم اختيار: ' + files[0].name) : ('تم اختيار ' + n + ' صور');
+      status.style.display = 'block';
+    }
+  }
+
+  initDrop('drop-closure', 'inp-closure', 'prev-closure', 'status-closure');
+  initDrop('drop-photos',  'inp-photos',  'prev-photos',  'status-photos');
 })();
 </script>
 {% endblock %}
