@@ -23,6 +23,11 @@ logger = logging.getLogger(__name__)
 
 ALLOWED_PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
 
+_FW_CLOSED_STATUSES = frozenset({
+    'completed', 'other_municipal',
+    'closed_private_building', 'closed_no_answer', 'closed_other_municipal',
+})
+
 
 # ---------------------------------------------------------------------------
 # List
@@ -152,7 +157,7 @@ def field_work_detail(request, pk):
     can_receive = (
         is_fw_supervisor
         and not can_submit_report
-        and order.status != 'completed'
+        and order.status not in _FW_CLOSED_STATUSES
     )
 
     photos_before = order.photos.filter(phase='before').order_by('uploaded_at')
@@ -330,6 +335,35 @@ def field_work_detail(request, pk):
                 order.save(update_fields=update_fields)
                 success = 'تم حفظ تقرير المراقب.'
 
+        # ── Close request ───────────────────────────────────────────────────
+        elif action == 'close_request' and (can_submit_report or can_edit):
+            close_reason = (request.POST.get('close_reason') or '').strip()
+            proof = request.FILES.get('closure_proof')
+            valid_close_reasons = {
+                'closed_private_building', 'closed_no_answer', 'closed_other_municipal',
+            }
+            if order.status in _FW_CLOSED_STATUSES:
+                errors.append('الطلب مغلق بالفعل.')
+            elif close_reason not in valid_close_reasons:
+                errors.append('يرجى اختيار سبب الإغلاق.')
+            elif not proof:
+                errors.append('يرجى رفع صورة إثبات.')
+            else:
+                ext = os.path.splitext(proof.name)[1].lower()
+                if ext not in ALLOWED_PHOTO_EXTENSIONS:
+                    errors.append('يُسمح فقط بصور JPG أو PNG.')
+                else:
+                    order.status = close_reason
+                    order.close_date = timezone.now().date()
+                    order.no_answer_screenshot = proof
+                    order.report_submitted_by = request.user
+                    order.report_submitted_at = timezone.now()
+                    order.save(update_fields=[
+                        'status', 'close_date', 'no_answer_screenshot',
+                        'report_submitted_by', 'report_submitted_at',
+                    ])
+                    success = 'تم إغلاق الطلب بنجاح.'
+
         # ── Delete photo ─────────────────────────────────────────────────────
         elif action == 'delete_photo' and can_edit:
             photo_id = (request.POST.get('photo_id') or '').strip()
@@ -348,6 +382,8 @@ def field_work_detail(request, pk):
             return redirect('field_work_detail', pk=order.pk)
 
     fw_supervisor_users = _fw_supervisor_users_qs() if can_assign else []
+    is_closed = order.status in _FW_CLOSED_STATUSES
+    can_close = (can_submit_report or can_edit) and not is_closed
     return render(request, 'hcsd/field_work_detail.html', {
         'order': order,
         'can_edit': can_edit,
@@ -355,6 +391,8 @@ def field_work_detail(request, pk):
         'can_assign': can_assign,
         'can_submit_report': can_submit_report,
         'can_receive': can_receive,
+        'can_close': can_close,
+        'is_closed': is_closed,
         'fw_supervisor_users': fw_supervisor_users,
         'photos_before': photos_before,
         'photos_during': photos_during,

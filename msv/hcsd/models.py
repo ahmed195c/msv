@@ -1040,7 +1040,10 @@ class FieldWorkOrder(models.Model):
         ('completed',         'تم إنجاز الخدمة'),
         ('postponed_client',  'تأجيل من العميل'),
         ('gov_dept',          'جهة حكومية — يلزم إرسال موافقة'),
-        ('other_municipal',   'تابعة لبلدية أخرى'),
+        ('other_municipal',          'تابعة لبلدية أخرى'),
+        ('closed_private_building',  'مغلق — شركة نظافة خاصة (داخل بناية)'),
+        ('closed_no_answer',         'مغلق — لم يرد العميل على الهاتف'),
+        ('closed_other_municipal',   'مغلق — تابع لبلدية أخرى'),
     ]
 
     SOURCE_CHOICES = [

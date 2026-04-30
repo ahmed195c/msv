@@ -54,6 +54,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
 .s-postponed  {background:#fef9c3;color:#854d0e;}
 .s-gov        {background:#f0f9ff;color:#0369a1;}
 .s-other-mun  {background:#f1f5f9;color:#475569;}
+.s-closed     {background:#fef2f2;color:#991b1b;}
 
 .form-group{margin-bottom:16px;}
 .form-label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px;}
@@ -132,6 +133,7 @@ select.form-control{cursor:pointer;}
         {% elif order.status == 'postponed_client' %}s-postponed
         {% elif order.status == 'gov_dept' %}s-gov
         {% elif order.status == 'other_municipal' %}s-other-mun
+        {% elif is_closed %}s-closed
         {% else %}s-cancelled{% endif %}">
         {{ order.get_status_display }}
       </span>
@@ -313,7 +315,7 @@ select.form-control{cursor:pointer;}
   </div>
   {% endif %}
 
-  {% if can_assign and order.status != 'other_municipal' and not order.received_by %}
+  {% if can_assign and not is_closed and not order.received_by %}
   <!-- Assign Supervisor -->
   <div class="card" style="border-color:#e9d5ff;">
     <div class="card-header" style="background:#faf5ff;">
@@ -360,7 +362,68 @@ select.form-control{cursor:pointer;}
   </div>
   {% endif %}
 
-  {% if can_submit_report and order.status != 'other_municipal' %}
+  {% if can_close %}
+  <!-- Close Request -->
+  <div class="card" style="border-color:#fca5a5;">
+    <div class="card-header" style="background:#fef2f2;">
+      <h2 style="color:#991b1b;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:6px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        إغلاق الطلب
+      </h2>
+      <button type="button" onclick="toggleCloseForm()" id="btn-toggle-close"
+        style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span id="close-btn-label">إغلاق</span>
+      </button>
+    </div>
+    <div id="close-form-body" style="display:none;">
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="close_request">
+
+          <div class="form-group">
+            <label class="form-label">سبب الإغلاق <span style="color:#e11d48;">*</span></label>
+            <select name="close_reason" class="form-control" required>
+              <option value="">— اختر السبب —</option>
+              <option value="closed_private_building">الطلب داخل بناية — تابع لشركة نظافة خاصة</option>
+              <option value="closed_no_answer">العميل لم يرد على الهاتف</option>
+              <option value="closed_other_municipal">الطلب تابع لبلدية أخرى</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              صورة الإثبات <span style="color:#e11d48;">*</span>
+              <span style="font-size:11px;font-weight:400;color:#6b7280;margin-right:6px;">(JPG أو PNG)</span>
+            </label>
+            <input type="file" name="closure_proof" accept=".jpg,.jpeg,.png" class="form-control" required>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-danger"
+              onclick="return confirm('هل أنت متأكد من إغلاق هذا الطلب؟ لا يمكن التراجع.');">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:4px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              تأكيد الإغلاق
+            </button>
+            <button type="button" onclick="toggleCloseForm()" class="btn btn-outline">إلغاء</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>
+  function toggleCloseForm() {
+    var body  = document.getElementById('close-form-body');
+    var label = document.getElementById('close-btn-label');
+    var open  = body.style.display === 'none';
+    body.style.display = open ? 'block' : 'none';
+    label.textContent  = open ? 'طي' : 'إغلاق';
+  }
+  </script>
+  {% endif %}{# can_close #}
+
+  {% if can_submit_report and not is_closed %}
 
   <!-- Location Card -->
   <div class="card" style="border-color:#d1fae5;">
@@ -447,15 +510,15 @@ select.form-control{cursor:pointer;}
       {% endif %}
       {% if order.no_answer_screenshot %}
       <div style="grid-column:1/-1;">
-        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;">صورة عدم الرد</div>
-        <img src="{{ order.no_answer_screenshot.url }}" alt="صورة عدم الرد"
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;">صورة الإثبات</div>
+        <img src="{{ order.no_answer_screenshot.url }}" alt="صورة الإثبات"
              style="max-width:260px;border-radius:8px;border:1.5px solid #e2e8f0;">
       </div>
       {% endif %}
     </div>
     {% endif %}
 
-    {% if order.status != 'completed' %}
+    {% if not is_closed %}
     <div class="card-body">
       <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
@@ -533,7 +596,7 @@ select.form-control{cursor:pointer;}
 
   {% if can_edit %}
   <!-- Update Details -->
-  {% if order.status != 'completed' and order.status != 'other_municipal' %}
+  {% if not is_closed %}
   <div class="card">
     <div class="card-header">
       <h2>تعديل التفاصيل</h2>
@@ -621,7 +684,7 @@ select.form-control{cursor:pointer;}
           {% for photo in photos_before %}
           <div class="photo-item">
             <img src="{{ photo.file.url }}" alt="صورة قبل العمل">
-            {% if can_edit and order.status != 'completed' and order.status != 'other_municipal' %}
+            {% if can_edit and not is_closed %}
             <form method="post" style="display:contents;">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete_photo">
@@ -645,7 +708,7 @@ select.form-control{cursor:pointer;}
           {% for photo in photos_during %}
           <div class="photo-item">
             <img src="{{ photo.file.url }}" alt="صورة أثناء العمل">
-            {% if can_edit and order.status != 'completed' and order.status != 'other_municipal' %}
+            {% if can_edit and not is_closed %}
             <form method="post" style="display:contents;">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete_photo">
@@ -669,7 +732,7 @@ select.form-control{cursor:pointer;}
           {% for photo in photos_after %}
           <div class="photo-item">
             <img src="{{ photo.file.url }}" alt="صورة بعد العمل">
-            {% if can_edit and order.status != 'completed' and order.status != 'other_municipal' %}
+            {% if can_edit and not is_closed %}
             <form method="post" style="display:contents;">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete_photo">
@@ -687,7 +750,7 @@ select.form-control{cursor:pointer;}
       </div>
 
       <!-- Upload -->
-      {% if can_edit and order.status != 'completed' and order.status != 'other_municipal' %}
+      {% if can_edit and not is_closed %}
       <div style="margin-top:20px;border-top:1.5px solid var(--border);padding-top:18px;">
         <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--ink-2);">رفع صور جديدة</h3>
         <form method="post" enctype="multipart/form-data" novalidate>
