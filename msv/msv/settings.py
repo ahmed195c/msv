@@ -46,6 +46,9 @@ ALLOWED_HOSTS = [
     if host.strip() 
 ]
 
+# Allow large Excel imports (up to 2000 rows × ~12 fields each)
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 30000
+
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
     'http://127.0.0.1',
