@@ -46,8 +46,25 @@ ALLOWED_HOSTS = [
     if host.strip() 
 ]
 
-# Allow large Excel imports (up to 2000 rows × ~12 fields each)
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 30000
+# Allow large Excel imports (2000 rows × ~12 fields)
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/home/ahmed/msv/django_errors.log',
+        },
+    },
+    'root': {
+        'handlers': ['file'],
+        'level': 'ERROR',
+    },
+}
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',

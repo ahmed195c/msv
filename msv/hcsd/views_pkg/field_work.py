@@ -692,7 +692,7 @@ def field_work_excel_review(request):
     if request.method == 'POST':
         mode = request.POST.get('import_mode', 'new_only')
         row_count = len(rows)
-        created = 0
+        to_create = []
         for i in range(row_count):
             include = request.POST.get(f'row_{i}_include')
             if not include:
@@ -700,7 +700,7 @@ def field_work_excel_review(request):
             order_number = (request.POST.get(f'row_{i}_order_number') or '').strip()
             if mode == 'new_only' and order_number in existing:
                 continue
-            FieldWorkOrder.objects.create(
+            to_create.append(FieldWorkOrder(
                 order_number    = order_number,
                 request_date    = _to_date((request.POST.get(f'row_{i}_request_date') or '').strip()),
                 customer_name   = (request.POST.get(f'row_{i}_customer_name') or '').strip(),
@@ -717,8 +717,9 @@ def field_work_excel_review(request):
                 month_sheet     = rows[i].get('month_sheet', ''),
                 source          = 'excel',
                 created_by      = request.user,
-            )
-            created += 1
+            ))
+        FieldWorkOrder.objects.bulk_create(to_create, batch_size=500)
+        created = len(to_create)
         del request.session[_EXCEL_SESSION_KEY]
         return redirect(reverse('field_work_list') + f'?imported={created}')
 
