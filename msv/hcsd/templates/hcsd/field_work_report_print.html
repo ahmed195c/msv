@@ -192,19 +192,19 @@
     </tr>
     <tr>
       <td class="lbl">Client</td>
-      <td class="val">{{ order.site_name|default:"—" }}</td>
+      <td class="val">{{ order.customer_name|default:order.site_name|default:"—" }}</td>
       <td class="lbl">Close Out Date</td>
-      <td class="val">{{ order.report_submitted_at|date:"d/m/Y"|default:"" }}</td>
+      <td class="val">{{ order.close_date|date:"d/m/Y"|default:order.report_submitted_at|date:"d/m/Y"|default:"" }}</td>
     </tr>
     <tr>
       <td class="lbl">Location</td>
-      <td class="val">{{ order.location|default:"—" }}</td>
+      <td class="val">{{ order.location|default:order.area|default:"—" }}</td>
       <td class="lbl">Time In</td>
       <td class="val">{{ order.received_at|date:"H:i"|default:"" }}</td>
     </tr>
     <tr>
       <td class="lbl">Phone</td>
-      <td class="val">{{ order.phone|default:"—" }}</td>
+      <td class="val">{{ order.mobile|default:"—" }}</td>
       <td class="lbl">Time Out</td>
       <td class="val">{{ order.report_submitted_at|date:"H:i"|default:"" }}</td>
     </tr>
