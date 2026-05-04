@@ -520,6 +520,29 @@ select.form-control{cursor:pointer;}
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">عدد السيارات</div>
         <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ order.vehicles_count|default:"—" }}</div>
       </div>
+      {% if order.spray_entries %}
+      <div style="grid-column:1/-1;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;">سجلات الرش</div>
+        {% for entry in order.spray_entries %}
+        <div style="border:1.5px solid #e2e8f0;border-radius:10px;padding:11px 14px;margin-bottom:8px;background:#fff;">
+          <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:3px;">
+            {{ forloop.counter }}. {{ entry.location|default:"—" }}
+            {% if entry.building_type %}<span style="font-weight:400;color:#64748b;font-size:12px;"> · {{ entry.building_type }}</span>{% endif %}
+          </div>
+          {% if entry.pests %}
+          <div style="font-size:11.5px;color:#64748b;margin-bottom:4px;">الحشرات: {% for p in entry.pests %}{{ p }}{% if not forloop.last %}، {% endif %}{% endfor %}</div>
+          {% endif %}
+          {% if entry.pesticides %}
+          <div style="border-top:1px solid #f1f5f9;padding-top:6px;margin-top:5px;">
+            {% for p in entry.pesticides %}
+            <div style="font-size:12px;color:#374151;margin-bottom:2px;">{{ p.name }} — <strong>{{ p.qty }} {{ p.unit }}</strong></div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% elif order.spray_location or order.pesticides_used %}
       {% if order.spray_location %}
       <div style="grid-column:1/-1;">
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">مكان الرش</div>
@@ -531,6 +554,7 @@ select.form-control{cursor:pointer;}
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">المبيدات المستخدمة</div>
         <div style="font-size:13px;color:#0f172a;">{{ order.pesticides_used }}</div>
       </div>
+      {% endif %}
       {% endif %}
       {% if order.supervisor_notes %}
       <div style="grid-column:1/-1;">
@@ -568,7 +592,7 @@ select.form-control{cursor:pointer;}
 
     {% if not is_closed %}
     <div class="card-body">
-      <form method="post" enctype="multipart/form-data" novalidate>
+      <form method="post" enctype="multipart/form-data" novalidate data-role="supervisor-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="supervisor_report">
 
@@ -595,70 +619,265 @@ select.form-control{cursor:pointer;}
           </div>
         </div>
 
-        <div class="form-group" style="position:relative;">
-          <label class="form-label">مكان الرش</label>
-          <input type="text" name="spray_location" id="spray-location-input" class="form-control"
-            autocomplete="off" placeholder="ابحث أو اكتب المكان…"
-            value="{{ order.spray_location }}">
-          <ul id="spray-location-list" style="display:none;position:absolute;z-index:200;width:100%;max-height:220px;overflow-y:auto;background:#fff;border:1.5px solid #cbd5e1;border-top:none;border-radius:0 0 8px 8px;margin:0;padding:0;list-style:none;box-shadow:0 4px 16px rgba(0,0,0,.10);"></ul>
-        </div>
+        <!-- Spray entries -->
+        {{ order.spray_entries|json_script:"existing-spray-data" }}
+        <input type="hidden" name="spray_entries_json" id="spray-entries-json">
 
-        <div class="form-group">
-          <label class="form-label">المبيدات المستخدمة</label>
-          <textarea name="pesticides_used" class="form-control" rows="2"
-            placeholder="مثال: سيبرمثرين 100مل، ديلتامثرين 50مل…">{{ order.pesticides_used }}</textarea>
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="font-size:13px;font-weight:700;color:#374151;">سجلات الرش <span style="font-weight:400;font-size:11px;color:#94a3b8;">(يمكن إضافة أكثر من موقع)</span></div>
+            <button type="button" id="add-spray-entry-btn"
+              style="padding:6px 14px;font-size:12px;font-weight:600;background:#eff6ff;color:#2563eb;border:1.5px solid #bfdbfe;border-radius:7px;cursor:pointer;">+ إضافة موقع</button>
+          </div>
+          <div id="spray-entries-list"></div>
         </div>
 
         <script>
         (function(){
           var LOCATIONS = ["Accommodation","Admin Area","Airport","Animal Basins","Animal Feeding Area","Animal Pot","Animal Shed","Ants Nest","Auditorium","Back Yard","Basement","Basin","Bathroom","Bee Hive","Bins","Bucket","Building","Burrows","Cabinet houses","Ceiling","Channel","Classroom","Clinic Room","Closed Water Tank","Closet","Common Area","Compost Hole","Conference Rm","Construction Site","Corners","Cracks and Crevices","dedicated kitchen","Discarded Tyres","Door / Window Frames","Down Spouts","drainage","Drains/Sinks","Driver's Quarter","Drum","Dumpster Area","Electrical Room","Electricity Chamber","Escort Villa","Etisalat Chambers","exterior perimeter","exterior wallings","Ezzab","Farm(s)","Fence (internal)","Fiber Tank","fixed cabinets","Flats Basin Area","Floor Drain","Flower pots","Forest Area","Fountains","Front Door","Front Yard","Furniture","Garbage Area","Garbage Bin","Garden perimeter","Grounds","Guard House","Gymnasium","Hallways","Hanging Cabinets","Head Quarters","Helper's Quarter","Hole","Horse Barn","Hotel","House (inside)","House (outside)","Industrial Area","Inside the farm","Interior Perimeter","Irrigation Control Valve","Jail","kitchen","Labor Camp","Laboratory Room","Landfill","Laundry Room","Library","Lobby","Locker Room","Maid's Room","Manhole","Manhole in the house/villa","Manhole in the streets","Manholes","Market Area","Masjid","Office","Office Room","Open Water Tank","Palace","Palm Tree Burrows","Pantry","Pantry Closet","Park","Parking Area","Patio","Pheromone Trap","Pipe(s)","Playground","Pond","Pool","Port","Poultry","Prayer Room","Reception","Real Estate","Rodent Bait Station","Roof Top","Scrap","Security Room","Septic Tank","Sewage Manhole","Shed /Storage unit","Shooting Ranges","Shop","Sink Cabinets","Stagnant Water","Steel cabinets","Storage","Store Room","Storm Drain","Storm Water Lines","Swimming Pool","Tank","Teachers Room","Tent","Theater","toilet/bath/washroom","Trash Bins","Trees","TV","under shelves","Underground Water Tank","Villa/House","VIP building","Wadi","walls","Waste Area","Waste Room","Water Accumulation","Water Cooler","Window Frames","Wooden cabinets"];
-          var inp = document.getElementById('spray-location-input');
-          var list = document.getElementById('spray-location-list');
-          var activeIdx = -1;
+          var BUILDING_TYPES = ["Villa","Government Facility","School","Public Park","Mosque","Palace","Labor Accommodation","Vip Villa"];
+          var PESTS = [{id:'ant',ar:'نمل'},{id:'cockroach',ar:'صراصير'},{id:'mosquito',ar:'بعوض'},{id:'fly',ar:'ذباب'},{id:'rat',ar:'فئران'},{id:'snake',ar:'ثعبان'}];
+          var PESTICIDES = [
+            {n:"Actellic 50 EC",u:"ML"},{n:"ECOLARVACIDE EC",u:"ML"},{n:"Starycide SC 480",u:"ML"},
+            {n:"DIFRON 25 SC",u:"ML"},{n:"GRAYBATE 50 SG",u:"ML"},{n:"BIOPREN 4 GR",u:"ML"},
+            {n:"LAROXYFEN PLUS WT",u:"ML"},{n:"Aqua k-Othrine",u:"ML"},{n:"Chirotox",u:"ML"},
+            {n:"TETRACON 50 EC",u:"ML"},{n:"KULCYPERIN 100/3 EC",u:"ML"},{n:"DEMON MAX INSECTICIDE",u:"ML"},
+            {n:"Solfac EC 50",u:"ML"},{n:"CYMPERATOR 25 EC",u:"ML"},{n:"Bio Amplat",u:"ML"},
+            {n:"ROTRYN 200",u:"ML"},{n:"GUADIN SE",u:"ML"},{n:"BAITFURAN SP",u:"GRM"},
+            {n:"Detral Super",u:"ML"},{n:"K-Othrine Partix",u:"ML"},{n:"PERMETHOR",u:"GRM"},
+            {n:"Temprid SC",u:"ML"},{n:"HYMENOPHTHOR GR",u:"GRM"},{n:"Vertox Oktablok",u:"GRM"},
+            {n:"FACORAT PELLETS",u:"GRM"},{n:"VICTOR V FAST-KILL BRAND BLOCKS II",u:"GRM"},
+            {n:"SUREFIRE ALL WEATHER BLOCKS",u:"GRM"},{n:"PROTECT SENSATION 2IN1",u:"GRM"},
+            {n:"VERTOX PASTA BAIT",u:"GRM"},{n:"STELLIOX D50",u:"GRM"},{n:"TALON WB",u:"GRM"},
+            {n:"SUREFIRE BROMA BLOCKS RODENTICIDE",u:"GRM"},{n:"NOCURAT PARAFFINATO",u:"GRM"},
+            {n:"BuyBlocker Snake Deter",u:"GRM"},{n:"BOOM",u:"ML"},{n:"CYPFORCE 40 EC",u:"ML"},
+            {n:"D-TETRASUPER EC",u:"ML"},{n:"TEMEPHOS 55EC",u:"ML"}
+          ];
 
-          function renderList(q) {
-            var q_lower = q.trim().toLowerCase();
-            var matches = q_lower === '' ? [] : LOCATIONS.filter(function(l){ return l.toLowerCase().indexOf(q_lower) !== -1; });
-            if (matches.length === 0) { list.style.display = 'none'; return; }
-            list.innerHTML = '';
-            activeIdx = -1;
-            matches.forEach(function(m, i){
-              var li = document.createElement('li');
-              li.textContent = m;
-              li.setAttribute('data-idx', i);
-              li.style.cssText = 'padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #f1f5f9;color:#0f172a;';
-              li.addEventListener('mousedown', function(e){
-                e.preventDefault();
-                inp.value = m;
-                list.style.display = 'none';
+          var dropStyle = 'display:none;position:absolute;z-index:300;width:100%;max-height:200px;overflow-y:auto;background:#fff;border:1.5px solid #cbd5e1;border-top:none;border-radius:0 0 8px 8px;margin:0;padding:0;list-style:none;box-shadow:0 4px 16px rgba(0,0,0,.12);';
+          var liStyle   = 'padding:9px 14px;cursor:pointer;font-size:12.5px;border-bottom:1px solid #f1f5f9;color:#0f172a;';
+
+          function initCombo(inp, ul, items, getLabel, onSelect) {
+            var idx = -1;
+            function render(q) {
+              var ql = q.trim().toLowerCase();
+              var hits = ql ? items.filter(function(it){ return getLabel(it).toLowerCase().indexOf(ql) !== -1; }) : [];
+              if (!hits.length) { ul.style.display = 'none'; return; }
+              ul.innerHTML = ''; idx = -1;
+              hits.forEach(function(it, i) {
+                var li = document.createElement('li');
+                li.textContent = getLabel(it);
+                li.style.cssText = liStyle;
+                li.addEventListener('mousedown', function(e){ e.preventDefault(); inp.value = getLabel(it); if(onSelect) onSelect(it); ul.style.display='none'; });
+                li.addEventListener('mouseenter', function(){ hi(i); });
+                ul.appendChild(li);
               });
-              li.addEventListener('mouseenter', function(){ setActive(i); });
-              list.appendChild(li);
-            });
-            list.style.display = 'block';
-          }
-
-          function setActive(idx) {
-            var items = list.querySelectorAll('li');
-            items.forEach(function(li){ li.style.background = ''; });
-            activeIdx = idx;
-            if (idx >= 0 && idx < items.length) {
-              items[idx].style.background = '#eff6ff';
-              items[idx].scrollIntoView({block:'nearest'});
+              ul.style.display = 'block';
             }
+            function hi(i) {
+              ul.querySelectorAll('li').forEach(function(l){ l.style.background=''; });
+              idx = i;
+              var el = ul.querySelectorAll('li')[i];
+              if (el) { el.style.background='#eff6ff'; el.scrollIntoView({block:'nearest'}); }
+            }
+            inp.addEventListener('input', function(){ render(inp.value); });
+            inp.addEventListener('focus', function(){ if(inp.value) render(inp.value); });
+            inp.addEventListener('blur',  function(){ setTimeout(function(){ ul.style.display='none'; },150); });
+            inp.addEventListener('keydown', function(e) {
+              var lis = ul.querySelectorAll('li');
+              if (e.key==='ArrowDown') { e.preventDefault(); hi(Math.min(idx+1,lis.length-1)); }
+              else if (e.key==='ArrowUp') { e.preventDefault(); hi(Math.max(idx-1,0)); }
+              else if (e.key==='Enter' && idx>=0 && ul.style.display!=='none') { e.preventDefault(); lis[idx].dispatchEvent(new Event('mousedown')); }
+              else if (e.key==='Escape') { ul.style.display='none'; }
+            });
           }
 
-          inp.addEventListener('input', function(){ renderList(inp.value); });
-          inp.addEventListener('focus', function(){ if (inp.value) renderList(inp.value); });
-          inp.addEventListener('blur', function(){ setTimeout(function(){ list.style.display='none'; }, 150); });
-          inp.addEventListener('keydown', function(e){
-            var items = list.querySelectorAll('li');
-            if (e.key === 'ArrowDown') { e.preventDefault(); setActive(Math.min(activeIdx+1, items.length-1)); }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(activeIdx-1, 0)); }
-            else if (e.key === 'Enter' && activeIdx >= 0 && list.style.display !== 'none') {
-              e.preventDefault(); inp.value = items[activeIdx].textContent; list.style.display = 'none';
-            } else if (e.key === 'Escape') { list.style.display = 'none'; }
+          function makeDrop(){ var ul=document.createElement('ul'); ul.style.cssText=dropStyle; return ul; }
+
+          function addPesticideRow(container, data) {
+            data = data || {};
+            var row = document.createElement('div');
+            row.className = 'pst-row';
+            row.style.cssText = 'display:flex;gap:6px;margin-bottom:8px;align-items:flex-start;position:relative;';
+
+            var nWrap = document.createElement('div');
+            nWrap.style.cssText = 'flex:1;position:relative;';
+            var nInp = document.createElement('input');
+            nInp.type='text'; nInp.placeholder='اسم المبيد…'; nInp.autocomplete='off';
+            nInp.className='form-control pst-name'; nInp.style.cssText='font-size:12.5px;';
+            nInp.value = data.name || '';
+            var nUl = makeDrop();
+            nWrap.appendChild(nInp); nWrap.appendChild(nUl);
+
+            var qInp = document.createElement('input');
+            qInp.type='number'; qInp.placeholder='الكمية'; qInp.min='0'; qInp.step='0.1';
+            qInp.className='form-control pst-qty'; qInp.style.cssText='width:85px;font-size:12.5px;';
+            qInp.value = data.qty || '';
+
+            var uSel = document.createElement('select');
+            uSel.className='form-control pst-unit'; uSel.style.cssText='width:72px;font-size:12.5px;';
+            ['ML','GRM'].forEach(function(u){
+              var o=document.createElement('option'); o.value=u; o.textContent=u;
+              if((data.unit||'ML')===u) o.selected=true;
+              uSel.appendChild(o);
+            });
+
+            var rm = document.createElement('button');
+            rm.type='button'; rm.textContent='×';
+            rm.style.cssText='width:32px;height:36px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;cursor:pointer;font-size:16px;flex-shrink:0;';
+            rm.addEventListener('click', function(){ row.remove(); });
+
+            row.appendChild(nWrap); row.appendChild(qInp); row.appendChild(uSel); row.appendChild(rm);
+            container.appendChild(row);
+
+            initCombo(nInp, nUl, PESTICIDES, function(p){ return p.n; }, function(p){ uSel.value = p.u; });
+          }
+
+          var cardCount = 0;
+          var entriesList = document.getElementById('spray-entries-list');
+
+          function createCard(data) {
+            data = data || {};
+            var n = ++cardCount;
+            var card = document.createElement('div');
+            card.className = 'spray-entry-card';
+            card.style.cssText = 'background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;margin-bottom:12px;overflow:visible;';
+
+            // header
+            var hdr = document.createElement('div');
+            hdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:#f1f5f9;border-bottom:1px solid #e2e8f0;border-radius:12px 12px 0 0;';
+            var htitle = document.createElement('span');
+            htitle.className = 'card-num';
+            htitle.style.cssText = 'font-size:13px;font-weight:700;color:#374151;';
+            htitle.textContent = 'موقع رش #' + n;
+            var rmCard = document.createElement('button');
+            rmCard.type='button'; rmCard.textContent='× حذف';
+            rmCard.style.cssText='padding:3px 10px;font-size:11px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:6px;cursor:pointer;';
+            rmCard.addEventListener('click', function(){ card.remove(); renumber(); });
+            hdr.appendChild(htitle); hdr.appendChild(rmCard);
+            card.appendChild(hdr);
+
+            // body
+            var body = document.createElement('div');
+            body.style.cssText = 'padding:14px;';
+
+            // location
+            var locWrap = document.createElement('div');
+            locWrap.style.cssText = 'margin-bottom:12px;position:relative;';
+            var locLbl = document.createElement('label');
+            locLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;';
+            locLbl.textContent = 'المكان';
+            var locInp = document.createElement('input');
+            locInp.type='text'; locInp.autocomplete='off'; locInp.placeholder='ابحث أو اكتب…';
+            locInp.className='form-control loc-inp'; locInp.value = data.location||'';
+            var locUl = makeDrop();
+            locWrap.appendChild(locLbl); locWrap.appendChild(locInp); locWrap.appendChild(locUl);
+            body.appendChild(locWrap);
+            initCombo(locInp, locUl, LOCATIONS, function(l){ return l; }, null);
+
+            // building type
+            var bldWrap = document.createElement('div');
+            bldWrap.style.cssText = 'margin-bottom:12px;position:relative;';
+            var bldLbl = document.createElement('label');
+            bldLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;';
+            bldLbl.textContent = 'نوع المبنى';
+            var bldInp = document.createElement('input');
+            bldInp.type='text'; bldInp.autocomplete='off'; bldInp.placeholder='ابحث…';
+            bldInp.className='form-control bld-inp'; bldInp.value = data.building_type||'';
+            var bldUl = makeDrop();
+            bldWrap.appendChild(bldLbl); bldWrap.appendChild(bldInp); bldWrap.appendChild(bldUl);
+            body.appendChild(bldWrap);
+            initCombo(bldInp, bldUl, BUILDING_TYPES, function(b){ return b; }, null);
+
+            // pests
+            var pestWrap = document.createElement('div');
+            pestWrap.style.cssText = 'margin-bottom:12px;';
+            var pestLbl = document.createElement('div');
+            pestLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;';
+            pestLbl.textContent = 'الحشرات الموجودة';
+            var pestGrid = document.createElement('div');
+            pestGrid.style.cssText = 'display:flex;flex-wrap:wrap;gap:7px;';
+            var existPests = data.pests || [];
+            PESTS.forEach(function(p){
+              var lbl = document.createElement('label');
+              lbl.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:12.5px;cursor:pointer;padding:5px 11px;border:1.5px solid #e2e8f0;border-radius:20px;background:#f8fafc;user-select:none;';
+              var cb = document.createElement('input');
+              cb.type='checkbox'; cb.value=p.ar; cb.className='pest-cb';
+              if(existPests.indexOf(p.ar)!==-1){ cb.checked=true; lbl.style.background='#dbeafe'; lbl.style.borderColor='#3b82f6'; }
+              cb.addEventListener('change', function(){
+                lbl.style.background = cb.checked?'#dbeafe':'#f8fafc';
+                lbl.style.borderColor = cb.checked?'#3b82f6':'#e2e8f0';
+              });
+              lbl.appendChild(cb); lbl.appendChild(document.createTextNode(p.ar));
+              pestGrid.appendChild(lbl);
+            });
+            pestWrap.appendChild(pestLbl); pestWrap.appendChild(pestGrid);
+            body.appendChild(pestWrap);
+
+            // pesticides
+            var pstWrap = document.createElement('div');
+            var pstLbl = document.createElement('div');
+            pstLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;';
+            pstLbl.textContent = 'المبيدات المستخدمة';
+            var pstRows = document.createElement('div');
+            pstRows.className = 'pst-rows';
+            (data.pesticides || []).forEach(function(p){ addPesticideRow(pstRows, p); });
+            var addPstBtn = document.createElement('button');
+            addPstBtn.type='button'; addPstBtn.textContent='+ إضافة مبيد';
+            addPstBtn.style.cssText='padding:6px 13px;font-size:12px;font-weight:600;background:#eff6ff;color:#2563eb;border:1.5px solid #bfdbfe;border-radius:7px;cursor:pointer;margin-top:4px;';
+            addPstBtn.addEventListener('click', function(){ addPesticideRow(pstRows, {}); });
+            pstWrap.appendChild(pstLbl); pstWrap.appendChild(pstRows); pstWrap.appendChild(addPstBtn);
+            body.appendChild(pstWrap);
+
+            card.appendChild(body);
+            return card;
+          }
+
+          function renumber() {
+            document.querySelectorAll('.spray-entry-card .card-num').forEach(function(el, i){
+              el.textContent = 'موقع رش #' + (i+1);
+            });
+          }
+
+          // Load existing or start with one empty card
+          var existing = JSON.parse(document.getElementById('existing-spray-data').textContent || '[]');
+          if (existing.length) {
+            existing.forEach(function(e){ entriesList.appendChild(createCard(e)); });
+          } else {
+            entriesList.appendChild(createCard({}));
+          }
+
+          document.getElementById('add-spray-entry-btn').addEventListener('click', function(){
+            var c = createCard({});
+            entriesList.appendChild(c);
+            c.scrollIntoView({behavior:'smooth',block:'start'});
           });
+
+          // Serialize on submit
+          var form = document.querySelector('form[data-role="supervisor-form"]');
+          if (form) {
+            form.addEventListener('submit', function(){
+              var entries = [];
+              document.querySelectorAll('.spray-entry-card').forEach(function(card){
+                var pests = [];
+                card.querySelectorAll('.pest-cb:checked').forEach(function(cb){ pests.push(cb.value); });
+                var pesticides = [];
+                card.querySelectorAll('.pst-row').forEach(function(row){
+                  var nm = (row.querySelector('.pst-name')||{value:''}).value.trim();
+                  var qty = (row.querySelector('.pst-qty')||{value:''}).value.trim();
+                  var unit = (row.querySelector('.pst-unit')||{value:'ML'}).value;
+                  if (nm) pesticides.push({name:nm, qty:qty, unit:unit});
+                });
+                entries.push({
+                  location: (card.querySelector('.loc-inp')||{value:''}).value.trim(),
+                  building_type: (card.querySelector('.bld-inp')||{value:''}).value.trim(),
+                  pests: pests,
+                  pesticides: pesticides
+                });
+              });
+              document.getElementById('spray-entries-json').value = JSON.stringify(entries);
+            });
+          }
         })();
         </script>
 
