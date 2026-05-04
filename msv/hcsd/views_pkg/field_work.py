@@ -528,10 +528,12 @@ def field_work_report_print(request, pk):
             'location': loc,
             'action': ', '.join(p.get('name', '') for p in pesticides),
         })
+    time_in_dt = order.time_in or order.location_saved_at
     return render(request, 'hcsd/field_work_report_print.html', {
         'order': order,
         'materials': materials,
         'observations': observations,
+        'time_in_dt': time_in_dt,
     })
 
 
