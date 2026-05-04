@@ -863,7 +863,9 @@ select.form-control{cursor:pointer;}
           }
 
           document.getElementById('add-spray-entry-btn').addEventListener('click', function(){
-            entriesList.appendChild(createCard({}));
+            var c = createCard({});
+            entriesList.appendChild(c);
+            c.scrollIntoView({behavior:'smooth', block:'center'});
           });
 
           // Serialize on submit
