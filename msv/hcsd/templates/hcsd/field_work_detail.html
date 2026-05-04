@@ -557,31 +557,9 @@ select.form-control{cursor:pointer;}
         <div class="form-group">
           <label class="form-label">الحالة <span style="color:#e11d48;">*</span></label>
           <select name="status" class="form-control" id="status-select">
-            {% for val, label in order.STATUS_CHOICES %}
-            <option value="{{ val }}" {% if order.status == val %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
+            <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>تم إنجاز الخدمة</option>
+            <option value="postponed_client" {% if order.status == 'postponed_client' %}selected{% endif %}>تأجيل من العميل</option>
           </select>
-        </div>
-
-        <!-- No-answer screenshot section -->
-        <div id="no-answer-section" style="display:none;margin-bottom:16px;padding:14px 16px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;">
-          <div style="font-size:13px;font-weight:700;color:#c2410c;margin-bottom:10px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:-2px;margin-left:5px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            يرجى رفع سكرين شوت يثبت عدم الرد
-          </div>
-          {% if order.no_answer_screenshot %}
-          <div style="margin-bottom:10px;">
-            <div style="font-size:11px;color:#92400e;margin-bottom:6px;font-weight:600;">الصورة الحالية:</div>
-            <img src="{{ order.no_answer_screenshot.url }}" alt="صورة عدم الرد"
-                 style="max-width:200px;border-radius:7px;border:1.5px solid #fed7aa;">
-          </div>
-          {% endif %}
-          <label class="form-label" style="color:#92400e;">
-            {% if order.no_answer_screenshot %}تغيير الصورة{% else %}رفع الصورة{% endif %}
-          </label>
-          <input type="file" name="no_answer_screenshot" accept="image/*"
-                 class="form-control" id="screenshot-input"
-                 {% if not order.no_answer_screenshot %}required{% endif %}>
         </div>
 
         <div class="form-row">
@@ -916,24 +894,6 @@ function switchTab(phase, btn) {
   });
 })();
 
-// No-answer screenshot section toggle
-(function(){
-  var sel = document.getElementById('status-select');
-  var sec = document.getElementById('no-answer-section');
-  var inp = document.getElementById('screenshot-input');
-  if(!sel || !sec) return;
-  var NO_ANSWER = ['no_answer','wrong_phone','phone_off'];
-  var hasExisting = {{ order.no_answer_screenshot|yesno:"true,false" }};
-  function update(){
-    var show = NO_ANSWER.indexOf(sel.value) !== -1;
-    sec.style.display = show ? 'block' : 'none';
-    if(inp){
-      inp.required = show && !hasExisting;
-    }
-  }
-  sel.addEventListener('change', update);
-  update();
-})();
 
 // ── Modern image drop zones ───────────────────────────────────────────────
 (function(){

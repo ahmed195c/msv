@@ -296,20 +296,16 @@ def field_work_detail(request, pk):
 
         # ── Supervisor report ────────────────────────────────────────────────
         elif action == 'supervisor_report' and can_submit_report:
-            new_status      = (request.POST.get('status') or '').strip()
-            workers_raw     = (request.POST.get('workers_count') or '').strip()
-            vehicles_raw    = (request.POST.get('vehicles_count') or '').strip()
-            spray_location  = (request.POST.get('spray_location') or '').strip()
-            pesticides      = (request.POST.get('pesticides_used') or '').strip()
-            sup_notes       = (request.POST.get('supervisor_notes') or '').strip()
-            screenshot      = request.FILES.get('no_answer_screenshot')
+            new_status     = (request.POST.get('status') or '').strip()
+            workers_raw    = (request.POST.get('workers_count') or '').strip()
+            vehicles_raw   = (request.POST.get('vehicles_count') or '').strip()
+            spray_location = (request.POST.get('spray_location') or '').strip()
+            pesticides     = (request.POST.get('pesticides_used') or '').strip()
+            sup_notes      = (request.POST.get('supervisor_notes') or '').strip()
 
-            no_answer_statuses = {'no_answer', 'wrong_phone', 'phone_off'}
-            valid_statuses = {s for s, _ in FieldWorkOrder.STATUS_CHOICES}
-            if new_status not in valid_statuses:
+            valid_report_statuses = {'completed', 'postponed_client'}
+            if new_status not in valid_report_statuses:
                 errors.append('يرجى اختيار الحالة.')
-            elif new_status in no_answer_statuses and not screenshot and not order.no_answer_screenshot:
-                errors.append('يرجى رفع صورة سكرين شوت تثبت عدم الرد.')
             else:
                 def _to_int(val):
                     try:
@@ -318,11 +314,6 @@ def field_work_detail(request, pk):
                     except (ValueError, TypeError):
                         return None
 
-                update_fields = [
-                    'status', 'workers_count', 'vehicles_count',
-                    'spray_location', 'pesticides_used', 'supervisor_notes',
-                    'report_submitted_by', 'report_submitted_at',
-                ]
                 order.status           = new_status
                 order.workers_count    = _to_int(workers_raw)
                 order.vehicles_count   = _to_int(vehicles_raw)
@@ -331,10 +322,11 @@ def field_work_detail(request, pk):
                 order.supervisor_notes = sup_notes
                 order.report_submitted_by = request.user
                 order.report_submitted_at = timezone.now()
-                if screenshot:
-                    order.no_answer_screenshot = screenshot
-                    update_fields.append('no_answer_screenshot')
-                order.save(update_fields=update_fields)
+                order.save(update_fields=[
+                    'status', 'workers_count', 'vehicles_count',
+                    'spray_location', 'pesticides_used', 'supervisor_notes',
+                    'report_submitted_by', 'report_submitted_at',
+                ])
                 success = 'تم حفظ تقرير المراقب.'
 
         # ── Close request ───────────────────────────────────────────────────
