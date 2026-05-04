@@ -775,19 +775,31 @@ select.form-control{cursor:pointer;}
             body.appendChild(locWrap);
             initCombo(locInp, locUl, LOCATIONS, function(l){ return l; }, null);
 
-            // building type
+            // building type — radio pills (single selection)
             var bldWrap = document.createElement('div');
-            bldWrap.style.cssText = 'margin-bottom:12px;position:relative;';
-            var bldLbl = document.createElement('label');
-            bldLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;';
+            bldWrap.style.cssText = 'margin-bottom:12px;';
+            var bldLbl = document.createElement('div');
+            bldLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;';
             bldLbl.textContent = 'نوع المبنى';
-            var bldInp = document.createElement('input');
-            bldInp.type='text'; bldInp.autocomplete='off'; bldInp.placeholder='ابحث…';
-            bldInp.className='form-control bld-inp'; bldInp.value = data.building_type||'';
-            var bldUl = makeDrop();
-            bldWrap.appendChild(bldLbl); bldWrap.appendChild(bldInp); bldWrap.appendChild(bldUl);
+            var bldGrid = document.createElement('div');
+            bldGrid.style.cssText = 'display:flex;flex-wrap:wrap;gap:7px;';
+            var radioName = 'bld_' + n;
+            BUILDING_TYPES.forEach(function(bt){
+              var lbl = document.createElement('label');
+              lbl.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:12.5px;cursor:pointer;padding:5px 11px;border:1.5px solid #e2e8f0;border-radius:20px;background:#f8fafc;user-select:none;';
+              var rb = document.createElement('input');
+              rb.type='radio'; rb.name=radioName; rb.value=bt; rb.className='bld-rb';
+              rb.style.cssText = 'cursor:pointer;';
+              if((data.building_type||'')=== bt){ rb.checked=true; lbl.style.background='#dcfce7'; lbl.style.borderColor='#16a34a'; }
+              rb.addEventListener('change', function(){
+                bldGrid.querySelectorAll('label').forEach(function(l){ l.style.background='#f8fafc'; l.style.borderColor='#e2e8f0'; });
+                lbl.style.background='#dcfce7'; lbl.style.borderColor='#16a34a';
+              });
+              lbl.appendChild(rb); lbl.appendChild(document.createTextNode(bt));
+              bldGrid.appendChild(lbl);
+            });
+            bldWrap.appendChild(bldLbl); bldWrap.appendChild(bldGrid);
             body.appendChild(bldWrap);
-            initCombo(bldInp, bldUl, BUILDING_TYPES, function(b){ return b; }, null);
 
             // pests
             var pestWrap = document.createElement('div');
@@ -868,9 +880,10 @@ select.form-control{cursor:pointer;}
                   var unit = (row.querySelector('.pst-unit')||{value:'ML'}).value;
                   if (nm) pesticides.push({name:nm, qty:qty, unit:unit});
                 });
+                var bldChecked = card.querySelector('.bld-rb:checked');
                 entries.push({
                   location: (card.querySelector('.loc-inp')||{value:''}).value.trim(),
-                  building_type: (card.querySelector('.bld-inp')||{value:''}).value.trim(),
+                  building_type: bldChecked ? bldChecked.value : '',
                   pests: pests,
                   pesticides: pesticides
                 });
