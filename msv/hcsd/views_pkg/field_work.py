@@ -297,7 +297,6 @@ def field_work_detail(request, pk):
         # ── Supervisor report ────────────────────────────────────────────────
         elif action == 'supervisor_report' and can_submit_report:
             import json as _json
-            new_status     = (request.POST.get('status') or '').strip()
             workers_raw    = (request.POST.get('workers_count') or '').strip()
             vehicles_raw   = (request.POST.get('vehicles_count') or '').strip()
             building_type  = (request.POST.get('building_type') or '').strip()
@@ -318,36 +317,51 @@ def field_work_detail(request, pk):
             if supervisor_sig and not supervisor_sig.startswith(_SIG_PREFIX):
                 supervisor_sig = ''
 
-            valid_report_statuses = {'completed', 'postponed_client'}
-            if new_status not in valid_report_statuses:
-                errors.append('يرجى اختيار الحالة.')
-            else:
-                def _to_int(val):
-                    try:
-                        v = int(val)
-                        return v if v >= 0 else None
-                    except (ValueError, TypeError):
-                        return None
+            def _to_int(val):
+                try:
+                    v = int(val)
+                    return v if v >= 0 else None
+                except (ValueError, TypeError):
+                    return None
 
-                order.status              = new_status
-                order.workers_count       = _to_int(workers_raw)
-                order.vehicles_count      = _to_int(vehicles_raw)
-                order.building_type       = building_type
-                order.spray_entries       = spray_entries
-                order.supervisor_notes    = sup_notes
-                order.report_submitted_by = request.user
-                order.report_submitted_at = timezone.now()
-                if client_sig:
-                    order.client_signature = client_sig
-                if supervisor_sig:
-                    order.supervisor_signature = supervisor_sig
-                order.save(update_fields=[
-                    'status', 'workers_count', 'vehicles_count',
-                    'building_type', 'spray_entries', 'supervisor_notes',
-                    'report_submitted_by', 'report_submitted_at',
-                    'client_signature', 'supervisor_signature',
-                ])
-                success = 'تم حفظ تقرير المراقب.'
+            order.status              = 'completed'
+            order.workers_count       = _to_int(workers_raw)
+            order.vehicles_count      = _to_int(vehicles_raw)
+            order.building_type       = building_type
+            order.spray_entries       = spray_entries
+            order.supervisor_notes    = sup_notes
+            order.report_submitted_by = request.user
+            order.report_submitted_at = timezone.now()
+            if client_sig:
+                order.client_signature = client_sig
+            if supervisor_sig:
+                order.supervisor_signature = supervisor_sig
+            order.save(update_fields=[
+                'status', 'workers_count', 'vehicles_count',
+                'building_type', 'spray_entries', 'supervisor_notes',
+                'report_submitted_by', 'report_submitted_at',
+                'client_signature', 'supervisor_signature',
+            ])
+            success = 'تم حفظ تقرير المراقب — الحالة: تم إنجاز الخدمة.'
+
+        elif action == 'postpone_order' and can_submit_report:
+            from datetime import date as _date
+            postponed_until_raw = (request.POST.get('postponed_until') or '').strip()
+            postpone_notes      = (request.POST.get('postpone_notes') or '').strip()
+            try:
+                postponed_until = _date.fromisoformat(postponed_until_raw)
+                if postponed_until <= _date.today():
+                    errors.append('يرجى اختيار تاريخ مستقبلي.')
+            except ValueError:
+                postponed_until = None
+                errors.append('يرجى تحديد تاريخ التأجيل.')
+            if not errors:
+                order.status         = 'postponed_client'
+                order.postponed_until = postponed_until
+                if postpone_notes:
+                    order.supervisor_notes = postpone_notes
+                order.save(update_fields=['status', 'postponed_until', 'supervisor_notes'])
+                success = f'تم تأجيل الموعد إلى {postponed_until.strftime("%d/%m/%Y")}.'
 
         # ── Close request ───────────────────────────────────────────────────
         elif action == 'close_request' and (can_submit_report or can_edit):
@@ -398,6 +412,7 @@ def field_work_detail(request, pk):
     fw_supervisor_users = _fw_supervisor_users_qs() if can_assign else []
     is_closed = order.status in _FW_CLOSED_STATUSES
     can_close = (can_submit_report or can_edit) and not is_closed
+    from datetime import date as _date
     _BUILDING_TYPE_CHOICES = [
         'Villa', 'Government Facility', 'School', 'Public Park',
         'Mosque', 'Palace', 'Labor Accommodation', 'Vip Villa',
@@ -418,6 +433,7 @@ def field_work_detail(request, pk):
         'errors': errors,
         'success': success,
         'building_type_choices': _BUILDING_TYPE_CHOICES,
+        'today_date': _date.today().isoformat(),
     })
 
 

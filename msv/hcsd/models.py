@@ -1084,6 +1084,7 @@ class FieldWorkOrder(models.Model):
     # ── Supervisor report fields ──────────────────────────────────────────
     building_type    = models.CharField(max_length=100, blank=True, verbose_name='نوع المبنى')
     vehicles_count   = models.PositiveIntegerField(null=True, blank=True, verbose_name='عدد السيارات')
+    postponed_until  = models.DateField(null=True, blank=True, verbose_name='تاريخ التأجيل')
     pesticides_used  = models.TextField(blank=True, verbose_name='المبيدات المستخدمة')
     supervisor_notes = models.TextField(blank=True, verbose_name='ملاحظات المراقب')
     no_answer_screenshot = models.ImageField(
