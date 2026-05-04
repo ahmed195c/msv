@@ -50,21 +50,20 @@ ALLOWED_HOSTS = [
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': '/home/ahmed/msv/django_errors.log',
+_LOG_FILE = '/home/ahmed/msv/django_errors.log'
+if os.path.isdir(os.path.dirname(_LOG_FILE)):
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'file': {
+                'level': 'ERROR',
+                'class': 'logging.FileHandler',
+                'filename': _LOG_FILE,
+            },
         },
-    },
-    'root': {
-        'handlers': ['file'],
-        'level': 'ERROR',
-    },
-}
+        'root': {'handlers': ['file'], 'level': 'ERROR'},
+    }
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',

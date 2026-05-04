@@ -520,6 +520,12 @@ select.form-control{cursor:pointer;}
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">عدد السيارات</div>
         <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ order.vehicles_count|default:"—" }}</div>
       </div>
+      {% if order.spray_location %}
+      <div style="grid-column:1/-1;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">مكان الرش</div>
+        <div style="font-size:13px;color:#0f172a;">{{ order.spray_location }}</div>
+      </div>
+      {% endif %}
       {% if order.pesticides_used %}
       <div style="grid-column:1/-1;">
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">المبيدات المستخدمة</div>
@@ -593,11 +599,72 @@ select.form-control{cursor:pointer;}
           </div>
         </div>
 
+        <div class="form-group" style="position:relative;">
+          <label class="form-label">مكان الرش</label>
+          <input type="text" name="spray_location" id="spray-location-input" class="form-control"
+            autocomplete="off" placeholder="ابحث أو اكتب المكان…"
+            value="{{ order.spray_location }}">
+          <ul id="spray-location-list" style="display:none;position:absolute;z-index:200;width:100%;max-height:220px;overflow-y:auto;background:#fff;border:1.5px solid #cbd5e1;border-top:none;border-radius:0 0 8px 8px;margin:0;padding:0;list-style:none;box-shadow:0 4px 16px rgba(0,0,0,.10);"></ul>
+        </div>
+
         <div class="form-group">
           <label class="form-label">المبيدات المستخدمة</label>
           <textarea name="pesticides_used" class="form-control" rows="2"
             placeholder="مثال: سيبرمثرين 100مل، ديلتامثرين 50مل…">{{ order.pesticides_used }}</textarea>
         </div>
+
+        <script>
+        (function(){
+          var LOCATIONS = ["Accommodation","Admin Area","Airport","Animal Basins","Animal Feeding Area","Animal Pot","Animal Shed","Ants Nest","Auditorium","Back Yard","Basement","Basin","Bathroom","Bee Hive","Bins","Bucket","Building","Burrows","Cabinet houses","Ceiling","Channel","Classroom","Clinic Room","Closed Water Tank","Closet","Common Area","Compost Hole","Conference Rm","Construction Site","Corners","Cracks and Crevices","dedicated kitchen","Discarded Tyres","Door / Window Frames","Down Spouts","drainage","Drains/Sinks","Driver's Quarter","Drum","Dumpster Area","Electrical Room","Electricity Chamber","Escort Villa","Etisalat Chambers","exterior perimeter","exterior wallings","Ezzab","Farm(s)","Fence (internal)","Fiber Tank","fixed cabinets","Flats Basin Area","Floor Drain","Flower pots","Forest Area","Fountains","Front Door","Front Yard","Furniture","Garbage Area","Garbage Bin","Garden perimeter","Grounds","Guard House","Gymnasium","Hallways","Hanging Cabinets","Head Quarters","Helper's Quarter","Hole","Horse Barn","Hotel","House (inside)","House (outside)","Industrial Area","Inside the farm","Interior Perimeter","Irrigation Control Valve","Jail","kitchen","Labor Camp","Laboratory Room","Landfill","Laundry Room","Library","Lobby","Locker Room","Maid's Room","Manhole","Manhole in the house/villa","Manhole in the streets","Manholes","Market Area","Masjid","Office","Office Room","Open Water Tank","Palace","Palm Tree Burrows","Pantry","Pantry Closet","Park","Parking Area","Patio","Pheromone Trap","Pipe(s)","Playground","Pond","Pool","Port","Poultry","Prayer Room","Reception","Real Estate","Rodent Bait Station","Roof Top","Scrap","Security Room","Septic Tank","Sewage Manhole","Shed /Storage unit","Shooting Ranges","Shop","Sink Cabinets","Stagnant Water","Steel cabinets","Storage","Store Room","Storm Drain","Storm Water Lines","Swimming Pool","Tank","Teachers Room","Tent","Theater","toilet/bath/washroom","Trash Bins","Trees","TV","under shelves","Underground Water Tank","Villa/House","VIP building","Wadi","walls","Waste Area","Waste Room","Water Accumulation","Water Cooler","Window Frames","Wooden cabinets"];
+          var inp = document.getElementById('spray-location-input');
+          var list = document.getElementById('spray-location-list');
+          var activeIdx = -1;
+
+          function renderList(q) {
+            var q_lower = q.trim().toLowerCase();
+            var matches = q_lower === '' ? [] : LOCATIONS.filter(function(l){ return l.toLowerCase().indexOf(q_lower) !== -1; });
+            if (matches.length === 0) { list.style.display = 'none'; return; }
+            list.innerHTML = '';
+            activeIdx = -1;
+            matches.forEach(function(m, i){
+              var li = document.createElement('li');
+              li.textContent = m;
+              li.setAttribute('data-idx', i);
+              li.style.cssText = 'padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #f1f5f9;color:#0f172a;';
+              li.addEventListener('mousedown', function(e){
+                e.preventDefault();
+                inp.value = m;
+                list.style.display = 'none';
+              });
+              li.addEventListener('mouseenter', function(){ setActive(i); });
+              list.appendChild(li);
+            });
+            list.style.display = 'block';
+          }
+
+          function setActive(idx) {
+            var items = list.querySelectorAll('li');
+            items.forEach(function(li){ li.style.background = ''; });
+            activeIdx = idx;
+            if (idx >= 0 && idx < items.length) {
+              items[idx].style.background = '#eff6ff';
+              items[idx].scrollIntoView({block:'nearest'});
+            }
+          }
+
+          inp.addEventListener('input', function(){ renderList(inp.value); });
+          inp.addEventListener('focus', function(){ if (inp.value) renderList(inp.value); });
+          inp.addEventListener('blur', function(){ setTimeout(function(){ list.style.display='none'; }, 150); });
+          inp.addEventListener('keydown', function(e){
+            var items = list.querySelectorAll('li');
+            if (e.key === 'ArrowDown') { e.preventDefault(); setActive(Math.min(activeIdx+1, items.length-1)); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(activeIdx-1, 0)); }
+            else if (e.key === 'Enter' && activeIdx >= 0 && list.style.display !== 'none') {
+              e.preventDefault(); inp.value = items[activeIdx].textContent; list.style.display = 'none';
+            } else if (e.key === 'Escape') { list.style.display = 'none'; }
+          });
+        })();
+        </script>
 
         <div class="form-group">
           <label class="form-label">ملاحظات المراقب</label>

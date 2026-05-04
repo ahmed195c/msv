@@ -299,6 +299,7 @@ def field_work_detail(request, pk):
             new_status      = (request.POST.get('status') or '').strip()
             workers_raw     = (request.POST.get('workers_count') or '').strip()
             vehicles_raw    = (request.POST.get('vehicles_count') or '').strip()
+            spray_location  = (request.POST.get('spray_location') or '').strip()
             pesticides      = (request.POST.get('pesticides_used') or '').strip()
             sup_notes       = (request.POST.get('supervisor_notes') or '').strip()
             screenshot      = request.FILES.get('no_answer_screenshot')
@@ -319,12 +320,13 @@ def field_work_detail(request, pk):
 
                 update_fields = [
                     'status', 'workers_count', 'vehicles_count',
-                    'pesticides_used', 'supervisor_notes',
+                    'spray_location', 'pesticides_used', 'supervisor_notes',
                     'report_submitted_by', 'report_submitted_at',
                 ]
                 order.status           = new_status
                 order.workers_count    = _to_int(workers_raw)
                 order.vehicles_count   = _to_int(vehicles_raw)
+                order.spray_location   = spray_location
                 order.pesticides_used  = pesticides
                 order.supervisor_notes = sup_notes
                 order.report_submitted_by = request.user
