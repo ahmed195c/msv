@@ -59,6 +59,27 @@ td{padding:10px 12px;vertical-align:middle;}
 .fw-pag .current{background:var(--accent);color:#fff;border-color:var(--accent);}
 
 .fw-count{font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:10px;}
+
+/* Mobile cards */
+.fw-cards{display:none;flex-direction:column;gap:10px;}
+.fw-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:14px 14px 10px;text-decoration:none;color:inherit;display:block;transition:box-shadow .15s;}
+.fw-card:active{box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.fw-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.fw-card-num{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--accent);}
+.fw-card-body{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;margin-bottom:10px;}
+.fw-card-field{display:flex;flex-direction:column;gap:1px;}
+.fw-card-label{font-size:10px;font-weight:700;color:var(--ink-4);letter-spacing:.04em;}
+.fw-card-value{font-size:13px;color:var(--ink-1);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fw-card-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:8px;}
+
+@media(max-width:700px){
+  .fw-table-wrap{display:none;}
+  .fw-cards{display:flex;}
+  .fw-header{flex-direction:column;align-items:flex-start;}
+  .fw-filters{gap:8px;}
+  .fw-filter-group{width:100%;}
+  .fw-filter-select{width:100%;}
+}
 </style>
 
 <section class="fw-page">
@@ -204,6 +225,48 @@ td{padding:10px 12px;vertical-align:middle;}
         {% endfor %}
       </tbody>
     </table>
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="fw-cards">
+    {% for order in page_obj %}
+    <a href="{% url 'field_work_detail' order.pk %}" class="fw-card">
+      <div class="fw-card-top">
+        <span class="fw-card-num">{% if order.order_number %}{{ order.order_number }}{% else %}#{{ order.pk }}{% endif %}</span>
+        <span class="badge
+          {% if order.status == 'completed' %}s-completed
+          {% elif order.status == 'private_company' %}s-private
+          {% elif order.status == 'cust_declined' %}s-declined
+          {% elif order.status == 'wrong_phone' or order.status == 'phone_off' or order.status == 'no_answer' %}s-phone
+          {% elif order.status == 'postponed_client' %}s-postponed
+          {% elif order.status == 'gov_dept' %}s-gov
+          {% elif order.status == 'other_municipal' %}s-other-mun
+          {% else %}s-pending{% endif %}">{{ order.get_status_display }}</span>
+      </div>
+      <div class="fw-card-body">
+        <div class="fw-card-field">
+          <span class="fw-card-label">المتعامل</span>
+          <span class="fw-card-value">{% if order.customer_name %}{{ order.customer_name }}{% elif order.site_name %}{{ order.site_name }}{% else %}—{% endif %}</span>
+        </div>
+        <div class="fw-card-field">
+          <span class="fw-card-label">المنطقة</span>
+          <span class="fw-card-value">{% if order.area %}{{ order.area }}{% elif order.location %}{{ order.location }}{% else %}—{% endif %}</span>
+        </div>
+        <div class="fw-card-field">
+          <span class="fw-card-label">تاريخ الطلب</span>
+          <span class="fw-card-value">{% if order.request_date %}{{ order.request_date|date:"d/m/Y" }}{% elif order.work_date %}{{ order.work_date|date:"d/m/Y" }}{% else %}—{% endif %}</span>
+        </div>
+        <div class="fw-card-field">
+          <span class="fw-card-label">المشرف</span>
+          <span class="fw-card-value">{{ order.supervisor_name|default:"—" }}</span>
+        </div>
+      </div>
+      <div class="fw-card-footer">
+        <span class="fw-card-label">{{ order.pest_types|default:"—"|truncatechars:30 }}</span>
+        {% if order.source == 'excel' %}<span class="src-excel">Excel</span>{% else %}<span class="src-manual">يدوي</span>{% endif %}
+      </div>
+    </a>
+    {% endfor %}
   </div>
 
   <!-- Pagination -->
