@@ -296,12 +296,20 @@ def field_work_detail(request, pk):
 
         # ── Supervisor report ────────────────────────────────────────────────
         elif action == 'supervisor_report' and can_submit_report:
-            new_status     = (request.POST.get('status') or '').strip()
-            workers_raw    = (request.POST.get('workers_count') or '').strip()
-            vehicles_raw   = (request.POST.get('vehicles_count') or '').strip()
-            spray_location = (request.POST.get('spray_location') or '').strip()
-            pesticides     = (request.POST.get('pesticides_used') or '').strip()
-            sup_notes      = (request.POST.get('supervisor_notes') or '').strip()
+            new_status           = (request.POST.get('status') or '').strip()
+            workers_raw          = (request.POST.get('workers_count') or '').strip()
+            vehicles_raw         = (request.POST.get('vehicles_count') or '').strip()
+            spray_location       = (request.POST.get('spray_location') or '').strip()
+            pesticides           = (request.POST.get('pesticides_used') or '').strip()
+            sup_notes            = (request.POST.get('supervisor_notes') or '').strip()
+            client_sig           = (request.POST.get('client_signature') or '').strip()
+            supervisor_sig       = (request.POST.get('supervisor_signature') or '').strip()
+
+            _SIG_PREFIX = 'data:image/png;base64,'
+            if client_sig and not client_sig.startswith(_SIG_PREFIX):
+                client_sig = ''
+            if supervisor_sig and not supervisor_sig.startswith(_SIG_PREFIX):
+                supervisor_sig = ''
 
             valid_report_statuses = {'completed', 'postponed_client'}
             if new_status not in valid_report_statuses:
@@ -314,19 +322,25 @@ def field_work_detail(request, pk):
                     except (ValueError, TypeError):
                         return None
 
-                order.status           = new_status
-                order.workers_count    = _to_int(workers_raw)
-                order.vehicles_count   = _to_int(vehicles_raw)
-                order.spray_location   = spray_location
-                order.pesticides_used  = pesticides
-                order.supervisor_notes = sup_notes
+                order.status             = new_status
+                order.workers_count      = _to_int(workers_raw)
+                order.vehicles_count     = _to_int(vehicles_raw)
+                order.spray_location     = spray_location
+                order.pesticides_used    = pesticides
+                order.supervisor_notes   = sup_notes
                 order.report_submitted_by = request.user
                 order.report_submitted_at = timezone.now()
-                order.save(update_fields=[
+                if client_sig:
+                    order.client_signature = client_sig
+                if supervisor_sig:
+                    order.supervisor_signature = supervisor_sig
+                update_fields = [
                     'status', 'workers_count', 'vehicles_count',
                     'spray_location', 'pesticides_used', 'supervisor_notes',
                     'report_submitted_by', 'report_submitted_at',
-                ])
+                    'client_signature', 'supervisor_signature',
+                ]
+                order.save(update_fields=update_fields)
                 success = 'تم حفظ تقرير المراقب.'
 
         # ── Close request ───────────────────────────────────────────────────
