@@ -1,0 +1,289 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pest Control Service Report – {{ order.pk }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, "Tahoma", sans-serif;
+      background: #f0f0f0;
+      color: #1a1a1a;
+      font-size: 12px;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      padding: 8mm 12mm 6mm;
+      background: #fff;
+      background-image: url("{% static 'hcsd/border.jpeg' %}");
+      background-repeat: no-repeat;
+      background-size: 110% 100%;
+      background-position: center top;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .doc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 52px;
+      margin-bottom: 10px;
+      padding: 0 4px;
+    }
+    .header-logo img { width: 80px; height: auto; }
+    .header-center { text-align: center; flex: 1; }
+    .header-center .dept-en {
+      font-size: 10px; color: #555; font-style: italic;
+    }
+    .header-center .dept-ar {
+      font-size: 13px; font-weight: 700; color: #1a3a1a; direction: rtl;
+    }
+    .header-center .mun-name {
+      font-size: 12px; font-weight: 600; color: #2d5a2d;
+    }
+
+    /* ── Title ── */
+    .report-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: underline;
+      margin: 10px 0 14px;
+      letter-spacing: .3px;
+    }
+
+    /* ── Section headings ── */
+    .section-heading {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a3a1a;
+      margin: 12px 0 6px;
+    }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 4px;
+    }
+    th, td {
+      border: 1px solid #555;
+      padding: 5px 7px;
+      font-size: 11.5px;
+      vertical-align: middle;
+    }
+    th {
+      background: #d4e8c2;
+      font-weight: 700;
+      text-align: center;
+    }
+    td.lbl {
+      background: #f5f5f5;
+      font-weight: 600;
+      white-space: nowrap;
+      width: 90px;
+    }
+    td.val { min-width: 100px; }
+
+    /* ── Signature row ── */
+    .sig-table td {
+      height: 80px;
+      vertical-align: top;
+      padding: 5px 7px;
+    }
+    .sig-table td.sig-head {
+      background: #ccc;
+      font-weight: 700;
+      height: auto;
+      vertical-align: middle;
+      text-align: center;
+      font-size: 11px;
+      padding: 5px;
+    }
+    .sig-table img {
+      max-width: 100%;
+      max-height: 70px;
+      object-fit: contain;
+    }
+
+    /* ── Footer ── */
+    .doc-footer {
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid #aaa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      color: #555;
+    }
+    .doc-footer img { height: 28px; }
+
+    /* ── Print controls ── */
+    .no-print {
+      text-align: center;
+      padding: 14px;
+      background: #f1f5f9;
+    }
+    .print-btn {
+      display: inline-block;
+      padding: 9px 24px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 4px;
+      text-decoration: none;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff; }
+      .page { margin: 0; box-shadow: none; }
+      @page { margin: 0; size: A4; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print">
+  <button class="print-btn" onclick="window.print()">🖨 Print Report</button>
+  <a class="print-btn" href="{% url 'field_work_detail' order.pk %}" style="background:#64748b;">← Back</a>
+</div>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="doc-header">
+    <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="Logo" style="width:80px;">
+    <div class="header-center">
+      <div class="dept-en">United Arab Emirates – Sharjah Government</div>
+      <div class="dept-ar">بلدية مدينة الشارقة</div>
+      <div class="mun-name">SHARJAH CITY MUNICIPALITY</div>
+    </div>
+    <div style="width:80px;"></div>
+  </div>
+
+  <!-- Title -->
+  <div class="report-title">Pest Control Service</div>
+
+  <!-- General Information -->
+  <div class="section-heading">General Information</div>
+  <table>
+    <colgroup>
+      <col style="width:90px;"><col><col style="width:100px;"><col>
+    </colgroup>
+    <tr>
+      <td class="lbl">#Request</td>
+      <td class="val">{{ order.order_number|default:order.pk }}</td>
+      <td class="lbl">Received Date</td>
+      <td class="val">{{ order.received_at|date:"d/m/Y"|default:order.created_at|date:"d/m/Y" }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Client</td>
+      <td class="val">{{ order.site_name|default:"—" }}</td>
+      <td class="lbl">Close Out Date</td>
+      <td class="val">{{ order.report_submitted_at|date:"d/m/Y"|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Location</td>
+      <td class="val">{{ order.location|default:"—" }}</td>
+      <td class="lbl">Time In</td>
+      <td class="val">{{ order.received_at|date:"H:i"|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Phone</td>
+      <td class="val">{{ order.phone|default:"—" }}</td>
+      <td class="lbl">Time Out</td>
+      <td class="val">{{ order.report_submitted_at|date:"H:i"|default:"" }}</td>
+    </tr>
+  </table>
+
+  <!-- Materials Used -->
+  <div class="section-heading">Materials Used</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th style="width:70px;">Qty</th>
+        <th>Active Ingredient</th>
+        <th>Location</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in materials %}
+      <tr>
+        <td>{{ row.product }}</td>
+        <td style="text-align:center;">{{ row.qty }}</td>
+        <td>{{ row.active_ingredient }}</td>
+        <td>{{ row.location }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" style="text-align:center;color:#aaa;padding:10px;">—</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Observations / Recommendations -->
+  <div class="section-heading">Observations / Recommendations</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Observation</th>
+        <th>Category of Pest</th>
+        <th>Pest Found</th>
+        <th>Location</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in observations %}
+      <tr>
+        <td style="text-align:center;">{{ row.building_type }}</td>
+        <td>{{ row.observation }}</td>
+        <td style="text-align:center;">{{ row.pest_category }}</td>
+        <td>{{ row.pest_found }}</td>
+        <td>{{ row.location }}</td>
+        <td style="font-size:10.5px;">{{ row.action }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align:center;color:#aaa;padding:10px;">—</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Signatures -->
+  <table class="sig-table" style="margin-top:14px;">
+    <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
+    <tr>
+      <td class="sig-head">Completed By:<br>{{ order.report_submitted_by.get_full_name|default:order.report_submitted_by.username|default:"-" }}</td>
+      <td>{% if order.supervisor_signature %}<img src="{{ order.supervisor_signature }}" alt="supervisor signature">{% endif %}</td>
+      <td class="sig-head">Client Name:<br>{{ order.site_name|default:"-" }}</td>
+      <td>{% if order.client_signature %}<img src="{{ order.client_signature }}" alt="client signature">{% endif %}</td>
+    </tr>
+  </table>
+
+  <!-- Footer -->
+  <div class="doc-footer">
+    <span>☎ 971165623333</span>
+    <span>shjmun.gov.ae</span>
+    <img src="{% static 'hcsd/pirmet_header.png' %}" alt="">
+    <span>nfo@shjmun.gov.ae</span>
+    <span>AlmusallahSHJ</span>
+  </div>
+
+</div>
+</body>
+</html>

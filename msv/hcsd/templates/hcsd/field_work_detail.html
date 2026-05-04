@@ -122,6 +122,7 @@ select.form-control{cursor:pointer;}
       <h1>{% if order.order_number %}طلب رقم {{ order.order_number }}{% elif order.work_type %}{{ order.work_type }}{% else %}أمر عمل ميداني{% endif %}</h1>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="{% url 'field_work_report_print' order.pk %}" class="btn btn-primary" target="_blank">🖨 طباعة التقرير</a>
       <a href="{% url 'field_work_report' order.pk %}" class="btn btn-word">⬇ تحميل تقرير Word</a>
       <a href="{% url 'field_work_list' %}" class="btn btn-outline">← رجوع للقائمة</a>
     </div>

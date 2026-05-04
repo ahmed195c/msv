@@ -136,4 +136,5 @@ urlpatterns = [
     path('field-work/excel-review/', views.field_work_excel_review, name='field_work_excel_review'),
     path('field-work/<int:pk>/', views.field_work_detail, name='field_work_detail'),
     path('field-work/<int:pk>/report/', views.field_work_report, name='field_work_report'),
+    path('field-work/<int:pk>/print/', views.field_work_report_print, name='field_work_report_print'),
 ]

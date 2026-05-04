@@ -438,6 +438,100 @@ def field_work_detail(request, pk):
 
 
 # ---------------------------------------------------------------------------
+# Print Report
+# ---------------------------------------------------------------------------
+
+_ACTIVE_INGREDIENTS = {
+    "Actellic 50 EC": "Primiphos Methyl 50%",
+    "ECOLARVACIDE EC": "Temephos 50%",
+    "Starycide SC 480": "Triflumuron 48%",
+    "DIFRON 25 SC": "Diflubenzuron 25%",
+    "GRAYBATE 50 SG": "Temephos 50 g/kg",
+    "BIOPREN 4 GR": "S-Methoprene 0.4%",
+    "LAROXYFEN PLUS WT": "Pyriproxyfen 2%",
+    "Aqua k-Othrine": "Deltamethrin 20 g/L",
+    "Chirotox": "Tetramethrin 5% / Piperonyl Butoxide 5%",
+    "TETRACON 50 EC": "Lambda-cyhalothrin 50 g/L / Tetramethrin 10 g/L / PBO 20 g/L",
+    "KULCYPERIN 100/3 EC": "Cypermethrin 10% / Tetramethrin 0.5% / Piperonyl Butoxide 2.5%",
+    "DEMON MAX INSECTICIDE": "Cypermethrin 25.3% (w/w)",
+    "Solfac EC 50": "Cyfluthrin 5%",
+    "CYMPERATOR 25 EC": "Cypermethrin 26%",
+    "Bio Amplat": "Cypermethrin 93% min. / Tetramethrin 94% min. / Piperonyl Butoxide 94% min.",
+    "ROTRYN 200": "Cypermethrin 20% w/w (200 g/L)",
+    "GUADIN SE": "Dinotefuran 10%",
+    "BAITFURAN SP": "Dinotefuran 12%",
+    "Detral Super": "Deltamethrin 0.7 g / Esbiothrin 0.7 g / Piperonyl Butoxide 7 g",
+    "K-Othrine Partix": "Deltamethrin 25 g/L",
+    "PERMETHOR": "Permethrin 10 g/kg",
+    "Temprid SC": "Imidacloprid 21% / Beta-Cyfluthrin 10.5%",
+    "HYMENOPHTHOR GR": "Fipronil 0.1 g/kg",
+    "Vertox Oktablok": "Brodifacoum 0.005%",
+    "FACORAT PELLETS": "Brodifacoum 0.005 g",
+    "VICTOR V FAST-KILL BRAND BLOCKS II": "Bromethalin 0.01%",
+    "SUREFIRE ALL WEATHER BLOCKS": "Brodifacoum 0.05 g/kg",
+    "PROTECT SENSATION 2IN1": "Bromadiolone 0.005% (0.05 g/kg)",
+    "VERTOX PASTA BAIT": "Brodifacoum 0.005% (0.05 g/kg)",
+    "STELLIOX D50": "Difenacoum 0.005% W/W",
+    "TALON WB": "Brodifacoum 0.005%",
+    "SUREFIRE BROMA BLOCKS RODENTICIDE": "Bromadiolone 0.05 g/kg",
+    "NOCURAT PARAFFINATO": "Difenacoum",
+    "BuyBlocker Snake Deter": "Cedar Oil 1.00% / Cinnamon Oil 0.60% / Clove Oil 0.40%",
+    "BOOM": "Clove Oil / Peppermint Oil / Citronella Oil / Cedar Oil / Cinnamon Oil / Thyme Oil",
+    "CYPFORCE 40 EC": "Cypermethrin 25% / Tetramethrin 5% / Piperonyl Butoxide 10%",
+    "D-TETRASUPER EC": "D-Tetramethrin 10%",
+    "TEMEPHOS 55EC": "Temephos 50%",
+}
+
+_INSECT_IDS  = {'نمل', 'صراصير', 'بعوض', 'ذباب'}
+_RODENT_IDS  = {'فئران'}
+_REPTILE_IDS = {'ثعبان'}
+
+def _pest_category(pests):
+    cats = []
+    if any(p in _INSECT_IDS for p in pests):
+        cats.append('Insects')
+    if any(p in _RODENT_IDS for p in pests):
+        cats.append('Rodents')
+    if any(p in _REPTILE_IDS for p in pests):
+        cats.append('Reptiles')
+    return ' / '.join(cats) if cats else ''
+
+
+@login_required
+def field_work_report_print(request, pk):
+    order = get_object_or_404(
+        FieldWorkOrder.objects.select_related('report_submitted_by'),
+        pk=pk,
+    )
+    materials = []
+    observations = []
+    for entry in (order.spray_entries or []):
+        loc = entry.get('location', '')
+        pests = entry.get('pests', [])
+        pesticides = entry.get('pesticides', [])
+        for p in pesticides:
+            materials.append({
+                'product': p.get('name', ''),
+                'qty': f"{p.get('qty', '')} {p.get('unit', '')}".strip(),
+                'active_ingredient': _ACTIVE_INGREDIENTS.get(p.get('name', ''), ''),
+                'location': loc,
+            })
+        observations.append({
+            'building_type': order.building_type or '',
+            'observation': order.supervisor_notes or '',
+            'pest_category': _pest_category(pests),
+            'pest_found': ', '.join(pests),
+            'location': loc,
+            'action': ', '.join(p.get('name', '') for p in pesticides),
+        })
+    return render(request, 'hcsd/field_work_report_print.html', {
+        'order': order,
+        'materials': materials,
+        'observations': observations,
+    })
+
+
+# ---------------------------------------------------------------------------
 # Word Report
 # ---------------------------------------------------------------------------
 
