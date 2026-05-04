@@ -107,6 +107,7 @@ select.form-control{cursor:pointer;}
 @media(max-width:600px){
   .info-grid,.form-row{grid-template-columns:1fr;}
   .photo-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
+  .sig-grid{grid-template-columns:1fr !important;}
 }
 </style>
 
@@ -1019,7 +1020,7 @@ select.form-control{cursor:pointer;}
         <input type="hidden" name="client_signature" id="client-sig-data">
         <input type="hidden" name="supervisor_signature" id="supervisor-sig-data">
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" class="sig-grid">
 
           <!-- Client signature -->
           <div>
