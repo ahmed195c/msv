@@ -300,6 +300,7 @@ def field_work_detail(request, pk):
             new_status     = (request.POST.get('status') or '').strip()
             workers_raw    = (request.POST.get('workers_count') or '').strip()
             vehicles_raw   = (request.POST.get('vehicles_count') or '').strip()
+            building_type  = (request.POST.get('building_type') or '').strip()
             sup_notes      = (request.POST.get('supervisor_notes') or '').strip()
             client_sig     = (request.POST.get('client_signature') or '').strip()
             supervisor_sig = (request.POST.get('supervisor_signature') or '').strip()
@@ -331,6 +332,7 @@ def field_work_detail(request, pk):
                 order.status              = new_status
                 order.workers_count       = _to_int(workers_raw)
                 order.vehicles_count      = _to_int(vehicles_raw)
+                order.building_type       = building_type
                 order.spray_entries       = spray_entries
                 order.supervisor_notes    = sup_notes
                 order.report_submitted_by = request.user
@@ -341,7 +343,7 @@ def field_work_detail(request, pk):
                     order.supervisor_signature = supervisor_sig
                 order.save(update_fields=[
                     'status', 'workers_count', 'vehicles_count',
-                    'spray_entries', 'supervisor_notes',
+                    'building_type', 'spray_entries', 'supervisor_notes',
                     'report_submitted_by', 'report_submitted_at',
                     'client_signature', 'supervisor_signature',
                 ])
@@ -396,6 +398,10 @@ def field_work_detail(request, pk):
     fw_supervisor_users = _fw_supervisor_users_qs() if can_assign else []
     is_closed = order.status in _FW_CLOSED_STATUSES
     can_close = (can_submit_report or can_edit) and not is_closed
+    _BUILDING_TYPE_CHOICES = [
+        'Villa', 'Government Facility', 'School', 'Public Park',
+        'Mosque', 'Palace', 'Labor Accommodation', 'Vip Villa',
+    ]
     return render(request, 'hcsd/field_work_detail.html', {
         'order': order,
         'can_edit': can_edit,
@@ -411,6 +417,7 @@ def field_work_detail(request, pk):
         'photos_after': photos_after,
         'errors': errors,
         'success': success,
+        'building_type_choices': _BUILDING_TYPE_CHOICES,
     })
 
 

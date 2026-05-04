@@ -1082,6 +1082,7 @@ class FieldWorkOrder(models.Model):
         related_name='field_work_locations_saved', verbose_name='حفظ الموقع',
     )
     # ── Supervisor report fields ──────────────────────────────────────────
+    building_type    = models.CharField(max_length=100, blank=True, verbose_name='نوع المبنى')
     vehicles_count   = models.PositiveIntegerField(null=True, blank=True, verbose_name='عدد السيارات')
     pesticides_used  = models.TextField(blank=True, verbose_name='المبيدات المستخدمة')
     supervisor_notes = models.TextField(blank=True, verbose_name='ملاحظات المراقب')

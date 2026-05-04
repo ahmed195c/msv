@@ -520,6 +520,12 @@ select.form-control{cursor:pointer;}
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">عدد السيارات</div>
         <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ order.vehicles_count|default:"—" }}</div>
       </div>
+      {% if order.building_type %}
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">نوع المبنى</div>
+        <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ order.building_type }}</div>
+      </div>
+      {% endif %}
       {% if order.spray_entries %}
       <div style="grid-column:1/-1;">
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;">سجلات الرش</div>
@@ -619,6 +625,29 @@ select.form-control{cursor:pointer;}
           </div>
         </div>
 
+        <!-- Building type -->
+        <div style="margin-bottom:16px;padding:14px 16px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;">
+          <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;">نوع المبنى</div>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;" id="bld-type-group">
+            {% for bt in building_type_choices %}
+            <label style="display:flex;align-items:center;gap:4px;font-size:12.5px;cursor:pointer;padding:5px 11px;border:1.5px solid {% if order.building_type == bt %}#16a34a{% else %}#e2e8f0{% endif %};border-radius:20px;background:{% if order.building_type == bt %}#dcfce7{% else %}#f8fafc{% endif %};user-select:none;">
+              <input type="radio" name="building_type" value="{{ bt }}"
+                {% if order.building_type == bt %}checked{% endif %}
+                style="cursor:pointer;">
+              {{ bt }}
+            </label>
+            {% endfor %}
+          </div>
+          <script>
+          document.getElementById('bld-type-group').addEventListener('change', function(e){
+            if(e.target.name !== 'building_type') return;
+            this.querySelectorAll('label').forEach(function(l){l.style.background='#f8fafc';l.style.borderColor='#e2e8f0';});
+            e.target.closest('label').style.background='#dcfce7';
+            e.target.closest('label').style.borderColor='#16a34a';
+          });
+          </script>
+        </div>
+
         <!-- Spray entries -->
         {{ order.spray_entries|json_script:"existing-spray-data" }}
         <input type="hidden" name="spray_entries_json" id="spray-entries-json">
@@ -635,7 +664,6 @@ select.form-control{cursor:pointer;}
         <script>
         (function(){
           var LOCATIONS = ["Accommodation","Admin Area","Airport","Animal Basins","Animal Feeding Area","Animal Pot","Animal Shed","Ants Nest","Auditorium","Back Yard","Basement","Basin","Bathroom","Bee Hive","Bins","Bucket","Building","Burrows","Cabinet houses","Ceiling","Channel","Classroom","Clinic Room","Closed Water Tank","Closet","Common Area","Compost Hole","Conference Rm","Construction Site","Corners","Cracks and Crevices","dedicated kitchen","Discarded Tyres","Door / Window Frames","Down Spouts","drainage","Drains/Sinks","Driver's Quarter","Drum","Dumpster Area","Electrical Room","Electricity Chamber","Escort Villa","Etisalat Chambers","exterior perimeter","exterior wallings","Ezzab","Farm(s)","Fence (internal)","Fiber Tank","fixed cabinets","Flats Basin Area","Floor Drain","Flower pots","Forest Area","Fountains","Front Door","Front Yard","Furniture","Garbage Area","Garbage Bin","Garden perimeter","Grounds","Guard House","Gymnasium","Hallways","Hanging Cabinets","Head Quarters","Helper's Quarter","Hole","Horse Barn","Hotel","House (inside)","House (outside)","Industrial Area","Inside the farm","Interior Perimeter","Irrigation Control Valve","Jail","kitchen","Labor Camp","Laboratory Room","Landfill","Laundry Room","Library","Lobby","Locker Room","Maid's Room","Manhole","Manhole in the house/villa","Manhole in the streets","Manholes","Market Area","Masjid","Office","Office Room","Open Water Tank","Palace","Palm Tree Burrows","Pantry","Pantry Closet","Park","Parking Area","Patio","Pheromone Trap","Pipe(s)","Playground","Pond","Pool","Port","Poultry","Prayer Room","Reception","Real Estate","Rodent Bait Station","Roof Top","Scrap","Security Room","Septic Tank","Sewage Manhole","Shed /Storage unit","Shooting Ranges","Shop","Sink Cabinets","Stagnant Water","Steel cabinets","Storage","Store Room","Storm Drain","Storm Water Lines","Swimming Pool","Tank","Teachers Room","Tent","Theater","toilet/bath/washroom","Trash Bins","Trees","TV","under shelves","Underground Water Tank","Villa/House","VIP building","Wadi","walls","Waste Area","Waste Room","Water Accumulation","Water Cooler","Window Frames","Wooden cabinets"];
-          var BUILDING_TYPES = ["Villa","Government Facility","School","Public Park","Mosque","Palace","Labor Accommodation","Vip Villa"];
           var PESTS = [{id:'ant',ar:'نمل'},{id:'cockroach',ar:'صراصير'},{id:'mosquito',ar:'بعوض'},{id:'fly',ar:'ذباب'},{id:'rat',ar:'فئران'},{id:'snake',ar:'ثعبان'}];
           var PESTICIDES = [
             {n:"Actellic 50 EC",u:"ML"},{n:"ECOLARVACIDE EC",u:"ML"},{n:"Starycide SC 480",u:"ML"},
@@ -775,31 +803,6 @@ select.form-control{cursor:pointer;}
             body.appendChild(locWrap);
             initCombo(locInp, locUl, LOCATIONS, function(l){ return l; }, null);
 
-            // building type — radio pills (single selection)
-            var bldWrap = document.createElement('div');
-            bldWrap.style.cssText = 'margin-bottom:12px;';
-            var bldLbl = document.createElement('div');
-            bldLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;';
-            bldLbl.textContent = 'نوع المبنى';
-            var bldGrid = document.createElement('div');
-            bldGrid.style.cssText = 'display:flex;flex-wrap:wrap;gap:7px;';
-            var radioName = 'bld_' + n;
-            BUILDING_TYPES.forEach(function(bt){
-              var lbl = document.createElement('label');
-              lbl.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:12.5px;cursor:pointer;padding:5px 11px;border:1.5px solid #e2e8f0;border-radius:20px;background:#f8fafc;user-select:none;';
-              var rb = document.createElement('input');
-              rb.type='radio'; rb.name=radioName; rb.value=bt; rb.className='bld-rb';
-              rb.style.cssText = 'cursor:pointer;';
-              if((data.building_type||'')=== bt){ rb.checked=true; lbl.style.background='#dcfce7'; lbl.style.borderColor='#16a34a'; }
-              rb.addEventListener('change', function(){
-                bldGrid.querySelectorAll('label').forEach(function(l){ l.style.background='#f8fafc'; l.style.borderColor='#e2e8f0'; });
-                lbl.style.background='#dcfce7'; lbl.style.borderColor='#16a34a';
-              });
-              lbl.appendChild(rb); lbl.appendChild(document.createTextNode(bt));
-              bldGrid.appendChild(lbl);
-            });
-            bldWrap.appendChild(bldLbl); bldWrap.appendChild(bldGrid);
-            body.appendChild(bldWrap);
 
             // pests
             var pestWrap = document.createElement('div');
@@ -880,10 +883,8 @@ select.form-control{cursor:pointer;}
                   var unit = (row.querySelector('.pst-unit')||{value:'ML'}).value;
                   if (nm) pesticides.push({name:nm, qty:qty, unit:unit});
                 });
-                var bldChecked = card.querySelector('.bld-rb:checked');
                 entries.push({
                   location: (card.querySelector('.loc-inp')||{value:''}).value.trim(),
-                  building_type: bldChecked ? bldChecked.value : '',
                   pests: pests,
                   pesticides: pesticides
                 });
