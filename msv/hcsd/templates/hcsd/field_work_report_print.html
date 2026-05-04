@@ -268,7 +268,7 @@
   <table class="sig-table" style="margin-top:14px;">
     <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
     <tr>
-      <td class="sig-head">Completed By:<br>{{ order.report_submitted_by.get_full_name|default:order.report_submitted_by.username|default:"-" }}</td>
+      <td class="sig-head">Completed By:<br>{% if order.report_submitted_by %}{{ order.report_submitted_by.get_full_name|default:order.report_submitted_by.username }}{% else %}-{% endif %}</td>
       <td>{% if order.supervisor_signature %}<img src="{{ order.supervisor_signature }}" alt="supervisor signature">{% endif %}</td>
       <td class="sig-head">Client Name:<br>{{ order.site_name|default:"-" }}</td>
       <td>{% if order.client_signature %}<img src="{{ order.client_signature }}" alt="client signature">{% endif %}</td>
