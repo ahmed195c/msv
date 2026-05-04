@@ -1096,6 +1096,7 @@ class FieldWorkOrder(models.Model):
         related_name='field_work_reports', verbose_name='أدخل التقرير',
     )
     report_submitted_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ التقرير')
+    time_in             = models.DateTimeField(null=True, blank=True, verbose_name='وقت الوصول')
     status         = models.CharField(
         max_length=30, choices=STATUS_CHOICES, default='private_company', verbose_name='الحالة',
     )

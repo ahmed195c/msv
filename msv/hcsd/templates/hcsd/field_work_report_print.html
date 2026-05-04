@@ -200,7 +200,7 @@
       <td class="lbl">Location</td>
       <td class="val">{{ order.location|default:order.area|default:"—" }}</td>
       <td class="lbl">Time In</td>
-      <td class="val">{{ order.received_at|date:"H:i"|default:"" }}</td>
+      <td class="val">{{ order.time_in|date:"H:i"|default:"" }}</td>
     </tr>
     <tr>
       <td class="lbl">Phone</td>

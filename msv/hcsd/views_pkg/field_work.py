@@ -291,7 +291,11 @@ def field_work_detail(request, pk):
                 order.gps_lng = lng
                 order.location_saved_at = timezone.now()
                 order.location_saved_by = request.user
-                order.save(update_fields=['gps_lat', 'gps_lng', 'location_saved_at', 'location_saved_by'])
+                update_f = ['gps_lat', 'gps_lng', 'location_saved_at', 'location_saved_by']
+                if not order.time_in:
+                    order.time_in = timezone.now()
+                    update_f.append('time_in')
+                order.save(update_fields=update_f)
                 success = 'تم حفظ الموقع.'
 
         # ── Supervisor report ────────────────────────────────────────────────
