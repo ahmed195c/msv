@@ -288,7 +288,7 @@ def add_company(request):
 
 @login_required
 def company_detail(request, id):
-    company = get_object_or_404(Company, id=id)
+    company = get_object_or_404(Company.objects.select_related('enginer'), id=id)
     engineers = Enginer.objects.all().order_by('name')
     can_edit_company = _can_admin(request.user)
     can_request_extension = _can_data_entry(request.user)
@@ -574,12 +574,14 @@ def company_detail(request, id):
         if not p.is_issued_record and p.status not in {'cancelled_admin', 'inspection_completed', 'closed_requirements_pending'}
     ]
     extension_logs = list(
-        company.change_logs.filter(action='extension_requested').order_by('-created_at')
+        company.change_logs.filter(action='extension_requested')
+        .select_related('changed_by')
+        .order_by('-created_at')
     )
     for ext in extension_logs:
         ext.is_active = bool(ext.extension_end_date and ext.extension_end_date >= today)
 
-    logs = company.change_logs.all().order_by('-created_at')
+    logs = company.change_logs.select_related('changed_by').order_by('-created_at')
     requirement_insurance_requests = list(
         company.requirement_insurance_requests.select_related('related_permit', 'created_by')
     )

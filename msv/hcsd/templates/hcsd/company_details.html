@@ -2,7 +2,6 @@
 {% load static %}
 {% block title %}تفاصيل الشركة — {{ company.name }}{% endblock %}
 {% block extra_css %}
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
 .cd-page {
   --ink-1:      #1a2a3a;
@@ -426,7 +425,7 @@
     <div class="card-header">
       <h2>موقع الشركة</h2>
       {% if company.latitude and company.longitude %}
-        <a href="https://www.google.com/maps?q={{ company.latitude }},{{ company.longitude }}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">◎ فتح في خرائط Google</a>
+        <a href="https://www.google.com/maps?q={{ company.latitude }},{{ company.longitude }}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">عرض على خرائط ◎ Google Maps  </a>
       {% endif %}
     </div>
     <div class="card-body">
@@ -463,7 +462,7 @@
           </div>
           <div id="loc-coords-wrap" style="display:none;margin-top:10px;padding:8px 12px;background:#fff;border:1.5px solid #bfdbfe;border-radius:7px;">
             <div id="loc-coords-text" style="font-family:var(--mono);font-size:12.5px;color:#1e40af;margin-bottom:4px;"></div>
-            <a id="loc-maps-link" href="#" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);">فتح في خرائط Google ↗</a>
+            <a id="loc-maps-link" href="#" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);">عرض على خرائط Google ↗</a>
           </div>
         </div>
 
@@ -479,7 +478,6 @@
         </div>
 
         <button type="submit" id="loc-submit-btn" class="btn btn-primary" disabled>حفظ الموقع</button>
-        <span style="font-size:12px;color:var(--ink-4);margin-right:10px;">يجب تحديد الموقع عبر GPS أولاً</span>
       </form>
     </div>
   </div>
@@ -538,12 +536,14 @@
               {% endif %}
             </span>
           </div>
-          {% if company.engineers.all %}
+          {% with extra_engineers=company.engineers.all %}
+          {% if extra_engineers %}
           <div class="info-row full">
             <span class="info-label">كل المهندسين المرتبطين</span>
-            <span class="info-value">{% for e in company.engineers.all %}{{ e.name }}{% if not forloop.last %}، {% endif %}{% endfor %}</span>
+            <span class="info-value">{% for e in extra_engineers %}{{ e.name }}{% if not forloop.last %}، {% endif %}{% endfor %}</span>
           </div>
           {% endif %}
+          {% endwith %}
         </div>
       {% else %}
         <p class="muted">لا يوجد مهندس مرتبط.</p>

@@ -424,6 +424,8 @@ class EnginerStatusLog(models.Model):
         ('created', 'Created'),
         ('public_health_cert_uploaded', 'Public Health Certificate Uploaded'),
         ('termite_cert_uploaded', 'Termite Certificate Uploaded'),
+        ('leave_recorded', 'Leave Recorded'),
+        ('leave_closed', 'Leave Closed'),
     ]
 
     enginer = models.ForeignKey(

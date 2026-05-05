@@ -193,6 +193,19 @@ def enginer_detail(request, id):
                         notes=notes,
                         created_by=request.user,
                     )
+                    log_notes = f'من: {start_date:%d/%m/%Y}'
+                    if expected_return_date:
+                        log_notes += f' — عودة متوقعة: {expected_return_date:%d/%m/%Y}'
+                    if substitute:
+                        log_notes += f' — البديل: {substitute.name}'
+                    if notes:
+                        log_notes += f' — {notes}'
+                    EnginerStatusLog.objects.create(
+                        enginer=enginer,
+                        action='leave_recorded',
+                        notes=log_notes,
+                        changed_by=request.user,
+                    )
                     return redirect('enginer_detail', id=enginer.id)
 
         elif action == 'close_leave':
@@ -205,6 +218,12 @@ def enginer_detail(request, id):
                 active_leave.actual_return_date = actual_return
                 active_leave.closed_by = request.user
                 active_leave.save(update_fields=['actual_return_date', 'closed_by'])
+                EnginerStatusLog.objects.create(
+                    enginer=enginer,
+                    action='leave_closed',
+                    notes=f'تاريخ العودة الفعلية: {actual_return:%d/%m/%Y}',
+                    changed_by=request.user,
+                )
                 return redirect('enginer_detail', id=enginer.id)
 
         elif not _can_data_entry(request.user):
@@ -259,6 +278,13 @@ def enginer_detail(request, id):
     archived_logs = [log for log in logs if getattr(log, 'archived_file', None)]
     public_health_expiry_date, public_health_is_expired = _certificate_expiry(enginer.public_health_cert_issue_date, enginer.public_health_cert_expiry_date)
     termite_expiry_date, termite_is_expired = _certificate_expiry(enginer.termite_cert_issue_date, enginer.termite_cert_expiry_date)
+    associated_companies = list(
+        Company.objects.filter(
+            Q(enginer=enginer) | Q(engineers=enginer)
+        ).distinct().order_by('name')
+    )
+    for co in associated_companies:
+        co.is_primary = (co.enginer_id == enginer.id)
     return render(
         request,
         'hcsd/enginer_detail.html',
@@ -278,6 +304,7 @@ def enginer_detail(request, id):
             'public_health_is_expired': public_health_is_expired,
             'termite_expiry_date': termite_expiry_date,
             'termite_is_expired': termite_is_expired,
+            'associated_companies': associated_companies,
         },
     )
 
