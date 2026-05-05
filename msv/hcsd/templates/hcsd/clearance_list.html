@@ -2,139 +2,169 @@
 {% block title %}متابعة الطلبات{% endblock %}
 {% block content %}
 <style>
-:root {
-  --cl-ink:      #304357;
-  --cl-ink-2:    #455c75;
-  --cl-ink-3:    #6f8297;
-  --cl-surface:  #f1f4f7;
-  --cl-surface-2:#e8eef4;
-  --cl-line:     #d4dce5;
-  --cl-line-2:   #bcc8d5;
-  --cl-accent:   #304357;
-  --cl-accent-dk:#26384a;
+.cl-page {
+  --ink-1:      #1a2a3a;
+  --ink-2:      #3a4a5a;
+  --ink-3:      #5a6a7a;
+  --ink-4:      #8a9aaa;
+  --surface-1:  #f4f6f8;
+  --surface-2:  #e8ecf0;
+  --border:     #d0d8e0;
+  --accent:     #1a5c9a;
+  --accent-dk:  #14487a;
+  --accent-lt:  #e8f0f8;
+  --mono:       'JetBrains Mono', monospace;
+  padding: 24px 16px 56px;
+  background: var(--surface-1);
+  direction: rtl;
+  font-family: 'IBM Plex Sans Arabic', 'Tahoma', sans-serif;
+  color: var(--ink-1);
 }
-.cl { direction: rtl; }
+.cl-wrap { max-width: 1160px; margin: 0 auto; }
 
-.cl-head {
+/* ── Page header ── */
+.cl-page-header {
   display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px; margin-bottom: 22px;
-  padding-bottom: 18px; border-bottom: 1.5px solid var(--cl-line);
+  flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
 }
-.cl-head__title { font-size: 20px; font-weight: 800; color: var(--cl-ink); margin: 0; }
-.cl-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 700;
-  text-decoration: none; border: 1.5px solid var(--cl-line-2);
-  background: var(--cl-surface); color: var(--cl-ink);
-  cursor: pointer; font-family: inherit;
-  transition: background .15s, border-color .15s; white-space: nowrap;
+.cl-page-header h1 {
+  font-size: clamp(18px,2.2vw,24px); font-weight: 700; color: var(--ink-1); margin: 0;
 }
-.cl-btn:hover { background: var(--cl-surface-2); border-color: var(--cl-ink-3); }
-.cl-btn--primary { background: var(--cl-accent); color: #fff; border-color: var(--cl-accent); }
-.cl-btn--primary:hover { background: var(--cl-accent-dk); border-color: var(--cl-accent-dk); }
+.cl-page-header__sub { font-size: 13px; color: var(--ink-4); margin-top: 3px; }
 
-.cl-filter {
-  background: #fff; border: 1.5px solid var(--cl-line); border-radius: 10px;
-  padding: 14px 18px; margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.05);
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; font-size: 13.5px;
+  font-weight: 600; text-decoration: none; cursor: pointer;
+  transition: .15s; font-family: inherit; white-space: nowrap; border: none;
 }
+.btn-outline { background: #fff; color: var(--ink-2); border: 1.5px solid var(--border); }
+.btn-outline:hover { background: var(--surface-2); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-dk); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+
+/* ── Card ── */
+.card {
+  background: #fff; border-radius: 12px;
+  border: 1.5px solid var(--border); margin-bottom: 16px; overflow: hidden;
+}
+.card-header {
+  padding: 14px 18px; border-bottom: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+}
+.card-header h2 { font-size: 15px; font-weight: 700; color: var(--ink-1); margin: 0; }
+.card-body { padding: 18px; }
+
+/* ── Filter form ── */
 .cl-filter-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
 .cl-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px; }
-.cl-field label { font-size: 11px; font-weight: 700; color: var(--cl-ink-3); text-transform: uppercase; letter-spacing: .04em; }
-.cl-field input, .cl-field select {
-  border: 1.5px solid var(--cl-line); border-radius: 6px; background: var(--cl-surface);
-  color: var(--cl-ink); padding: 9px 12px; font-size: 13.5px; font-family: inherit;
-  transition: border-color .15s, box-shadow .15s;
+.cl-field label { font-size: 11px; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: .04em; }
+.cl-field input,
+.cl-field select {
+  border: 1.5px solid var(--border); border-radius: 8px; background: #fff;
+  color: var(--ink-1); padding: 9px 12px; font-size: 13.5px; font-family: inherit;
+  transition: border-color .15s, box-shadow .15s; min-height: 40px; box-sizing: border-box;
 }
-.cl-field input:focus, .cl-field select:focus {
-  outline: none; border-color: var(--cl-accent);
-  box-shadow: 0 0 0 3px rgba(48,67,87,.12); background: #fff;
+.cl-field input:focus,
+.cl-field select:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(26,92,154,.12); background: #fff;
 }
 .cl-tag {
   display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;
-  padding: 3px 10px; border-radius: 99px; background: var(--cl-surface-2);
-  border: 1.5px solid var(--cl-line-2); color: var(--cl-ink-2);
-  font-size: 11.5px; font-weight: 700;
+  padding: 3px 12px; border-radius: 20px;
+  background: var(--accent-lt); border: 1.5px solid #b8d0e8;
+  color: var(--accent); font-size: 12px; font-weight: 700;
 }
+.cl-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+
+/* ── Errors ── */
+.cl-errors {
+  border: 1.5px solid #b05a3a; background: #fdeaea; border-radius: 10px;
+  padding: 14px 16px; margin-bottom: 16px; color: #7a1a1a; font-size: 13px; font-weight: 600;
+}
+.cl-errors ul { margin: 8px 0 0 18px; }
 
 /* ── Tabs ── */
 .cl-tabs {
-  display: flex; flex-wrap: wrap; gap: 4px;
+  display: flex; flex-wrap: wrap; gap: 6px;
   margin-bottom: 16px;
-  background: #fff; border: 1.5px solid var(--cl-line); border-radius: 10px;
-  padding: 10px 12px;
-  box-shadow: 0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.05);
+  background: #fff; border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 12px 14px;
 }
 .cl-tab {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 6px;
-  font-size: 13px; font-weight: 700; font-family: inherit;
-  border: 1.5px solid var(--cl-line-2);
-  background: var(--cl-surface); color: var(--cl-ink-2);
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; font-family: inherit;
+  border: 1.5px solid var(--border);
+  background: var(--surface-1); color: var(--ink-2);
   cursor: pointer; transition: background .15s, border-color .15s, color .15s;
   white-space: nowrap;
 }
-.cl-tab:hover { background: var(--cl-surface-2); border-color: var(--cl-ink-3); color: var(--cl-ink); }
-.cl-tab--active { background: var(--cl-accent); color: #fff; border-color: var(--cl-accent); }
-.cl-tab--active:hover { background: var(--cl-accent-dk); border-color: var(--cl-accent-dk); }
+.cl-tab:hover { background: var(--surface-2); border-color: #b0bcc8; color: var(--ink-1); }
+.cl-tab--active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.cl-tab--active:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
 .cl-tab-count {
   display: inline-flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,.25); border: 1px solid rgba(255,255,255,.4);
-  border-radius: 99px; font-size: 11px; font-weight: 700;
-  padding: 1px 7px; font-family: monospace; min-width: 20px;
+  border-radius: 20px; font-size: 11px; font-weight: 700;
+  padding: 1px 7px; font-family: var(--mono); min-width: 20px;
 }
 .cl-tab:not(.cl-tab--active) .cl-tab-count {
-  background: var(--cl-line); border-color: var(--cl-line-2); color: var(--cl-ink-3);
+  background: var(--surface-2); border-color: var(--border); color: var(--ink-3);
 }
 
+/* ── Section (active / finished groups) ── */
 .cl-section {
-  background: #fff; border: 1.5px solid var(--cl-line); border-radius: 10px;
-  overflow: hidden; margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.05);
+  background: #fff; border: 1.5px solid var(--border); border-radius: 12px;
+  overflow: hidden; margin-bottom: 16px;
 }
 .cl-section--finished { border-style: dashed; opacity: .9; }
 .cl-section-head {
   display: flex; align-items: center; gap: 10px;
-  padding: 0; background: var(--cl-accent); border-bottom: none;
+  background: transparent;
+  border-bottom: 1.5px solid var(--border);
+  padding: 0;
 }
 .cl-section-title {
-  font-size: 13px; font-weight: 800; color: #fff; background: transparent;
-  padding: 13px 18px; border-radius: 0; margin: 0; letter-spacing: .02em;
+  font-size: 15px; font-weight: 700; color: var(--ink-1);
+  padding: 13px 18px; margin: 0; letter-spacing: .01em;
 }
-.cl-section-title.fin { opacity: .75; }
+.cl-section-title.fin { opacity: .65; }
 .cl-count {
-  font-size: 12px; font-weight: 700; color: #fff;
-  background: rgba(255,255,255,.18); border: 1.5px solid rgba(255,255,255,.3);
-  border-radius: 99px; padding: 2px 10px; font-family: monospace;
+  font-size: 12px; font-weight: 700; color: var(--ink-2);
+  background: #fff; border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 2px 10px; font-family: var(--mono);
 }
 .cl-group-head {
   display: flex; align-items: center; gap: 8px;
-  padding: 9px 18px; background: var(--cl-surface);
-  border-top: 1px solid var(--cl-line); border-bottom: 1px solid var(--cl-line);
-  font-size: 12px; font-weight: 700; color: var(--cl-ink-2);
+  padding: 9px 18px; background: var(--surface-2);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 700; color: var(--ink-2);
 }
 
-/* ── Row ── */
+/* ── Row item ── */
 .cl-item {
   display: flex; align-items: stretch;
-  border-bottom: 1px solid var(--cl-line); transition: background .1s;
+  border-bottom: 1px solid var(--border); transition: background .1s;
 }
 .cl-item:last-child { border-bottom: none; }
 .cl-item:nth-child(odd)  { background: #fff; }
-.cl-item:nth-child(even) { background: var(--cl-surface); }
-.cl-item:hover { background: var(--cl-surface-2); }
+.cl-item:nth-child(even) { background: var(--surface-1); }
+.cl-item:hover { background: var(--surface-2); }
 
 /* Left stripe */
 .cl-stripe { width: 5px; flex-shrink: 0; }
-.s-waiting { background: #8fa3b8; }
+.s-waiting { background: #8a9aaa; }
 .s-action  { background: #c8860a; }
 .s-error   { background: #b03a1a; }
-.s-process { background: #1e537a; }
-.s-done    { background: #1f6b3e; }
+.s-process { background: var(--accent); }
+.s-done    { background: #1a7a3a; }
 .s-issued  { background: #155e2e; }
 .s-head    { background: #6b3fa0; }
 
-/* Body: two rows stacked */
 .cl-item-body {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; gap: 0;
@@ -150,97 +180,111 @@
 /* Status badge */
 .cl-status {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border-radius: 6px;
-  font-size: 13.5px; font-weight: 700; white-space: nowrap; border: 1.5px solid;
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 13px; font-weight: 700; white-space: nowrap; border: 1.5px solid;
   flex-shrink: 0;
 }
-.cl-status::before { content:''; width:7px; height:7px; border-radius:50%; flex-shrink:0; background: currentColor; }
-.st-waiting { background:#f2f4f6; color:#3d4f5e; border-color:#bcc8d5; }
-.st-action  { background:#fef9ec; color:#7a5500; border-color:#b07d10; }
-.st-error   { background:#fdf0ea; color:#7a2c0d; border-color:#9c3a12; }
-.st-process { background:#e8f2fa; color:#1d4e6e; border-color:#4d8fb5; }
-.st-done    { background:#edf7f2; color:#1a5233; border-color:#1f6b3e; }
-.st-issued  { background:#d4f5e2; color:#0e3d1d; border-color:#155e2e; }
-.st-head    { background:#f0ebff; color:#4c1d95; border-color:#7c3aed; }
+.cl-status::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; background: currentColor; }
+.st-waiting { background: var(--surface-2); color: var(--ink-2); border-color: var(--border); }
+.st-action  { background: #fff4e0; color: #7a4500; border-color: #e8c97a; }
+.st-error   { background: #fdeaea; color: #7a1a1a; border-color: #d08080; }
+.st-process { background: var(--accent-lt); color: var(--accent-dk); border-color: #8ab0d8; }
+.st-done    { background: #e8f5ee; color: #1a5233; border-color: #7bcf9a; }
+.st-issued  { background: #d4f0e0; color: #0e3d1d; border-color: #5cbf8a; }
+.st-head    { background: #f0ebff; color: #4c1d95; border-color: #9b72e0; }
 
 /* Next step pill */
 .cl-next {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 11px; border-radius: 6px;
+  padding: 4px 11px; border-radius: 8px;
   font-size: 12px; font-weight: 600;
-  background: var(--cl-surface); border: 1.5px solid var(--cl-line-2); color: var(--cl-ink-2);
+  background: var(--surface-2); border: 1.5px solid var(--border); color: var(--ink-2);
   white-space: nowrap;
 }
 .cl-next svg { flex-shrink: 0; opacity: .6; }
 .cl-next--link {
-  color: #1d4e6e; background: #e8f2fa; border-color: #4d8fb5; text-decoration: none;
+  color: var(--accent-dk); background: var(--accent-lt); border-color: #8ab0d8; text-decoration: none;
 }
 .cl-next--link:hover { background: #d4e8f5; }
-.cl-next--err { color: #7a2c0d; background: #fdf0ea; border-color: #9c3a12; }
+.cl-next--err { color: #7a1a1a; background: #fdeaea; border-color: #d08080; }
 
-/* Bottom row: company + meta + action */
+/* Bottom row */
 .cl-row-bot {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
 }
-.cl-company-name { font-size: 13px; font-weight: 700; color: var(--cl-ink); }
-.cl-permit-type  { font-size: 12.5px; font-weight: 700; color: var(--cl-ink-2); }
+.cl-company-name { font-size: 13px; font-weight: 700; color: var(--ink-1); }
+.cl-permit-type  { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
 .cl-meta-col { display: inline-flex; align-items: center; gap: 6px; }
-.cl-sep { color: var(--cl-line-2); font-size: 12px; }
-
-.cl-date  { font-size: 11.5px; color: var(--cl-ink-3); font-family: monospace; white-space: nowrap; }
+.cl-sep { color: var(--border); font-size: 12px; }
+.cl-date  { font-size: 11.5px; color: var(--ink-4); font-family: var(--mono); white-space: nowrap; }
 .cl-phone {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 10px; border-radius: 6px; text-decoration: none;
-  color: var(--cl-ink); background: var(--cl-surface);
-  border: 1.5px solid var(--cl-line-2);
-  font-size: 12px; font-family: monospace;
+  padding: 2px 10px; border-radius: 8px; text-decoration: none;
+  color: var(--ink-1); background: var(--surface-1); border: 1.5px solid var(--border);
+  font-size: 12px; font-family: var(--mono);
   transition: background .15s; white-space: nowrap;
 }
-.cl-phone:hover { background: var(--cl-surface-2); }
-
+.cl-phone:hover { background: var(--surface-2); }
 .cl-spacer { flex: 1; }
 .cl-view {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 6px 16px; border-radius: 6px;
-  background: var(--cl-accent); color: #fff; font-size: 12.5px; font-weight: 700;
+  padding: 5px 14px; border-radius: 8px;
+  background: var(--accent); color: #fff; font-size: 12.5px; font-weight: 600;
   text-decoration: none; white-space: nowrap; transition: background .15s; flex-shrink: 0;
 }
-.cl-view:hover { background: var(--cl-accent-dk); }
+.cl-view:hover { background: var(--accent-dk); }
 
 /* Timer */
 .cl-timer {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
   border: 1.5px solid; white-space: nowrap; flex-shrink: 0;
 }
 .cl-timer::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-.t-ok   { background:#edf7f2; color:#1a5233; border-color:#1f6b3e; }
-.t-ok::before   { background:#1f6b3e; }
-.t-mid  { background:#fef9ec; color:#7a5500; border-color:#b07d10; }
-.t-mid::before  { background:#b07d10; }
-.t-late { background:#fdf0ea; color:#7a2c0d; border-color:#9c3a12; }
-.t-late::before { background:#9c3a12; }
+.t-ok   { background:#e8f5ee; color:#1a5233; border-color:#7bcf9a; }
+.t-ok::before   { background:#1a7a3a; }
+.t-mid  { background:#fff4e0; color:#7a4500; border-color:#e8c97a; }
+.t-mid::before  { background:#c8860a; }
+.t-late { background:#fdeaea; color:#7a1a1a; border-color:#d08080; }
+.t-late::before { background:#b03a1a; }
 
+/* Pagination */
 .cl-pagination {
   display: flex; align-items: center; justify-content: center;
   gap: 8px; padding: 12px 18px;
-  border-top: 1px solid var(--cl-line); background: var(--cl-surface);
+  border-top: 1px solid var(--border); background: var(--surface-2);
 }
 .cl-pagination button {
-  background: #fff; border: 1.5px solid var(--cl-line-2); color: var(--cl-ink-2);
-  border-radius: 6px; padding: 5px 16px; font-size: 13px;
+  background: #fff; border: 1.5px solid var(--border); color: var(--ink-2);
+  border-radius: 8px; padding: 5px 16px; font-size: 13px;
   font-family: inherit; cursor: pointer; transition: background .15s;
 }
-.cl-pagination button:hover:not(:disabled) { background: var(--cl-surface-2); border-color: var(--cl-ink-3); }
+.cl-pagination button:hover:not(:disabled) { background: var(--surface-2); border-color: #b0bcc8; }
 .cl-pagination button:disabled { opacity: .35; cursor: default; }
-.cl-pagination .pg-info { font-size: 12px; color: var(--cl-ink-3); font-family: monospace; min-width: 52px; text-align: center; }
+.cl-pagination .pg-info { font-size: 12px; color: var(--ink-4); font-family: var(--mono); min-width: 52px; text-align: center; }
 
-.cl-empty { text-align: center; padding: 36px 20px; color: var(--cl-ink-3); font-size: 13.5px; font-weight: 500; }
-.cl-errors {
-  border: 1.5px solid #9c3a12; background: #fdf0ea; border-radius: 8px;
-  padding: 14px 16px; margin-bottom: 16px; color: #7a2c0d; font-size: 13px; font-weight: 600;
+/* Finished toggle button */
+.cl-finished-toggle {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin-bottom: 10px; padding: 7px 14px; border-radius: 8px;
+  background: #fff; border: 1.5px solid var(--border);
+  color: var(--ink-3); font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: background .15s, color .15s;
 }
-.cl-errors ul { margin: 8px 0 0 18px; }
+.cl-finished-toggle:hover { background: var(--surface-2); color: var(--ink-1); }
+.cl-finished-toggle svg { transition: transform .2s; }
+.cl-finished-toggle.is-open svg { transform: rotate(90deg); }
+.cl-finished-count {
+  background: var(--surface-2); border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 1px 8px;
+  font-size: 11px; font-weight: 700; color: var(--ink-3); font-family: var(--mono);
+}
+
+/* Empty */
+.cl-empty {
+  text-align: center; padding: 40px 20px;
+  color: var(--ink-4); font-size: 13.5px; font-weight: 600;
+}
 
 @media (max-width: 600px) {
   .cl-filter-form { flex-direction: column; }
@@ -249,7 +293,7 @@
   .cl-tab { font-size: 12px; padding: 7px 12px; }
   .cl-item-body { padding: 12px; }
   .cl-row-top { gap: 8px; }
-  .cl-status { font-size: 13px; width: 100%; justify-content: center; }
+  .cl-status { font-size: 12.5px; width: 100%; justify-content: center; }
   .cl-next   { font-size: 11.5px; }
   .cl-row-bot { gap: 8px; }
   .cl-sep { display: none; }
@@ -260,11 +304,16 @@
 }
 </style>
 
-<section class="cl">
+<div class="cl-page" lang="ar" dir="rtl">
+<div class="cl-wrap">
 
-  <div class="cl-head">
-    <h1 class="cl-head__title">متابعة الطلبات</h1>
-    <a href="{% url 'company_list' %}" class="cl-btn">← الشركات</a>
+  {# ── Page header ── #}
+  <div class="cl-page-header">
+    <div>
+      <h1>متابعة الطلبات</h1>
+      <div class="cl-page-header__sub">متابعة طلبات التصاريح وحالاتها</div>
+    </div>
+    <a href="{% url 'company_list' %}" class="btn btn-outline">← الشركات</a>
   </div>
 
   {% if form_errors %}
@@ -274,28 +323,32 @@
     </div>
   {% endif %}
 
-  <div class="cl-filter">
-    <form method="get" class="cl-filter-form">
-      <input type="hidden" name="tab" id="active_tab_input" value="{{ active_tab }}">
-      <div class="cl-field">
-        <label for="clearance_query">بحث باسم الشركة أو رقم الرخصة</label>
-        <input id="clearance_query" type="text" name="q" value="{{ query }}" placeholder="اسم الشركة أو رقم الرخصة…">
-      </div>
-      <div class="cl-field">
-        <label for="status_filter">تصفية حسب الحالة</label>
-        <select id="status_filter" name="status">
-          {% for option in status_filter_options %}
-            <option value="{{ option.value }}" {% if status_filter == option.value %}selected{% endif %}>{{ option.label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-self:flex-end;">
-        <button type="submit" class="cl-btn cl-btn--primary">تطبيق</button>
-        {% if status_filter != 'all' or query %}<a href="{% url 'clearance_list' %}" class="cl-btn">مسح</a>{% endif %}
-      </div>
-    </form>
-    {% if status_filter != 'all' %}<span class="cl-tag">{{ status_filter_label }}</span>{% endif %}
-    {% if query %}<span class="cl-tag">بحث: {{ query }}</span>{% endif %}
+  {# ── Filter card ── #}
+  <div class="card">
+    <div class="card-header"><h2>بحث وتصفية</h2></div>
+    <div class="card-body">
+      <form method="get" class="cl-filter-form">
+        <input type="hidden" name="tab" id="active_tab_input" value="{{ active_tab }}">
+        <div class="cl-field">
+          <label for="clearance_query">بحث باسم الشركة أو رقم الرخصة</label>
+          <input id="clearance_query" type="text" name="q" value="{{ query }}" placeholder="اسم الشركة أو رقم الرخصة…">
+        </div>
+        <div class="cl-field">
+          <label for="status_filter">تصفية حسب الحالة</label>
+          <select id="status_filter" name="status">
+            {% for option in status_filter_options %}
+              <option value="{{ option.value }}" {% if status_filter == option.value %}selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-self:flex-end;">
+          <button type="submit" class="btn btn-primary">تطبيق</button>
+          {% if status_filter != 'all' or query %}<a href="{% url 'clearance_list' %}" class="btn btn-outline">مسح</a>{% endif %}
+        </div>
+      </form>
+      {% if status_filter != 'all' %}<span class="cl-tag">{{ status_filter_label }}</span>{% endif %}
+      {% if query %}<span class="cl-tag">بحث: {{ query }}</span>{% endif %}
+    </div>
   </div>
 
   {# ══ Tab bar ══ #}
@@ -322,9 +375,9 @@
       {% if tab.active_clearances %}
         {% for group in tab.active_groups %}
           <div class="cl-group-head">
-            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#94a3b8"/></svg>
+            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#8a9aaa"/></svg>
             {{ group.label }}
-            <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
+            <span style="font-family:var(--mono);font-size:11px;color:#8a9aaa;">({{ group.items|length }})</span>
           </div>
 
           <div data-pg-group="{{ tab.key }}-a{{ forloop.counter }}">
@@ -344,20 +397,20 @@
       {% endif %}
     </div>
 
-    {# Finished section #}
-    {% if show_finished_section %}
-    <div class="cl-section cl-section--finished">
-      <div class="cl-section-head">
-        <h2 class="cl-section-title fin">طلبات منتهية</h2>
-        {% if tab.finished_clearances %}<span class="cl-count">{{ tab.finished_clearances|length }}</span>{% endif %}
-      </div>
-
-      {% if tab.finished_clearances %}
+    {# Finished section — collapsed by default #}
+    {% if show_finished_section and tab.finished_clearances %}
+    <div>
+      <button class="cl-finished-toggle" data-finished-toggle="{{ tab.key }}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        طلبات منتهية
+        <span class="cl-finished-count">{{ tab.finished_clearances|length }}</span>
+      </button>
+      <div class="cl-section cl-section--finished" data-finished-body="{{ tab.key }}" style="display:none;">
         {% for group in tab.finished_groups %}
           <div class="cl-group-head">
-            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#94a3b8"/></svg>
+            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#8a9aaa"/></svg>
             {{ group.label }}
-            <span style="font-family:monospace;font-size:11px;color:#94a3b8;">({{ group.items|length }})</span>
+            <span style="font-family:var(--mono);font-size:11px;color:#8a9aaa;">({{ group.items|length }})</span>
           </div>
 
           <div data-pg-group="{{ tab.key }}-f{{ forloop.counter }}">
@@ -372,16 +425,15 @@
             <button data-pg-next>التالي &#8249;</button>
           </div>
         {% endfor %}
-      {% else %}
-        <div class="cl-empty">لا توجد طلبات منتهية حالياً</div>
-      {% endif %}
+      </div>
     </div>
     {% endif %}
 
   </div>
   {% endfor %}
 
-</section>
+</div>
+</div>
 
 <script>
 (function () {
@@ -421,6 +473,18 @@
       var pane = document.querySelector('.cl-tab-pane[data-pane="' + key + '"]');
       if (pane) pane.style.display = '';
       if (tabInput) tabInput.value = key;
+    });
+  });
+
+  // Finished section toggle
+  document.querySelectorAll('[data-finished-toggle]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var key = this.getAttribute('data-finished-toggle');
+      var body = document.querySelector('[data-finished-body="' + key + '"]');
+      if (!body) return;
+      var open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : '';
+      this.classList.toggle('is-open', !open);
     });
   });
 })();

@@ -208,6 +208,8 @@ def clearance_list(request):
         'cancelled_admin',
         'disposal_approved',
         'disposal_rejected',
+        'needs_completion',
+        'rejected',
     }
     active_clearances = []
     finished_clearances = []
@@ -353,10 +355,10 @@ def clearance_list(request):
         'pesticide_payment_link_pending',
         'violation_payment_link_pending',
         'violation_payment_pending',
-        'needs_completion',
-        'rejected',
     ]
     finished_status_order = [
+        'needs_completion',
+        'rejected',
         'issued',
         'inspection_completed',
         'closed_requirements_pending',
