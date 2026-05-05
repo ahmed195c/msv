@@ -549,7 +549,7 @@
     {% endif %}
 
     <!-- ── Action: record payment number (inspection_completed) ── -->
-    {% if can_record_payment and pirmet.status == "inspection_completed" and not pirmet.PaymentNumber %}
+    {% if can_record_payment and pirmet.status == "inspection_completed" and inspection_report_decision == "approved" and not pirmet.PaymentNumber %}
       <section class="permit-section permit-section--doc no-print">
         <div class="doc-band">
           <div class="doc-band-company">إدخال رقم دفع تصريح المركبة</div>
