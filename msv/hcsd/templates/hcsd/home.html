@@ -3,265 +3,376 @@
 {% block title %}لوحة النظام{% endblock %}
 {% block extra_css %}
 <style>
-/* ── 60-30-10 palette
-   60% : #f8fafc / #fff  (backgrounds, cards)
-   30% : #0f172a / #475569 / #94a3b8  (text, borders)
-   10% : #2563eb  (primary accent only)
-──────────────────────────────────────────── */
-.hp { max-width: 1160px; margin: 0 auto; direction: rtl; }
-
-/* ── Page header ── */
-.hp-head {
-  display: flex; align-items: flex-start;
-  justify-content: space-between; flex-wrap: wrap;
-  gap: 12px; margin-bottom: 24px;
-  padding-bottom: 18px;
-  border-bottom: 1.5px solid #e2e8f0;
+/* ════════════════════════════════════════════
+   60-30-10 palette
+   60% → #F4F7FB (page bg)  /  #FFFFFF (cards)
+   30% → #1B3358 (navy)     /  #354F72 (mid)   /  #8398AE (muted)
+   10% → #16803C (green)    /  #E8F5EE (green-tint)
+   ════════════════════════════════════════════ */
+:root {
+  --bg:       #F4F7FB;
+  --surface:  #FFFFFF;
+  --navy:     #1B3358;
+  --navy-mid: #354F72;
+  --muted:    #8398AE;
+  --border:   #DDE4ED;
+  --green:    #16803C;
+  --green-lt: #E8F5EE;
+  --green-md: #22A05A;
+  --amber:    #D97706;
+  --amber-lt: #FEF3C7;
+  --red:      #B91C1C;
+  --red-lt:   #FEE2E2;
+  --blue:     #1D4ED8;
+  --blue-lt:  #EFF6FF;
+  --radius:   12px;
+  --shadow:   0 1px 4px rgba(27,51,88,.07);
 }
-.hp-head__title { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
-.hp-head__sub   { font-size: 13px; color: #64748b; margin: 4px 0 0; }
+*, *::before, *::after { box-sizing: border-box; }
+body { background: var(--bg); direction: rtl; }
+a { text-decoration: none; }
 
-/* ── Metrics ── */
+/* ── Layout ── */
+.hp { max-width: 1160px; margin: 0 auto; padding: 28px 20px 48px; }
+
+/* ── Hero banner ── */
+.hp-hero {
+  background: linear-gradient(135deg, var(--navy) 0%, #2A4F82 100%);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.hp-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hp-hero__text { position: relative; }
+.hp-hero__title {
+  font-size: 24px; font-weight: 800;
+  color: #fff; margin: 0 0 6px;
+  letter-spacing: -.02em;
+}
+.hp-hero__sub {
+  font-size: 13px; color: rgba(255,255,255,.65);
+  margin: 0;
+}
+.hp-hero__badge {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 99px;
+  padding: 6px 18px;
+  font-size: 12px; font-weight: 700;
+  color: rgba(255,255,255,.9);
+  position: relative;
+  white-space: nowrap;
+}
+
+/* ── Nav tiles ── */
+.hp-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.hp-nav-tile {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--navy);
+  font-size: 13px; font-weight: 700;
+  text-align: center;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+  box-shadow: var(--shadow);
+}
+.hp-nav-tile:hover {
+  border-color: var(--green);
+  box-shadow: 0 4px 16px rgba(22,128,60,.12);
+  transform: translateY(-2px);
+  color: var(--green);
+}
+.hp-nav-tile__icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  transition: background .15s;
+}
+.tile-green  .hp-nav-tile__icon { background: var(--green-lt); }
+.tile-navy   .hp-nav-tile__icon { background: #EBF0F8; }
+.tile-amber  .hp-nav-tile__icon { background: var(--amber-lt); }
+.tile-blue   .hp-nav-tile__icon { background: var(--blue-lt); }
+
+/* ── Metric cards ── */
 .hp-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
 }
 .hp-metric {
-  background: #fff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 18px 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 20px 16px;
+  box-shadow: var(--shadow);
+  border-top: 3px solid var(--border);
+  transition: box-shadow .15s;
 }
+.hp-metric:hover { box-shadow: 0 4px 16px rgba(27,51,88,.1); }
+.hp-metric--green  { border-top-color: var(--green); }
+.hp-metric--navy   { border-top-color: var(--navy); }
+.hp-metric--amber  { border-top-color: var(--amber); }
+.hp-metric--blue   { border-top-color: var(--blue); }
+.hp-metric--red    { border-top-color: var(--red); }
 .hp-metric__label {
-  font-size: 11.5px; font-weight: 600;
-  color: #94a3b8; margin-bottom: 10px;
-  text-transform: uppercase; letter-spacing: .04em;
+  font-size: 11px; font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em;
+  margin-bottom: 10px;
 }
 .hp-metric__value {
-  font-size: 34px; font-weight: 800;
-  color: #0f172a; line-height: 1;
+  font-size: 36px; font-weight: 900;
+  color: var(--navy); line-height: 1;
   letter-spacing: -.04em;
 }
-.hp-metric--accent .hp-metric__value { color: #2563eb; }
+.hp-metric--green  .hp-metric__value { color: var(--green); }
+.hp-metric--amber  .hp-metric__value { color: var(--amber); }
+.hp-metric--blue   .hp-metric__value { color: var(--blue); }
 
-/* ── Card ── */
-.hp-card {
-  background: #fff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+/* ── Section title ── */
+.hp-section-title {
+  font-size: 12px; font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em;
+  margin: 0 0 12px;
+  display: flex; align-items: center; gap: 8px;
 }
-.hp-card__head {
-  padding: 12px 18px;
-  border-bottom: 1.5px solid #e2e8f0;
-  background: #f8fafc;
-  font-size: 12px; font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase; letter-spacing: .06em;
+.hp-section-title::after {
+  content: ''; flex: 1; height: 1.5px;
+  background: var(--border);
 }
-.hp-card__body { padding: 14px 16px; }
-
-/* ── Grid layout ── */
-.hp-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-/* ── Status list ── */
-.hp-list {
-  list-style: none; margin: 0; padding: 0;
-  display: grid; gap: 7px;
-}
-.hp-list li {
-  display: flex; align-items: center;
-  justify-content: space-between; gap: 10px;
-  padding: 10px 14px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 7px;
-  font-size: 13px; font-weight: 500;
-  color: #475569;
-  background: #f8fafc;
-}
-.hp-list__count {
-  min-width: 34px; text-align: center;
-  font-size: 13px; font-weight: 700;
-  color: #0f172a;
-  background: #fff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 99px;
-  padding: 2px 10px;
-  flex-shrink: 0;
-}
-
-/* ── Quick links ── */
-.hp-links { display: grid; gap: 8px; }
-.hp-link {
-  display: flex; align-items: center;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
-  color: #0f172a;
-  text-decoration: none;
-  font-size: 13px; font-weight: 600;
-  overflow: hidden;
-  transition: border-color .15s, box-shadow .15s;
-}
-.hp-link:hover {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37,99,235,.07);
-}
-.hp-link__bar {
-  width: 3px; align-self: stretch;
-  background: #2563eb; flex-shrink: 0;
-  transition: width .15s;
-}
-.hp-link:hover .hp-link__bar { width: 5px; }
-.hp-link__label { flex: 1; padding: 13px 14px; }
-.hp-link__arrow {
-  padding-inline-end: 14px;
-  font-size: 13px; color: #94a3b8;
-  transition: transform .15s;
-}
-.hp-link:hover .hp-link__arrow { transform: translateX(-3px); color: #2563eb; }
 
 /* ── Expiring alert ── */
 .hp-expiring {
-  background: #fff;
-  border: 1.5px solid #e2e8f0;
-  border-right: 3px solid #2563eb;
-  border-radius: 10px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
   overflow: hidden;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  margin-bottom: 28px;
+  box-shadow: var(--shadow);
 }
 .hp-expiring__head {
+  background: linear-gradient(90deg, #FFF7ED, #FFFBF5);
+  border-bottom: 1.5px solid #FDE68A;
+  padding: 13px 20px;
   display: flex; align-items: center; gap: 10px;
-  padding: 12px 18px;
-  border-bottom: 1.5px solid #e2e8f0;
-  background: #f8fafc;
 }
+.hp-expiring__icon { font-size: 18px; }
 .hp-expiring__title {
-  font-size: 12px; font-weight: 700;
-  color: #94a3b8; text-transform: uppercase;
-  letter-spacing: .06em; flex: 1;
+  font-size: 13px; font-weight: 700;
+  color: #92400E; flex: 1;
 }
-.hp-expiring__badge {
-  background: #2563eb; color: #fff;
-  font-size: 11px; font-weight: 700;
-  border-radius: 99px; padding: 2px 10px;
+.hp-expiring__count {
+  background: var(--amber);
+  color: #fff;
+  font-size: 11px; font-weight: 800;
+  border-radius: 99px;
+  padding: 3px 12px;
 }
-.hp-exp-table {
-  width: 100%; border-collapse: collapse;
-  font-size: 13px;
-}
+.hp-exp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .hp-exp-table th {
-  background: #f8fafc;
-  color: #94a3b8;
-  font-size: 11px; font-weight: 700;
-  letter-spacing: .04em;
-  padding: 9px 16px;
-  border-bottom: 1.5px solid #e2e8f0;
+  background: #FAFAFA;
+  color: var(--muted);
+  font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  padding: 10px 18px;
+  border-bottom: 1.5px solid var(--border);
   text-align: right;
 }
 .hp-exp-table td {
-  padding: 10px 16px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #475569;
+  padding: 11px 18px;
+  border-bottom: 1px solid #F1F5F9;
+  color: var(--navy-mid);
   vertical-align: middle;
 }
 .hp-exp-table tr:last-child td { border-bottom: none; }
-.hp-exp-table tr:hover td { background: #f8fafc; }
-
+.hp-exp-table tr:hover td { background: #FAFCFF; }
 .hp-days {
   display: inline-flex; align-items: center;
   padding: 3px 10px; border-radius: 99px;
   font-size: 11.5px; font-weight: 700;
 }
-.hp-days--urgent  { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
-.hp-days--warning { background: #fff7ed; color: #9a3412; border: 1.5px solid #fdba74; }
-.hp-days--notice  { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; }
-
+.hp-days--urgent  { background: var(--red-lt);   color: var(--red);   border: 1.5px solid #FCA5A5; }
+.hp-days--warning { background: var(--amber-lt);  color: var(--amber); border: 1.5px solid #FCD34D; }
+.hp-days--notice  { background: var(--blue-lt);   color: var(--blue);  border: 1.5px solid #BFDBFE; }
 .hp-exp-btn {
   display: inline-flex; align-items: center;
-  padding: 4px 12px; border-radius: 6px;
-  font-size: 12px; font-weight: 600;
-  text-decoration: none;
-  background: #2563eb; color: #fff;
+  padding: 5px 12px; border-radius: 7px;
+  font-size: 12px; font-weight: 700;
+  background: var(--green); color: #fff;
   transition: background .15s;
   margin-inline-end: 6px;
 }
-.hp-exp-btn:hover { background: #1d4ed8; }
+.hp-exp-btn:hover { background: #115F2D; }
 .hp-exp-btn.ghost {
   background: transparent;
-  border: 1.5px solid #e2e8f0;
-  color: #475569;
+  border: 1.5px solid var(--border);
+  color: var(--navy-mid);
 }
-.hp-exp-btn.ghost:hover { background: #f1f5f9; }
+.hp-exp-btn.ghost:hover { background: var(--bg); }
 
-/* ── Mobile quick links ── */
-.hp-links-row { display: none; gap: 10px; margin-bottom: 20px; }
-.hp-card-quick { display: block; }
+/* ── Two-col grid ── */
+.hp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
 
-@media (max-width: 800px) {
+/* ── Card ── */
+.hp-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.hp-card__head {
+  padding: 13px 18px;
+  border-bottom: 1.5px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.hp-card__head-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); flex-shrink: 0;
+}
+.hp-card__head-title {
+  font-size: 12px; font-weight: 800;
+  color: var(--navy); text-transform: uppercase; letter-spacing: .06em;
+  flex: 1;
+}
+.hp-card__body { padding: 14px 16px; }
+
+/* ── Status list ── */
+.hp-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.hp-list li {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 10px;
+  padding: 11px 14px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  font-size: 13px; font-weight: 500;
+  color: var(--navy-mid);
+  transition: background .12s;
+}
+.hp-list li:hover { background: var(--green-lt); border-color: #A7D9BE; }
+.hp-list__count {
+  min-width: 36px; text-align: center;
+  font-size: 13px; font-weight: 800;
+  color: var(--navy);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 99px;
+  padding: 2px 10px; flex-shrink: 0;
+}
+
+/* ── Quick link rows ── */
+.hp-links { display: grid; gap: 8px; }
+.hp-link {
+  display: flex; align-items: center;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--navy);
+  font-size: 13px; font-weight: 600;
+  overflow: hidden;
+  transition: border-color .15s, box-shadow .15s;
+}
+.hp-link:hover {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(22,128,60,.08);
+  background: var(--surface);
+}
+.hp-link__bar { width: 4px; align-self: stretch; background: var(--green); flex-shrink: 0; }
+.hp-link__label { flex: 1; padding: 13px 14px; }
+.hp-link__arrow { padding-inline-end: 14px; font-size: 14px; color: var(--muted); transition: transform .15s; }
+.hp-link:hover .hp-link__arrow { transform: translateX(-3px); color: var(--green); }
+
+/* ── Mobile ── */
+.hp-nav-tile-row { display: none; }
+
+@media(max-width: 800px) {
   .hp-grid { grid-template-columns: 1fr; }
-  .hp-exp-table { display: block; overflow-x: auto; white-space: nowrap; }
+  .hp-exp-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .hp-card-quick { display: none; }
-  .hp-links-row { display: grid; grid-template-columns: repeat(2, 1fr); }
+  .hp-nav { grid-template-columns: repeat(2, 1fr); }
+  .hp-hero { flex-direction: column; align-items: flex-start; }
 }
-@media (max-width: 500px) {
+@media(max-width: 500px) {
   .hp-metrics { grid-template-columns: repeat(2, 1fr); }
+  .hp { padding: 16px 14px 40px; }
+  .hp-hero { padding: 20px 20px; }
+  .hp-hero__title { font-size: 18px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="hp" lang="ar" dir="rtl">
+<div class="hp" lang="ar" dir="rtl">
 
-  <!-- Mobile quick links -->
-  <div class="hp-links-row">
-    <a class="hp-link" href="{% url 'clearance_list' %}">
-      <span class="hp-link__bar"></span>
-      <span class="hp-link__label">متابعة الطلبات</span>
-      <span class="hp-link__arrow">←</span>
-    </a>
-    <a class="hp-link" href="{% url 'permit_types' %}">
-      <span class="hp-link__bar"></span>
-      <span class="hp-link__label">التصاريح</span>
-      <span class="hp-link__arrow">←</span>
-    </a>
-    <a class="hp-link" href="{% url 'company_list' %}">
-      <span class="hp-link__bar"></span>
-      <span class="hp-link__label">الشركات</span>
-      <span class="hp-link__arrow">←</span>
-    </a>
-    <a class="hp-link" href="{% url 'enginer_list' %}">
-      <span class="hp-link__bar"></span>
-      <span class="hp-link__label">المهندسين</span>
-      <span class="hp-link__arrow">←</span>
-    </a>
+  <!-- Hero banner -->
+  <div class="hp-hero">
+    <div class="hp-hero__text">
+      <h1 class="hp-hero__title">نظام التصاريح والرقابة الصحية</h1>
+      <p class="hp-hero__sub">بلدية مدينة الشارقة — الإدارة العامة للصحة البيئية</p>
+    </div>
+    <div class="hp-hero__badge">لوحة التحكم</div>
   </div>
 
-  <!-- Page header -->
-  <div class="hp-head">
-    <div>
-      <h1 class="hp-head__title">لوحة النظام</h1>
-      <p class="hp-head__sub">نظام التصاريح — إدارة الرقابة والسلامة الصحية</p>
-    </div>
+  <!-- Navigation tiles -->
+  <div class="hp-nav">
+    <a class="hp-nav-tile tile-green" href="{% url 'clearance_list' %}">
+      <div class="hp-nav-tile__icon">📋</div>
+      متابعة الطلبات
+    </a>
+    <a class="hp-nav-tile tile-navy" href="{% url 'permit_types' %}">
+      <div class="hp-nav-tile__icon">🗂</div>
+      التصاريح
+    </a>
+    <a class="hp-nav-tile tile-amber" href="{% url 'company_list' %}">
+      <div class="hp-nav-tile__icon">🏢</div>
+      الشركات
+    </a>
+    <a class="hp-nav-tile tile-blue" href="{% url 'enginer_list' %}">
+      <div class="hp-nav-tile__icon">👷</div>
+      المهندسون
+    </a>
+    <a class="hp-nav-tile tile-green" href="{% url 'field_work_list' %}">
+      <div class="hp-nav-tile__icon">🔬</div>
+      العمل الميداني
+    </a>
+    <a class="hp-nav-tile tile-navy" href="{% url 'complaints_dashboard' %}">
+      <div class="hp-nav-tile__icon">📨</div>
+      الشكاوى
+    </a>
   </div>
 
   <!-- Metrics -->
+  <p class="hp-section-title">إحصائيات عامة</p>
   <div class="hp-metrics">
-    <div class="hp-metric">
+    <div class="hp-metric hp-metric--navy">
       <div class="hp-metric__label">إجمالي الشركات</div>
       <div class="hp-metric__value">{{ total_companies }}</div>
     </div>
-    <div class="hp-metric">
+    <div class="hp-metric hp-metric--navy">
       <div class="hp-metric__label">إجمالي المهندسين</div>
       <div class="hp-metric__value">{{ total_engineers }}</div>
     </div>
@@ -269,19 +380,19 @@
       <div class="hp-metric__label">إجمالي الطلبات</div>
       <div class="hp-metric__value">{{ total_permits }}</div>
     </div>
-    <div class="hp-metric hp-metric--accent">
+    <div class="hp-metric hp-metric--green">
       <div class="hp-metric__label">تصاريح صادرة</div>
       <div class="hp-metric__value">{{ issued_permits }}</div>
     </div>
-    <div class="hp-metric">
+    <div class="hp-metric hp-metric--amber">
       <div class="hp-metric__label">قيد الإجراء</div>
       <div class="hp-metric__value">{{ pending_permits }}</div>
     </div>
-    <div class="hp-metric">
+    <div class="hp-metric hp-metric--blue">
       <div class="hp-metric__label">شركات داخل مهلة</div>
       <div class="hp-metric__value">{{ active_extension_companies }}</div>
     </div>
-    <div class="hp-metric">
+    <div class="hp-metric hp-metric--red">
       <div class="hp-metric__label">مهندسون في إجازة</div>
       <div class="hp-metric__value">{{ engineers_on_leave }}</div>
     </div>
@@ -289,10 +400,12 @@
 
   <!-- Expiring soon -->
   {% if expiring_soon %}
+  <p class="hp-section-title">تنبيهات</p>
   <div class="hp-expiring">
     <div class="hp-expiring__head">
+      <span class="hp-expiring__icon">⚠️</span>
       <span class="hp-expiring__title">تصاريح توشك على الانتهاء خلال أسبوع</span>
-      <span class="hp-expiring__badge">{{ expiring_soon|length }}</span>
+      <span class="hp-expiring__count">{{ expiring_soon|length }}</span>
     </div>
     <table class="hp-exp-table">
       <thead>
@@ -308,10 +421,10 @@
       <tbody>
         {% for item in expiring_soon %}
         <tr>
-          <td><strong style="color:#0f172a;">{{ item.permit.company.name }}</strong></td>
-          <td>{{ item.label }}</td>
-          <td style="font-family:monospace;font-size:12px;">{{ item.permit.permit_no|default:"—" }}</td>
-          <td>{{ item.permit.dateOfExpiry|date:"d/m/Y" }}</td>
+          <td><strong style="color:var(--navy);">{{ item.permit.company.name }}</strong></td>
+          <td style="color:var(--navy-mid);">{{ item.label }}</td>
+          <td style="font-family:monospace;font-size:12px;color:var(--muted);">{{ item.permit.permit_no|default:"—" }}</td>
+          <td style="color:var(--navy-mid);">{{ item.permit.dateOfExpiry|date:"d/m/Y" }}</td>
           <td>
             {% if item.days_left == 0 %}
               <span class="hp-days hp-days--urgent">ينتهي اليوم</span>
@@ -326,11 +439,11 @@
           <td>
             <a class="hp-exp-btn ghost" href="{% url 'company_detail' item.permit.company.id %}">الشركة</a>
             {% if item.permit.permit_type == 'pest_control' %}
-              <a class="hp-exp-btn" href="{% url 'pest_control_permit' %}?company_id={{ item.permit.company.id }}">تصريح جديد</a>
+              <a class="hp-exp-btn" href="{% url 'pest_control_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
             {% elif item.permit.permit_type == 'pesticide_transport' %}
-              <a class="hp-exp-btn" href="{% url 'vehicle_permit' %}?company_id={{ item.permit.company.id }}">تصريح جديد</a>
+              <a class="hp-exp-btn" href="{% url 'vehicle_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
             {% elif item.permit.permit_type == 'waste_disposal' %}
-              <a class="hp-exp-btn" href="{% url 'waste_permit' %}?company_id={{ item.permit.company.id }}">تصريح جديد</a>
+              <a class="hp-exp-btn" href="{% url 'waste_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
             {% endif %}
           </td>
         </tr>
@@ -341,17 +454,18 @@
   {% endif %}
 
   <!-- Main grid -->
+  <p class="hp-section-title">تفاصيل التصاريح</p>
   <div class="hp-grid">
 
     <div class="hp-card">
-      <div class="hp-card__head">توزيع حسب الحالة</div>
+      <div class="hp-card__head">
+        <span class="hp-card__head-dot"></span>
+        <span class="hp-card__head-title">توزيع حسب الحالة</span>
+      </div>
       <div class="hp-card__body">
         <ul class="hp-list">
           {% for item in status_breakdown %}
-            <li>
-              <span>{{ item.label }}</span>
-              <span class="hp-list__count">{{ item.total }}</span>
-            </li>
+            <li><span>{{ item.label }}</span><span class="hp-list__count">{{ item.total }}</span></li>
           {% empty %}
             <li><span>لا توجد بيانات</span><span class="hp-list__count">0</span></li>
           {% endfor %}
@@ -360,14 +474,14 @@
     </div>
 
     <div class="hp-card">
-      <div class="hp-card__head">توزيع حسب نوع التصريح</div>
+      <div class="hp-card__head">
+        <span class="hp-card__head-dot"></span>
+        <span class="hp-card__head-title">توزيع حسب نوع التصريح</span>
+      </div>
       <div class="hp-card__body">
         <ul class="hp-list">
           {% for item in permit_type_breakdown %}
-            <li>
-              <span>{{ item.label }}</span>
-              <span class="hp-list__count">{{ item.total }}</span>
-            </li>
+            <li><span>{{ item.label }}</span><span class="hp-list__count">{{ item.total }}</span></li>
           {% empty %}
             <li><span>لا توجد بيانات</span><span class="hp-list__count">0</span></li>
           {% endfor %}
@@ -376,7 +490,10 @@
     </div>
 
     <div class="hp-card hp-card-quick">
-      <div class="hp-card__head">روابط سريعة</div>
+      <div class="hp-card__head">
+        <span class="hp-card__head-dot" style="background:var(--blue);"></span>
+        <span class="hp-card__head-title">روابط سريعة</span>
+      </div>
       <div class="hp-card__body">
         <div class="hp-links">
           <a class="hp-link" href="{% url 'clearance_list' %}">
@@ -396,7 +513,7 @@
           </a>
           <a class="hp-link" href="{% url 'enginer_list' %}">
             <span class="hp-link__bar"></span>
-            <span class="hp-link__label">المهندسين</span>
+            <span class="hp-link__label">المهندسون</span>
             <span class="hp-link__arrow">←</span>
           </a>
         </div>
@@ -404,7 +521,10 @@
     </div>
 
     <div class="hp-card">
-      <div class="hp-card__head">طلبات تحتاج متابعة</div>
+      <div class="hp-card__head">
+        <span class="hp-card__head-dot" style="background:var(--amber);"></span>
+        <span class="hp-card__head-title">طلبات تحتاج متابعة</span>
+      </div>
       <div class="hp-card__body">
         <ul class="hp-list">
           <li>
@@ -424,5 +544,5 @@
     </div>
 
   </div>
-</section>
+</div>
 {% endblock %}
