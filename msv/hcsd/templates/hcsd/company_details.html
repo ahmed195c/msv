@@ -421,6 +421,69 @@
     </div>
   </div>
 
+  {# ── تحديد موقع الشركة ── #}
+  <div class="card">
+    <div class="card-header">
+      <h2>موقع الشركة</h2>
+      {% if company.latitude and company.longitude %}
+        <a href="https://www.google.com/maps?q={{ company.latitude }},{{ company.longitude }}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">◎ فتح في خرائط Google</a>
+      {% endif %}
+    </div>
+    <div class="card-body">
+
+      {# عرض الموقع الحالي إن وجد #}
+      {% if company.latitude and company.longitude %}
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;background:var(--surface-1);border:1.5px solid var(--border);border-radius:8px;margin-bottom:16px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--ink-4);letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px;">الموقع المحفوظ</div>
+          <div style="font-family:var(--mono);font-size:12.5px;color:var(--ink-1);">{{ company.latitude }}, {{ company.longitude }}</div>
+          {% if company.location_area %}<div style="font-size:12.5px;color:var(--ink-2);margin-top:2px;">المنطقة: {{ company.location_area }}</div>{% endif %}
+          {% if company.location_street %}<div style="font-size:12.5px;color:var(--ink-2);">الموقع: {{ company.location_street }}</div>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {# فورم تحديد الموقع #}
+      <form method="POST" id="loc-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_location">
+        <input type="hidden" name="latitude"  id="loc-lat-inp">
+        <input type="hidden" name="longitude" id="loc-lng-inp">
+
+        <div style="margin-bottom:14px;padding:14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:9px;">
+          <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:10px;">تحديد الموقع عبر GPS</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <button type="button" id="loc-gps-btn" onclick="captureCompanyLocation()"
+              style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:7px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              تحديد الموقع الحالي
+            </button>
+            <span id="loc-status" style="font-size:13px;font-weight:600;"></span>
+          </div>
+          <div id="loc-coords-wrap" style="display:none;margin-top:10px;padding:8px 12px;background:#fff;border:1.5px solid #bfdbfe;border-radius:7px;">
+            <div id="loc-coords-text" style="font-family:var(--mono);font-size:12.5px;color:#1e40af;margin-bottom:4px;"></div>
+            <a id="loc-maps-link" href="#" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);">فتح في خرائط Google ↗</a>
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="form-field">
+            <label>المنطقة (اختياري)</label>
+            <input type="text" name="location_area" value="{{ company.location_area|default:'' }}" placeholder="مثال: منطقة الصناعية، المجاز...">
+          </div>
+          <div class="form-field">
+            <label>وصف الموقع / الشارع (اختياري)</label>
+            <input type="text" name="location_street" value="{{ company.location_street|default:'' }}" placeholder="مثال: شارع الشيخ زايد، بجانب...">
+          </div>
+        </div>
+
+        <button type="submit" id="loc-submit-btn" class="btn btn-primary" disabled>حفظ الموقع</button>
+        <span style="font-size:12px;color:var(--ink-4);margin-right:10px;">يجب تحديد الموقع عبر GPS أولاً</span>
+      </form>
+    </div>
+  </div>
+
   {# ── المهندس المسؤول ── #}
   <div class="card">
     <div class="card-header"><h2>المهندس المسؤول</h2></div>
@@ -732,6 +795,7 @@
                 {% elif log.action == "requirements_insurance_created" %}تم إنشاء طلب تأمين
                 {% elif log.action == "requirements_insurance_paid" %}تم دفع تأمين استيفاء الشروط
                 {% elif log.action == "requirements_insurance_refunded" %}تم استرداد تأمين استيفاء الشروط
+                {% elif log.action == "location_saved" %}تم تحديد موقع الشركة
                 {% else %}{{ log.action }}{% endif %}
               </div>
               <div class="tl-meta">
@@ -836,5 +900,49 @@
   else { setEditMode(false); filterTypesByEng(); applyFilter(); }
   if (extPanel && !extPanel.hidden) openExt();
 })();
+
+function captureCompanyLocation() {
+  var btn    = document.getElementById('loc-gps-btn');
+  var status = document.getElementById('loc-status');
+  var wrap   = document.getElementById('loc-coords-wrap');
+  var text   = document.getElementById('loc-coords-text');
+  var link   = document.getElementById('loc-maps-link');
+  var latInp = document.getElementById('loc-lat-inp');
+  var lngInp = document.getElementById('loc-lng-inp');
+  var submitBtn = document.getElementById('loc-submit-btn');
+
+  if (!navigator.geolocation) {
+    status.textContent = 'المتصفح لا يدعم تحديد الموقع.';
+    status.style.color = '#991b1b';
+    return;
+  }
+  btn.disabled = true;
+  status.textContent = 'جارٍ تحديد الموقع…';
+  status.style.color = '#374151';
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude.toFixed(6);
+      var lng = pos.coords.longitude.toFixed(6);
+      latInp.value = lat;
+      lngInp.value = lng;
+      text.textContent = lat + '، ' + lng;
+      link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+      wrap.style.display = 'block';
+      status.textContent = '✓ تم تحديد الموقع';
+      status.style.color = '#166534';
+      btn.textContent = '↺ تحديث الموقع';
+      btn.disabled = false;
+      submitBtn.disabled = false;
+      submitBtn.nextElementSibling.style.display = 'none';
+    },
+    function() {
+      status.textContent = 'تعذّر الحصول على الموقع — تأكد من منح صلاحية الموقع.';
+      status.style.color = '#991b1b';
+      btn.disabled = false;
+    },
+    { enableHighAccuracy: true, timeout: 12000 }
+  );
+}
 </script>
 {% endblock %}

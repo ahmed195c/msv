@@ -700,6 +700,7 @@ class CompanyChangeLog(models.Model):
         ('waste_request_payment_reference', 'Waste Request Payment Reference'),
         ('waste_request_paid', 'Waste Request Paid'),
         ('waste_request_inspected', 'Waste Request Inspected'),
+        ('location_saved', 'Location Saved'),
     ]
 
     company = models.ForeignKey(

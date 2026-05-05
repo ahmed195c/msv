@@ -313,7 +313,42 @@ def company_detail(request, id):
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        if action == 'close_extension':
+        if action == 'save_location':
+            lat_raw = (request.POST.get('latitude') or '').strip()
+            lng_raw = (request.POST.get('longitude') or '').strip()
+            location_area   = (request.POST.get('location_area') or '').strip()
+            location_street = (request.POST.get('location_street') or '').strip()
+            try:
+                lat = round(float(lat_raw), 6) if lat_raw else None
+                lng = round(float(lng_raw), 6) if lng_raw else None
+            except ValueError:
+                lat = lng = None
+            if lat is None or lng is None:
+                pass  # ignore bad submit without coordinates
+            else:
+                update_f = ['latitude', 'longitude']
+                company.latitude  = lat
+                company.longitude = lng
+                if location_area:
+                    company.location_area = location_area
+                    update_f.append('location_area')
+                if location_street:
+                    company.location_street = location_street
+                    update_f.append('location_street')
+                company.save(update_fields=update_f)
+                notes_parts = [f'إحداثيات: {lat}, {lng}']
+                if location_area:
+                    notes_parts.append(f'المنطقة: {location_area}')
+                if location_street:
+                    notes_parts.append(f'الموقع: {location_street}')
+                _log_company_change(
+                    company,
+                    'location_saved',
+                    request.user,
+                    notes=' — '.join(notes_parts),
+                )
+            return redirect('company_detail', id=company.id)
+        elif action == 'close_extension':
             if not _can_admin(request.user):
                 extension_error = 'إغلاق المهلة متاح للإدارة فقط.'
             elif not _company_has_active_extension(company):
