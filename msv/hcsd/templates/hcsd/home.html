@@ -3,107 +3,184 @@
 {% block title %}لوحة النظام{% endblock %}
 {% block extra_css %}
 <style>
-/*
-  60 % → #F7F8FA  (page bg)  /  #FFFFFF (card surfaces)
-  30 % → #111827  (ink-1)    /  #374151 (ink-2) / #6B7280 (ink-3)
-  10 % → #0A6640  (accent)   /  #F0FDF4 (accent-tint)
-*/
-:root{
-  --bg:#F7F8FA; --s:#FFFFFF;
-  --i1:#111827; --i2:#374151; --i3:#6B7280; --i4:#9CA3AF;
-  --border:#E5E7EB; --border-s:#D1D5DB;
-  --ac:#0A6640; --ac-t:#F0FDF4; --ac-m:#138A52;
-  --r:10px;
-  --sh:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
-}
-*{box-sizing:border-box;}
-body{background:var(--bg);direction:rtl;color:var(--i1);}
-a{text-decoration:none;color:inherit;}
+/* ── All scoped under .hp to avoid fighting base.html tokens ── */
 
-.hp{max-width:1120px;margin:0 auto;padding:32px 20px 56px;}
+.hp { direction: rtl; }
 
 /* ── Page header ── */
-.ph{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;}
-.ph__title{font-size:18px;font-weight:700;color:var(--i1);letter-spacing:-.01em;margin:0 0 3px;}
-.ph__sub{font-size:12.5px;color:var(--i3);margin:0;}
-.ph__user{font-size:12px;color:var(--i4);text-align:left;}
-
-/* ── Label above sections ── */
-.sec-lbl{font-size:10.5px;font-weight:700;color:var(--i4);letter-spacing:.1em;text-transform:uppercase;margin:0 0 12px;}
+.hp-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 12px; padding-bottom: 20px; margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hp-head__title { font-size: 17px; font-weight: 700; color: var(--ink); margin: 0 0 3px; }
+.hp-head__sub   { font-size: 12.5px; color: var(--ink-3); margin: 0; }
+.hp-head__user  { font-size: 12px; color: var(--ink-4); }
 
 /* ── Stat strip ── */
-.stat-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border-s);border:1px solid var(--border-s);border-radius:var(--r);overflow:hidden;margin-bottom:28px;}
-.stat-cell{background:var(--s);padding:20px 18px 16px;display:flex;flex-direction:column;gap:6px;}
-.stat-cell:first-child{border-radius:var(--r) 0 0 var(--r);}
-.stat-cell:last-child{border-radius:0 var(--r) var(--r) 0;}
-.stat-cell__n{font-size:32px;font-weight:800;color:var(--i1);line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums;}
-.stat-cell__l{font-size:11px;font-weight:600;color:var(--i4);line-height:1.3;}
-.stat-cell--ac .stat-cell__n{color:var(--ac);}
-.stat-cell--warn .stat-cell__n{color:#92400E;}
+.hp-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1.5px solid var(--line-2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 24px;
+  background: var(--line);
+  gap: 1px;
+}
+.hp-cell {
+  background: var(--paper);
+  padding: 18px 16px 14px;
+  display: flex; flex-direction: column; gap: 7px;
+  border-top: 3px solid transparent;
+}
+.hp-cell--ac   { border-top-color: #0A6640; }
+.hp-cell--warn { border-top-color: #B45309; }
+.hp-cell--navy { border-top-color: var(--ink); }
+.hp-cell__n {
+  font-size: 30px; font-weight: 800; line-height: 1;
+  color: var(--ink); letter-spacing: -.04em;
+  font-variant-numeric: tabular-nums;
+}
+.hp-cell--ac   .hp-cell__n { color: #0A6640; }
+.hp-cell--warn .hp-cell__n { color: #B45309; }
+.hp-cell__l {
+  font-size: 10.5px; font-weight: 600; color: var(--ink-4);
+  letter-spacing: .04em; line-height: 1.3;
+}
 
-/* ── Alert banner ── */
-.alert-wrap{margin-bottom:28px;}
-.alert-card{background:var(--s);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
-.alert-head{padding:12px 20px;border-bottom:1px solid #FDE68A;background:#FFFBEB;display:flex;align-items:center;gap:12px;}
-.alert-head__dot{width:8px;height:8px;border-radius:50%;background:#D97706;flex-shrink:0;}
-.alert-head__title{font-size:12.5px;font-weight:700;color:#78350F;flex:1;}
-.alert-head__n{background:#D97706;color:#fff;font-size:11px;font-weight:800;border-radius:99px;padding:2px 10px;}
-.exp-tbl{width:100%;border-collapse:collapse;font-size:13px;}
-.exp-tbl th{padding:9px 18px;text-align:right;font-size:10.5px;font-weight:700;color:var(--i4);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg);}
-.exp-tbl td{padding:11px 18px;border-bottom:1px solid var(--border);color:var(--i2);vertical-align:middle;}
-.exp-tbl tr:last-child td{border-bottom:none;}
-.exp-tbl tr:hover td{background:#FAFCFF;}
-.pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700;border:1px solid transparent;}
-.pill-red   {background:#FEF2F2;color:#991B1B;border-color:#FECACA;}
-.pill-amber {background:#FFFBEB;color:#92400E;border-color:#FDE68A;}
-.pill-blue  {background:#EFF6FF;color:#1E40AF;border-color:#BFDBFE;}
-.act-btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;transition:background .12s,color .12s;border:1px solid var(--border);color:var(--i2);background:var(--s);margin-inline-end:6px;}
-.act-btn:hover{background:var(--bg);}
-.act-btn--primary{background:var(--ac);color:#fff;border-color:var(--ac);}
-.act-btn--primary:hover{background:var(--ac-m);}
+/* ── Section label ── */
+.hp-sec {
+  font-size: 10.5px; font-weight: 700; color: var(--ink-4);
+  letter-spacing: .1em; text-transform: uppercase;
+  margin: 0 0 10px;
+}
+
+/* ── Alert card ── */
+.hp-alert {
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--paper);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+.hp-alert__head {
+  padding: 11px 18px;
+  background: #FFFBEB;
+  border-bottom: 1px solid #FDE68A;
+  display: flex; align-items: center; gap: 10px;
+}
+.hp-alert__dot { width: 7px; height: 7px; border-radius: 50%; background: #D97706; flex-shrink: 0; }
+.hp-alert__title { font-size: 12.5px; font-weight: 700; color: #78350F; flex: 1; }
+.hp-alert__n {
+  background: #D97706; color: #fff;
+  font-size: 11px; font-weight: 800;
+  border-radius: 99px; padding: 2px 9px;
+}
+
+/* ── Tables ── */
+.hp-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.hp-tbl th {
+  padding: 9px 16px; text-align: right;
+  font-size: 10.5px; font-weight: 700; color: var(--ink-4);
+  letter-spacing: .06em; text-transform: uppercase;
+  border-bottom: 1.5px solid var(--line); background: var(--surface);
+}
+.hp-tbl td {
+  padding: 10px 16px; border-bottom: 1px solid var(--line);
+  color: var(--ink-2); vertical-align: middle;
+}
+.hp-tbl tr:last-child td { border-bottom: none; }
+.hp-tbl tr:hover td { background: var(--surface); }
+
+/* ── Pills ── */
+.pill {
+  display: inline-flex; align-items: center;
+  padding: 2px 9px; border-radius: 99px;
+  font-size: 11px; font-weight: 700;
+  border: 1px solid transparent;
+}
+.pill-r { background: #FEF2F2; color: #991B1B; border-color: #FECACA; }
+.pill-a { background: #FFFBEB; color: #92400E; border-color: #FDE68A; }
+.pill-b { background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE; }
+
+/* ── Action buttons ── */
+.hp-btn {
+  display: inline-flex; align-items: center;
+  padding: 5px 11px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 600;
+  border: 1.5px solid var(--line-2);
+  color: var(--ink-2); background: var(--paper);
+  transition: background .12s; margin-inline-end: 5px;
+}
+.hp-btn:hover { background: var(--surface); }
+.hp-btn--ac { background: #0A6640; color: #fff; border-color: #0A6640; }
+.hp-btn--ac:hover { background: #085430; }
 
 /* ── Two column ── */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.hp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
 
 /* ── Card ── */
-.card{background:var(--s);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
-.card__head{padding:11px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.card__head-title{font-size:11px;font-weight:700;color:var(--i3);letter-spacing:.08em;text-transform:uppercase;}
-.card__body{padding:12px 14px;}
+.hp-card {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.hp-card__head {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 10.5px; font-weight: 700;
+  color: var(--ink-4); letter-spacing: .08em; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hp-card__body { padding: 8px 10px; }
 
-/* ── Stat rows (in cards) ── */
-.row-list{list-style:none;margin:0;padding:0;display:grid;gap:2px;}
-.row-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:7px;font-size:13px;color:var(--i2);font-weight:500;transition:background .1s;}
-.row-item:hover{background:var(--bg);}
-.row-item__bar-wrap{flex:1;max-width:80px;height:4px;background:var(--border);border-radius:99px;overflow:hidden;}
-.row-item__bar{height:100%;background:var(--ac);border-radius:99px;transition:width .3s;}
-.row-item__n{font-size:13px;font-weight:700;color:var(--i1);min-width:32px;text-align:left;font-variant-numeric:tabular-nums;}
+/* ── Row list with progress ── */
+.hp-rows { list-style: none; margin: 0; padding: 0; }
+.hp-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 8px; border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--ink-2); font-weight: 500;
+  transition: background .1s;
+}
+.hp-row:hover { background: var(--surface); }
+.hp-row__lbl { flex: 1; }
+.hp-row__bar { width: 60px; height: 3px; background: var(--line-2); border-radius: 99px; overflow: hidden; flex-shrink: 0; }
+.hp-row__fill { height: 100%; background: #0A6640; border-radius: 99px; }
+.hp-row__n {
+  font-size: 13px; font-weight: 700; color: var(--ink);
+  min-width: 28px; text-align: left;
+  font-variant-numeric: tabular-nums;
+}
 
-/* ── Nav list ── */
-.nav-list{list-style:none;margin:0;padding:0;display:grid;gap:2px;}
-.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:7px;font-size:13px;font-weight:600;color:var(--i2);transition:background .1s,color .1s;cursor:pointer;}
-.nav-item:hover{background:var(--ac-t);color:var(--ac);}
-.nav-item svg{flex-shrink:0;opacity:.5;}
-.nav-item:hover svg{opacity:1;}
-.nav-item__label{flex:1;}
-.nav-item__arrow{color:var(--i4);font-size:12px;transition:transform .15s;}
-.nav-item:hover .nav-item__arrow{transform:translateX(-3px);color:var(--ac);}
+/* ── Nav links ── */
+.hp-nav-list { list-style: none; margin: 0; padding: 0; }
+.hp-nav-item a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 10px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; color: var(--ink-2);
+  transition: background .1s, color .1s;
+}
+.hp-nav-item a:hover { background: var(--surface); color: var(--ink); }
+.hp-nav-item a svg { opacity: .45; flex-shrink: 0; }
+.hp-nav-item a:hover svg { opacity: .8; }
+.hp-nav-item__lbl { flex: 1; }
+.hp-nav-item__arr { color: var(--ink-4); font-size: 12px; transition: transform .15s; }
+.hp-nav-item a:hover .hp-nav-item__arr { transform: translateX(-3px); color: var(--ink-3); }
 
 /* ── Responsive ── */
-@media(max-width:900px){
-  .stat-strip{grid-template-columns:repeat(4,1fr);}
-  .stat-cell:first-child,.stat-cell:last-child{border-radius:0;}
-  .stat-strip{border-radius:var(--r);}
+@media (max-width: 900px) {
+  .hp-strip { grid-template-columns: repeat(4, 1fr); }
 }
-@media(max-width:700px){
-  .two-col{grid-template-columns:1fr;}
-  .exp-tbl{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .card-nav-desktop{display:none;}
-  .stat-strip{grid-template-columns:repeat(2,1fr);}
-  .hp{padding:20px 14px 40px;}
-}
-@media(max-width:400px){
-  .stat-cell__n{font-size:26px;}
+@media (max-width: 700px) {
+  .hp-strip { grid-template-columns: repeat(2, 1fr); }
+  .hp-grid  { grid-template-columns: 1fr; }
+  .hp-tbl   { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .hp-card-nav { display: none; }
 }
 </style>
 {% endblock %}
@@ -112,207 +189,183 @@ a{text-decoration:none;color:inherit;}
 <div class="hp" lang="ar" dir="rtl">
 
   <!-- Page header -->
-  <div class="ph">
+  <div class="hp-head">
     <div>
-      <h1 class="ph__title">لوحة النظام</h1>
-      <p class="ph__sub">نظام إدارة التصاريح — الإدارة العامة للصحة البيئية، بلدية مدينة الشارقة</p>
+      <h1 class="hp-head__title">لوحة النظام</h1>
+      <p class="hp-head__sub">نظام إدارة التصاريح — الإدارة العامة للصحة البيئية</p>
     </div>
-    <div class="ph__user">{{ request.user.get_full_name|default:request.user.username }}</div>
+    <span class="hp-head__user">{{ request.user.get_full_name|default:request.user.username }}</span>
   </div>
 
   <!-- Stat strip -->
-  <p class="sec-lbl">نظرة عامة</p>
-  <div class="stat-strip">
-    <div class="stat-cell">
-      <span class="stat-cell__n">{{ total_companies }}</span>
-      <span class="stat-cell__l">الشركات المسجلة</span>
+  <p class="hp-sec">نظرة عامة</p>
+  <div class="hp-strip">
+    <div class="hp-cell hp-cell--navy">
+      <span class="hp-cell__n">{{ total_companies }}</span>
+      <span class="hp-cell__l">الشركات المسجلة</span>
     </div>
-    <div class="stat-cell">
-      <span class="stat-cell__n">{{ total_engineers }}</span>
-      <span class="stat-cell__l">المهندسون المسجلون</span>
+    <div class="hp-cell hp-cell--navy">
+      <span class="hp-cell__n">{{ total_engineers }}</span>
+      <span class="hp-cell__l">المهندسون</span>
     </div>
-    <div class="stat-cell">
-      <span class="stat-cell__n">{{ total_permits }}</span>
-      <span class="stat-cell__l">إجمالي الطلبات</span>
+    <div class="hp-cell">
+      <span class="hp-cell__n">{{ total_permits }}</span>
+      <span class="hp-cell__l">إجمالي الطلبات</span>
     </div>
-    <div class="stat-cell stat-cell--ac">
-      <span class="stat-cell__n">{{ issued_permits }}</span>
-      <span class="stat-cell__l">تصاريح صادرة</span>
+    <div class="hp-cell hp-cell--ac">
+      <span class="hp-cell__n">{{ issued_permits }}</span>
+      <span class="hp-cell__l">تصاريح صادرة</span>
     </div>
-    <div class="stat-cell stat-cell--warn">
-      <span class="stat-cell__n">{{ pending_permits }}</span>
-      <span class="stat-cell__l">قيد الإجراء</span>
+    <div class="hp-cell hp-cell--warn">
+      <span class="hp-cell__n">{{ pending_permits }}</span>
+      <span class="hp-cell__l">قيد الإجراء</span>
     </div>
-    <div class="stat-cell">
-      <span class="stat-cell__n">{{ active_extension_companies }}</span>
-      <span class="stat-cell__l">شركات داخل مهلة</span>
+    <div class="hp-cell">
+      <span class="hp-cell__n">{{ active_extension_companies }}</span>
+      <span class="hp-cell__l">شركات داخل مهلة</span>
     </div>
-    <div class="stat-cell">
-      <span class="stat-cell__n">{{ engineers_on_leave }}</span>
-      <span class="stat-cell__l">مهندسون في إجازة</span>
+    <div class="hp-cell">
+      <span class="hp-cell__n">{{ engineers_on_leave }}</span>
+      <span class="hp-cell__l">مهندسون في إجازة</span>
     </div>
   </div>
 
   <!-- Expiring soon -->
   {% if expiring_soon %}
-  <div class="alert-wrap">
-    <p class="sec-lbl">تنبيهات</p>
-    <div class="alert-card">
-      <div class="alert-head">
-        <span class="alert-head__dot"></span>
-        <span class="alert-head__title">تصاريح توشك على الانتهاء — خلال ٧ أيام</span>
-        <span class="alert-head__n">{{ expiring_soon|length }}</span>
-      </div>
-      <table class="exp-tbl">
-        <thead>
-          <tr>
-            <th>الشركة</th><th>نوع التصريح</th><th>رقم التصريح</th>
-            <th>تاريخ الانتهاء</th><th>المتبقي</th><th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in expiring_soon %}
-          <tr>
-            <td><span style="font-weight:600;color:var(--i1);">{{ item.permit.company.name }}</span></td>
-            <td>{{ item.label }}</td>
-            <td style="font-variant-numeric:tabular-nums;font-size:12px;color:var(--i4);">{{ item.permit.permit_no|default:"—" }}</td>
-            <td>{{ item.permit.dateOfExpiry|date:"d/m/Y" }}</td>
-            <td>
-              {% if item.days_left == 0 %}
-                <span class="pill pill-red">ينتهي اليوم</span>
-              {% elif item.days_left <= 2 %}
-                <span class="pill pill-red">{{ item.days_left }} يوم</span>
-              {% elif item.days_left <= 4 %}
-                <span class="pill pill-amber">{{ item.days_left }} أيام</span>
-              {% else %}
-                <span class="pill pill-blue">{{ item.days_left }} أيام</span>
-              {% endif %}
-            </td>
-            <td>
-              <a class="act-btn" href="{% url 'company_detail' item.permit.company.id %}">الشركة</a>
-              {% if item.permit.permit_type == 'pest_control' %}
-                <a class="act-btn act-btn--primary" href="{% url 'pest_control_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
-              {% elif item.permit.permit_type == 'pesticide_transport' %}
-                <a class="act-btn act-btn--primary" href="{% url 'vehicle_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
-              {% elif item.permit.permit_type == 'waste_disposal' %}
-                <a class="act-btn act-btn--primary" href="{% url 'waste_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <p class="hp-sec">تنبيهات</p>
+  <div class="hp-alert">
+    <div class="hp-alert__head">
+      <span class="hp-alert__dot"></span>
+      <span class="hp-alert__title">تصاريح توشك على الانتهاء — خلال ٧ أيام</span>
+      <span class="hp-alert__n">{{ expiring_soon|length }}</span>
     </div>
+    <table class="hp-tbl">
+      <thead>
+        <tr>
+          <th>الشركة</th><th>نوع التصريح</th><th>رقم التصريح</th>
+          <th>تاريخ الانتهاء</th><th>المتبقي</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in expiring_soon %}
+        <tr>
+          <td><strong style="color:var(--ink);">{{ item.permit.company.name }}</strong></td>
+          <td>{{ item.label }}</td>
+          <td style="font-family:var(--mono);font-size:12px;color:var(--ink-4);">{{ item.permit.permit_no|default:"—" }}</td>
+          <td>{{ item.permit.dateOfExpiry|date:"d/m/Y" }}</td>
+          <td>
+            {% if item.days_left == 0 %}
+              <span class="pill pill-r">ينتهي اليوم</span>
+            {% elif item.days_left <= 2 %}
+              <span class="pill pill-r">{{ item.days_left }} يوم</span>
+            {% elif item.days_left <= 4 %}
+              <span class="pill pill-a">{{ item.days_left }} أيام</span>
+            {% else %}
+              <span class="pill pill-b">{{ item.days_left }} أيام</span>
+            {% endif %}
+          </td>
+          <td>
+            <a class="hp-btn" href="{% url 'company_detail' item.permit.company.id %}">الشركة</a>
+            {% if item.permit.permit_type == 'pest_control' %}
+              <a class="hp-btn hp-btn--ac" href="{% url 'pest_control_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
+            {% elif item.permit.permit_type == 'pesticide_transport' %}
+              <a class="hp-btn hp-btn--ac" href="{% url 'vehicle_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
+            {% elif item.permit.permit_type == 'waste_disposal' %}
+              <a class="hp-btn hp-btn--ac" href="{% url 'waste_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
   {% endif %}
 
   <!-- Two column -->
-  <p class="sec-lbl">التفاصيل</p>
-  <div class="two-col">
+  <p class="hp-sec">التفاصيل</p>
+  <div class="hp-grid">
 
-    <!-- Status breakdown -->
-    <div class="card">
-      <div class="card__head">
-        <span class="card__head-title">توزيع حسب الحالة</span>
-      </div>
-      <div class="card__body">
-        <ul class="row-list">
+    <div class="hp-card">
+      <div class="hp-card__head">توزيع حسب الحالة</div>
+      <div class="hp-card__body">
+        <ul class="hp-rows">
           {% for item in status_breakdown %}
-          <li class="row-item">
-            <span>{{ item.label }}</span>
-            <div class="row-item__bar-wrap">
-              <div class="row-item__bar" style="width:{% widthratio item.total total_permits 100 %}%"></div>
-            </div>
-            <span class="row-item__n">{{ item.total }}</span>
+          <li class="hp-row">
+            <span class="hp-row__lbl">{{ item.label }}</span>
+            <div class="hp-row__bar"><div class="hp-row__fill" style="width:{% widthratio item.total total_permits 100 %}%"></div></div>
+            <span class="hp-row__n">{{ item.total }}</span>
           </li>
           {% empty %}
-          <li class="row-item"><span style="color:var(--i4);">لا توجد بيانات</span></li>
+          <li class="hp-row"><span style="color:var(--ink-4);">لا توجد بيانات</span></li>
           {% endfor %}
         </ul>
       </div>
     </div>
 
-    <!-- Permit type breakdown -->
-    <div class="card">
-      <div class="card__head">
-        <span class="card__head-title">توزيع حسب نوع التصريح</span>
-      </div>
-      <div class="card__body">
-        <ul class="row-list">
+    <div class="hp-card">
+      <div class="hp-card__head">توزيع حسب نوع التصريح</div>
+      <div class="hp-card__body">
+        <ul class="hp-rows">
           {% for item in permit_type_breakdown %}
-          <li class="row-item">
-            <span>{{ item.label }}</span>
-            <div class="row-item__bar-wrap">
-              <div class="row-item__bar" style="width:{% widthratio item.total total_permits 100 %}%"></div>
-            </div>
-            <span class="row-item__n">{{ item.total }}</span>
+          <li class="hp-row">
+            <span class="hp-row__lbl">{{ item.label }}</span>
+            <div class="hp-row__bar"><div class="hp-row__fill" style="width:{% widthratio item.total total_permits 100 %}%"></div></div>
+            <span class="hp-row__n">{{ item.total }}</span>
           </li>
           {% empty %}
-          <li class="row-item"><span style="color:var(--i4);">لا توجد بيانات</span></li>
+          <li class="hp-row"><span style="color:var(--ink-4);">لا توجد بيانات</span></li>
           {% endfor %}
         </ul>
       </div>
     </div>
 
-    <!-- Follow-up -->
-    <div class="card">
-      <div class="card__head">
-        <span class="card__head-title">طلبات تحتاج متابعة</span>
-      </div>
-      <div class="card__body">
-        <ul class="row-list">
-          <li class="row-item">
-            <span>مرفوضة أو مغلقة لاشتراطات</span>
-            <span class="row-item__n">{{ needs_completion_permits }}</span>
+    <div class="hp-card">
+      <div class="hp-card__head">طلبات تحتاج متابعة</div>
+      <div class="hp-card__body">
+        <ul class="hp-rows">
+          <li class="hp-row">
+            <span class="hp-row__lbl">مرفوضة أو مغلقة لاشتراطات</span>
+            <span class="hp-row__n">{{ needs_completion_permits }}</span>
           </li>
-          <li class="row-item">
-            <span>قيد الإجراء</span>
-            <span class="row-item__n">{{ pending_permits }}</span>
+          <li class="hp-row">
+            <span class="hp-row__lbl">قيد الإجراء</span>
+            <span class="hp-row__n">{{ pending_permits }}</span>
           </li>
-          <li class="row-item">
-            <span>تصاريح صادرة</span>
-            <span class="row-item__n">{{ issued_permits }}</span>
+          <li class="hp-row">
+            <span class="hp-row__lbl">تصاريح صادرة</span>
+            <span class="hp-row__n">{{ issued_permits }}</span>
           </li>
         </ul>
       </div>
     </div>
 
-    <!-- Quick nav -->
-    <div class="card card-nav-desktop">
-      <div class="card__head">
-        <span class="card__head-title">التنقل</span>
-      </div>
-      <div class="card__body">
-        <ul class="nav-list">
-          <li class="nav-item"><a href="{% url 'clearance_list' %}" style="display:contents;">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
-            <span class="nav-item__label">متابعة الطلبات</span>
-            <span class="nav-item__arrow">←</span>
+    <div class="hp-card hp-card-nav">
+      <div class="hp-card__head">التنقل السريع</div>
+      <div class="hp-card__body">
+        <ul class="hp-nav-list">
+          <li class="hp-nav-item"><a href="{% url 'clearance_list' %}">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+            <span class="hp-nav-item__lbl">متابعة الطلبات</span><span class="hp-nav-item__arr">←</span>
           </a></li>
-          <li class="nav-item"><a href="{% url 'permit_types' %}" style="display:contents;">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <span class="nav-item__label">التصاريح</span>
-            <span class="nav-item__arrow">←</span>
+          <li class="hp-nav-item"><a href="{% url 'permit_types' %}">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span class="hp-nav-item__lbl">التصاريح</span><span class="hp-nav-item__arr">←</span>
           </a></li>
-          <li class="nav-item"><a href="{% url 'company_list' %}" style="display:contents;">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span class="nav-item__label">الشركات</span>
-            <span class="nav-item__arrow">←</span>
+          <li class="hp-nav-item"><a href="{% url 'company_list' %}">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span class="hp-nav-item__lbl">الشركات</span><span class="hp-nav-item__arr">←</span>
           </a></li>
-          <li class="nav-item"><a href="{% url 'enginer_list' %}" style="display:contents;">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span class="nav-item__label">المهندسون</span>
-            <span class="nav-item__arrow">←</span>
+          <li class="hp-nav-item"><a href="{% url 'enginer_list' %}">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="hp-nav-item__lbl">المهندسون</span><span class="hp-nav-item__arr">←</span>
           </a></li>
-          <li class="nav-item"><a href="{% url 'field_work_list' %}" style="display:contents;">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <span class="nav-item__label">العمل الميداني</span>
-            <span class="nav-item__arrow">←</span>
+          <li class="hp-nav-item"><a href="{% url 'field_work_list' %}">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span class="hp-nav-item__lbl">العمل الميداني</span><span class="hp-nav-item__arr">←</span>
           </a></li>
-          <li class="nav-item"><a href="{% url 'complaints_dashboard' %}" style="display:contents;">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span class="nav-item__label">الشكاوى</span>
-            <span class="nav-item__arrow">←</span>
+          <li class="hp-nav-item"><a href="{% url 'complaints_dashboard' %}">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="hp-nav-item__lbl">الشكاوى</span><span class="hp-nav-item__arr">←</span>
           </a></li>
         </ul>
       </div>
