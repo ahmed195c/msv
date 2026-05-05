@@ -113,27 +113,23 @@
 .info-value a { color: var(--accent); font-weight: 600; text-decoration: none; }
 .info-value a:hover { text-decoration: underline; }
 
-/* ── Engineer chips ── */
-.info-chips { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 10px; }
-.info-chip {
-  border: 1.5px solid var(--border); border-radius: 8px;
-  padding: 10px 14px; background: var(--surface-1); display: grid; gap: 3px;
-}
-.info-chip__lbl { font-size: 11px; font-weight: 700; color: var(--ink-4); letter-spacing: .04em; }
-.info-chip__val { font-size: 13.5px; font-weight: 600; color: var(--ink-1); }
-.info-chip__val a { color: var(--accent); text-decoration: none; }
-.info-chip__val a:hover { text-decoration: underline; }
-
 /* ── Permit cards (3-col) ── */
 .permits-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
 .p-card {
-  background: var(--surface-1); border: 1.5px solid var(--border);
-  border-top: 3px solid var(--border); border-radius: 10px;
-  padding: 14px; display: grid; gap: 8px;
+  background: #fff; border: 1.5px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  display: flex; flex-direction: column;
 }
-.p-card.is-active { border-top-color: var(--success); }
-.p-card__title { font-size: 13.5px; font-weight: 700; color: var(--ink-1); }
-.p-card__meta  { font-size: 12.5px; color: var(--ink-3); }
+.p-card__head {
+  padding: 10px 14px; border-bottom: 1.5px solid var(--border);
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.p-card__type { font-size: 11px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
+.p-card__body { padding: 14px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
+.p-card__meta { font-size: 12.5px; color: var(--ink-3); }
+.p-card__meta strong { color: var(--ink-1); font-family: var(--mono); font-size: 12px; }
+.p-card__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
 
 /* ── Tables ── */
 .tbl-wrap { border-radius: 8px; overflow: hidden; border: 1.5px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -438,36 +434,36 @@
       </div>
       {% endif %}
       {% if company.enginer %}
-        <div class="info-chips">
-          <div class="info-chip">
-            <span class="info-chip__lbl">الاسم</span>
-            <span class="info-chip__val">
+        <div class="info-grid">
+          <div class="info-row">
+            <span class="info-label">الاسم</span>
+            <span class="info-value">
               <a href="{% url 'enginer_detail' company.enginer.id %}">{{ company.enginer.name }}</a>
-              {% if engineer_active_leave %}<span style="font-size:11px;color:#92400e;font-weight:700;"> (في إجازة)</span>{% endif %}
+              {% if engineer_active_leave %}<span style="font-size:11px;color:#92400e;font-weight:700;margin-right:6px;">(في إجازة)</span>{% endif %}
             </span>
           </div>
-          <div class="info-chip"><span class="info-chip__lbl">البريد الإلكتروني</span><span class="info-chip__val">{{ company.enginer.email|default:"—" }}</span></div>
-          <div class="info-chip"><span class="info-chip__lbl">رقم الهاتف</span><span class="info-chip__val">{{ company.enginer.phone|default:"—" }}</span></div>
-          <div class="info-chip">
-            <span class="info-chip__lbl">شهادة الصحة العامة</span>
-            <span class="info-chip__val">
+          <div class="info-row"><span class="info-label">رقم الهاتف</span><span class="info-value">{{ company.enginer.phone|default:"—" }}</span></div>
+          <div class="info-row"><span class="info-label">البريد الإلكتروني</span><span class="info-value">{{ company.enginer.email|default:"—" }}</span></div>
+          <div class="info-row">
+            <span class="info-label">شهادة الصحة العامة</span>
+            <span class="info-value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               {% if company.enginer.has_public_health_cert %}
                 <span class="badge badge-ok">معتمدة</span>
                 {% if company.enginer.public_health_cert_expiry_date %}
-                  <span style="font-size:12px;color:var(--ink-3);margin-right:6px;">تنتهي: {{ company.enginer.public_health_cert_expiry_date|date:"d/m/Y" }}</span>
+                  <span style="font-size:12px;color:var(--ink-3);">تنتهي: {{ company.enginer.public_health_cert_expiry_date|date:"d/m/Y" }}</span>
                 {% endif %}
               {% else %}
                 <span class="badge badge-exp">غير مكتملة</span>
               {% endif %}
             </span>
           </div>
-          <div class="info-chip">
-            <span class="info-chip__lbl">شهادة النمل الأبيض</span>
-            <span class="info-chip__val">
+          <div class="info-row">
+            <span class="info-label">شهادة النمل الأبيض</span>
+            <span class="info-value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               {% if company.enginer.has_termite_cert %}
                 <span class="badge badge-ok">معتمدة</span>
                 {% if company.enginer.termite_cert_expiry_date %}
-                  <span style="font-size:12px;color:var(--ink-3);margin-right:6px;">تنتهي: {{ company.enginer.termite_cert_expiry_date|date:"d/m/Y" }}</span>
+                  <span style="font-size:12px;color:var(--ink-3);">تنتهي: {{ company.enginer.termite_cert_expiry_date|date:"d/m/Y" }}</span>
                 {% endif %}
               {% else %}
                 <span class="badge badge-exp">غير مكتملة</span>
@@ -475,9 +471,9 @@
             </span>
           </div>
           {% if company.engineers.all %}
-          <div class="info-chip" style="grid-column:1/-1;">
-            <span class="info-chip__lbl">كل المهندسين المرتبطين</span>
-            <span class="info-chip__val">{% for e in company.engineers.all %}{{ e.name }}{% if not forloop.last %}، {% endif %}{% endfor %}</span>
+          <div class="info-row full">
+            <span class="info-label">كل المهندسين المرتبطين</span>
+            <span class="info-value">{% for e in company.engineers.all %}{{ e.name }}{% if not forloop.last %}، {% endif %}{% endfor %}</span>
           </div>
           {% endif %}
         </div>
@@ -494,53 +490,80 @@
       <div class="permits-grid">
 
         {% with permit=active_pest_permit|default:latest_pest_permit %}
-        <div class="p-card {% if active_pest_permit %}is-active{% endif %}">
-          <div class="p-card__title">تصريح النشاط</div>
-          {% if permit %}
-            <div>{% if active_pest_permit %}<span class="badge badge-ok">ساري</span>{% else %}<span class="badge badge-exp">منتهي</span>{% endif %}</div>
-            {% if permit.permit_no %}<div class="p-card__meta">رقم التصريح: <strong>{{ permit.permit_no }}</strong></div>{% endif %}
-            {% if permit.issue_date %}<div class="p-card__meta">تاريخ الإصدار: {{ permit.issue_date|date:"d/m/Y" }}</div>{% endif %}
-            <div class="p-card__meta">تاريخ الانتهاء: {{ permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
-            <a class="btn btn-primary btn-sm" href="{% url 'pest_control_permit_view' permit.id %}">عرض التصريح</a>
-            {% if not active_pest_permit %}<a class="btn btn-outline btn-sm" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">+ إنشاء جديد</a>{% endif %}
-          {% else %}
-            <div class="p-card__meta">لا يوجد تصريح</div>
-            <a class="btn btn-outline btn-sm" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">+ إنشاء جديد</a>
-          {% endif %}
+        <div class="p-card">
+          <div class="p-card__head">
+            <span class="p-card__type">تصريح النشاط</span>
+            {% if active_pest_permit %}<span class="badge badge-ok">ساري</span>
+            {% elif permit %}<span class="badge badge-exp">منتهي</span>
+            {% else %}<span style="font-size:12px;color:var(--ink-4);">لا يوجد</span>{% endif %}
+          </div>
+          <div class="p-card__body">
+            {% if permit %}
+              {% if permit.permit_no %}<div class="p-card__meta">رقم التصريح: <strong>{{ permit.permit_no }}</strong></div>{% endif %}
+              {% if permit.issue_date %}<div class="p-card__meta">تاريخ الإصدار: {{ permit.issue_date|date:"d/m/Y" }}</div>{% endif %}
+              <div class="p-card__meta">تاريخ الانتهاء: {{ permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
+              <div class="p-card__actions">
+                <a class="btn btn-primary btn-sm" href="{% url 'pest_control_permit_view' permit.id %}">عرض</a>
+                {% if not active_pest_permit %}<a class="btn btn-outline btn-sm" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">+ جديد</a>{% endif %}
+              </div>
+            {% else %}
+              <div class="p-card__actions">
+                <a class="btn btn-outline btn-sm" href="{% url 'pest_control_permit' %}?company_id={{ company.id }}">+ إنشاء تصريح</a>
+              </div>
+            {% endif %}
+          </div>
         </div>
         {% endwith %}
 
         {% with permit=active_vehicle_permit|default:latest_vehicle_permit %}
-        <div class="p-card {% if active_vehicle_permit %}is-active{% endif %}">
-          <div class="p-card__title">تصريح المركبة</div>
-          {% if permit %}
-            <div>{% if active_vehicle_permit %}<span class="badge badge-ok">ساري</span>{% else %}<span class="badge badge-exp">منتهي</span>{% endif %}</div>
-            {% if permit.permit_no %}<div class="p-card__meta">رقم التصريح: <strong>{{ permit.permit_no }}</strong></div>{% endif %}
-            {% if permit.issue_date %}<div class="p-card__meta">تاريخ الإصدار: {{ permit.issue_date|date:"d/m/Y" }}</div>{% endif %}
-            <div class="p-card__meta">تاريخ الانتهاء: {{ permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
-            <a class="btn btn-primary btn-sm" href="{% url 'vehicle_permit_detail' permit.id %}">عرض التصريح</a>
-            {% if not active_vehicle_permit %}<a class="btn btn-outline btn-sm" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">+ إنشاء جديد</a>{% endif %}
-          {% else %}
-            <div class="p-card__meta">لا يوجد تصريح</div>
-            <a class="btn btn-outline btn-sm" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">+ إنشاء جديد</a>
-          {% endif %}
+        <div class="p-card">
+          <div class="p-card__head">
+            <span class="p-card__type">تصريح المركبة</span>
+            {% if active_vehicle_permit %}<span class="badge badge-ok">ساري</span>
+            {% elif permit %}<span class="badge badge-exp">منتهي</span>
+            {% else %}<span style="font-size:12px;color:var(--ink-4);">لا يوجد</span>{% endif %}
+          </div>
+          <div class="p-card__body">
+            {% if permit %}
+              {% if permit.permit_no %}<div class="p-card__meta">رقم التصريح: <strong>{{ permit.permit_no }}</strong></div>{% endif %}
+              {% if permit.issue_date %}<div class="p-card__meta">تاريخ الإصدار: {{ permit.issue_date|date:"d/m/Y" }}</div>{% endif %}
+              <div class="p-card__meta">تاريخ الانتهاء: {{ permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
+              <div class="p-card__actions">
+                <a class="btn btn-primary btn-sm" href="{% url 'vehicle_permit_detail' permit.id %}">عرض</a>
+                {% if not active_vehicle_permit %}<a class="btn btn-outline btn-sm" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">+ جديد</a>{% endif %}
+              </div>
+            {% else %}
+              <div class="p-card__actions">
+                <a class="btn btn-outline btn-sm" href="{% url 'vehicle_permit' %}?company_id={{ company.id }}">+ إنشاء تصريح</a>
+              </div>
+            {% endif %}
+          </div>
         </div>
         {% endwith %}
 
         {% with permit=active_waste_permit|default:latest_waste_permit %}
-        <div class="p-card {% if active_waste_permit %}is-active{% endif %}">
-          <div class="p-card__title">تصريح التخلص من النفايات</div>
-          {% if permit %}
-            <div>{% if active_waste_permit %}<span class="badge badge-ok">ساري</span>{% else %}<span class="badge badge-exp">منتهي</span>{% endif %}</div>
-            {% if permit.permit_no %}<div class="p-card__meta">رقم التصريح: <strong>{{ permit.permit_no }}</strong></div>{% endif %}
-            {% if permit.issue_date %}<div class="p-card__meta">تاريخ الإصدار: {{ permit.issue_date|date:"d/m/Y" }}</div>{% endif %}
-            <div class="p-card__meta">تاريخ الانتهاء: {{ permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
-            <a class="btn btn-primary btn-sm" href="{% url 'waste_permit_detail' permit.id %}">عرض التصريح</a>
-            {% if not active_waste_permit %}<a class="btn btn-outline btn-sm" href="{% url 'waste_permit' %}?company_id={{ company.id }}">+ إنشاء جديد</a>{% endif %}
-          {% else %}
-            <div class="p-card__meta">لا يوجد تصريح</div>
-            <a class="btn btn-outline btn-sm" href="{% url 'waste_permit' %}?company_id={{ company.id }}">+ إنشاء جديد</a>
-          {% endif %}
+        <div class="p-card">
+          <div class="p-card__head">
+            <span class="p-card__type">تصريح النفايات</span>
+            {% if active_waste_permit %}<span class="badge badge-ok">ساري</span>
+            {% elif permit %}<span class="badge badge-exp">منتهي</span>
+            {% else %}<span style="font-size:12px;color:var(--ink-4);">لا يوجد</span>{% endif %}
+          </div>
+          <div class="p-card__body">
+            {% if permit %}
+              {% if permit.permit_no %}<div class="p-card__meta">رقم التصريح: <strong>{{ permit.permit_no }}</strong></div>{% endif %}
+              {% if permit.issue_date %}<div class="p-card__meta">تاريخ الإصدار: {{ permit.issue_date|date:"d/m/Y" }}</div>{% endif %}
+              <div class="p-card__meta">تاريخ الانتهاء: {{ permit.dateOfExpiry|date:"d/m/Y"|default:"غير محدد" }}</div>
+              <div class="p-card__actions">
+                <a class="btn btn-primary btn-sm" href="{% url 'waste_permit_detail' permit.id %}">عرض</a>
+                {% if not active_waste_permit %}<a class="btn btn-outline btn-sm" href="{% url 'waste_permit' %}?company_id={{ company.id }}">+ جديد</a>{% endif %}
+              </div>
+            {% else %}
+              <div class="p-card__actions">
+                <a class="btn btn-outline btn-sm" href="{% url 'waste_permit' %}?company_id={{ company.id }}">+ إنشاء تصريح</a>
+              </div>
+            {% endif %}
+          </div>
         </div>
         {% endwith %}
 
@@ -586,8 +609,8 @@
             <tbody>
               {% for permit in issued_archive %}
               <tr>
-                <td>{{ permit.permit_label_ar }}</td>
-                <td>{{ permit.permit_no|default:"—" }}</td>
+                <td style="font-weight:600;color:var(--ink-1);">{{ permit.permit_label_ar }}</td>
+                <td style="font-family:var(--mono);font-size:12px;">{{ permit.permit_no|default:"—" }}</td>
                 <td>{{ permit.issue_date|date:"d/m/Y"|default:"—" }}</td>
                 <td>{{ permit.dateOfExpiry|date:"d/m/Y"|default:"—" }}</td>
                 <td>{% if permit.is_effective_active %}<span class="badge badge-ok">ساري</span>{% else %}<span class="badge badge-exp">منتهي</span>{% endif %}</td>
