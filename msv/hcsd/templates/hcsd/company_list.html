@@ -159,6 +159,28 @@
   color: var(--ink-4); font-size: 13.5px; font-weight: 600;
 }
 
+/* ── Mobile cards ── */
+.co-cards { display: none; padding: 12px; gap: 10px; flex-direction: column; }
+.co-card {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 10px;
+}
+.co-card__row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.co-card__name { font-weight: 700; font-size: 14.5px; color: var(--ink-1); }
+.co-card__num  { font-family: var(--mono); font-size: 12px; color: var(--ink-4); }
+.co-card__expiry { font-size: 12.5px; color: var(--ink-3); }
+.co-card__expiry-label { font-size: 11px; color: var(--ink-4); margin-bottom: 2px; }
+.co-card__btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; padding: 10px; border-radius: 8px;
+  background: var(--accent); color: #fff;
+  font-size: 14px; font-weight: 700; text-decoration: none;
+  transition: background .15s;
+}
+.co-card__btn:hover { background: #14487a; }
+
 /* ── Responsive ── */
 @media(max-width:860px) {
   .filter-form { grid-template-columns: 1fr 1fr; }
@@ -166,6 +188,10 @@
 @media(max-width:540px) {
   .filter-form { grid-template-columns: 1fr; }
   .cl-page-header { flex-direction: column; align-items: flex-start; }
+}
+@media(max-width:640px) {
+  .tbl-wrap { display: none; }
+  .co-cards  { display: flex; }
 }
 </style>
 {% endblock %}
@@ -294,6 +320,38 @@
             {% endfor %}
           </tbody>
         </table>
+      </div>
+
+      {# Mobile cards #}
+      <div class="co-cards">
+        {% for row in company_rows %}
+        <div class="co-card">
+          <div class="co-card__row">
+            <span class="co-card__name">{{ row.company.name }}</span>
+            <span class="co-card__num">{{ row.company.number }}</span>
+          </div>
+          <div class="co-card__row">
+            <div>
+              <div class="co-card__expiry-label">انتهاء الرخصة</div>
+              <div class="co-card__expiry">
+                {% if row.trade_expiry %}{{ row.trade_expiry|date:"d/m/Y" }}{% else %}—{% endif %}
+              </div>
+            </div>
+            <div>
+              {% if row.is_suspended %}
+                <span class="sbadge sbadge-block">موقوفة</span>
+              {% elif row.has_active_extension %}
+                <span class="sbadge sbadge-warn">مهلة نشطة</span>
+              {% elif row.has_expired_permit %}
+                <span class="sbadge sbadge-exp">تصريح منتهٍ</span>
+              {% else %}
+                <span class="sbadge sbadge-ok">نشطة</span>
+              {% endif %}
+            </div>
+          </div>
+          <a class="co-card__btn" href="{% url 'company_detail' row.company.id %}">عرض</a>
+        </div>
+        {% endfor %}
       </div>
 
       {# Bottom pagination #}
