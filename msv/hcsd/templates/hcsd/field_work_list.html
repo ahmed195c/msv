@@ -85,20 +85,20 @@ td{padding:10px 12px;vertical-align:middle;}
 <section class="fw-page">
 
   <div class="fw-header">
-    <h1 class="fw-title">أوامر العمل الميداني</h1>
+    <h1 class="fw-title"><span class="t-ar">أوامر العمل الميداني</span><span class="t-en">Field Work Orders</span></h1>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       {% if can_admin or can_data_entry %}
-      <a href="{% url 'field_work_create' %}" class="btn btn-primary">+ إنشاء أمر جديد</a>
+      <a href="{% url 'field_work_create' %}" class="btn btn-primary">+ <span class="t-ar">إنشاء أمر جديد</span><span class="t-en">New Order</span></a>
       <a href="{% url 'field_work_supervisors' %}" class="btn btn-outline">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        إدارة المراقبين
+        <span class="t-ar">إدارة المراقبين</span><span class="t-en">Supervisors</span>
       </a>
       <a href="{% url 'field_work_excel_import' %}" class="btn btn-outline">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
-        استيراد Excel
+        <span class="t-ar">استيراد Excel</span><span class="t-en">Import Excel</span>
       </a>
       {% endif %}
-      <a href="{% url 'permit_types' %}" class="btn btn-outline">← الرئيسية</a>
+      <a href="{% url 'permit_types' %}" class="btn btn-outline">← <span class="t-ar">الرئيسية</span><span class="t-en">Home</span></a>
     </div>
   </div>
 
@@ -113,12 +113,15 @@ td{padding:10px 12px;vertical-align:middle;}
     <div class="fw-filters">
 
       <div class="fw-filter-group fw-search">
-        <label class="fw-filter-label">بحث</label>
-        <input type="text" name="q" value="{{ search }}" placeholder="رقم الطلب / اسم / منطقة / مشرف…">
+        <label class="fw-filter-label"><span class="t-ar">بحث</span><span class="t-en">Search</span></label>
+        <input type="text" name="q" value="{{ search }}"
+          data-ar-ph="رقم الطلب / اسم / منطقة / مشرف…"
+          data-en-ph="Order# / Name / Area / Supervisor…"
+          placeholder="رقم الطلب / اسم / منطقة / مشرف…">
       </div>
 
       <div class="fw-filter-group">
-        <label class="fw-filter-label">الحالة</label>
+        <label class="fw-filter-label"><span class="t-ar">الحالة</span><span class="t-en">Status</span></label>
         <select name="status" class="fw-filter-select">
           {% for val, label in status_options %}
           <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
@@ -127,37 +130,41 @@ td{padding:10px 12px;vertical-align:middle;}
       </div>
 
       <div class="fw-filter-group">
-        <label class="fw-filter-label">المصدر</label>
+        <label class="fw-filter-label"><span class="t-ar">المصدر</span><span class="t-en">Source</span></label>
         <select name="source" class="fw-filter-select">
-          <option value="all" {% if source_filter == 'all' %}selected{% endif %}>الكل</option>
+          <option value="all" {% if source_filter == 'all' %}selected{% endif %}>الكل / All</option>
           <option value="excel"  {% if source_filter == 'excel'  %}selected{% endif %}>Excel</option>
-          <option value="manual" {% if source_filter == 'manual' %}selected{% endif %}>يدوي</option>
+          <option value="manual" {% if source_filter == 'manual' %}selected{% endif %}>يدوي / Manual</option>
         </select>
       </div>
 
-      <button type="submit" class="btn btn-primary" style="align-self:flex-end;">بحث</button>
+      <button type="submit" class="btn btn-primary" style="align-self:flex-end;">
+        <span class="t-ar">بحث</span><span class="t-en">Search</span>
+      </button>
       {% if search or status_filter != 'all' or source_filter != 'all' %}
-      <a href="{% url 'field_work_list' %}" class="btn btn-outline" style="align-self:flex-end;">مسح</a>
+      <a href="{% url 'field_work_list' %}" class="btn btn-outline" style="align-self:flex-end;">
+        <span class="t-ar">مسح</span><span class="t-en">Clear</span>
+      </a>
       {% endif %}
     </div>
   </form>
 
-  <div class="fw-count">{{ total_count }} نتيجة — صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}</div>
+  <div class="fw-count">{{ total_count }} <span class="t-ar">نتيجة — صفحة</span><span class="t-en">results — Page</span> {{ page_obj.number }} <span class="t-ar">من</span><span class="t-en">of</span> {{ page_obj.paginator.num_pages }}</div>
 
   {% if page_obj.object_list %}
   <div class="fw-table-wrap">
     <table>
       <thead>
         <tr>
-          <th>رقم الطلب</th>
-          <th>اسم المتعامل</th>
-          <th>المنطقة</th>
-          <th>نوع الحشرات</th>
-          <th>تاريخ الطلب</th>
-          <th>تاريخ الإغلاق</th>
-          <th>المشرف</th>
-          <th>الحالة</th>
-          <th>المصدر</th>
+          <th><span class="t-ar">رقم الطلب</span><span class="t-en">Order #</span></th>
+          <th><span class="t-ar">اسم المتعامل</span><span class="t-en">Customer</span></th>
+          <th><span class="t-ar">المنطقة</span><span class="t-en">Area</span></th>
+          <th><span class="t-ar">نوع الحشرات</span><span class="t-en">Pest Types</span></th>
+          <th><span class="t-ar">تاريخ الطلب</span><span class="t-en">Request Date</span></th>
+          <th><span class="t-ar">تاريخ الإغلاق</span><span class="t-en">Close Date</span></th>
+          <th><span class="t-ar">المشرف</span><span class="t-en">Supervisor</span></th>
+          <th><span class="t-ar">الحالة</span><span class="t-en">Status</span></th>
+          <th><span class="t-ar">المصدر</span><span class="t-en">Source</span></th>
           <th></th>
         </tr>
       </thead>
@@ -215,11 +222,11 @@ td{padding:10px 12px;vertical-align:middle;}
             {% if order.source == 'excel' %}
               <span class="src-excel">Excel</span>
             {% else %}
-              <span class="src-manual">يدوي</span>
+              <span class="src-manual"><span class="t-ar">يدوي</span><span class="t-en">Manual</span></span>
             {% endif %}
           </td>
           <td>
-            <a href="{% url 'field_work_detail' order.pk %}" class="btn btn-outline" style="padding:4px 10px;font-size:12px;">عرض</a>
+            <a href="{% url 'field_work_detail' order.pk %}" class="btn btn-outline" style="padding:4px 10px;font-size:12px;"><span class="t-ar">عرض</span><span class="t-en">View</span></a>
           </td>
         </tr>
         {% endfor %}
@@ -245,25 +252,25 @@ td{padding:10px 12px;vertical-align:middle;}
       </div>
       <div class="fw-card-body">
         <div class="fw-card-field">
-          <span class="fw-card-label">المتعامل</span>
+          <span class="fw-card-label"><span class="t-ar">المتعامل</span><span class="t-en">Customer</span></span>
           <span class="fw-card-value">{% if order.customer_name %}{{ order.customer_name }}{% elif order.site_name %}{{ order.site_name }}{% else %}—{% endif %}</span>
         </div>
         <div class="fw-card-field">
-          <span class="fw-card-label">المنطقة</span>
+          <span class="fw-card-label"><span class="t-ar">المنطقة</span><span class="t-en">Area</span></span>
           <span class="fw-card-value">{% if order.area %}{{ order.area }}{% elif order.location %}{{ order.location }}{% else %}—{% endif %}</span>
         </div>
         <div class="fw-card-field">
-          <span class="fw-card-label">تاريخ الطلب</span>
+          <span class="fw-card-label"><span class="t-ar">تاريخ الطلب</span><span class="t-en">Date</span></span>
           <span class="fw-card-value">{% if order.request_date %}{{ order.request_date|date:"d/m/Y" }}{% elif order.work_date %}{{ order.work_date|date:"d/m/Y" }}{% else %}—{% endif %}</span>
         </div>
         <div class="fw-card-field">
-          <span class="fw-card-label">المشرف</span>
+          <span class="fw-card-label"><span class="t-ar">المشرف</span><span class="t-en">Supervisor</span></span>
           <span class="fw-card-value">{{ order.supervisor_name|default:"—" }}</span>
         </div>
       </div>
       <div class="fw-card-footer">
         <span class="fw-card-label">{{ order.pest_types|default:"—"|truncatechars:30 }}</span>
-        {% if order.source == 'excel' %}<span class="src-excel">Excel</span>{% else %}<span class="src-manual">يدوي</span>{% endif %}
+        {% if order.source == 'excel' %}<span class="src-excel">Excel</span>{% else %}<span class="src-manual"><span class="t-ar">يدوي</span><span class="t-en">Manual</span></span>{% endif %}
       </div>
     </a>
     {% endfor %}
@@ -273,7 +280,7 @@ td{padding:10px 12px;vertical-align:middle;}
   {% if page_obj.paginator.num_pages > 1 %}
   <div class="fw-pag">
     {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&source={{ source_filter }}&month={{ month_filter }}&q={{ search }}">‹ السابق</a>
+      <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&source={{ source_filter }}&month={{ month_filter }}&q={{ search }}">‹ <span class="t-ar">السابق</span><span class="t-en">Prev</span></a>
     {% endif %}
     {% for num in page_obj.paginator.page_range %}
       {% if page_obj.number == num %}
@@ -283,13 +290,13 @@ td{padding:10px 12px;vertical-align:middle;}
       {% endif %}
     {% endfor %}
     {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&source={{ source_filter }}&month={{ month_filter }}&q={{ search }}">التالي ›</a>
+      <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&source={{ source_filter }}&month={{ month_filter }}&q={{ search }}"><span class="t-ar">التالي</span><span class="t-en">Next</span> ›</a>
     {% endif %}
   </div>
   {% endif %}
 
   {% else %}
-  <div style="text-align:center;padding:60px 20px;color:var(--ink-4);font-size:15px;">لا توجد نتائج.</div>
+  <div style="text-align:center;padding:60px 20px;color:var(--ink-4);font-size:15px;"><span class="t-ar">لا توجد نتائج.</span><span class="t-en">No results found.</span></div>
   {% endif %}
 
 </section>

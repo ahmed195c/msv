@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-lang="ar">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -158,6 +158,19 @@ body { margin: 0; direction: rtl; text-align: right; min-height: 100vh; display:
   .nav-brand-label { display: none; }
   .app-main { padding: 16px 12px; }
 }
+
+/* ── Translation ── */
+html[data-lang="en"] .t-ar { display: none !important; }
+html[data-lang="ar"] .t-en { display: none !important; }
+
+.nav-lang {
+  display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.65); font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: 'JetBrains Mono', monospace; letter-spacing: .03em;
+  transition: background .15s, color .15s;
+}
+.nav-lang:hover { background: rgba(255,255,255,.13); color: #fff; }
 </style>
 {% block extra_head %}{% endblock %}
 </head>
@@ -169,8 +182,8 @@ body { margin: 0; direction: rtl; text-align: right; min-height: 100vh; display:
     <a href="{% url 'field_work_list' %}" class="nav-brand">
       <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="">
       <span class="nav-brand-label">
-        <span class="nav-brand-name">العمل الميداني</span>
-        <span class="nav-brand-sub">قسم البيئة — بلدية الشارقة</span>
+        <span class="nav-brand-name"><span class="t-ar">العمل الميداني</span><span class="t-en">Field Work</span></span>
+        <span class="nav-brand-sub"><span class="t-ar">قسم البيئة — بلدية الشارقة</span><span class="t-en">Environment Dept. — Sharjah Municipality</span></span>
       </span>
     </a>
 
@@ -184,13 +197,16 @@ body { margin: 0; direction: rtl; text-align: right; min-height: 100vh; display:
     <div class="nav-panel" id="navPanel">
       <div class="nav-links">
         <a class="nav-link {% if request.resolver_match.url_name == 'field_work_list' %}active{% endif %}"
-           href="{% url 'field_work_list' %}">أوامر العمل</a>
+           href="{% url 'field_work_list' %}"><span class="t-ar">أوامر العمل</span><span class="t-en">Work Orders</span></a>
       </div>
 
       <div class="nav-end">
+        <button id="langToggle" class="nav-lang" title="Toggle Language / تغيير اللغة">
+          <span class="t-ar">EN</span><span class="t-en">ع</span>
+        </button>
         <a href="{% url 'portal_landing' %}" class="nav-switch">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-          الرئيسية
+          <span class="t-ar">الرئيسية</span><span class="t-en">Home</span>
         </a>
         {% if request.user.is_authenticated %}
         <div class="nav-user-chip">
@@ -201,7 +217,7 @@ body { margin: 0; direction: rtl; text-align: right; min-height: 100vh; display:
           {% csrf_token %}
           <button type="submit" class="nav-logout" title="تسجيل الخروج">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            خروج
+            <span class="t-ar">خروج</span><span class="t-en">Logout</span>
           </button>
         </form>
         {% endif %}
@@ -220,6 +236,28 @@ body { margin: 0; direction: rtl; text-align: right; min-height: 100vh; display:
   var btn = document.getElementById('navToggle');
   var nav = btn && btn.closest('nav');
   if(btn && nav) btn.addEventListener('click', function(){ nav.classList.toggle('is-open'); });
+})();
+(function(){
+  var html = document.documentElement;
+  var saved = localStorage.getItem('fw_lang') || 'ar';
+  html.setAttribute('data-lang', saved);
+  var btn = document.getElementById('langToggle');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      var cur = html.getAttribute('data-lang') || 'ar';
+      var next = cur === 'ar' ? 'en' : 'ar';
+      html.setAttribute('data-lang', next);
+      localStorage.setItem('fw_lang', next);
+      // swap input placeholders
+      document.querySelectorAll('[data-ar-ph]').forEach(function(el){
+        el.placeholder = next === 'ar' ? el.getAttribute('data-ar-ph') : el.getAttribute('data-en-ph');
+      });
+    });
+  }
+  // apply placeholders on load
+  document.querySelectorAll('[data-ar-ph]').forEach(function(el){
+    el.placeholder = saved === 'ar' ? el.getAttribute('data-ar-ph') : el.getAttribute('data-en-ph');
+  });
 })();
 </script>
 </body>
