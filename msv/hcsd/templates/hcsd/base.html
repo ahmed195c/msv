@@ -5,6 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}نظام التصاريح{% endblock %}</title>
+  <script>
+  /* Apply saved language before render to avoid flash */
+  (function(){
+    var l = localStorage.getItem('app_lang') || 'ar';
+    document.documentElement.setAttribute('data-lang', l);
+  })();
+  </script>
   <link rel="stylesheet" href="{% static 'hcsd/tailwind.css' %}?v=20260309b">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   {% block extra_css %}{% endblock %}
@@ -220,6 +227,16 @@ body.app-shell {
   transition: color .15s, border-color .15s, background .15s;
 }
 .nav-logout:hover { color: #f87171; border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.07); }
+
+.nav-lang {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 6px;
+  font-size: 12px; font-weight: 700; letter-spacing: .03em;
+  color: rgba(255,255,255,.65); background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.16);
+  cursor: pointer; font-family: var(--sans);
+  transition: color .15s, background .15s, border-color .15s;
+}
 
 .nav-ghost {
   display: inline-flex;
@@ -592,7 +609,7 @@ body.is-navigating .app-main {
 
       <a class="nav-brand" href="{% url 'home' %}">
         <img class="nav-brand-logo" src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
-        <span>نظام التصاريح</span>
+        <span data-ar="نظام التصاريح" data-en="Permit System">نظام التصاريح</span>
       </a>
 
       <button
@@ -610,25 +627,29 @@ body.is-navigating .app-main {
       <div class="nav-mobile-panel" id="nav-mobile-panel">
         <div class="nav-links">
           <a class="{% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' or request.resolver_match.url_name == 'add_company' %}is-active{% endif %}"
-             href="{% url 'company_list' %}">الشركات</a>
+             href="{% url 'company_list' %}"><span data-ar="الشركات" data-en="Companies">الشركات</span></a>
 
           <a class="{% if request.resolver_match.url_name == 'enginer_list' or request.resolver_match.url_name == 'enginer_add' or request.resolver_match.url_name == 'enginer_detail' %}is-active{% endif %}"
-             href="{% url 'enginer_list' %}">المهندسين</a>
+             href="{% url 'enginer_list' %}"><span data-ar="المهندسين" data-en="Engineers">المهندسين</span></a>
 
           <a class="{% if request.resolver_match.url_name == 'permit_types' or request.resolver_match.url_name == 'pest_control_permit' or request.resolver_match.url_name == 'vehicle_permit' or request.resolver_match.url_name == 'waste_permit' or request.resolver_match.url_name == 'pest_control_permit_detail' or request.resolver_match.url_name == 'vehicle_permit_detail' or request.resolver_match.url_name == 'waste_permit_detail' or request.resolver_match.url_name == 'pest_control_permit_view' or request.resolver_match.url_name == 'waste_disposal_request_new' or request.resolver_match.url_name == 'waste_disposal_request_detail' %}is-active{% endif %}"
-             href="{% url 'permit_types' %}">التصاريح</a>
+             href="{% url 'permit_types' %}"><span data-ar="التصاريح" data-en="Permits">التصاريح</span></a>
 
           <a class="{% if request.resolver_match.url_name == 'clearance_list' %}is-active{% endif %}"
-             href="{% url 'clearance_list' %}">متابعة الطلبات</a>
+             href="{% url 'clearance_list' %}"><span data-ar="متابعة الطلبات" data-en="Follow-up">متابعة الطلبات</span></a>
 
           <a class="{% if request.resolver_match.url_name == 'extension_followup' %}is-active{% endif %}"
-             href="{% url 'extension_followup' %}">متابعة المهل</a>
+             href="{% url 'extension_followup' %}"><span data-ar="متابعة المهل" data-en="Extensions">متابعة المهل</span></a>
         </div>
 
         <div class="nav-auth">
+          <button id="btn-lang-toggle" class="nav-lang" onclick="toggleAppLang()" title="Switch to English">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span id="lang-toggle-lbl">EN</span>
+          </button>
           <a class="nav-switch" href="{% url 'portal_landing' %}">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-            الرئيسية
+            <span data-ar="الرئيسية" data-en="Home">الرئيسية</span>
           </a>
           {% if user.is_authenticated %}
             <span class="nav-user">{{ user.get_full_name|default:user.username }}</span>
@@ -636,12 +657,12 @@ body.is-navigating .app-main {
               {% csrf_token %}
               <button type="submit" class="nav-logout">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                خروج
+                <span data-ar="خروج" data-en="Logout">خروج</span>
               </button>
             </form>
           {% else %}
-            <a class="nav-ghost" href="{% url 'login' %}">تسجيل الدخول</a>
-            <a class="nav-ghost" href="{% url 'register' %}">إنشاء حساب</a>
+            <a class="nav-ghost" href="{% url 'login' %}"><span data-ar="تسجيل الدخول" data-en="Login">تسجيل الدخول</span></a>
+            <a class="nav-ghost" href="{% url 'register' %}"><span data-ar="إنشاء حساب" data-en="Register">إنشاء حساب</span></a>
           {% endif %}
         </div>
       </div>
@@ -748,6 +769,38 @@ body.is-navigating .app-main {
   </div>
 
   <script>
+  /* ── Language toggle engine ── */
+  (function () {
+    var LANG_KEY = 'app_lang';
+    var lang = localStorage.getItem(LANG_KEY) || 'ar';
+
+    function applyLang(l) {
+      document.querySelectorAll('[data-en][data-ar]').forEach(function (el) {
+        el.textContent = l === 'en' ? el.getAttribute('data-en') : el.getAttribute('data-ar');
+      });
+      var lbl = document.getElementById('lang-toggle-lbl');
+      var btn = document.getElementById('btn-lang-toggle');
+      if (lbl) lbl.textContent = l === 'en' ? 'AR' : 'EN';
+      if (btn) btn.title = l === 'en' ? 'التبديل إلى العربية' : 'Switch to English';
+      document.documentElement.setAttribute('data-lang', l);
+    }
+
+    window.toggleAppLang = function () {
+      lang = lang === 'ar' ? 'en' : 'ar';
+      localStorage.setItem(LANG_KEY, lang);
+      applyLang(lang);
+    };
+
+    /* Expose for page-level scripts */
+    window.getCurrentLang = function () { return lang; };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () { applyLang(lang); });
+    } else {
+      applyLang(lang);
+    }
+  })();
+
   (function () {
     var isNavigating = false;
     var BYPASS = "data-loader-bypass";
