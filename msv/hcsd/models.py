@@ -1048,6 +1048,16 @@ class FieldWorkOrder(models.Model):
         ('closed_private_building',  'مغلق — شركة نظافة خاصة (داخل بناية)'),
         ('closed_no_answer',         'مغلق — لم يرد العميل على الهاتف'),
         ('closed_other_municipal',   'مغلق — تابع لبلدية أخرى'),
+        ('closed_observation',       'مغلق — ملاحظة'),
+        ('closed_low_infestation',   'مغلق — تفشٍ خفيف'),
+        ('closed_moderate_infestation', 'مغلق — تفشٍ متوسط'),
+        ('closed_high_infestation',  'مغلق — تفشٍ شديد'),
+        ('closed_out_of_service',    'مغلق — خارج نطاق الخدمة'),
+        ('closed_customer_refused',  'مغلق — العميل رفض الخدمة'),
+        ('closed_mobile_off',        'مغلق — هاتف العميل مغلق'),
+        ('closed_not_attending',     'مغلق — العميل لا يرد على المكالمات'),
+        ('closed_not_available',     'مغلق — العميل غير متاح'),
+        ('closed_scheduled_client',  'مغلق — تم الجدولة من قِبل العميل'),
     ]
 
     SOURCE_CHOICES = [

@@ -26,6 +26,10 @@ ALLOWED_PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
 _FW_CLOSED_STATUSES = frozenset({
     'completed', 'other_municipal',
     'closed_private_building', 'closed_no_answer', 'closed_other_municipal',
+    'closed_observation', 'closed_low_infestation', 'closed_moderate_infestation',
+    'closed_high_infestation', 'closed_out_of_service', 'closed_customer_refused',
+    'closed_mobile_off', 'closed_not_attending', 'closed_not_available',
+    'closed_scheduled_client',
 })
 
 
@@ -373,6 +377,10 @@ def field_work_detail(request, pk):
             proof = request.FILES.get('closure_proof')
             valid_close_reasons = {
                 'closed_private_building', 'closed_no_answer', 'closed_other_municipal',
+                'closed_observation', 'closed_low_infestation', 'closed_moderate_infestation',
+                'closed_high_infestation', 'closed_out_of_service', 'closed_customer_refused',
+                'closed_mobile_off', 'closed_not_attending', 'closed_not_available',
+                'closed_scheduled_client',
             }
             if order.status in _FW_CLOSED_STATUSES:
                 errors.append('الطلب مغلق بالفعل.')
