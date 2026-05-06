@@ -534,7 +534,7 @@ def field_work_report_print(request, pk):
             'pest_category': _pest_category(pests),
             'pest_found': ', '.join(pests),
             'location': loc,
-            'action': ', '.join(p.get('name', '') for p in pesticides),
+            'action': entry.get('action', ''),
         })
     time_in_dt = order.time_in or order.location_saved_at
     return render(request, 'hcsd/field_work_report_print.html', {
