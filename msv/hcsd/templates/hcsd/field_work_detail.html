@@ -785,58 +785,6 @@ select.form-control{cursor:pointer;}
           </script>
         </div>
 
-        <!-- Pest checkboxes -->
-        <div style="margin-bottom:16px;padding:14px 16px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;">
-          <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:12px;"><span class="t-ar">الحشرات الموجودة —</span> Pests Found</div>
-          <style>
-          .pest-lbl { display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1.5px solid #e2e8f0;border-radius:20px;background:#fff;font-size:12.5px;cursor:pointer;user-select:none;transition:border-color .12s,background .12s; }
-          .pest-lbl:has(input:checked) { border-color:#2563eb;background:#eff6ff; }
-          .pest-cat-hd { font-size:10.5px;font-weight:700;color:#6b7280;letter-spacing:.06em;text-transform:uppercase;margin:10px 0 6px;padding-bottom:4px;border-bottom:1px solid #e5e7eb; }
-          .pest-group  { display:flex;flex-wrap:wrap;gap:6px; }
-          </style>
-
-          {% with pf=order.pests_found %}
-          <div class="pest-cat-hd">🔴 DANGEROUS PEST</div>
-          <div class="pest-group">
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Bees" {% if "Bees" in pf %}checked{% endif %}>Bees</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Scorpion" {% if "Scorpion" in pf %}checked{% endif %}>Scorpion</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Snake" {% if "Snake" in pf %}checked{% endif %}>Snake</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Poisonous Spider" {% if "Poisonous Spider" in pf %}checked{% endif %}>Poisonous Spider</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Wasp And Bee" {% if "Wasp And Bee" in pf %}checked{% endif %}>Wasp And Bee</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Other Harmful Pest" {% if "Other Harmful Pest" in pf %}checked{% endif %}>Other Harmful Pest</label>
-          </div>
-
-          <div class="pest-cat-hd">🟡 NUISANCE PEST</div>
-          <div class="pest-group">
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Ants" {% if "Ants" in pf %}checked{% endif %}>Ants</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="German Cockroach" {% if "German Cockroach" in pf %}checked{% endif %}>German Cockroach</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="American Cockroach" {% if "American Cockroach" in pf %}checked{% endif %}>American Cockroach</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Lizard" {% if "Lizard" in pf %}checked{% endif %}>Lizard</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Termites" {% if "Termites" in pf %}checked{% endif %}>Termites</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Non Poisonous Spider" {% if "Non Poisonous Spider" in pf %}checked{% endif %}>Non Poisonous Spider</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Drain Flies" {% if "Drain Flies" in pf %}checked{% endif %}>Drain Flies</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Fruit Flies" {% if "Fruit Flies" in pf %}checked{% endif %}>Fruit Flies</label>
-          </div>
-
-          <div class="pest-cat-hd">🟠 VECTOR PEST</div>
-          <div class="pest-group">
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Mosquito Adult" {% if "Mosquito Adult" in pf %}checked{% endif %}>Mosquito Adult</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Mosquito Aedes" {% if "Mosquito Aedes" in pf %}checked{% endif %}>Mosquito Aedes</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Mosquito Culex" {% if "Mosquito Culex" in pf %}checked{% endif %}>Mosquito Culex</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Mosquito Anopheles" {% if "Mosquito Anopheles" in pf %}checked{% endif %}>Mosquito Anopheles</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Rodents Roof Rat" {% if "Rodents Roof Rat" in pf %}checked{% endif %}>Rodents Roof Rat</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Rodents Norway Rat" {% if "Rodents Norway Rat" in pf %}checked{% endif %}>Rodents Norway Rat</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Rodents House mouse" {% if "Rodents House mouse" in pf %}checked{% endif %}>Rodents House mouse</label>
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="House Flies" {% if "House Flies" in pf %}checked{% endif %}>House Flies</label>
-          </div>
-
-          <div class="pest-cat-hd">⚪ OTHERS</div>
-          <div class="pest-group">
-            <label class="pest-lbl"><input type="checkbox" name="pests_found" value="Agricultural Pest" {% if "Agricultural Pest" in pf %}checked{% endif %}>Agricultural Pest</label>
-          </div>
-          {% endwith %}
-        </div>
-
         <!-- Spray entries -->
         {{ order.spray_entries|json_script:"existing-spray-data" }}
         <input type="hidden" name="spray_entries_json" id="spray-entries-json">
@@ -853,7 +801,13 @@ select.form-control{cursor:pointer;}
         <script>
         (function(){
           var LOCATIONS = ["Accommodation","Admin Area","Airport","Animal Basins","Animal Feeding Area","Animal Pot","Animal Shed","Ants Nest","Auditorium","Back Yard","Basement","Basin","Bathroom","Bee Hive","Bins","Bucket","Building","Burrows","Cabinet houses","Ceiling","Channel","Classroom","Clinic Room","Closed Water Tank","Closet","Common Area","Compost Hole","Conference Rm","Construction Site","Corners","Cracks and Crevices","dedicated kitchen","Discarded Tyres","Door / Window Frames","Down Spouts","drainage","Drains/Sinks","Driver's Quarter","Drum","Dumpster Area","Electrical Room","Electricity Chamber","Escort Villa","Etisalat Chambers","exterior perimeter","exterior wallings","Ezzab","Farm(s)","Fence (internal)","Fiber Tank","fixed cabinets","Flats Basin Area","Floor Drain","Flower pots","Forest Area","Fountains","Front Door","Front Yard","Furniture","Garbage Area","Garbage Bin","Garden perimeter","Grounds","Guard House","Gymnasium","Hallways","Hanging Cabinets","Head Quarters","Helper's Quarter","Hole","Horse Barn","Hotel","House (inside)","House (outside)","Industrial Area","Inside the farm","Interior Perimeter","Irrigation Control Valve","Jail","kitchen","Labor Camp","Laboratory Room","Landfill","Laundry Room","Library","Lobby","Locker Room","Maid's Room","Manhole","Manhole in the house/villa","Manhole in the streets","Manholes","Market Area","Masjid","Office","Office Room","Open Water Tank","Palace","Palm Tree Burrows","Pantry","Pantry Closet","Park","Parking Area","Patio","Pheromone Trap","Pipe(s)","Playground","Pond","Pool","Port","Poultry","Prayer Room","Reception","Real Estate","Rodent Bait Station","Roof Top","Scrap","Security Room","Septic Tank","Sewage Manhole","Shed /Storage unit","Shooting Ranges","Shop","Sink Cabinets","Stagnant Water","Steel cabinets","Storage","Store Room","Storm Drain","Storm Water Lines","Swimming Pool","Tank","Teachers Room","Tent","Theater","toilet/bath/washroom","Trash Bins","Trees","TV","under shelves","Underground Water Tank","Villa/House","VIP building","Wadi","walls","Waste Area","Waste Room","Water Accumulation","Water Cooler","Window Frames","Wooden cabinets"];
-          var PESTS = [{id:'ant',ar:'نمل'},{id:'cockroach',ar:'صراصير'},{id:'mosquito',ar:'بعوض'},{id:'fly',ar:'ذباب'},{id:'rat',ar:'فئران'},{id:'snake',ar:'ثعبان'}];
+          function T(ar,en){return (document.documentElement.getAttribute('data-lang')||'ar')==='ar'?ar:en;}
+          var PEST_CATS = [
+            {lbl:'🔴 DANGEROUS PEST', pests:['Bees','Scorpion','Snake','Poisonous Spider','Wasp And Bee','Other Harmful Pest']},
+            {lbl:'🟡 NUISANCE PEST',  pests:['Ants','German Cockroach','American Cockroach','Lizard','Termites','Non Poisonous Spider','Drain Flies','Fruit Flies']},
+            {lbl:'🟠 VECTOR PEST',    pests:['Mosquito Adult','Mosquito Aedes','Mosquito Culex','Mosquito Anopheles','Rodents Roof Rat','Rodents Norway Rat','Rodents House mouse','House Flies']},
+            {lbl:'⚪ OTHERS',         pests:['Agricultural Pest']}
+          ];
           var PESTICIDES = [
             {n:"Actellic 50 EC",u:"ML"},{n:"ECOLARVACIDE EC",u:"ML"},{n:"Starycide SC 480",u:"ML"},
             {n:"DIFRON 25 SC",u:"ML"},{n:"GRAYBATE 50 SG",u:"ML"},{n:"BIOPREN 4 GR",u:"ML"},
@@ -920,14 +874,14 @@ select.form-control{cursor:pointer;}
             var nWrap = document.createElement('div');
             nWrap.style.cssText = 'flex:1;position:relative;';
             var nInp = document.createElement('input');
-            nInp.type='text'; nInp.placeholder='اسم المبيد…'; nInp.autocomplete='off';
+            nInp.type='text'; nInp.placeholder=T('اسم المبيد…','Pesticide name…'); nInp.autocomplete='off';
             nInp.className='form-control pst-name'; nInp.style.cssText='font-size:12.5px;';
             nInp.value = data.name || '';
             var nUl = makeDrop();
             nWrap.appendChild(nInp); nWrap.appendChild(nUl);
 
             var qInp = document.createElement('input');
-            qInp.type='number'; qInp.placeholder='الكمية'; qInp.min='0'; qInp.step='0.1';
+            qInp.type='number'; qInp.placeholder=T('الكمية','Qty'); qInp.min='0'; qInp.step='0.1';
             qInp.className='form-control pst-qty'; qInp.style.cssText='width:85px;font-size:12.5px;';
             qInp.value = data.qty || '';
 
@@ -966,9 +920,9 @@ select.form-control{cursor:pointer;}
             var htitle = document.createElement('span');
             htitle.className = 'card-num';
             htitle.style.cssText = 'font-size:13px;font-weight:700;color:#374151;';
-            htitle.textContent = 'موقع رش #' + n;
+            htitle.textContent = T('موقع رش','Spray Location') + ' #' + n;
             var rmCard = document.createElement('button');
-            rmCard.type='button'; rmCard.textContent='× حذف';
+            rmCard.type='button'; rmCard.textContent=T('× حذف','× Delete');
             rmCard.style.cssText='padding:3px 10px;font-size:11px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:6px;cursor:pointer;';
             rmCard.addEventListener('click', function(){ card.remove(); renumber(); });
             hdr.appendChild(htitle); hdr.appendChild(rmCard);
@@ -983,9 +937,9 @@ select.form-control{cursor:pointer;}
             locWrap.style.cssText = 'margin-bottom:12px;position:relative;';
             var locLbl = document.createElement('label');
             locLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;';
-            locLbl.textContent = 'المكان';
+            locLbl.textContent = T('المكان','Location');
             var locInp = document.createElement('input');
-            locInp.type='text'; locInp.autocomplete='off'; locInp.placeholder='ابحث أو اكتب…';
+            locInp.type='text'; locInp.autocomplete='off'; locInp.placeholder=T('ابحث أو اكتب…','Search or type…');
             locInp.className='form-control loc-inp'; locInp.value = data.location||'';
             var locUl = makeDrop();
             locWrap.appendChild(locLbl); locWrap.appendChild(locInp); locWrap.appendChild(locUl);
@@ -993,41 +947,48 @@ select.form-control{cursor:pointer;}
             initCombo(locInp, locUl, LOCATIONS, function(l){ return l; }, null);
 
 
-            // pests
+            // pests — categorized
             var pestWrap = document.createElement('div');
-            pestWrap.style.cssText = 'margin-bottom:12px;';
+            pestWrap.style.cssText = 'margin-bottom:12px;padding:12px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;';
             var pestLbl = document.createElement('div');
-            pestLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;';
-            pestLbl.textContent = 'الحشرات الموجودة';
-            var pestGrid = document.createElement('div');
-            pestGrid.style.cssText = 'display:flex;flex-wrap:wrap;gap:7px;';
+            pestLbl.style.cssText = 'font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;';
+            pestLbl.textContent = T('الحشرات الموجودة','Pests Found');
+            pestWrap.appendChild(pestLbl);
             var existPests = data.pests || [];
-            PESTS.forEach(function(p){
-              var lbl = document.createElement('label');
-              lbl.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:12.5px;cursor:pointer;padding:5px 11px;border:1.5px solid #e2e8f0;border-radius:20px;background:#f8fafc;user-select:none;';
-              var cb = document.createElement('input');
-              cb.type='checkbox'; cb.value=p.ar; cb.className='pest-cb';
-              if(existPests.indexOf(p.ar)!==-1){ cb.checked=true; lbl.style.background='#dbeafe'; lbl.style.borderColor='#3b82f6'; }
-              cb.addEventListener('change', function(){
-                lbl.style.background = cb.checked?'#dbeafe':'#f8fafc';
-                lbl.style.borderColor = cb.checked?'#3b82f6':'#e2e8f0';
+            PEST_CATS.forEach(function(cat){
+              var catHd = document.createElement('div');
+              catHd.style.cssText = 'font-size:10.5px;font-weight:700;color:#6b7280;letter-spacing:.06em;text-transform:uppercase;margin:8px 0 5px;padding-bottom:3px;border-bottom:1px solid #e5e7eb;';
+              catHd.textContent = cat.lbl;
+              pestWrap.appendChild(catHd);
+              var catGroup = document.createElement('div');
+              catGroup.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;';
+              cat.pests.forEach(function(pestName){
+                var lbl = document.createElement('label');
+                lbl.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1.5px solid #e2e8f0;border-radius:20px;background:#fff;font-size:12.5px;cursor:pointer;user-select:none;transition:border-color .12s,background .12s;';
+                var cb = document.createElement('input');
+                cb.type='checkbox'; cb.value=pestName; cb.className='pest-cb';
+                if(existPests.indexOf(pestName)!==-1){ cb.checked=true; lbl.style.background='#eff6ff'; lbl.style.borderColor='#2563eb'; }
+                cb.addEventListener('change', function(){
+                  lbl.style.background = cb.checked?'#eff6ff':'#fff';
+                  lbl.style.borderColor = cb.checked?'#2563eb':'#e2e8f0';
+                });
+                lbl.appendChild(cb); lbl.appendChild(document.createTextNode(pestName));
+                catGroup.appendChild(lbl);
               });
-              lbl.appendChild(cb); lbl.appendChild(document.createTextNode(p.ar));
-              pestGrid.appendChild(lbl);
+              pestWrap.appendChild(catGroup);
             });
-            pestWrap.appendChild(pestLbl); pestWrap.appendChild(pestGrid);
             body.appendChild(pestWrap);
 
             // pesticides
             var pstWrap = document.createElement('div');
             var pstLbl = document.createElement('div');
             pstLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;';
-            pstLbl.textContent = 'المبيدات المستخدمة';
+            pstLbl.textContent = T('المبيدات المستخدمة','Pesticides Used');
             var pstRows = document.createElement('div');
             pstRows.className = 'pst-rows';
             (data.pesticides || []).forEach(function(p){ addPesticideRow(pstRows, p); });
             var addPstBtn = document.createElement('button');
-            addPstBtn.type='button'; addPstBtn.textContent='+ إضافة مبيد';
+            addPstBtn.type='button'; addPstBtn.textContent=T('+ إضافة مبيد','+ Add Pesticide');
             addPstBtn.style.cssText='padding:6px 13px;font-size:12px;font-weight:600;background:#eff6ff;color:#2563eb;border:1.5px solid #bfdbfe;border-radius:7px;cursor:pointer;margin-top:4px;';
             addPstBtn.addEventListener('click', function(){ addPesticideRow(pstRows, {}); });
             pstWrap.appendChild(pstLbl); pstWrap.appendChild(pstRows); pstWrap.appendChild(addPstBtn);
@@ -1039,7 +1000,7 @@ select.form-control{cursor:pointer;}
 
           function renumber() {
             document.querySelectorAll('.spray-entry-card .card-num').forEach(function(el, i){
-              el.textContent = 'موقع رش #' + (i+1);
+              el.textContent = T('موقع رش','Spray Location') + ' #' + (i+1);
             });
           }
 

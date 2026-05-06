@@ -332,14 +332,11 @@ def field_work_detail(request, pk):
                 except (ValueError, TypeError):
                     return None
 
-            pests_found = request.POST.getlist('pests_found')
-
             order.status              = 'completed'
             order.workers_count       = _to_int(workers_raw)
             order.vehicles_count      = _to_int(vehicles_raw)
             order.building_type       = building_type
             order.spray_entries       = spray_entries
-            order.pests_found         = pests_found
             order.supervisor_notes    = sup_notes
             order.report_submitted_by = request.user
             order.report_submitted_at = timezone.now()
@@ -349,7 +346,7 @@ def field_work_detail(request, pk):
                 order.supervisor_signature = supervisor_sig
             order.save(update_fields=[
                 'status', 'workers_count', 'vehicles_count',
-                'building_type', 'spray_entries', 'pests_found', 'supervisor_notes',
+                'building_type', 'spray_entries', 'supervisor_notes',
                 'report_submitted_by', 'report_submitted_at',
                 'client_signature', 'supervisor_signature',
             ])
