@@ -1141,6 +1141,7 @@ class FieldWorkOrder(models.Model):
 
     spray_location       = models.CharField(max_length=300, blank=True, verbose_name='مكان الرش')
     spray_entries        = models.JSONField(default=list, blank=True, verbose_name='سجلات الرش')
+    pests_found          = models.JSONField(default=list, blank=True, verbose_name='الحشرات الموجودة')
     client_signature     = models.TextField(blank=True, verbose_name='توقيع العميل')
     supervisor_signature = models.TextField(blank=True, verbose_name='توقيع المراقب')
 
