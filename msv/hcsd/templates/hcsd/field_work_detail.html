@@ -170,11 +170,6 @@ select.form-control{cursor:pointer;}
               <label class="form-label"><span class="t-ar">تاريخ التنفيذ</span><span class="t-en">Work Date</span></label>
               <input type="date" name="work_date" class="form-control" value="{{ order.work_date|date:'Y-m-d'|default:'' }}">
             </div>
-            <div class="form-group">
-              <label class="form-label"><span class="t-ar">عدد العمال</span><span class="t-en">Workers</span></label>
-              <input type="number" name="workers_count" class="form-control" min="0"
-                     value="{% if order.workers_count != None %}{{ order.workers_count }}{% endif %}">
-            </div>
           </div>
           <div class="form-group">
             <label class="form-label"><span class="t-ar">المعدات المستخدمة</span><span class="t-en">Equipment Used</span></label>
@@ -348,10 +343,6 @@ select.form-control{cursor:pointer;}
         <div class="info-row">
           <span class="info-label"><span class="t-ar">تاريخ الإنشاء</span><span class="t-en">Created</span></span>
           <span class="info-value">{{ order.created_at|date:"d/m/Y" }}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label"><span class="t-ar">عدد العمال</span><span class="t-en">Workers</span></span>
-          <span class="info-value">{% if order.workers_count != None %}{{ order.workers_count }}{% else %}—{% endif %}</span>
         </div>
         <div class="info-row">
           <span class="info-label"><span class="t-ar">اكتملت العملية</span><span class="t-en">Completed</span></span>
@@ -641,14 +632,6 @@ select.form-control{cursor:pointer;}
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;"><span class="t-ar">الحالة</span><span class="t-en">Status</span></div>
         <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ order.get_status_display }}</div>
       </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;"><span class="t-ar">عدد العمال</span><span class="t-en">Workers</span></div>
-        <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ order.workers_count|default:"—" }}</div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;"><span class="t-ar">عدد السيارات</span><span class="t-en">Vehicles</span></div>
-        <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ order.vehicles_count|default:"—" }}</div>
-      </div>
       {% if order.building_type %}
       <div>
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;"><span class="t-ar">نوع المبنى</span><span class="t-en">Building Type</span></div>
@@ -752,21 +735,6 @@ select.form-control{cursor:pointer;}
       <form method="post" enctype="multipart/form-data" novalidate data-role="supervisor-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="supervisor_report">
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label"><span class="t-ar">عدد العمال</span><span class="t-en">Workers</span></label>
-            <input type="number" name="workers_count" class="form-control" min="0"
-              value="{% if order.workers_count is not None %}{{ order.workers_count }}{% endif %}"
-              placeholder="0">
-          </div>
-          <div class="form-group">
-            <label class="form-label"><span class="t-ar">عدد السيارات</span><span class="t-en">Vehicles</span></label>
-            <input type="number" name="vehicles_count" class="form-control" min="0"
-              value="{% if order.vehicles_count is not None %}{{ order.vehicles_count }}{% endif %}"
-              placeholder="0">
-          </div>
-        </div>
 
         <!-- Building type -->
         <div style="margin-bottom:16px;padding:14px 16px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;">
