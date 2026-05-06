@@ -494,18 +494,21 @@ _ACTIVE_INGREDIENTS = {
     "TEMEPHOS 55EC": "Temephos 50%",
 }
 
-_INSECT_IDS  = {'نمل', 'صراصير', 'بعوض', 'ذباب'}
-_RODENT_IDS  = {'فئران'}
-_REPTILE_IDS = {'ثعبان'}
+_DANGEROUS_PESTS = frozenset(['Bees', 'Scorpion', 'Snake', 'Poisonous Spider', 'Wasp And Bee', 'Other Harmful Pest'])
+_NUISANCE_PESTS  = frozenset(['Ants', 'German Cockroach', 'American Cockroach', 'Lizard', 'Termites', 'Non Poisonous Spider', 'Drain Flies', 'Fruit Flies'])
+_VECTOR_PESTS    = frozenset(['Mosquito Adult', 'Mosquito Aedes', 'Mosquito Culex', 'Mosquito Anopheles', 'Rodents Roof Rat', 'Rodents Norway Rat', 'Rodents House mouse', 'House Flies'])
+_OTHERS_PESTS    = frozenset(['Agricultural Pest'])
 
 def _pest_category(pests):
     cats = []
-    if any(p in _INSECT_IDS for p in pests):
-        cats.append('Insects')
-    if any(p in _RODENT_IDS for p in pests):
-        cats.append('Rodents')
-    if any(p in _REPTILE_IDS for p in pests):
-        cats.append('Reptiles')
+    if any(p in _DANGEROUS_PESTS for p in pests):
+        cats.append('Dangerous')
+    if any(p in _NUISANCE_PESTS for p in pests):
+        cats.append('Nuisance')
+    if any(p in _VECTOR_PESTS for p in pests):
+        cats.append('Vector')
+    if any(p in _OTHERS_PESTS for p in pests):
+        cats.append('Others')
     return ' / '.join(cats) if cats else ''
 
 
