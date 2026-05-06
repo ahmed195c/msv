@@ -252,6 +252,10 @@ html[data-lang="ar"] .t-en { display: none !important; }
       document.querySelectorAll('[data-ar-ph]').forEach(function(el){
         el.placeholder = next === 'ar' ? el.getAttribute('data-ar-ph') : el.getAttribute('data-en-ph');
       });
+      // swap JS-generated text nodes
+      document.querySelectorAll('[data-ar-txt]').forEach(function(el){
+        el.textContent = next === 'ar' ? el.getAttribute('data-ar-txt') : el.getAttribute('data-en-txt');
+      });
     });
   }
   // apply placeholders on load

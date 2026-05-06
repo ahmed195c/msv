@@ -802,6 +802,7 @@ select.form-control{cursor:pointer;}
         (function(){
           var LOCATIONS = ["Accommodation","Admin Area","Airport","Animal Basins","Animal Feeding Area","Animal Pot","Animal Shed","Ants Nest","Auditorium","Back Yard","Basement","Basin","Bathroom","Bee Hive","Bins","Bucket","Building","Burrows","Cabinet houses","Ceiling","Channel","Classroom","Clinic Room","Closed Water Tank","Closet","Common Area","Compost Hole","Conference Rm","Construction Site","Corners","Cracks and Crevices","dedicated kitchen","Discarded Tyres","Door / Window Frames","Down Spouts","drainage","Drains/Sinks","Driver's Quarter","Drum","Dumpster Area","Electrical Room","Electricity Chamber","Escort Villa","Etisalat Chambers","exterior perimeter","exterior wallings","Ezzab","Farm(s)","Fence (internal)","Fiber Tank","fixed cabinets","Flats Basin Area","Floor Drain","Flower pots","Forest Area","Fountains","Front Door","Front Yard","Furniture","Garbage Area","Garbage Bin","Garden perimeter","Grounds","Guard House","Gymnasium","Hallways","Hanging Cabinets","Head Quarters","Helper's Quarter","Hole","Horse Barn","Hotel","House (inside)","House (outside)","Industrial Area","Inside the farm","Interior Perimeter","Irrigation Control Valve","Jail","kitchen","Labor Camp","Laboratory Room","Landfill","Laundry Room","Library","Lobby","Locker Room","Maid's Room","Manhole","Manhole in the house/villa","Manhole in the streets","Manholes","Market Area","Masjid","Office","Office Room","Open Water Tank","Palace","Palm Tree Burrows","Pantry","Pantry Closet","Park","Parking Area","Patio","Pheromone Trap","Pipe(s)","Playground","Pond","Pool","Port","Poultry","Prayer Room","Reception","Real Estate","Rodent Bait Station","Roof Top","Scrap","Security Room","Septic Tank","Sewage Manhole","Shed /Storage unit","Shooting Ranges","Shop","Sink Cabinets","Stagnant Water","Steel cabinets","Storage","Store Room","Storm Drain","Storm Water Lines","Swimming Pool","Tank","Teachers Room","Tent","Theater","toilet/bath/washroom","Trash Bins","Trees","TV","under shelves","Underground Water Tank","Villa/House","VIP building","Wadi","walls","Waste Area","Waste Room","Water Accumulation","Water Cooler","Window Frames","Wooden cabinets"];
           function T(ar,en){return (document.documentElement.getAttribute('data-lang')||'ar')==='ar'?ar:en;}
+          function applyT(el,ar,en){el.setAttribute('data-ar-txt',ar);el.setAttribute('data-en-txt',en);el.textContent=T(ar,en);}
           var PEST_CATS = [
             {lbl:'🔴 DANGEROUS PEST', pests:['Bees','Scorpion','Snake','Poisonous Spider','Wasp And Bee','Other Harmful Pest']},
             {lbl:'🟡 NUISANCE PEST',  pests:['Ants','German Cockroach','American Cockroach','Lizard','Termites','Non Poisonous Spider','Drain Flies','Fruit Flies']},
@@ -874,14 +875,18 @@ select.form-control{cursor:pointer;}
             var nWrap = document.createElement('div');
             nWrap.style.cssText = 'flex:1;position:relative;';
             var nInp = document.createElement('input');
-            nInp.type='text'; nInp.placeholder=T('اسم المبيد…','Pesticide name…'); nInp.autocomplete='off';
+            nInp.type='text'; nInp.autocomplete='off';
+            nInp.setAttribute('data-ar-ph','اسم المبيد…'); nInp.setAttribute('data-en-ph','Pesticide name…');
+            nInp.placeholder=T('اسم المبيد…','Pesticide name…');
             nInp.className='form-control pst-name'; nInp.style.cssText='font-size:12.5px;';
             nInp.value = data.name || '';
             var nUl = makeDrop();
             nWrap.appendChild(nInp); nWrap.appendChild(nUl);
 
             var qInp = document.createElement('input');
-            qInp.type='number'; qInp.placeholder=T('الكمية','Qty'); qInp.min='0'; qInp.step='0.1';
+            qInp.type='number'; qInp.min='0'; qInp.step='0.1';
+            qInp.setAttribute('data-ar-ph','الكمية'); qInp.setAttribute('data-en-ph','Qty');
+            qInp.placeholder=T('الكمية','Qty');
             qInp.className='form-control pst-qty'; qInp.style.cssText='width:85px;font-size:12.5px;';
             qInp.value = data.qty || '';
 
@@ -919,10 +924,12 @@ select.form-control{cursor:pointer;}
             hdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:#f1f5f9;border-bottom:1px solid #e2e8f0;border-radius:12px 12px 0 0;';
             var htitle = document.createElement('span');
             htitle.className = 'card-num';
-            htitle.style.cssText = 'font-size:13px;font-weight:700;color:#374151;';
-            htitle.textContent = T('موقع رش','Spray Location') + ' #' + n;
+            htitle.style.cssText = 'font-size:13px;font-weight:700;color:#374151;display:inline-flex;gap:4px;';
+            var htLbl = document.createElement('span'); applyT(htLbl,'موقع رش','Spray Location');
+            var htNum = document.createElement('span'); htNum.className='card-num-n'; htNum.textContent='#'+n;
+            htitle.appendChild(htLbl); htitle.appendChild(htNum);
             var rmCard = document.createElement('button');
-            rmCard.type='button'; rmCard.textContent=T('× حذف','× Delete');
+            rmCard.type='button'; applyT(rmCard,'× حذف','× Delete');
             rmCard.style.cssText='padding:3px 10px;font-size:11px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:6px;cursor:pointer;';
             rmCard.addEventListener('click', function(){ card.remove(); renumber(); });
             hdr.appendChild(htitle); hdr.appendChild(rmCard);
@@ -937,9 +944,11 @@ select.form-control{cursor:pointer;}
             locWrap.style.cssText = 'margin-bottom:12px;position:relative;';
             var locLbl = document.createElement('label');
             locLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;';
-            locLbl.textContent = T('المكان','Location');
+            applyT(locLbl,'المكان','Location');
             var locInp = document.createElement('input');
-            locInp.type='text'; locInp.autocomplete='off'; locInp.placeholder=T('ابحث أو اكتب…','Search or type…');
+            locInp.type='text'; locInp.autocomplete='off';
+            locInp.setAttribute('data-ar-ph','ابحث أو اكتب…'); locInp.setAttribute('data-en-ph','Search or type…');
+            locInp.placeholder=T('ابحث أو اكتب…','Search or type…');
             locInp.className='form-control loc-inp'; locInp.value = data.location||'';
             var locUl = makeDrop();
             locWrap.appendChild(locLbl); locWrap.appendChild(locInp); locWrap.appendChild(locUl);
@@ -952,7 +961,7 @@ select.form-control{cursor:pointer;}
             pestWrap.style.cssText = 'margin-bottom:12px;padding:12px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;';
             var pestLbl = document.createElement('div');
             pestLbl.style.cssText = 'font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;';
-            pestLbl.textContent = T('الحشرات الموجودة','Pests Found');
+            applyT(pestLbl,'الحشرات الموجودة','Pests Found');
             pestWrap.appendChild(pestLbl);
             var existPests = data.pests || [];
             PEST_CATS.forEach(function(cat){
@@ -983,12 +992,12 @@ select.form-control{cursor:pointer;}
             var pstWrap = document.createElement('div');
             var pstLbl = document.createElement('div');
             pstLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;';
-            pstLbl.textContent = T('المبيدات المستخدمة','Pesticides Used');
+            applyT(pstLbl,'المبيدات المستخدمة','Pesticides Used');
             var pstRows = document.createElement('div');
             pstRows.className = 'pst-rows';
             (data.pesticides || []).forEach(function(p){ addPesticideRow(pstRows, p); });
             var addPstBtn = document.createElement('button');
-            addPstBtn.type='button'; addPstBtn.textContent=T('+ إضافة مبيد','+ Add Pesticide');
+            addPstBtn.type='button'; applyT(addPstBtn,'+ إضافة مبيد','+ Add Pesticide');
             addPstBtn.style.cssText='padding:6px 13px;font-size:12px;font-weight:600;background:#eff6ff;color:#2563eb;border:1.5px solid #bfdbfe;border-radius:7px;cursor:pointer;margin-top:4px;';
             addPstBtn.addEventListener('click', function(){ addPesticideRow(pstRows, {}); });
             pstWrap.appendChild(pstLbl); pstWrap.appendChild(pstRows); pstWrap.appendChild(addPstBtn);
@@ -999,8 +1008,8 @@ select.form-control{cursor:pointer;}
           }
 
           function renumber() {
-            document.querySelectorAll('.spray-entry-card .card-num').forEach(function(el, i){
-              el.textContent = T('موقع رش','Spray Location') + ' #' + (i+1);
+            document.querySelectorAll('.spray-entry-card .card-num-n').forEach(function(el, i){
+              el.textContent = '#' + (i+1);
             });
           }
 
