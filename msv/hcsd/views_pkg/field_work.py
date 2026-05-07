@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from ..models import FieldWorkOrder, FieldWorkPhoto, FieldWorkSupervisorArea
+from ..models import FieldWorkOrder, FieldWorkPhoto, FieldWorkSupervisorArea, FieldWorkSupervisorProfile
 from .common import _can_admin, _can_data_entry, _can_fw_supervise, _fw_supervisor_users_qs
 
 logger = logging.getLogger(__name__)
@@ -884,7 +884,7 @@ def field_work_supervisors(request):
 
     supervisors = (
         _fw_supervisor_users_qs()
-        .prefetch_related('fw_supervisor_areas')
+        .prefetch_related('fw_supervisor_areas', 'fw_supervisor_profile')
         .annotate(
             active_count=Count(
                 'field_work_assigned',
@@ -915,7 +915,43 @@ def field_work_supervisors(request):
 
         action = request.POST.get('action', '')
 
-        if action == 'add_area':
+        if action == 'create_supervisor':
+            from django.contrib.auth.models import Group
+            username     = (request.POST.get('username') or '').strip()
+            password     = (request.POST.get('password') or '').strip()
+            password2    = (request.POST.get('password2') or '').strip()
+            name_ar      = (request.POST.get('name_ar') or '').strip()
+            name_en      = (request.POST.get('name_en') or '').strip()
+            admin_number = (request.POST.get('admin_number') or '').strip()
+            areas_raw    = (request.POST.get('areas') or '').strip()
+
+            if not username:
+                error = 'يرجى إدخال اسم المستخدم.'
+            elif User.objects.filter(username=username).exists():
+                error = 'اسم المستخدم مستخدم بالفعل.'
+            elif not password:
+                error = 'يرجى إدخال كلمة المرور.'
+            elif password != password2:
+                error = 'كلمتا المرور غير متطابقتان.'
+            else:
+                user = User.objects.create_user(
+                    username=username, password=password,
+                    first_name=name_ar, last_name=name_en,
+                )
+                FieldWorkSupervisorProfile.objects.create(
+                    user=user, name_ar=name_ar, name_en=name_en,
+                    admin_number=admin_number,
+                )
+                grp, _ = Group.objects.get_or_create(name='fw_supervisor')
+                user.groups.add(grp)
+                for area in [a.strip() for a in areas_raw.split('\n') if a.strip()]:
+                    FieldWorkSupervisorArea.objects.get_or_create(
+                        supervisor=user, area=area,
+                        defaults={'assigned_by': request.user},
+                    )
+                success = f'تم إنشاء حساب المراقب "{name_ar or username}" بنجاح.'
+
+        elif action == 'add_area':
             sup_id = (request.POST.get('supervisor_id') or '').strip()
             area = (request.POST.get('area') or '').strip()
             if not sup_id or not area:

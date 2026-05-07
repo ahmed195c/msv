@@ -53,6 +53,53 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
   {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
   {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
 
+  <!-- Create Supervisor Form -->
+  <div class="add-card" style="border-color:#2563eb30;">
+    <h2 style="color:#1d4ed8;cursor:pointer;user-select:none;display:flex;align-items:center;gap:8px;margin-bottom:0;" onclick="var b=document.getElementById('create-sup-body');b.style.display=b.style.display==='none'?'block':'none';">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      إنشاء حساب مراقب جديد
+    </h2>
+    <div id="create-sup-body" style="display:none;margin-top:16px;">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_supervisor">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label">اسم المستخدم <span style="color:#e11d48;">*</span></label>
+          <input type="text" name="username" class="form-control" required placeholder="مثال: sup_ahmed" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">الرقم الإداري</label>
+          <input type="text" name="admin_number" class="form-control" placeholder="مثال: 10245">
+        </div>
+        <div class="form-group">
+          <label class="form-label">الاسم بالعربية <span style="color:#e11d48;">*</span></label>
+          <input type="text" name="name_ar" class="form-control" required placeholder="أحمد محمد">
+        </div>
+        <div class="form-group">
+          <label class="form-label">الاسم بالإنجليزية</label>
+          <input type="text" name="name_en" class="form-control" placeholder="Ahmed Mohammed">
+        </div>
+        <div class="form-group">
+          <label class="form-label">كلمة المرور <span style="color:#e11d48;">*</span></label>
+          <input type="password" name="password" class="form-control" required autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">تأكيد كلمة المرور <span style="color:#e11d48;">*</span></label>
+          <input type="password" name="password2" class="form-control" required autocomplete="new-password">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">المناطق (اختياري — سطر لكل منطقة)</label>
+          <textarea name="areas" class="form-control" rows="3" placeholder="منطقة الخان&#10;المجاز&#10;الصجعة"></textarea>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button type="submit" class="btn btn-primary">إنشاء الحساب</button>
+      </div>
+    </form>
+    </div>
+  </div>
+
   <!-- Add Area Form -->
   <div class="add-card">
     <h2>إضافة منطقة لمراقب</h2>
@@ -92,8 +139,11 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
     <div class="sup-card">
       <div class="sup-card-header">
         <div>
-          <div class="sup-name">{{ sup.get_full_name|default:sup.username }}</div>
-          <div class="sup-username">@{{ sup.username }}</div>
+          {% with prof=sup.fw_supervisor_profile %}
+          <div class="sup-name">{% if prof.name_ar %}{{ prof.name_ar }}{% else %}{{ sup.get_full_name|default:sup.username }}{% endif %}</div>
+          {% if prof.name_en %}<div style="font-size:12px;color:var(--ink-3);margin-top:1px;">{{ prof.name_en }}</div>{% endif %}
+          <div class="sup-username">@{{ sup.username }}{% if prof.admin_number %} · {{ prof.admin_number }}{% endif %}</div>
+          {% endwith %}
         </div>
         <span class="sup-badge">{{ sup.active_count }} أمر نشط</span>
       </div>

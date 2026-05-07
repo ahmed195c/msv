@@ -1219,6 +1219,23 @@ class FieldWorkPhoto(models.Model):
         return f"{self.get_phase_display()} — {self.work_order}"
 
 
+class FieldWorkSupervisorProfile(models.Model):
+    user         = models.OneToOneField(
+        User, on_delete=models.CASCADE,
+        related_name='fw_supervisor_profile', verbose_name='المستخدم',
+    )
+    name_ar      = models.CharField(max_length=100, blank=True, verbose_name='الاسم بالعربية')
+    name_en      = models.CharField(max_length=100, blank=True, verbose_name='الاسم بالإنجليزية')
+    admin_number = models.CharField(max_length=50,  blank=True, verbose_name='الرقم الإداري')
+
+    class Meta:
+        verbose_name = 'ملف مراقب عمل ميداني'
+        verbose_name_plural = 'ملفات مراقبي العمل الميداني'
+
+    def __str__(self):
+        return self.name_ar or self.user.get_full_name() or self.user.username
+
+
 class FieldWorkSupervisorArea(models.Model):
     supervisor = models.ForeignKey(
         User, on_delete=models.CASCADE,
