@@ -332,6 +332,7 @@ def field_work_detail(request, pk):
             order.supervisor_notes    = sup_notes
             order.report_submitted_by = request.user
             order.report_submitted_at = timezone.now()
+            order.close_date          = timezone.now().date()
             if client_sig:
                 order.client_signature = client_sig
             if supervisor_sig:
@@ -340,6 +341,7 @@ def field_work_detail(request, pk):
                 'status', 'workers_count', 'vehicles_count',
                 'building_type', 'spray_entries', 'supervisor_notes',
                 'report_submitted_by', 'report_submitted_at',
+                'close_date',
                 'client_signature', 'supervisor_signature',
             ])
             report_photos = request.FILES.getlist('report_photos')
