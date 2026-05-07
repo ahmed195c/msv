@@ -1036,6 +1036,7 @@ class ComplaintPhoto(models.Model):
 
 class FieldWorkOrder(models.Model):
     STATUS_CHOICES = [
+        ('new',               'جديد'),
         ('private_company',   'شركة خاصة'),
         ('cust_declined',     'العميل رفض الخدمة'),
         ('wrong_phone',       'رقم الهاتف خاطئ'),
@@ -1111,7 +1112,7 @@ class FieldWorkOrder(models.Model):
     report_submitted_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ التقرير')
     time_in             = models.DateTimeField(null=True, blank=True, verbose_name='وقت الوصول')
     status         = models.CharField(
-        max_length=30, choices=STATUS_CHOICES, default='private_company', verbose_name='الحالة',
+        max_length=30, choices=STATUS_CHOICES, default='new', verbose_name='الحالة',
     )
     source = models.CharField(
         max_length=10, choices=SOURCE_CHOICES, default='manual', verbose_name='المصدر',
