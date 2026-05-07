@@ -510,12 +510,13 @@ select.form-control{cursor:pointer;}
           <div class="form-group">
             <label class="form-label"><span class="t-ar">سبب الإغلاق</span><span class="t-en">Close Reason</span> <span style="color:#e11d48;">*</span></label>
             <select name="close_reason" class="form-control" required>
-              <option value="">— اختر السبب —</option>
+              <option value="">— اختر السبب / Select Reason —</option>
               <option value="closed_out_of_service">Customer Out of Service Area — خارج نطاق الخدمة</option>
               <option value="closed_customer_refused">Customer Refused — العميل رفض الخدمة</option>
               <option value="closed_not_available">Customer Not Available — العميل غير متاح</option>
-              <option value="closed_private_building">الطلب داخل بناية — تابع لشركة نظافة خاصة</option>
-              <option value="closed_other_municipal">الطلب تابع لبلدية أخرى</option>
+              <option value="closed_not_attending">Customer Did Not Answer — العميل لم يجب على الهاتف</option>
+              <option value="closed_private_building">Private Building (Internal Pest Control Co.) — الطلب داخل بناية — تابع لشركة نظافة خاصة</option>
+              <option value="closed_other_municipal">Belongs to Another Municipality — الطلب تابع لبلدية أخرى</option>
             </select>
           </div>
 
