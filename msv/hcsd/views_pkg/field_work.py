@@ -164,9 +164,7 @@ def field_work_detail(request, pk):
         and order.status not in _FW_CLOSED_STATUSES
     )
 
-    photos_before = order.photos.filter(phase='before').order_by('uploaded_at')
-    photos_during = order.photos.filter(phase='during').order_by('uploaded_at')
-    photos_after  = order.photos.filter(phase='after').order_by('uploaded_at')
+    photos_all = order.photos.order_by('uploaded_at')
 
     errors = []
     success = None
@@ -256,12 +254,8 @@ def field_work_detail(request, pk):
 
         # ── Upload photos ────────────────────────────────────────────────────
         elif action == 'upload_photos' and can_edit:
-            phase = (request.POST.get('phase') or '').strip()
             photos = request.FILES.getlist('photos')
-            valid_phases = {'before', 'during', 'after'}
-            if phase not in valid_phases:
-                errors.append('يرجى اختيار مرحلة الصور.')
-            elif not photos:
+            if not photos:
                 errors.append('يرجى اختيار صورة واحدة على الأقل.')
             else:
                 invalid = [
@@ -274,14 +268,12 @@ def field_work_detail(request, pk):
                     for photo in photos:
                         FieldWorkPhoto.objects.create(
                             work_order=order,
-                            phase=phase,
+                            phase='work',
                             file=photo,
                             uploaded_by=request.user,
                         )
                     success = 'تم رفع الصور.'
-                    photos_before = order.photos.filter(phase='before').order_by('uploaded_at')
-                    photos_during = order.photos.filter(phase='during').order_by('uploaded_at')
-                    photos_after  = order.photos.filter(phase='after').order_by('uploaded_at')
+                    photos_all = order.photos.order_by('uploaded_at')
 
         # ── Save GPS location ────────────────────────────────────────────────
         elif action == 'save_location' and can_submit_report:
@@ -350,6 +342,13 @@ def field_work_detail(request, pk):
                 'report_submitted_by', 'report_submitted_at',
                 'client_signature', 'supervisor_signature',
             ])
+            report_photos = request.FILES.getlist('report_photos')
+            for photo in report_photos:
+                FieldWorkPhoto.objects.create(
+                    work_order=order, phase='work',
+                    file=photo, uploaded_by=request.user,
+                )
+            photos_all = order.photos.order_by('uploaded_at')
             success = 'تم حفظ تقرير المراقب — الحالة: تم إنجاز الخدمة.'
 
         elif action == 'postpone_order' and can_submit_report:
@@ -412,9 +411,7 @@ def field_work_detail(request, pk):
                 photo.file.delete(save=False)
                 photo.delete()
                 success = 'تم حذف الصورة.'
-                photos_before = order.photos.filter(phase='before').order_by('uploaded_at')
-                photos_during = order.photos.filter(phase='during').order_by('uploaded_at')
-                photos_after  = order.photos.filter(phase='after').order_by('uploaded_at')
+                photos_all = order.photos.order_by('uploaded_at')
             except FieldWorkPhoto.DoesNotExist:
                 errors.append('الصورة غير موجودة.')
 
@@ -439,9 +436,7 @@ def field_work_detail(request, pk):
         'can_close': can_close,
         'is_closed': is_closed,
         'fw_supervisor_users': fw_supervisor_users,
-        'photos_before': photos_before,
-        'photos_during': photos_during,
-        'photos_after': photos_after,
+        'photos_all': photos_all,
         'errors': errors,
         'success': success,
         'building_type_choices': _BUILDING_TYPE_CHOICES,
@@ -540,11 +535,13 @@ def field_work_report_print(request, pk):
             'action': entry.get('action', ''),
         })
     time_in_dt = order.time_in or order.location_saved_at
+    photos = list(order.photos.order_by('uploaded_at'))
     return render(request, 'hcsd/field_work_report_print.html', {
         'order': order,
         'materials': materials,
         'observations': observations,
         'time_in_dt': time_in_dt,
+        'photos': photos,
     })
 
 
@@ -639,17 +636,10 @@ def field_work_report(request, pk):
     doc.add_paragraph()
 
     # ── Photos ──────────────────────────────────────────────────────────────
-    phases = [
-        ('before', 'صور قبل العمل'),
-        ('during', 'صور أثناء العمل'),
-        ('after',  'صور بعد العمل'),
-    ]
-    for phase_key, phase_label in phases:
-        phase_photos = list(order.photos.filter(phase=phase_key).order_by('uploaded_at'))
-        if not phase_photos:
-            continue
-        add_section_title(phase_label)
-        for photo in phase_photos:
+    all_photos = list(order.photos.order_by('uploaded_at'))
+    if all_photos:
+        add_section_title('صور العمل')
+        for photo in all_photos:
             try:
                 photo_path = photo.file.path
                 if os.path.exists(photo_path):

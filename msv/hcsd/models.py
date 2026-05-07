@@ -1191,6 +1191,7 @@ class FieldWorkOrder(models.Model):
 
 class FieldWorkPhoto(models.Model):
     PHASE_CHOICES = [
+        ('work',   'صور العمل'),
         ('before', 'قبل العمل'),
         ('during', 'أثناء العمل'),
         ('after',  'بعد العمل'),

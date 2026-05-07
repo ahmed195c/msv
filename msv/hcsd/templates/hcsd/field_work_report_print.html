@@ -275,6 +275,20 @@
     </tr>
   </table>
 
+  <!-- Photos -->
+  {% if photos %}
+  <div style="margin-top:18px;page-break-before:auto;">
+    <div style="font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid #0f172a;padding-bottom:4px;margin-bottom:12px;">Report Photos / صور التقرير</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+      {% for photo in photos %}
+      <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <img src="{{ photo.file.url }}" alt="صورة" style="width:100%;height:160px;object-fit:cover;display:block;">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Footer -->
   <div class="doc-footer">
     <span>☎ 971165623333</span>

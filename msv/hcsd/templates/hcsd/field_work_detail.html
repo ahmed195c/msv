@@ -1203,6 +1203,22 @@ select.form-control{cursor:pointer;}
         })();
         </script>
 
+        <!-- Report photos -->
+        <div style="margin-top:16px;padding:14px 16px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;">
+          <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:10px;"><span class="t-ar">صور التقرير</span><span class="t-en">Report Photos</span></div>
+          <div class="img-drop" id="drop-report-photos">
+            <div class="img-drop-inner">
+              <div class="img-drop-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+              </div>
+              <div class="img-drop-title"><span class="t-ar">اسحب الصور هنا أو <span style="color:var(--accent);text-decoration:underline;">اضغط للاختيار</span></span><span class="t-en">Drag photos here or <span style="color:var(--accent);text-decoration:underline;">click to select</span></span></div>
+              <div class="img-drop-hint">JPG / PNG</div>
+            </div>
+            <input type="file" name="report_photos" multiple accept=".jpg,.jpeg,.png" id="inp-report-photos">
+            <div class="img-drop-status" id="status-report-photos"></div>
+          </div>
+        </div>
+
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:4px;"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1217,138 +1233,31 @@ select.form-control{cursor:pointer;}
   {% endif %}{# can_submit_report #}
 
   <!-- Photos -->
+  {% if photos_all %}
   <div class="card">
-    <div class="card-header"><h2><span class="t-ar">الصور</span><span class="t-en">Photos</span></h2></div>
+    <div class="card-header"><h2><span class="t-ar">صور التقرير</span><span class="t-en">Report Photos</span> ({{ photos_all|length }})</h2></div>
     <div class="card-body">
-
-      <!-- Tabs -->
-      <div class="photos-tabs">
-        <button class="photo-tab active" onclick="switchTab('before',this)"><span class="t-ar">قبل العمل</span><span class="t-en">Before</span> ({{ photos_before|length }})</button>
-        <button class="photo-tab" onclick="switchTab('during',this)"><span class="t-ar">أثناء العمل</span><span class="t-en">During</span> ({{ photos_during|length }})</button>
-        <button class="photo-tab" onclick="switchTab('after',this)"><span class="t-ar">بعد العمل</span><span class="t-en">After</span> ({{ photos_after|length }})</button>
-      </div>
-
-      <!-- Before -->
-      <div id="panel-before" class="photo-panel active">
-        {% if photos_before %}
-        <div class="photo-grid">
-          {% for photo in photos_before %}
-          <div class="photo-item">
-            <img src="{{ photo.file.url }}" alt="صورة قبل العمل">
-            {% if can_edit and not is_closed %}
-            <form method="post" style="display:contents;">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="delete_photo">
-              <input type="hidden" name="photo_id" value="{{ photo.pk }}">
-              <button type="submit" class="photo-delete" title="حذف"
-                      onclick="return confirm('حذف هذه الصورة؟')">✕</button>
-            </form>
-            {% endif %}
-          </div>
-          {% endfor %}
+      <div class="photo-grid">
+        {% for photo in photos_all %}
+        <div class="photo-item">
+          <img src="{{ photo.file.url }}" alt="صورة">
+          {% if can_edit %}
+          <form method="post" style="display:contents;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_photo">
+            <input type="hidden" name="photo_id" value="{{ photo.pk }}">
+            <button type="submit" class="photo-delete" title="حذف"
+                    onclick="return confirm('حذف هذه الصورة؟')">✕</button>
+          </form>
+          {% endif %}
         </div>
-        {% else %}
-        <p class="photo-empty"><span class="t-ar">لا توجد صور قبل العمل.</span><span class="t-en">No before photos.</span></p>
-        {% endif %}
+        {% endfor %}
       </div>
-
-      <!-- During -->
-      <div id="panel-during" class="photo-panel">
-        {% if photos_during %}
-        <div class="photo-grid">
-          {% for photo in photos_during %}
-          <div class="photo-item">
-            <img src="{{ photo.file.url }}" alt="صورة أثناء العمل">
-            {% if can_edit and not is_closed %}
-            <form method="post" style="display:contents;">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="delete_photo">
-              <input type="hidden" name="photo_id" value="{{ photo.pk }}">
-              <button type="submit" class="photo-delete" title="حذف"
-                      onclick="return confirm('حذف هذه الصورة؟')">✕</button>
-            </form>
-            {% endif %}
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <p class="photo-empty"><span class="t-ar">لا توجد صور أثناء العمل.</span><span class="t-en">No during photos.</span></p>
-        {% endif %}
-      </div>
-
-      <!-- After -->
-      <div id="panel-after" class="photo-panel">
-        {% if photos_after %}
-        <div class="photo-grid">
-          {% for photo in photos_after %}
-          <div class="photo-item">
-            <img src="{{ photo.file.url }}" alt="صورة بعد العمل">
-            {% if can_edit and not is_closed %}
-            <form method="post" style="display:contents;">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="delete_photo">
-              <input type="hidden" name="photo_id" value="{{ photo.pk }}">
-              <button type="submit" class="photo-delete" title="حذف"
-                      onclick="return confirm('حذف هذه الصورة؟')">✕</button>
-            </form>
-            {% endif %}
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <p class="photo-empty"><span class="t-ar">لا توجد صور بعد العمل.</span><span class="t-en">No after photos.</span></p>
-        {% endif %}
-      </div>
-
-      <!-- Upload -->
-      {% if can_edit and not is_closed %}
-      <div style="margin-top:20px;border-top:1.5px solid var(--border);padding-top:18px;">
-        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--ink-2);"><span class="t-ar">رفع صور جديدة</span><span class="t-en">Upload New Photos</span></h3>
-        <form method="post" enctype="multipart/form-data" novalidate>
-          {% csrf_token %}
-          <input type="hidden" name="action" value="upload_photos">
-          <div class="form-group">
-            <label class="form-label"><span class="t-ar">المرحلة</span><span class="t-en">Phase</span></label>
-            <select name="phase" class="form-control" id="phase-select">
-              <option value="before">قبل العمل / Before</option>
-              <option value="during">أثناء العمل / During</option>
-              <option value="after">بعد العمل / After</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label"><span class="t-ar">الصور</span><span class="t-en">Photos</span></label>
-            <div class="img-drop" id="drop-photos">
-              <div class="img-drop-inner">
-                <div class="img-drop-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-                </div>
-                <div class="img-drop-title">اسحب الصور هنا أو <span>اضغط للاختيار</span></div>
-                <div class="img-drop-hint">JPG أو PNG — يمكن اختيار أكثر من صورة</div>
-              </div>
-              <input type="file" name="photos" multiple accept=".jpg,.jpeg,.png" id="inp-photos">
-              <div class="img-preview-list" id="prev-photos" style="display:none;"></div>
-              <div class="img-drop-status" id="status-photos"></div>
-            </div>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">⬆ <span class="t-ar">رفع الصور</span><span class="t-en">Upload Photos</span></button>
-          </div>
-        </form>
-      </div>
-      {% endif %}
-
     </div>
   </div>
+  {% endif %}
 
 </section>
-
-<script>
-function switchTab(phase, btn) {
-  document.querySelectorAll('.photo-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.photo-tab').forEach(b => b.classList.remove('active'));
-  document.getElementById('panel-' + phase).classList.add('active');
-  btn.classList.add('active');
-}
 
 // GPS location
 (function(){
