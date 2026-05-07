@@ -72,6 +72,7 @@ def field_work_list(request):
         orders = orders.filter(
             Q(order_number__icontains=search)
             | Q(customer_name__icontains=search)
+            | Q(mobile__icontains=search)
             | Q(area__icontains=search)
             | Q(supervisor_name__icontains=search)
             | Q(work_type__icontains=search)
