@@ -934,6 +934,38 @@ select.form-control{cursor:pointer;}
             body.appendChild(locWrap);
             initCombo(locInp, locUl, LOCATIONS, function(l){ return l; }, null);
 
+            // infestation level — after location
+            var infWrap = document.createElement('div');
+            infWrap.style.cssText = 'margin-bottom:12px;padding:12px 14px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;';
+            var infLbl = document.createElement('div');
+            infLbl.style.cssText = 'font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;';
+            applyT(infLbl,'مستوى الإصابة','Infestation Level');
+            infWrap.appendChild(infLbl);
+            var INF_OPTS = [
+              {val:'no_infestation',      ar:'لا يوجد إصابة',      en:'No Infestation',      color:'#dcfce7', border:'#86efac'},
+              {val:'low_infestation',     ar:'إصابة خفيفة',        en:'Low Infestation',     color:'#fef9c3', border:'#fde047'},
+              {val:'moderate_infestation',ar:'إصابة متوسطة',       en:'Moderate Infestation',color:'#ffedd5', border:'#fdba74'},
+              {val:'high_infestation',    ar:'إصابة شديدة',        en:'High Infestation',    color:'#fee2e2', border:'#fca5a5'},
+            ];
+            var infGroup = document.createElement('div');
+            infGroup.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;';
+            INF_OPTS.forEach(function(opt){
+              var lbl = document.createElement('label');
+              lbl.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid #e2e8f0;border-radius:20px;background:#fff;font-size:12.5px;cursor:pointer;user-select:none;transition:border-color .12s,background .12s;';
+              var cb = document.createElement('input');
+              cb.type='radio'; cb.name='infestation_'+n; cb.value=opt.val; cb.className='inf-cb';
+              if((data.infestation||'')=== opt.val){ cb.checked=true; lbl.style.background=opt.color; lbl.style.borderColor=opt.border; }
+              cb.addEventListener('change', function(){
+                infGroup.querySelectorAll('label').forEach(function(l){ l.style.background='#fff'; l.style.borderColor='#e2e8f0'; });
+                if(cb.checked){ lbl.style.background=opt.color; lbl.style.borderColor=opt.border; }
+              });
+              var txt = document.createElement('span');
+              applyT(txt, opt.ar, opt.en);
+              lbl.appendChild(cb); lbl.appendChild(txt);
+              infGroup.appendChild(lbl);
+            });
+            infWrap.appendChild(infGroup);
+            body.appendChild(infWrap);
 
             // pests — categorized
             var pestWrap = document.createElement('div');
@@ -998,39 +1030,6 @@ select.form-control{cursor:pointer;}
             actTxt.value = data.action || '';
             actWrap.appendChild(actLbl); actWrap.appendChild(actTxt);
             body.appendChild(actWrap);
-
-            // infestation level
-            var infWrap = document.createElement('div');
-            infWrap.style.cssText = 'margin-top:12px;padding:12px 14px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;';
-            var infLbl = document.createElement('div');
-            infLbl.style.cssText = 'font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;';
-            applyT(infLbl,'مستوى الإصابة','Infestation Level');
-            infWrap.appendChild(infLbl);
-            var INF_OPTS = [
-              {val:'no_infestation',      ar:'لا يوجد إصابة',      en:'No Infestation',      color:'#dcfce7', border:'#86efac'},
-              {val:'low_infestation',     ar:'إصابة خفيفة',        en:'Low Infestation',     color:'#fef9c3', border:'#fde047'},
-              {val:'moderate_infestation',ar:'إصابة متوسطة',       en:'Moderate Infestation',color:'#ffedd5', border:'#fdba74'},
-              {val:'high_infestation',    ar:'إصابة شديدة',        en:'High Infestation',    color:'#fee2e2', border:'#fca5a5'},
-            ];
-            var infGroup = document.createElement('div');
-            infGroup.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;';
-            INF_OPTS.forEach(function(opt){
-              var lbl = document.createElement('label');
-              lbl.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid #e2e8f0;border-radius:20px;background:#fff;font-size:12.5px;cursor:pointer;user-select:none;transition:border-color .12s,background .12s;';
-              var cb = document.createElement('input');
-              cb.type='radio'; cb.name='infestation_'+n; cb.value=opt.val; cb.className='inf-cb';
-              if((data.infestation||'')=== opt.val){ cb.checked=true; lbl.style.background=opt.color; lbl.style.borderColor=opt.border; }
-              cb.addEventListener('change', function(){
-                infGroup.querySelectorAll('label').forEach(function(l){ l.style.background='#fff'; l.style.borderColor='#e2e8f0'; });
-                if(cb.checked){ lbl.style.background=opt.color; lbl.style.borderColor=opt.border; }
-              });
-              var txt = document.createElement('span');
-              applyT(txt, opt.ar, opt.en);
-              lbl.appendChild(cb); lbl.appendChild(txt);
-              infGroup.appendChild(lbl);
-            });
-            infWrap.appendChild(infGroup);
-            body.appendChild(infWrap);
 
             card.appendChild(body);
             return card;
