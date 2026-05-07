@@ -5,6 +5,7 @@ import os
 from django.contrib.auth.models import Group, User
 from django.utils import timezone
 from django.db.models import Q
+from django.shortcuts import redirect
 from django.urls import reverse
 
 from ..models import (
@@ -149,6 +150,15 @@ def _role_is_data_entry(user):
 
 def _role_is_head(user):
     return user.is_authenticated and _has_any_group(user, GROUP_NAME_ALIASES['head'])
+
+
+def _redirect_if_fw_supervisor(user):
+    """Return a redirect to field work list if user is fw_supervisor-only, else None."""
+    if not _has_any_group(user, GROUP_NAME_ALIASES['fw_supervisor']):
+        return None
+    if user.is_superuser or _has_any_group(user, GROUP_NAME_ALIASES['admin']):
+        return None
+    return redirect('field_work_list')
 
 
 def _user_roles(user):

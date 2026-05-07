@@ -41,8 +41,12 @@ from .common import (
     _certificate_type_for_exam, _certificate_expiry, _enginer_has_passed_for_certificate,
     _is_effective_active_permit, _engineer_no_certificate_notice,
     _group_clearances_by_status, _validate_engineer_for_type,
+    _redirect_if_fw_supervisor,
 )
 def home(request):
+    redir = _redirect_if_fw_supervisor(request.user)
+    if redir:
+        return redir
     permits_qs = PirmetClearance.objects.filter(
         permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal']
     )

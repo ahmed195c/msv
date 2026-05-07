@@ -30,7 +30,7 @@ from ..models import (
     Complaint, ComplaintInspection, ComplaintMaterial, ComplaintPhoto,
     ComplaintResolution, ComplaintVehicle, ContainerTransferRequest,
 )
-from .common import _can_admin, _can_data_entry
+from .common import _can_admin, _can_data_entry, _redirect_if_fw_supervisor
 
 logger = logging.getLogger(__name__)
 
@@ -162,6 +162,9 @@ def set_complaints_language(request):
 
 @login_required
 def complaints_dashboard(request):
+    redir = _redirect_if_fw_supervisor(request.user)
+    if redir:
+        return redir
     from django.db.models import Q, Count
     lang = _get_lang(request)
     status_filter = (request.GET.get('status') or 'all').strip()
