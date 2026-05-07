@@ -666,12 +666,6 @@ select.form-control{cursor:pointer;}
             {% endfor %}
           </div>
           {% endif %}
-          {% if entry.action %}
-          <div style="border-top:1px solid #f1f5f9;padding-top:6px;margin-top:5px;">
-            <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:2px;"><span class="t-ar">الإجراء المتخذ</span><span class="t-en">Action Taken</span></div>
-            <div style="font-size:12.5px;color:#1e293b;">{{ entry.action }}</div>
-          </div>
-          {% endif %}
           {% if entry.infestation %}
           <div style="border-top:1px solid #f1f5f9;padding-top:6px;margin-top:5px;">
             <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:2px;"><span class="t-ar">مستوى الإصابة</span><span class="t-en">Infestation Level</span></div>
@@ -700,12 +694,6 @@ select.form-control{cursor:pointer;}
         <div style="font-size:13px;color:#0f172a;">{{ order.pesticides_used }}</div>
       </div>
       {% endif %}
-      {% endif %}
-      {% if order.supervisor_notes %}
-      <div style="grid-column:1/-1;">
-        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;"><span class="t-ar">ملاحظات المراقب</span><span class="t-en">Supervisor Notes</span></div>
-        <div style="font-size:13px;color:#0f172a;">{{ order.supervisor_notes }}</div>
-      </div>
       {% endif %}
       {% if order.no_answer_screenshot %}
       <div style="grid-column:1/-1;">
@@ -1014,23 +1002,6 @@ select.form-control{cursor:pointer;}
             pstWrap.appendChild(pstLbl); pstWrap.appendChild(pstRows); pstWrap.appendChild(addPstBtn);
             body.appendChild(pstWrap);
 
-            // action taken
-            var actWrap = document.createElement('div');
-            actWrap.style.cssText = 'margin-top:12px;';
-            var actLbl = document.createElement('label');
-            actLbl.style.cssText = 'font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;';
-            applyT(actLbl,'الإجراء المتخذ','Action Taken');
-            var actTxt = document.createElement('textarea');
-            actTxt.className = 'form-control action-txt';
-            actTxt.rows = 2;
-            actTxt.style.cssText = 'resize:vertical;min-height:60px;font-size:13px;';
-            actTxt.setAttribute('data-ar-ph','ماذا تم عمله لحل المشكلة…');
-            actTxt.setAttribute('data-en-ph','What was done to solve the problem…');
-            actTxt.placeholder = T('ماذا تم عمله لحل المشكلة…','What was done to solve the problem…');
-            actTxt.value = data.action || '';
-            actWrap.appendChild(actLbl); actWrap.appendChild(actTxt);
-            body.appendChild(actWrap);
-
             card.appendChild(body);
             return card;
           }
@@ -1075,7 +1046,6 @@ select.form-control{cursor:pointer;}
                   location: (card.querySelector('.loc-inp')||{value:''}).value.trim(),
                   pests: pests,
                   pesticides: pesticides,
-                  action: (card.querySelector('.action-txt')||{value:''}).value.trim(),
                   infestation: infCb ? infCb.value : ''
                 });
               });
@@ -1084,12 +1054,6 @@ select.form-control{cursor:pointer;}
           }
         })();
         </script>
-
-        <div class="form-group">
-          <label class="form-label"><span class="t-ar">ملاحظات المراقب</span><span class="t-en">Supervisor Notes</span></label>
-          <textarea name="supervisor_notes" class="form-control" rows="2"
-            placeholder="أي ملاحظات إضافية…">{{ order.supervisor_notes }}</textarea>
-        </div>
 
         <!-- Signature pads -->
         <input type="hidden" name="client_signature" id="client-sig-data">
