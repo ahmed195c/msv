@@ -145,7 +145,8 @@ def field_work_create(request):
 def field_work_detail(request, pk):
     order = get_object_or_404(
         FieldWorkOrder.objects.select_related(
-            'created_by', 'assigned_supervisor', 'received_by'
+            'created_by', 'assigned_supervisor', 'received_by',
+            'report_submitted_by', 'report_submitted_by__fw_supervisor_profile',
         ), pk=pk
     )
     can_admin = _can_admin(request.user)

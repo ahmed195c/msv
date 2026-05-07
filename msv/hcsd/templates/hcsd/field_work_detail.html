@@ -376,6 +376,95 @@ select.form-control{cursor:pointer;}
     </div>
   </div>
 
+  {% if order.report_submitted_at %}
+  <!-- ── Report Summary Card ── -->
+  <div class="card" style="border-color:#bbf7d0;">
+    <div class="card-header" style="background:#f0fdf4;">
+      <h2 style="color:#15803d;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:6px;"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span class="t-ar">تفاصيل التقرير</span><span class="t-en">Report Details</span>
+      </h2>
+      <span style="font-size:11.5px;color:#15803d;font-weight:500;">{{ order.report_submitted_at|date:"d/m/Y H:i" }}</span>
+    </div>
+    <div class="card-body" style="padding:0;">
+
+      <!-- Supervisor info row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0;border-bottom:1.5px solid #dcfce7;">
+        {% with sup=order.report_submitted_by %}
+        {% if sup %}
+        <div style="padding:14px 18px;border-left:1px solid #dcfce7;">
+          <div style="font-size:10.5px;font-weight:700;color:#16a34a;letter-spacing:.05em;margin-bottom:5px;text-transform:uppercase;"><span class="t-ar">المراقب المنفذ</span><span class="t-en">Supervisor</span></div>
+          {% with prof=sup.fw_supervisor_profile %}
+          <div style="font-size:14px;font-weight:700;color:#0f172a;">{% if prof.name_ar %}{{ prof.name_ar }}{% else %}{{ sup.get_full_name|default:sup.username }}{% endif %}</div>
+          {% if prof.name_en %}<div style="font-size:12px;color:#475569;margin-top:1px;">{{ prof.name_en }}</div>{% endif %}
+          {% if prof.admin_number %}<div style="font-size:11px;color:#64748b;margin-top:3px;font-family:var(--mono);"># {{ prof.admin_number }}</div>{% endif %}
+          {% endwith %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% if order.close_date %}
+        <div style="padding:14px 18px;border-left:1px solid #dcfce7;">
+          <div style="font-size:10.5px;font-weight:700;color:#16a34a;letter-spacing:.05em;margin-bottom:5px;text-transform:uppercase;"><span class="t-ar">تاريخ الإغلاق</span><span class="t-en">Close Date</span></div>
+          <div style="font-size:14px;font-weight:700;color:#0f172a;">{{ order.close_date|date:"d/m/Y" }}</div>
+        </div>
+        {% endif %}
+        {% if order.building_type %}
+        <div style="padding:14px 18px;">
+          <div style="font-size:10.5px;font-weight:700;color:#16a34a;letter-spacing:.05em;margin-bottom:5px;text-transform:uppercase;"><span class="t-ar">نوع المبنى</span><span class="t-en">Building Type</span></div>
+          <div style="font-size:14px;font-weight:700;color:#0f172a;">{{ order.building_type }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Spray entries -->
+      {% if order.spray_entries %}
+      <div style="padding:16px 18px;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:.04em;margin-bottom:10px;text-transform:uppercase;"><span class="t-ar">سجلات الرش</span><span class="t-en">Spray Records</span></div>
+        {% for entry in order.spray_entries %}
+        <div style="border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:10px;background:#fff;overflow:hidden;">
+          <div style="padding:8px 14px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:12px;font-weight:700;color:#1e293b;">{{ forloop.counter }}. {{ entry.location|default:"—" }}</span>
+            {% if entry.infestation %}
+            <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:12px;
+              {% if entry.infestation == 'no_infestation' %}background:#dcfce7;color:#15803d;
+              {% elif entry.infestation == 'low_infestation' %}background:#fef9c3;color:#854d0e;
+              {% elif entry.infestation == 'moderate_infestation' %}background:#ffedd5;color:#9a3412;
+              {% elif entry.infestation == 'high_infestation' %}background:#fee2e2;color:#991b1b;
+              {% endif %}">
+              {% if entry.infestation == 'no_infestation' %}<span class="t-ar">لا يوجد إصابة</span><span class="t-en">No Infestation</span>
+              {% elif entry.infestation == 'low_infestation' %}<span class="t-ar">إصابة خفيفة</span><span class="t-en">Low Infestation</span>
+              {% elif entry.infestation == 'moderate_infestation' %}<span class="t-ar">إصابة متوسطة</span><span class="t-en">Moderate Infestation</span>
+              {% elif entry.infestation == 'high_infestation' %}<span class="t-ar">إصابة شديدة</span><span class="t-en">High Infestation</span>{% endif %}
+            </span>
+            {% endif %}
+          </div>
+          <div style="padding:10px 14px;">
+            {% if entry.pests %}
+            <div style="margin-bottom:8px;">
+              <div style="font-size:10.5px;font-weight:700;color:#64748b;margin-bottom:5px;"><span class="t-ar">الحشرات</span><span class="t-en">Pests</span></div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                {% for p in entry.pests %}<span style="font-size:11.5px;padding:2px 9px;background:#eff6ff;color:#1d4ed8;border-radius:12px;font-weight:600;">{{ p }}</span>{% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            {% if entry.pesticides %}
+            <div>
+              <div style="font-size:10.5px;font-weight:700;color:#64748b;margin-bottom:5px;"><span class="t-ar">المبيدات</span><span class="t-en">Pesticides</span></div>
+              {% for p in entry.pesticides %}
+              <div style="font-size:12px;color:#374151;margin-bottom:2px;">{{ p.name }} — <strong>{{ p.qty }} {{ p.unit }}</strong></div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+
   {% if can_receive %}
   <!-- Receive order button -->
   <div class="card" style="border-color:#fde68a;">
