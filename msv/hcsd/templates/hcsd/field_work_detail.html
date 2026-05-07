@@ -512,9 +512,6 @@ select.form-control{cursor:pointer;}
             <select name="close_reason" class="form-control" required>
               <option value="">— اختر السبب —</option>
               <option value="closed_observation">Observation — ملاحظة</option>
-              <option value="closed_low_infestation">Low Infestation — تفشٍ خفيف</option>
-              <option value="closed_moderate_infestation">Moderate Infestation — تفشٍ متوسط</option>
-              <option value="closed_high_infestation">High Infestation — تفشٍ شديد</option>
               <option value="closed_out_of_service">Customer Out of Service Area — خارج نطاق الخدمة</option>
               <option value="closed_customer_refused">Customer Refused — العميل رفض الخدمة</option>
               <option value="closed_mobile_off">Customer Mobile Switched Off — هاتف العميل مغلق</option>
@@ -677,6 +674,18 @@ select.form-control{cursor:pointer;}
           <div style="border-top:1px solid #f1f5f9;padding-top:6px;margin-top:5px;">
             <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:2px;"><span class="t-ar">الإجراء المتخذ</span><span class="t-en">Action Taken</span></div>
             <div style="font-size:12.5px;color:#1e293b;">{{ entry.action }}</div>
+          </div>
+          {% endif %}
+          {% if entry.infestation %}
+          <div style="border-top:1px solid #f1f5f9;padding-top:6px;margin-top:5px;">
+            <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:2px;"><span class="t-ar">مستوى الإصابة</span><span class="t-en">Infestation Level</span></div>
+            <div style="font-size:12.5px;color:#1e293b;">
+              {% if entry.infestation == 'no_infestation' %}<span class="t-ar">لا يوجد إصابة</span><span class="t-en">No Infestation</span>
+              {% elif entry.infestation == 'low_infestation' %}<span class="t-ar">إصابة خفيفة</span><span class="t-en">Low Infestation</span>
+              {% elif entry.infestation == 'moderate_infestation' %}<span class="t-ar">إصابة متوسطة</span><span class="t-en">Moderate Infestation</span>
+              {% elif entry.infestation == 'high_infestation' %}<span class="t-ar">إصابة شديدة</span><span class="t-en">High Infestation</span>
+              {% else %}{{ entry.infestation }}{% endif %}
+            </div>
           </div>
           {% endif %}
         </div>
@@ -994,6 +1003,39 @@ select.form-control{cursor:pointer;}
             actWrap.appendChild(actLbl); actWrap.appendChild(actTxt);
             body.appendChild(actWrap);
 
+            // infestation level
+            var infWrap = document.createElement('div');
+            infWrap.style.cssText = 'margin-top:12px;padding:12px 14px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;';
+            var infLbl = document.createElement('div');
+            infLbl.style.cssText = 'font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;';
+            applyT(infLbl,'مستوى الإصابة','Infestation Level');
+            infWrap.appendChild(infLbl);
+            var INF_OPTS = [
+              {val:'no_infestation',      ar:'لا يوجد إصابة',      en:'No Infestation',      color:'#dcfce7', border:'#86efac'},
+              {val:'low_infestation',     ar:'إصابة خفيفة',        en:'Low Infestation',     color:'#fef9c3', border:'#fde047'},
+              {val:'moderate_infestation',ar:'إصابة متوسطة',       en:'Moderate Infestation',color:'#ffedd5', border:'#fdba74'},
+              {val:'high_infestation',    ar:'إصابة شديدة',        en:'High Infestation',    color:'#fee2e2', border:'#fca5a5'},
+            ];
+            var infGroup = document.createElement('div');
+            infGroup.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;';
+            INF_OPTS.forEach(function(opt){
+              var lbl = document.createElement('label');
+              lbl.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid #e2e8f0;border-radius:20px;background:#fff;font-size:12.5px;cursor:pointer;user-select:none;transition:border-color .12s,background .12s;';
+              var cb = document.createElement('input');
+              cb.type='radio'; cb.name='infestation_'+n; cb.value=opt.val; cb.className='inf-cb';
+              if((data.infestation||'')=== opt.val){ cb.checked=true; lbl.style.background=opt.color; lbl.style.borderColor=opt.border; }
+              cb.addEventListener('change', function(){
+                infGroup.querySelectorAll('label').forEach(function(l){ l.style.background='#fff'; l.style.borderColor='#e2e8f0'; });
+                if(cb.checked){ lbl.style.background=opt.color; lbl.style.borderColor=opt.border; }
+              });
+              var txt = document.createElement('span');
+              applyT(txt, opt.ar, opt.en);
+              lbl.appendChild(cb); lbl.appendChild(txt);
+              infGroup.appendChild(lbl);
+            });
+            infWrap.appendChild(infGroup);
+            body.appendChild(infWrap);
+
             card.appendChild(body);
             return card;
           }
@@ -1033,11 +1075,13 @@ select.form-control{cursor:pointer;}
                   var unit = (row.querySelector('.pst-unit')||{value:'ML'}).value;
                   if (nm) pesticides.push({name:nm, qty:qty, unit:unit});
                 });
+                var infCb = card.querySelector('.inf-cb:checked');
                 entries.push({
                   location: (card.querySelector('.loc-inp')||{value:''}).value.trim(),
                   pests: pests,
                   pesticides: pesticides,
-                  action: (card.querySelector('.action-txt')||{value:''}).value.trim()
+                  action: (card.querySelector('.action-txt')||{value:''}).value.trim(),
+                  infestation: infCb ? infCb.value : ''
                 });
               });
               document.getElementById('spray-entries-json').value = JSON.stringify(entries);
