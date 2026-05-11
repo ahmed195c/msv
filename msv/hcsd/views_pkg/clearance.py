@@ -57,11 +57,15 @@ def clearance_list(request):
             Q(company__name__icontains=search_query)
             | Q(company__number__icontains=search_query)
         )
-    reviews = InspectorReview.objects.filter(pirmet__in=clearances_qs).select_related('inspector', 'inspector_user')
+    # Evaluate once — reuse the ID list for all related queries to avoid subqueries
+    clearances = list(clearances_qs)
+    clearance_ids = [c.id for c in clearances]
+
+    reviews = InspectorReview.objects.filter(pirmet_id__in=clearance_ids).select_related('inspector', 'inspector_user')
     review_map = {review.pirmet_id: review for review in reviews}
     inspection_receive_changes = (
         PirmetChangeLog.objects.filter(
-            pirmet__in=clearances_qs,
+            pirmet_id__in=clearance_ids,
             change_type='details_update',
             notes__startswith='inspection_received_by:',
         )
@@ -69,7 +73,7 @@ def clearance_list(request):
     )
     inspection_report_changes = (
         PirmetChangeLog.objects.filter(
-            pirmet__in=clearances_qs,
+            pirmet_id__in=clearance_ids,
             change_type='details_update',
             notes__startswith='inspection_report:',
         )
@@ -84,9 +88,18 @@ def clearance_list(request):
     for change in inspection_report_changes:
         if change.pirmet_id not in inspection_report_map:
             inspection_report_map[change.pirmet_id] = change
-    clearances = list(clearances_qs)
+
+    # Bulk-fetch all documents in one query instead of one query per clearance
+    _all_docs = PirmetDocument.objects.filter(pirmet_id__in=clearance_ids).order_by('uploadedAt')
+    _docs_map: dict = {}
+    for _doc in _all_docs:
+        name = _doc.file.name or ''
+        if INSPECTION_REPORT_PHOTO_PREFIX in name or VEHICLE_INSPECTION_REPORT_PHOTO_PREFIX in name:
+            continue
+        _docs_map.setdefault(_doc.pirmet_id, []).append(_doc)
+
     waste_requests_qs = (
-        WasteDisposalRequest.objects.filter(permit__in=clearances_qs)
+        WasteDisposalRequest.objects.filter(permit_id__in=clearance_ids)
         .select_related('inspected_by')
         .order_by('permit_id', '-created_at', '-id')
     )
@@ -139,7 +152,7 @@ def clearance_list(request):
                 and pending_waste_request.inspected_by_id
             ):
                 clearance.inspection_assigned_user_id = pending_waste_request.inspected_by_id
-        request_docs = _request_documents(clearance)
+        request_docs = _docs_map.get(clearance.id, [])
         clearance.request_documents_count = len(request_docs)
         clearance.has_request_documents = bool(
             clearance.request_documents_bundle
