@@ -47,8 +47,41 @@ from .common import (
 @login_required
 def clearance_list(request):
     search_query = (request.GET.get('q') or '').strip()
+
+    _permit_type_tabs = [
+        ('pest_control',        'تصاريح مزاولة النشاط'),
+        ('pesticide_transport', 'تصاريح المركبة'),
+        ('waste_disposal',      'تصاريح التخلص من النفايات'),
+        ('engineer_addition',   'طلبات إضافة مهندس'),
+    ]
+    _valid_tab_keys = {k for k, _ in _permit_type_tabs}
+    active_tab = (request.GET.get('tab') or '').strip()
+    if active_tab not in _valid_tab_keys:
+        active_tab = 'pest_control'
+
+    # Lightweight per-tab active counts (single aggregate query for tab badges)
+    _finished_statuses_set = {
+        'issued', 'closed_requirements_pending', 'cancelled_admin',
+        'disposal_approved', 'disposal_rejected', 'needs_completion', 'rejected',
+    }
+    _counts_base = PirmetClearance.objects.filter(
+        permit_type__in=list(_valid_tab_keys)
+    ).exclude(status__in=_finished_statuses_set)
+    if search_query:
+        _counts_base = _counts_base.filter(
+            Q(company__name__icontains=search_query) | Q(company__number__icontains=search_query)
+        )
+    _tab_active_counts = dict(
+        _counts_base.values('permit_type').annotate(c=Count('id')).values_list('permit_type', 'c')
+    )
+    tab_nav = [
+        {'key': k, 'label': l, 'active_count': _tab_active_counts.get(k, 0), 'is_active': k == active_tab}
+        for k, l in _permit_type_tabs
+    ]
+
+    # Only fetch the active tab's records — not all 4 types at once
     clearances_qs = (
-        PirmetClearance.objects.filter(permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal', 'engineer_addition'])
+        PirmetClearance.objects.filter(permit_type=active_tab)
         .select_related('company', 'company__enginer')
         .order_by('-dateOfCreation')
     )
@@ -414,31 +447,6 @@ def clearance_list(request):
     active_clearance_groups = _group_clearances_by_status(active_clearances, active_status_order, status_section_label_map)
     finished_clearance_groups = _group_clearances_by_status(finished_clearances, finished_status_order, status_section_label_map)
 
-    _permit_type_tabs = [
-        ('pest_control',        'تصاريح مزاولة النشاط'),
-        ('pesticide_transport', 'تصاريح المركبة'),
-        ('waste_disposal',      'تصاريح التخلص من النفايات'),
-        ('engineer_addition',   'طلبات إضافة مهندس'),
-    ]
-    _valid_tab_keys = {k for k, _ in _permit_type_tabs}
-    active_tab = (request.GET.get('tab') or '').strip()
-    if active_tab not in _valid_tab_keys:
-        active_tab = 'pest_control'
-
-    permit_type_tab_data = []
-    for pt_key, pt_label in _permit_type_tabs:
-        tab_active = [c for c in active_clearances if c.permit_type == pt_key]
-        tab_finished = [c for c in finished_clearances if c.permit_type == pt_key]
-        permit_type_tab_data.append({
-            'key': pt_key,
-            'label': pt_label,
-            'active_clearances': tab_active,
-            'finished_clearances': tab_finished,
-            'active_groups': _group_clearances_by_status(tab_active, active_status_order, status_section_label_map),
-            'finished_groups': _group_clearances_by_status(tab_finished, finished_status_order, status_section_label_map),
-            'active_count': len(tab_active),
-        })
-
     return render(
         request,
         'hcsd/clearance_list.html',
@@ -448,7 +456,7 @@ def clearance_list(request):
             'finished_clearances': finished_clearances,
             'active_clearance_groups': active_clearance_groups,
             'finished_clearance_groups': finished_clearance_groups,
-            'permit_type_tab_data': permit_type_tab_data,
+            'tab_nav': tab_nav,
             'active_tab': active_tab,
             'query': search_query,
             'status_filter': status_filter,
