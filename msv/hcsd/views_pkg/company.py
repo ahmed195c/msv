@@ -8,7 +8,7 @@ from django.contrib.auth.models import Group, User
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -51,7 +51,22 @@ def company_list(request):
     companies_qs = Company.objects.all()
     if query:
         companies_qs = companies_qs.filter(Q(name__icontains=query) | Q(number__icontains=query))
-    companies = list(companies_qs)
+
+    need_python_filter = status_filter in ('extension', 'suspended', 'expired_permits')
+
+    if not need_python_filter:
+        # DB-level pagination: sort and paginate before fetching related data.
+        companies_qs = companies_qs.order_by(
+            F('trade_license_exp').desc(nulls_last=True), 'name'
+        )
+        paginator = Paginator(companies_qs, 30)
+        page_obj = paginator.get_page(request.GET.get('page'))
+        companies = list(page_obj.object_list)
+        total_companies = paginator.count
+    else:
+        companies = list(companies_qs)
+        total_companies = len(companies)
+
     company_ids = [c.id for c in companies]
 
     # Batch all per-company queries to avoid N+1.
@@ -123,32 +138,33 @@ def company_list(request):
             }
         )
 
-    if status_filter == 'extension':
-        rows = [row for row in rows if row['has_active_extension']]
-    elif status_filter == 'suspended':
-        rows = [row for row in rows if row['is_suspended']]
-    elif status_filter == 'expired_permits':
-        rows = [row for row in rows if row['has_expired_permit']]
+    if need_python_filter:
+        if status_filter == 'extension':
+            rows = [row for row in rows if row['has_active_extension']]
+        elif status_filter == 'suspended':
+            rows = [row for row in rows if row['is_suspended']]
+        elif status_filter == 'expired_permits':
+            rows = [row for row in rows if row['has_expired_permit']]
 
-    # Default ordering: latest trade license expiry first (newest to oldest).
-    rows.sort(
-        key=lambda row: (
-            row['trade_expiry'] is None,
-            -(row['trade_expiry'].toordinal() if row['trade_expiry'] else 0),
-            row['company'].name or '',
+        rows.sort(
+            key=lambda row: (
+                row['trade_expiry'] is None,
+                -(row['trade_expiry'].toordinal() if row['trade_expiry'] else 0),
+                row['company'].name or '',
+            )
         )
-    )
-
-    paginator = Paginator(rows, 30)
-    page_obj = paginator.get_page(request.GET.get('page'))
+        total_companies = len(rows)
+        paginator = Paginator(rows, 30)
+        page_obj = paginator.get_page(request.GET.get('page'))
+        rows = list(page_obj.object_list)
 
     return render(
         request,
         'hcsd/company_list.html',
         {
-            'company_rows': page_obj.object_list,
+            'company_rows': rows,
             'page_obj': page_obj,
-            'total_companies': len(rows),
+            'total_companies': total_companies,
             'query': query,
             'status_filter': status_filter,
             'can_add_company': _can_data_entry(request.user),
