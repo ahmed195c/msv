@@ -288,17 +288,13 @@ def weed_add_vehicle(request, pk):
     if task.supervisor_id != request.user.id and not _can_manage(request.user):
         return redirect('weed_detail', pk=pk)
 
-    vehicle_type = (request.POST.get('vehicle_type') or '').strip()
-    notes        = (request.POST.get('vehicle_notes') or '').strip()
-    valid_types  = {k for k, _ in WeedRemovalVehicle.VEHICLE_TYPE_CHOICES}
-
-    if vehicle_type in valid_types:
-        count_raw = (request.POST.get('vehicle_count') or '1').strip()
-        try:
-            count = max(1, int(count_raw))
-        except ValueError:
-            count = 1
-        WeedRemovalVehicle.objects.create(task=task, vehicle_type=vehicle_type, count=count, notes=notes)
+    for vtype in ('pickup', 'bobcat'):
+        if request.POST.get(f'{vtype}_checked'):
+            try:
+                count = max(1, min(10, int(request.POST.get(f'{vtype}_count', '1'))))
+            except (ValueError, TypeError):
+                count = 1
+            WeedRemovalVehicle.objects.create(task=task, vehicle_type=vtype, count=count)
 
     return redirect('weed_detail', pk=pk)
 

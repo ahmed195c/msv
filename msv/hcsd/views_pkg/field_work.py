@@ -86,14 +86,14 @@ def field_work_list(request):
     status_options = [('all', 'كل الحالات')] + list(FieldWorkOrder.STATUS_CHOICES)
 
     return render(request, 'hcsd/field_work_list.html', {
-        'page_obj':      page_obj,
-        'can_admin':     can_admin,
+        'page_obj':       page_obj,
+        'can_admin':      can_admin,
         'can_data_entry': can_data_entry,
-        'status_filter': status_filter,
-        'source_filter': source_filter,
-        'search':        search,
+        'status_filter':  status_filter,
+        'source_filter':  source_filter,
+        'search':         search,
         'status_options': status_options,
-        'total_count':   orders.count(),
+        'total_count':    paginator.count,
     })
 
 
@@ -498,6 +498,87 @@ _NUISANCE_PESTS  = frozenset(['Ants', 'German Cockroach', 'American Cockroach', 
 _VECTOR_PESTS    = frozenset(['Mosquito Adult', 'Mosquito Aedes', 'Mosquito Culex', 'Mosquito Anopheles', 'Rodents Roof Rat', 'Rodents Norway Rat', 'Rodents House mouse', 'House Flies'])
 _OTHERS_PESTS    = frozenset(['Agricultural Pest'])
 
+# ── Monthly Excel export helpers ─────────────────────────────────────────────
+_MONTH_ABBR = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
+_PEST_TO_COL = {
+    'Ants': 'ant',
+    'German Cockroach': 'cockroach', 'American Cockroach': 'cockroach',
+    'Mosquito Adult': 'mosquito', 'Mosquito Aedes': 'mosquito',
+    'Mosquito Culex': 'mosquito', 'Mosquito Anopheles': 'mosquito',
+    'House Flies': 'fly', 'Drain Flies': 'fly', 'Fruit Flies': 'fly',
+    'Rodents Roof Rat': 'rat', 'Rodents Norway Rat': 'rat', 'Rodents House mouse': 'rat',
+    'Snake': 'snake',
+    'Scorpion': 'scorpion',
+    'Wasp And Bee': 'wasps',
+    'Bees': 'bees',
+    'Other Harmful Pest': 'other', 'Agricultural Pest': 'other',
+    'Lizard': 'other', 'Termites': 'other',
+    'Non Poisonous Spider': 'other', 'Poisonous Spider': 'other',
+}
+
+_CHEM_TO_COL = {
+    'BOOM': 'boom',
+    'Aqua k-Othrine': 'kothreni', 'K-Othrine Partix': 'kothreni',
+    'KULCYPERIN 100/3 EC': 'cyphorce', 'DEMON MAX INSECTICIDE': 'cyphorce',
+    'Solfac EC 50': 'cyphorce', 'CYMPERATOR 25 EC': 'cyphorce',
+    'Bio Amplat': 'cyphorce', 'ROTRYN 200': 'cyphorce', 'CYPFORCE 40 EC': 'cyphorce',
+    'Temprid SC': 'cyphorce',
+    'Vertox Oktablok': 'rat_poison', 'FACORAT PELLETS': 'rat_poison',
+    'VICTOR V FAST-KILL BRAND BLOCKS II': 'rat_poison',
+    'SUREFIRE ALL WEATHER BLOCKS': 'rat_poison',
+    'PROTECT SENSATION 2IN1': 'rat_poison', 'VERTOX PASTA BAIT': 'rat_poison',
+    'STELLIOX D50': 'rat_poison', 'TALON WB': 'rat_poison',
+    'SUREFIRE BROMA BLOCKS RODENTICIDE': 'rat_poison',
+    'NOCURAT PARAFFINATO': 'rat_poison',
+    'ECOLARVACIDE EC': 'eco_larvacide', 'GRAYBATE 50 SG': 'eco_larvacide',
+    'TEMEPHOS 55EC': 'eco_larvacide', 'BIOPREN 4 GR': 'eco_larvacide',
+    'LAROXYFEN PLUS WT': 'eco_larvacide', 'Starycide SC 480': 'eco_larvacide',
+    'BuyBlocker Snake Deter': 'snake_deter',
+    'HYMENOPHTHOR GR': 'hymenopthor',
+    'PERMETHOR': 'permothor',
+    'DIFRON 25 SC': 'difron',
+}
+
+
+def _user_display_name(user):
+    if not user:
+        return ''
+    name = user.get_full_name()
+    return name if name else user.username
+
+
+def _order_checks(order):
+    """Return (pest_checks, chem_checks) dicts: key → bool, derived from boolean fields + spray_entries."""
+    pest = {
+        'ant': order.treated_ant, 'cockroach': order.treated_cockroach,
+        'mosquito': order.treated_mosquito, 'fly': order.treated_fly,
+        'rat': order.treated_rat, 'snake': order.treated_snake,
+        'scorpion': order.treated_scorpion, 'wasps': order.treated_wasps,
+        'bees': order.treated_bees, 'other': order.treated_other,
+    }
+    chem = {
+        'boom': order.used_boom, 'kothreni': order.used_kothreni,
+        'diesel': order.used_diesel, 'petrol': order.used_petrol,
+        'cyphorce': order.used_cyphorce, 'rat_poison': order.used_rat_poison,
+        'eco_larvacide': order.used_eco_larvacide, 'snake_deter': order.used_snake_deter,
+        'hymenopthor': order.used_hymenopthor, 'permothor': order.used_permothor,
+        'rat_glue': order.used_rat_glue, 'rapetr_gel': order.used_rapetr_gel,
+        'graibait': order.used_graibait, 'difron': order.used_difron,
+        'fly_attractant': order.used_fly_attractant,
+    }
+    for entry in (order.spray_entries or []):
+        for p in entry.get('pests', []):
+            col = _PEST_TO_COL.get(p)
+            if col:
+                pest[col] = True
+        for p in entry.get('pesticides', []):
+            col = _CHEM_TO_COL.get(p.get('name', ''))
+            if col:
+                chem[col] = True
+    return pest, chem
+
 def _pest_category(pests):
     cats = []
     if any(p in _DANGEROUS_PESTS for p in pests):
@@ -536,17 +617,537 @@ def field_work_report_print(request, pk):
             'pest_category': _pest_category(pests),
             'pest_found': ', '.join(pests),
             'location': loc,
-            'action': entry.get('action', ''),
+            'action': ', '.join(entry.get('actions', [])) or entry.get('action', ''),
+            'findings': ', '.join(entry.get('findings', [])),
         })
     time_in_dt = order.time_in or order.location_saved_at
+    close_date = order.close_date or (
+        timezone.localtime(order.report_submitted_at).date()
+        if order.report_submitted_at else None
+    )
     photos = list(order.photos.order_by('uploaded_at'))
     return render(request, 'hcsd/field_work_report_print.html', {
         'order': order,
         'materials': materials,
         'observations': observations,
         'time_in_dt': time_in_dt,
+        'close_date': close_date,
         'photos': photos,
     })
+
+
+# ---------------------------------------------------------------------------
+# Excel Report (per-order)
+# ---------------------------------------------------------------------------
+
+_INFESTATION_LABELS = {
+    'no_infestation':       'No Infestation',
+    'low_infestation':      'Low Infestation',
+    'moderate_infestation': 'Moderate Infestation',
+    'high_infestation':     'High Infestation',
+}
+
+
+@login_required
+def field_work_excel_report(request, pk):
+    order = get_object_or_404(
+        FieldWorkOrder.objects.select_related(
+            'created_by', 'assigned_supervisor', 'received_by',
+            'report_submitted_by', 'location_saved_by',
+        ),
+        pk=pk,
+    )
+
+    try:
+        import openpyxl
+        from openpyxl.styles import (
+            Alignment, Border, Font, PatternFill, Side,
+        )
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        return HttpResponse('openpyxl is not installed.', status=500)
+
+    wb = openpyxl.Workbook()
+
+    # ── Shared styles ────────────────────────────────────────────────────────
+    def _thin():
+        s = Side(style='thin', color='AAAAAA')
+        return Border(left=s, right=s, top=s, bottom=s)
+
+    FILL_HEADER   = PatternFill('solid', fgColor='1A5276')
+    FILL_SUBHDR   = PatternFill('solid', fgColor='2471A3')
+    FILL_LABEL    = PatternFill('solid', fgColor='EBF5FB')
+    FILL_SECTION  = PatternFill('solid', fgColor='D6EAF8')
+
+    FONT_HDR      = Font(name='Calibri', bold=True, color='FFFFFF', size=11)
+    FONT_SUBHDR   = Font(name='Calibri', bold=True, color='FFFFFF', size=10)
+    FONT_LABEL    = Font(name='Calibri', bold=True, size=10)
+    FONT_VAL      = Font(name='Calibri', size=10)
+    FONT_SECTION  = Font(name='Calibri', bold=True, size=10, color='1A5276')
+
+    CENTER = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    LEFT   = Alignment(horizontal='left',   vertical='center', wrap_text=True)
+
+    def _hdr_cell(ws, row, col, text, width_hint=None):
+        c = ws.cell(row=row, column=col, value=text)
+        c.font   = FONT_HDR
+        c.fill   = FILL_HEADER
+        c.border = _thin()
+        c.alignment = CENTER
+        if width_hint:
+            ws.column_dimensions[get_column_letter(col)].width = width_hint
+        return c
+
+    def _subhdr_cell(ws, row, col, text):
+        c = ws.cell(row=row, column=col, value=text)
+        c.font   = FONT_SUBHDR
+        c.fill   = FILL_SUBHDR
+        c.border = _thin()
+        c.alignment = CENTER
+        return c
+
+    def _lbl(ws, row, col, text):
+        c = ws.cell(row=row, column=col, value=text)
+        c.font   = FONT_LABEL
+        c.fill   = FILL_LABEL
+        c.border = _thin()
+        c.alignment = LEFT
+        return c
+
+    def _val(ws, row, col, text):
+        c = ws.cell(row=row, column=col, value=text)
+        c.font   = FONT_VAL
+        c.border = _thin()
+        c.alignment = LEFT
+        return c
+
+    def _section(ws, row, col, text, span_end_col=None):
+        c = ws.cell(row=row, column=col, value=text)
+        c.font   = FONT_SECTION
+        c.fill   = FILL_SECTION
+        c.border = _thin()
+        c.alignment = LEFT
+        if span_end_col and span_end_col > col:
+            ws.merge_cells(
+                start_row=row, start_column=col,
+                end_row=row, end_column=span_end_col,
+            )
+        return c
+
+    def _dt_str(dt):
+        if not dt:
+            return ''
+        local = timezone.localtime(dt)
+        return local.strftime('%d/%m/%Y %H:%M')
+
+    def _d_str(d):
+        if not d:
+            return ''
+        return d.strftime('%d/%m/%Y')
+
+    def _user_str(u):
+        if not u:
+            return ''
+        name = u.get_full_name()
+        return name if name else u.username
+
+    # ════════════════════════════════════════════════════════════════════════
+    # Sheet 1 — Order Summary
+    # ════════════════════════════════════════════════════════════════════════
+    ws1 = wb.active
+    ws1.title = 'Order Summary'
+    ws1.sheet_view.rightToLeft = False
+
+    # Title row
+    ws1.merge_cells('A1:D1')
+    title_cell = ws1['A1']
+    title_cell.value = f'Field Work Order Report  —  #{order.order_number or order.pk}'
+    title_cell.font  = Font(name='Calibri', bold=True, size=14, color='1A5276')
+    title_cell.alignment = CENTER
+    title_cell.fill = PatternFill('solid', fgColor='D6EAF8')
+    ws1.row_dimensions[1].height = 30
+
+    ws1.column_dimensions['A'].width = 26
+    ws1.column_dimensions['B'].width = 32
+    ws1.column_dimensions['C'].width = 26
+    ws1.column_dimensions['D'].width = 32
+
+    row = 2
+
+    def _pair(label1, val1, label2='', val2=''):
+        nonlocal row
+        _lbl(ws1, row, 1, label1)
+        _val(ws1, row, 2, val1)
+        _lbl(ws1, row, 3, label2)
+        _val(ws1, row, 4, val2)
+        ws1.row_dimensions[row].height = 16
+        row += 1
+
+    def _full_row(label, value):
+        nonlocal row
+        _lbl(ws1, row, 1, label)
+        c = _val(ws1, row, 2, value)
+        ws1.merge_cells(
+            start_row=row, start_column=2,
+            end_row=row, end_column=4,
+        )
+        ws1.row_dimensions[row].height = 16
+        row += 1
+
+    def _sec(title):
+        nonlocal row
+        _section(ws1, row, 1, title, span_end_col=4)
+        ws1.row_dimensions[row].height = 18
+        row += 1
+
+    # General info
+    _sec('General Information')
+    _pair('Order Number',   order.order_number or str(order.pk),
+          'Status',         order.get_status_display())
+    _pair('Customer Name',  order.customer_name or order.site_name or '',
+          'Mobile',         order.mobile or '')
+    _pair('Area',           order.area or order.location or '',
+          'Street / House', f"{order.street_number or ''} / {order.house_number or ''}".strip(' /'))
+    _pair('Work Type',      order.work_type or '',
+          'Building Type',  order.building_type or '')
+    _pair('Workers',        order.workers_count if order.workers_count is not None else '',
+          'Vehicles',       order.vehicles_count if order.vehicles_count is not None else '')
+    if order.description:
+        _full_row('Description', order.description)
+    if order.notes:
+        _full_row('Notes', order.notes)
+    if order.supervisor_notes:
+        _full_row('Supervisor Notes', order.supervisor_notes)
+
+    row += 1  # blank
+
+    # Timeline
+    _sec('Timeline / Lifecycle')
+    _pair('Created At',        _dt_str(order.created_at),
+          'Created By',        _user_str(order.created_by))
+    _pair('Assigned At',       _dt_str(order.assigned_at),
+          'Assigned Supervisor', _user_str(order.assigned_supervisor))
+    _pair('Received At',       _dt_str(order.received_at),
+          'Received By',       _user_str(order.received_by))
+    _pair('GPS Saved At',      _dt_str(order.location_saved_at),
+          'GPS Saved By',      _user_str(order.location_saved_by))
+    if order.gps_lat is not None:
+        _pair('GPS Latitude',  order.gps_lat,
+              'GPS Longitude', order.gps_lng)
+    _pair('Time In',           _dt_str(order.time_in or order.location_saved_at), '', '')
+    _pair('Report Submitted',  _dt_str(order.report_submitted_at),
+          'Submitted By',      _user_str(order.report_submitted_by))
+    close_date = order.close_date or (
+        timezone.localtime(order.report_submitted_at).date()
+        if order.report_submitted_at else None
+    )
+    _pair('Close Date',        _d_str(close_date), '', '')
+    if order.postponed_until:
+        _pair('Postponed Until', _d_str(order.postponed_until), '', '')
+
+    # ════════════════════════════════════════════════════════════════════════
+    # Sheet 2 — Spray Entries
+    # ════════════════════════════════════════════════════════════════════════
+    ws2 = wb.create_sheet('Spray Entries')
+    ws2.sheet_view.rightToLeft = False
+
+    hdr2_cols = [
+        ('Location', 22),
+        ('Infestation', 18),
+        ('Pests Found', 30),
+        ('Pest Category', 16),
+        ('Actions Taken', 35),
+        ('Findings', 35),
+    ]
+    for col_idx, (hdr, w) in enumerate(hdr2_cols, start=1):
+        _hdr_cell(ws2, 1, col_idx, hdr, width_hint=w)
+    ws2.row_dimensions[1].height = 20
+
+    spray_entries = order.spray_entries or []
+    for r_idx, entry in enumerate(spray_entries, start=2):
+        pests = entry.get('pests', [])
+        infest_key = entry.get('infestation', '')
+        infest_label = _INFESTATION_LABELS.get(infest_key, infest_key)
+        actions  = entry.get('actions', []) or ([entry.get('action')] if entry.get('action') else [])
+        findings = entry.get('findings', [])
+
+        row_vals = [
+            entry.get('location', ''),
+            infest_label,
+            ', '.join(pests),
+            _pest_category(pests),
+            '\n'.join(actions),
+            '\n'.join(findings),
+        ]
+        for col_idx, val in enumerate(row_vals, start=1):
+            c = ws2.cell(row=r_idx, column=col_idx, value=val)
+            c.font      = FONT_VAL
+            c.border    = _thin()
+            c.alignment = Alignment(
+                horizontal='left', vertical='top', wrap_text=True,
+            )
+        ws2.row_dimensions[r_idx].height = max(
+            15 * max(len(actions), len(findings), 1), 16,
+        )
+
+    if not spray_entries:
+        ws2.cell(row=2, column=1, value='— No spray entries recorded —').font = Font(
+            name='Calibri', italic=True, color='999999',
+        )
+
+    # ════════════════════════════════════════════════════════════════════════
+    # Sheet 3 — Materials Used
+    # ════════════════════════════════════════════════════════════════════════
+    ws3 = wb.create_sheet('Materials Used')
+    ws3.sheet_view.rightToLeft = False
+
+    hdr3_cols = [
+        ('Location', 22),
+        ('Product', 30),
+        ('Qty', 10),
+        ('Unit', 12),
+        ('Active Ingredient', 45),
+    ]
+    for col_idx, (hdr, w) in enumerate(hdr3_cols, start=1):
+        _hdr_cell(ws3, 1, col_idx, hdr, width_hint=w)
+    ws3.row_dimensions[1].height = 20
+
+    mat_row = 2
+    for entry in spray_entries:
+        loc = entry.get('location', '')
+        for p in entry.get('pesticides', []):
+            name = p.get('name', '')
+            vals = [
+                loc,
+                name,
+                p.get('qty', ''),
+                p.get('unit', ''),
+                _ACTIVE_INGREDIENTS.get(name, ''),
+            ]
+            for col_idx, val in enumerate(vals, start=1):
+                c = ws3.cell(row=mat_row, column=col_idx, value=val)
+                c.font      = FONT_VAL
+                c.border    = _thin()
+                c.alignment = LEFT
+            ws3.row_dimensions[mat_row].height = 16
+            mat_row += 1
+
+    if mat_row == 2:
+        ws3.cell(row=2, column=1, value='— No materials recorded —').font = Font(
+            name='Calibri', italic=True, color='999999',
+        )
+
+    # ── Output ───────────────────────────────────────────────────────────────
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    order_ref = order.order_number or str(order.pk)
+    filename  = f'field_work_{order_ref}.xlsx'
+    response  = HttpResponse(
+        buf.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+# ---------------------------------------------------------------------------
+# Monthly Excel Report (all orders, one sheet per month, matching template)
+# ---------------------------------------------------------------------------
+
+_MONTHLY_HEADERS = [
+    'الرقم', 'رقم الطلب', 'تاريخ الطلب', 'تاريخ الإغلاق', 'اسم المتعامل',
+    'حالة الطلب', None, 'الموبايل', 'رقم الشارع', 'رقم المنزل',
+    'المنطقة', 'نوع الحشرات', 'TREATED SUPERVISOR', None,
+    'ANT ', 'COCKROACH', 'بعوض', 'باعوض', 'FLY', 'RAT', 'SNAKE',
+    'Scorpions', 'Wasps', 'Bees', 'other',
+    'BOOM', 'K OTHRENI', 'DIESEL', 'PETROL', 'CYPHORCE', 'RAT-POSION',
+    'ECO LARVACIDE', 'SNAKE DETER ', 'HYMENOPTHOR GR', 'PERMOTHOR DUST',
+    'RAT GLUE', 'RAPETR GEL', 'GRAIBAIT', 'DIFRON 25 SC', 'FLY ATTRACTANT', None,
+]
+
+_MONTHLY_COL_WIDTHS = [
+    5, 12, 12, 12, 25, 20, 20, 14, 10, 10,
+    22, 22, 25, 25,
+    6, 10, 7, 7, 6, 6, 8,
+    9, 7, 6, 6,
+    7, 9, 8, 8, 10, 11,
+    14, 12, 15, 15,
+    9, 10, 9, 12, 15, 4,
+]
+
+
+@login_required
+def field_work_monthly_excel(request):
+    if not (_can_admin(request.user) or _can_data_entry(request.user)):
+        return redirect('field_work_list')
+
+    from collections import defaultdict
+
+    try:
+        import openpyxl
+        from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        return HttpResponse('openpyxl is not installed.', status=500)
+
+    today = timezone.localtime(timezone.now()).date()
+    raw_from = (request.GET.get('date_from') or '').strip()
+    raw_to   = (request.GET.get('date_to')   or '').strip()
+
+    try:
+        date_from = _dt.date.fromisoformat(raw_from)
+    except ValueError:
+        date_from = today.replace(month=1, day=1)
+
+    try:
+        date_to = _dt.date.fromisoformat(raw_to)
+    except ValueError:
+        date_to = today
+
+    if date_from > date_to:
+        date_from, date_to = date_to, date_from
+
+    orders = (
+        FieldWorkOrder.objects
+        .filter(close_date__gte=date_from, close_date__lte=date_to)
+        .select_related('assigned_supervisor', 'received_by', 'report_submitted_by')
+        .order_by('close_date', 'pk')
+    )
+
+    monthly = defaultdict(list)
+    for order in orders:
+        monthly[(order.close_date.year, order.close_date.month)].append(order)
+
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)
+
+    _thin = Side(style='thin', color='AAAAAA')
+    _border = Border(left=_thin, right=_thin, top=_thin, bottom=_thin)
+
+    FILL_INFO  = PatternFill('solid', fgColor='1F4E79')
+    FILL_PEST  = PatternFill('solid', fgColor='375623')
+    FILL_CHEM  = PatternFill('solid', fgColor='833C00')
+    FONT_WHITE = Font(name='Calibri', bold=True, color='FFFFFF', size=9)
+    FONT_WING  = Font(name='Wingdings', size=11, color='006400')
+    FONT_DATA  = Font(name='Calibri', size=9)
+    ALIGN_CTR  = Alignment(horizontal='center', vertical='center', wrap_text=False)
+    ALIGN_LFT  = Alignment(horizontal='left',   vertical='center', wrap_text=False)
+
+    for (yr, month) in sorted(monthly.keys()):
+        orders_in_month = monthly[(yr, month)]
+        if not orders_in_month:
+            continue
+
+        yr2 = str(yr)[-2:]
+        ws = wb.create_sheet(title=f'{_MONTH_ABBR[month - 1]} - {yr2}')
+        ws.sheet_view.rightToLeft = False
+        ws.freeze_panes = 'A2'
+
+        for col_idx, width in enumerate(_MONTHLY_COL_WIDTHS, start=1):
+            ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+        ws.row_dimensions[1].height = 30
+        for col_idx, hdr in enumerate(_MONTHLY_HEADERS, start=1):
+            c = ws.cell(row=1, column=col_idx, value=hdr)
+            c.border    = _border
+            c.alignment = ALIGN_CTR
+            c.font      = FONT_WHITE
+            if col_idx <= 14:
+                c.fill = FILL_INFO
+            elif col_idx <= 25:
+                c.fill = FILL_PEST
+            else:
+                c.fill = FILL_CHEM
+
+        for row_num, order in enumerate(orders_in_month, start=1):
+            r = row_num + 1
+            ws.row_dimensions[r].height = 15
+
+            pest, chem = _order_checks(order)
+
+            sup_name = (
+                _user_display_name(order.report_submitted_by)
+                or _user_display_name(order.assigned_supervisor)
+                or order.supervisor_name or ''
+            )
+
+            def chk(flag):
+                return 'ü' if flag else None
+
+            row_vals = [
+                row_num,
+                order.order_number or '',
+                order.request_date,
+                order.close_date,
+                order.customer_name or order.site_name or '',
+                order.excel_status or order.get_status_display(),
+                order.excel_status_note or '',
+                order.mobile or '',
+                order.street_number or '',
+                order.house_number or '',
+                order.area or order.location or '',
+                order.pest_types or '',
+                sup_name,
+                order.worker_name or '',
+                chk(pest['ant']),        # 15 ANT
+                chk(pest['cockroach']),  # 16 COCKROACH
+                chk(pest['mosquito']),   # 17 بعوض
+                None,                    # 18 باعوض (always empty)
+                chk(pest['fly']),        # 19 FLY
+                chk(pest['rat']),        # 20 RAT
+                chk(pest['snake']),      # 21 SNAKE
+                chk(pest['scorpion']),   # 22 Scorpions
+                chk(pest['wasps']),      # 23 Wasps
+                chk(pest['bees']),       # 24 Bees
+                chk(pest['other']),      # 25 other
+                chk(chem['boom']),           # 26 BOOM
+                chk(chem['kothreni']),       # 27 K OTHRENI
+                chk(chem['diesel']),         # 28 DIESEL
+                chk(chem['petrol']),         # 29 PETROL
+                chk(chem['cyphorce']),       # 30 CYPHORCE
+                chk(chem['rat_poison']),     # 31 RAT-POSION
+                chk(chem['eco_larvacide']),  # 32 ECO LARVACIDE
+                chk(chem['snake_deter']),    # 33 SNAKE DETER
+                chk(chem['hymenopthor']),    # 34 HYMENOPTHOR GR
+                chk(chem['permothor']),      # 35 PERMOTHOR DUST
+                chk(chem['rat_glue']),       # 36 RAT GLUE
+                chk(chem['rapetr_gel']),     # 37 RAPETR GEL
+                chk(chem['graibait']),       # 38 GRAIBAIT
+                chk(chem['difron']),         # 39 DIFRON 25 SC
+                chk(chem['fly_attractant']), # 40 FLY ATTRACTANT
+                None,                        # 41 (empty trailing col)
+            ]
+
+            for col_idx, val in enumerate(row_vals, start=1):
+                c = ws.cell(row=r, column=col_idx, value=val)
+                c.border = _border
+                if col_idx >= 15 and val == 'ü':
+                    c.font      = FONT_WING
+                    c.alignment = ALIGN_CTR
+                elif col_idx <= 4 or col_idx in (8, 9, 10, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25):
+                    c.font      = FONT_DATA
+                    c.alignment = ALIGN_CTR
+                else:
+                    c.font      = FONT_DATA
+                    c.alignment = ALIGN_LFT
+
+    if not wb.sheetnames:
+        ws = wb.create_sheet('No Data')
+        ws.cell(row=1, column=1, value=f'No orders with close date between {date_from} and {date_to}.')
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    filename = f'FieldWork_{date_from}_to_{date_to}.xlsx'
+    response = HttpResponse(
+        buf.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 # ---------------------------------------------------------------------------

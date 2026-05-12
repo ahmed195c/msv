@@ -134,7 +134,9 @@ urlpatterns = [
     path('field-work/supervisors/', views.field_work_supervisors, name='field_work_supervisors'),
     path('field-work/excel-import/', views.field_work_excel_import, name='field_work_excel_import'),
     path('field-work/excel-review/', views.field_work_excel_review, name='field_work_excel_review'),
+    path('field-work/export/monthly/', views.field_work_monthly_excel, name='field_work_monthly_excel'),
     path('field-work/<int:pk>/', views.field_work_detail, name='field_work_detail'),
     path('field-work/<int:pk>/report/', views.field_work_report, name='field_work_report'),
     path('field-work/<int:pk>/print/', views.field_work_report_print, name='field_work_report_print'),
+    path('field-work/<int:pk>/excel/', views.field_work_excel_report, name='field_work_excel_report'),
 ]

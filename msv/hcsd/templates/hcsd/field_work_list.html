@@ -97,10 +97,37 @@ td{padding:10px 12px;vertical-align:middle;}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
         <span class="t-ar">استيراد Excel</span><span class="t-en">Import Excel</span>
       </a>
+      <button class="btn" style="background:#1d6f42;color:#fff;" onclick="document.getElementById('fw-export-panel').style.display=document.getElementById('fw-export-panel').style.display==='none'?'flex':'none'">
+        📊 <span class="t-ar">تصدير Excel الشهري</span><span class="t-en">Monthly Export</span>
+      </button>
       {% endif %}
       <a href="{% url 'permit_types' %}" class="btn btn-outline">← <span class="t-ar">الرئيسية</span><span class="t-en">Home</span></a>
     </div>
   </div>
+
+  {% if can_admin or can_data_entry %}
+  <form id="fw-export-panel" method="get" action="{% url 'field_work_monthly_excel' %}" class="fw-filters" style="display:none;">
+    <div class="fw-filter-group">
+      <label class="fw-filter-label"><span class="t-ar">من تاريخ</span><span class="t-en">From Date</span></label>
+      <input type="date" name="date_from" id="exp-from" class="fw-filter-select" required>
+    </div>
+    <div class="fw-filter-group">
+      <label class="fw-filter-label"><span class="t-ar">إلى تاريخ</span><span class="t-en">To Date</span></label>
+      <input type="date" name="date_to" id="exp-to" class="fw-filter-select" required>
+    </div>
+    <button type="submit" class="btn btn-primary">
+      ⬇ <span class="t-ar">تحميل التقرير</span><span class="t-en">Download Report</span>
+    </button>
+    <script>
+      (function(){
+        var today = new Date().toISOString().slice(0,10);
+        var jan1  = new Date(new Date().getFullYear(),0,1).toISOString().slice(0,10);
+        document.getElementById('exp-from').value = jan1;
+        document.getElementById('exp-to').value   = today;
+      })();
+    </script>
+  </form>
+  {% endif %}
 
   {% if request.GET.imported %}
   <div style="background:#edf7f2;border:1.5px solid #1f6b3e;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#1a5233;font-size:13px;font-weight:700;">

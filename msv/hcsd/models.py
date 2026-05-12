@@ -1489,6 +1489,7 @@ class WeedRemovalSupervisorTask(models.Model):
 class WeedRemovalVehicle(models.Model):
     VEHICLE_TYPE_CHOICES = [
         ('pickup',  'بيك آب'),
+        ('bobcat',  'بوبكات'),
         ('tractor', 'تراكتور'),
         ('truck',   'شاحنة'),
         ('loader',  'لودر'),

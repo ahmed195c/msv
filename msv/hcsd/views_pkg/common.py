@@ -167,16 +167,17 @@ def _user_roles(user):
     cached_roles = getattr(user, '_hcsd_roles_cache', None)
     if cached_roles is not None:
         return cached_roles
+    group_names = set(user.groups.values_list('name', flat=True))
     roles = set()
-    if _role_is_admin(user):
+    if user.is_superuser or group_names & set(GROUP_NAME_ALIASES['admin']):
         roles.add('admin')
-    if _role_is_inspector(user):
+    if group_names & set(GROUP_NAME_ALIASES['inspector']):
         roles.add('inspector')
-    if _role_is_data_entry(user):
+    if group_names & set(GROUP_NAME_ALIASES['data_entry']):
         roles.add('data_entry')
-    if _role_is_head(user):
+    if group_names & set(GROUP_NAME_ALIASES['head']):
         roles.add('head')
-    if _has_any_group(user, GROUP_NAME_ALIASES['fw_supervisor']):
+    if group_names & set(GROUP_NAME_ALIASES['fw_supervisor']):
         roles.add('fw_supervisor')
     setattr(user, '_hcsd_roles_cache', roles)
     return roles

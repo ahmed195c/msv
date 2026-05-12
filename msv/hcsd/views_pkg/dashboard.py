@@ -47,38 +47,48 @@ def home(request):
     redir = _redirect_if_fw_supervisor(request.user)
     if redir:
         return redir
-    permits_qs = PirmetClearance.objects.filter(
-        permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal']
+
+    # One query replaces 6 separate COUNT/GROUP-BY queries on the same table.
+    # Fetching (status, permit_type, count) lets us derive all dashboard numbers in Python.
+    combined_rows = list(
+        PirmetClearance.objects.filter(
+            permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal']
+        ).values('status', 'permit_type').annotate(total=Count('id'))
     )
-    total_permits = permits_qs.count()
-    issued_permits = permits_qs.filter(status='issued').count()
-    pending_permits = (
-        permits_qs.filter(
-            status__in=[
-                'order_received',
-                'inspection_payment_pending',
-                'inspection_pending',
-                'review_pending',
-                'payment_pending',
-                'disposal_approved',
-                'head_approved',
-                'inspection_completed',
-            ]
+
+    status_counts: dict[str, int] = {}
+    permit_type_counts: dict[str, int] = {}
+    for row in combined_rows:
+        s, pt, n = row['status'], row['permit_type'], row['total']
+        status_counts[s] = status_counts.get(s, 0) + n
+        permit_type_counts[pt] = permit_type_counts.get(pt, 0) + n
+
+    total_permits = sum(status_counts.values())
+    issued_permits = status_counts.get('issued', 0)
+
+    _PENDING_STATUSES = frozenset({
+        'order_received', 'inspection_payment_pending', 'inspection_pending',
+        'review_pending', 'payment_pending', 'disposal_approved', 'head_approved',
+    })
+    _NEEDS_COMPLETION_STATUSES = frozenset({
+        'needs_completion', 'rejected', 'disposal_rejected', 'closed_requirements_pending',
+    })
+
+    pending_permits = sum(status_counts.get(s, 0) for s in _PENDING_STATUSES)
+    needs_completion_permits = sum(status_counts.get(s, 0) for s in _NEEDS_COMPLETION_STATUSES)
+
+    # inspection_completed is split by unapprovedReason — one extra query only when needed
+    ic_total = status_counts.get('inspection_completed', 0)
+    if ic_total:
+        ic_unapproved = (
+            PirmetClearance.objects.filter(
+                permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'],
+                status='inspection_completed',
+                unapprovedReason__isnull=False,
+            ).exclude(unapprovedReason='').count()
         )
-        .exclude(
-            status='inspection_completed',
-            unapprovedReason__isnull=False,
-        )
-        .exclude(
-            status='inspection_completed',
-            unapprovedReason='',
-        )
-        .count()
-    )
-    needs_completion_permits = permits_qs.filter(
-        Q(status__in=['needs_completion', 'rejected', 'disposal_rejected', 'closed_requirements_pending'])
-        | (Q(status='inspection_completed') & ~Q(unapprovedReason__isnull=True) & ~Q(unapprovedReason=''))
-    ).count()
+        pending_permits += ic_total - ic_unapproved
+        needs_completion_permits += ic_unapproved
 
     status_label_map = {
         'order_received': 'بانتظار اصدار رابط دفع التفتيش',
@@ -97,57 +107,41 @@ def home(request):
         'disposal_approved': 'إتلاف معتمد',
         'disposal_rejected': 'إتلاف مرفوض',
     }
-    status_breakdown = [
-        {
-            'key': row['status'],
-            'label': status_label_map.get(row['status'], row['status']),
-            'total': row['total'],
-        }
-        for row in permits_qs.values('status').annotate(total=Count('id')).order_by('-total')[:6]
-    ]
-    permit_type_breakdown = [
-        {
-            'key': row['permit_type'],
-            'label': _permit_label_ar(row['permit_type']),
-            'total': row['total'],
-        }
-        for row in permits_qs.values('permit_type').annotate(total=Count('id')).order_by('-total')
-    ]
+    # Both breakdowns built from already-fetched data — no extra queries
+    status_breakdown = sorted(
+        [{'key': k, 'label': status_label_map.get(k, k), 'total': v}
+         for k, v in status_counts.items()],
+        key=lambda x: -x['total'],
+    )[:6]
+    permit_type_breakdown = sorted(
+        [{'key': k, 'label': _permit_label_ar(k), 'total': v}
+         for k, v in permit_type_counts.items()],
+        key=lambda x: -x['total'],
+    )
+
     today = timezone.localdate()
     active_extension_companies = (
-        CompanyChangeLog.objects.filter(
-            action='extension_requested',
-        )
-        .filter(
-            Q(extension_end_date__isnull=True) | Q(extension_end_date__gte=today)
-        )
-        .values('company_id')
-        .distinct()
-        .count()
+        CompanyChangeLog.objects.filter(action='extension_requested')
+        .filter(Q(extension_end_date__isnull=True) | Q(extension_end_date__gte=today))
+        .values('company_id').distinct().count()
     )
 
     engineers_on_leave = EngineerLeave.objects.filter(actual_return_date__isnull=True).count()
 
-    # ── Permits expiring within 7 days ──────────────────────────────────────
     week_ahead = today + datetime.timedelta(days=7)
-    expiring_soon_qs = (
-        PirmetClearance.objects.filter(
+    expiring_soon = [
+        {
+            'permit': p,
+            'days_left': (p.dateOfExpiry - today).days,
+            'label': _permit_label_ar(p.permit_type),
+        }
+        for p in PirmetClearance.objects.filter(
             permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'],
             status='issued',
             dateOfExpiry__gte=today,
             dateOfExpiry__lte=week_ahead,
-        )
-        .select_related('company')
-        .order_by('dateOfExpiry')
-    )
-    expiring_soon = []
-    for p in expiring_soon_qs:
-        days_left = (p.dateOfExpiry - today).days
-        expiring_soon.append({
-            'permit': p,
-            'days_left': days_left,
-            'label': _permit_label_ar(p.permit_type),
-        })
+        ).select_related('company').order_by('dateOfExpiry')
+    ]
 
     return render(
         request,

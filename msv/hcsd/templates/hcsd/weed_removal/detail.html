@@ -375,31 +375,46 @@
 <!-- ══ STEP 6: Add vehicles (supervisor, any active stage) ══ -->
 {% if supervisor_task and is_supervisor and obj.status in 'supervisor_assigned,work_in_progress' %}
 <div class="action-card" style="border-color:var(--line-2);">
-  <div class="c-card-title" style="margin-bottom:14px;">
+  <div class="c-card-title" style="margin-bottom:16px;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4m0-10v10"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
     تسجيل المركبات المستخدمة
   </div>
   <form method="post" action="{% url 'weed_add_vehicle' obj.pk %}">
     {% csrf_token %}
-    <div class="f-grid-2" style="gap:10px;margin-bottom:12px;">
-      <div>
-        <label class="f-label">نوع المركبة</label>
-        <select name="vehicle_type" class="f-select">
-          {% for key, label in vehicle_type_choices %}
-          <option value="{{ key }}">{{ label }}</option>
-          {% endfor %}
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+
+      <!-- Pick Up -->
+      <label id="lbl-pickup" style="display:flex;align-items:center;gap:14px;padding:13px 16px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;background:#fff;transition:border-color .15s,background .15s;user-select:none;">
+        <input type="checkbox" name="pickup_checked" id="cb-pickup"
+               onchange="toggleVehicle(this,'sel-pickup','lbl-pickup')"
+               style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
+        <span style="font-size:14px;font-weight:700;flex:1;">Pick Up</span>
+        <select name="pickup_count" id="sel-pickup" disabled
+                style="padding:6px 12px;border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-family:inherit;opacity:.35;transition:opacity .2s;background:#fff;min-width:80px;pointer-events:none;">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          <option value="10">10</option>
         </select>
-      </div>
-      <div>
-        <label class="f-label">العدد</label>
-        <input type="number" name="vehicle_count" min="1" max="99" class="f-input" value="1" placeholder="1">
-      </div>
+      </label>
+
+      <!-- Bobcat -->
+      <label id="lbl-bobcat" style="display:flex;align-items:center;gap:14px;padding:13px 16px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;background:#fff;transition:border-color .15s,background .15s;user-select:none;">
+        <input type="checkbox" name="bobcat_checked" id="cb-bobcat"
+               onchange="toggleVehicle(this,'sel-bobcat','lbl-bobcat')"
+               style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
+        <span style="font-size:14px;font-weight:700;flex:1;">Bobcat</span>
+        <select name="bobcat_count" id="sel-bobcat" disabled
+                style="padding:6px 12px;border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-family:inherit;opacity:.35;transition:opacity .2s;background:#fff;min-width:80px;pointer-events:none;">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+      </label>
+
     </div>
-    <div class="f-row" style="margin-bottom:12px;">
-      <label class="f-label">ملاحظات (اختياري)</label>
-      <input type="text" name="vehicle_notes" class="f-input" placeholder="مثال: لودر كبير، شاحنة 10 طن…">
-    </div>
-    <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">+ إضافة مركبة</button>
+    <button type="submit" class="btn-primary" style="font-size:13px;">+ إضافة المركبات</button>
   </form>
 </div>
 {% endif %}
@@ -600,5 +615,23 @@ function closeRejectModal(){var m=document.getElementById('rejectModal');if(m)m.
 var modal=document.getElementById('rejectModal');
 if(modal){modal.addEventListener('click',function(e){if(e.target===this)closeRejectModal();});}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeRejectModal();});
+
+function toggleVehicle(cb, selId, lblId) {
+  var sel = document.getElementById(selId);
+  var lbl = document.getElementById(lblId);
+  if (cb.checked) {
+    sel.disabled = false;
+    sel.style.opacity = '1';
+    sel.style.pointerEvents = 'auto';
+    lbl.style.borderColor = 'var(--accent)';
+    lbl.style.background = '#f0f7ff';
+  } else {
+    sel.disabled = true;
+    sel.style.opacity = '.35';
+    sel.style.pointerEvents = 'none';
+    lbl.style.borderColor = 'var(--line)';
+    lbl.style.background = '#fff';
+  }
+}
 </script>
 {% endblock %}

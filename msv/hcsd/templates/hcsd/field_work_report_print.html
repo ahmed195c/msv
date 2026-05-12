@@ -65,7 +65,7 @@
       font-size: 13px;
       font-weight: 700;
       color: #1a3a1a;
-      margin: 12px 0 6px;
+      margin: 50px 0 6px;
     }
 
     /* ── Tables ── */
@@ -166,18 +166,12 @@
 
   <!-- Header -->
   <div class="doc-header">
-    <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="Logo" style="width:80px;">
-    <div class="header-center">
-      <div class="dept-en">United Arab Emirates – Sharjah Government</div>
-      <div class="dept-ar">بلدية مدينة الشارقة</div>
-      <div class="mun-name">SHARJAH CITY MUNICIPALITY</div>
-    </div>
+
     <div style="width:80px;"></div>
   </div>
 
   <!-- Title -->
-  <div class="report-title">Pest Control Service</div>
-
+ 
   <!-- General Information -->
   <div class="section-heading">General Information</div>
   <table>
@@ -188,13 +182,13 @@
       <td class="lbl">#Request</td>
       <td class="val">{{ order.order_number|default:order.pk }}</td>
       <td class="lbl">Received Date</td>
-      <td class="val">{{ order.received_at|date:"d/m/Y"|default:order.created_at|date:"d/m/Y" }}</td>
+      <td class="val">{% if order.received_at %}{{ order.received_at|date:"d/m/Y" }}{% else %}{{ order.created_at|date:"d/m/Y" }}{% endif %}</td>
     </tr>
     <tr>
       <td class="lbl">Client</td>
       <td class="val">{{ order.customer_name|default:order.site_name|default:"—" }}</td>
       <td class="lbl">Close Out Date</td>
-      <td class="val">{{ order.close_date|date:"d/m/Y"|default:order.report_submitted_at|date:"d/m/Y"|default:"" }}</td>
+      <td class="val">{{ close_date|date:"d/m/Y"|default:"" }}</td>
     </tr>
     <tr>
       <td class="lbl">Location</td>
@@ -246,6 +240,7 @@
         <th>Pest Found</th>
         <th>Location</th>
         <th>Action</th>
+        <th>Findings</th>
       </tr>
     </thead>
     <tbody>
@@ -257,9 +252,10 @@
         <td>{{ row.pest_found }}</td>
         <td>{{ row.location }}</td>
         <td style="font-size:10.5px;">{{ row.action }}</td>
+        <td style="font-size:10.5px;">{{ row.findings }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" style="text-align:center;color:#aaa;padding:10px;">—</td></tr>
+      <tr><td colspan="7" style="text-align:center;color:#aaa;padding:10px;">—</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -277,12 +273,15 @@
 
   <!-- Photos -->
   {% if photos %}
-  <div style="margin-top:18px;page-break-before:auto;">
+  <div style="margin-top:18px;page-break-before:always;">
     <div style="font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid #0f172a;padding-bottom:4px;margin-bottom:12px;">Report Photos / صور التقرير</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
       {% for photo in photos %}
-      <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
-        <img src="{{ photo.file.url }}" alt="صورة" style="width:100%;height:160px;object-fit:cover;display:block;">
+      <div style="border:1px solid #d1d5db;border-radius:6px;overflow:hidden;page-break-inside:avoid;break-inside:avoid;">
+        <img src="{{ photo.file.url }}" alt="Photo {{ forloop.counter }}" style="width:100%;height:220px;object-fit:cover;display:block;">
+        <div style="padding:4px 8px;font-size:10px;color:#6b7280;background:#f9fafb;border-top:1px solid #e5e7eb;">
+          Photo {{ forloop.counter }}{% if photo.caption %} — {{ photo.caption }}{% endif %}
+        </div>
       </div>
       {% endfor %}
     </div>
@@ -290,13 +289,7 @@
   {% endif %}
 
   <!-- Footer -->
-  <div class="doc-footer">
-    <span>☎ 971165623333</span>
-    <span>shjmun.gov.ae</span>
-    <img src="{% static 'hcsd/pirmet_header.png' %}" alt="">
-    <span>nfo@shjmun.gov.ae</span>
-    <span>AlmusallahSHJ</span>
-  </div>
+
 
 </div>
 </body>
