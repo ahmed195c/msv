@@ -127,7 +127,6 @@ select.form-control{cursor:pointer;}
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <a href="{% url 'field_work_report_print' order.pk %}" class="btn btn-primary" target="_blank">🖨 <span class="t-ar">طباعة التقرير</span><span class="t-en">Print Report</span></a>
       <a href="{% url 'field_work_report' order.pk %}" class="btn btn-word">⬇ <span class="t-ar">تحميل تقرير Word</span><span class="t-en">Download Word Report</span></a>
-      <a href="{% url 'field_work_excel_report' order.pk %}" class="btn btn-excel" download>📊 <span class="t-ar">تحميل Excel</span><span class="t-en">Download Excel</span></a>
       <a href="{% url 'field_work_list' %}" class="btn btn-outline">← <span class="t-ar">رجوع للقائمة</span><span class="t-en">Back to List</span></a>
     </div>
   </div>
