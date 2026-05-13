@@ -136,8 +136,9 @@ def weed_detail(request, pk):
     supervisor_task = getattr(obj, 'supervisor_task', None)
     staff_users     = User.objects.filter(is_active=True).order_by('first_name', 'username')
 
-    is_inspector  = inspection and inspection.inspector_id == request.user.id
-    is_supervisor = supervisor_task and supervisor_task.supervisor_id == request.user.id
+    can_manage    = _can_manage(request.user)
+    is_inspector  = bool(inspection)  if can_manage else (inspection  and inspection.inspector_id       == request.user.id)
+    is_supervisor = bool(supervisor_task) if can_manage else (supervisor_task and supervisor_task.supervisor_id == request.user.id)
 
     photos_before = obj.photos.filter(phase='before')
     photos_during = obj.photos.filter(phase='during')
@@ -153,7 +154,7 @@ def weed_detail(request, pk):
         'staff_users': staff_users,
         'is_inspector': is_inspector,
         'is_supervisor': is_supervisor,
-        'can_manage': _can_manage(request.user),
+        'can_manage': can_manage,
         'photos_before': photos_before,
         'photos_during': photos_during,
         'photos_after': photos_after,
