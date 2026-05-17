@@ -213,9 +213,15 @@ def field_work_detail(request, pk):
             notes       = (request.POST.get('notes') or '').strip()
             workers_count_raw = (request.POST.get('workers_count') or '').strip()
             equipment   = (request.POST.get('equipment_used') or '').strip()
+            # Excel-specific fields
+            customer_name = (request.POST.get('customer_name') or '').strip()
+            mobile        = (request.POST.get('mobile') or '').strip()
+            area          = (request.POST.get('area') or '').strip()
+            street_number = (request.POST.get('street_number') or '').strip()
+            house_number  = (request.POST.get('house_number') or '').strip()
+            pest_types    = (request.POST.get('pest_types') or '').strip()
+            close_date_raw = (request.POST.get('close_date') or '').strip() or None
 
-            if not work_type:
-                errors.append('يرجى إدخال نوع العمل.')
             workers_count = None
             if workers_count_raw:
                 try:
@@ -234,9 +240,23 @@ def field_work_detail(request, pk):
                 order.notes = notes
                 order.workers_count = workers_count
                 order.equipment_used = equipment
+                order.customer_name = customer_name
+                order.mobile = mobile
+                order.area = area
+                order.street_number = street_number
+                order.house_number = house_number
+                order.pest_types = pest_types
+                if close_date_raw:
+                    try:
+                        from datetime import date as _date_cls
+                        order.close_date = _date_cls.fromisoformat(close_date_raw)
+                    except ValueError:
+                        pass
                 order.save(update_fields=[
                     'site_name', 'work_type', 'location', 'description',
                     'work_date', 'notes', 'workers_count', 'equipment_used',
+                    'customer_name', 'mobile', 'area', 'street_number',
+                    'house_number', 'pest_types', 'close_date',
                 ])
                 success = 'تم حفظ التفاصيل.'
 
@@ -313,6 +333,13 @@ def field_work_detail(request, pk):
             except (ValueError, TypeError):
                 spray_entries = []
 
+            try:
+                report_findings = _json.loads(request.POST.get('report_findings_json') or '[]')
+                if not isinstance(report_findings, list):
+                    report_findings = []
+            except (ValueError, TypeError):
+                report_findings = []
+
             _SIG_PREFIX = 'data:image/png;base64,'
             if client_sig and not client_sig.startswith(_SIG_PREFIX):
                 client_sig = ''
@@ -331,20 +358,21 @@ def field_work_detail(request, pk):
             order.vehicles_count      = _to_int(vehicles_raw)
             order.building_type       = building_type
             order.spray_entries       = spray_entries
+            order.report_findings     = report_findings
             order.supervisor_notes    = sup_notes
             order.report_submitted_by = request.user
             order.report_submitted_at = timezone.now()
-            order.close_date          = timezone.now().date()
+            if not order.close_date:
+                order.close_date = timezone.now().date()
             if client_sig:
                 order.client_signature = client_sig
             if supervisor_sig:
                 order.supervisor_signature = supervisor_sig
             order.save(update_fields=[
                 'status', 'workers_count', 'vehicles_count',
-                'building_type', 'spray_entries', 'supervisor_notes',
-                'report_submitted_by', 'report_submitted_at',
-                'close_date',
-                'client_signature', 'supervisor_signature',
+                'building_type', 'spray_entries', 'report_findings',
+                'supervisor_notes', 'report_submitted_by', 'report_submitted_at',
+                'close_date', 'client_signature', 'supervisor_signature',
             ])
             report_photos = request.FILES.getlist('report_photos')
             for photo in report_photos:
@@ -406,6 +434,20 @@ def field_work_detail(request, pk):
                         'report_submitted_by', 'report_submitted_at',
                     ])
                     success = 'تم إغلاق الطلب بنجاح.'
+
+        # ── Reopen closed order ──────────────────────────────────────────────
+        elif action == 'reopen_order' and can_admin:
+            if order.status not in _FW_CLOSED_STATUSES:
+                errors.append('الطلب ليس مغلقاً.')
+            else:
+                order.status             = 'pending'
+                order.close_date         = None
+                order.report_submitted_at = None
+                order.report_submitted_by = None
+                order.save(update_fields=[
+                    'status', 'close_date', 'report_submitted_at', 'report_submitted_by',
+                ])
+                success = 'تم إعادة فتح الطلب — الحالة: قيد الانتظار.'
 
         # ── Delete photo ─────────────────────────────────────────────────────
         elif action == 'delete_photo' and can_edit:
@@ -600,6 +642,8 @@ def field_work_report_print(request, pk):
     )
     materials = []
     observations = []
+    all_pests = []
+    seen_pests = set()
     for entry in (order.spray_entries or []):
         loc = entry.get('location', '')
         pests = entry.get('pests', [])
@@ -611,14 +655,24 @@ def field_work_report_print(request, pk):
                 'active_ingredient': _ACTIVE_INGREDIENTS.get(p.get('name', ''), ''),
                 'location': loc,
             })
+        for p in pests:
+            if p not in seen_pests:
+                seen_pests.add(p)
+                all_pests.append(p)
+        infestation_raw = entry.get('infestation', '')
+        infestation_label = _INFESTATION_LABELS.get(infestation_raw, infestation_raw)
+        entry_pesticides = [
+            f"{p.get('name', '')} {p.get('qty', '')} {p.get('unit', '')}".strip()
+            for p in pesticides if p.get('name')
+        ]
         observations.append({
             'building_type': order.building_type or '',
-            'observation': order.supervisor_notes or '',
+            'observation': infestation_label,
             'pest_category': _pest_category(pests),
             'pest_found': ', '.join(pests),
             'location': loc,
             'action': ', '.join(entry.get('actions', [])) or entry.get('action', ''),
-            'findings': ', '.join(entry.get('findings', [])),
+            'pesticides': entry_pesticides,
         })
     time_in_dt = order.time_in or order.location_saved_at
     close_date = order.close_date or (
@@ -626,13 +680,23 @@ def field_work_report_print(request, pk):
         if order.report_submitted_at else None
     )
     photos = list(order.photos.order_by('uploaded_at'))
+    is_rescheduled   = bool(order.postponed_until)
+    is_completed     = bool(order.report_submitted_at)
+    is_force_closed  = order.status.startswith('closed_') and is_completed
+    proof_img_url    = order.no_answer_screenshot.url if order.no_answer_screenshot else None
     return render(request, 'hcsd/field_work_report_print.html', {
         'order': order,
         'materials': materials,
         'observations': observations,
+        'all_pests': all_pests,
+        'report_findings': order.report_findings or [],
         'time_in_dt': time_in_dt,
         'close_date': close_date,
         'photos': photos,
+        'is_rescheduled': is_rescheduled,
+        'is_completed': is_completed,
+        'is_force_closed': is_force_closed,
+        'proof_img_url': proof_img_url,
     })
 
 
@@ -964,7 +1028,9 @@ _MONTHLY_HEADERS = [
     'Scorpions', 'Wasps', 'Bees', 'other',
     'BOOM', 'K OTHRENI', 'DIESEL', 'PETROL', 'CYPHORCE', 'RAT-POSION',
     'ECO LARVACIDE', 'SNAKE DETER ', 'HYMENOPTHOR GR', 'PERMOTHOR DUST',
-    'RAT GLUE', 'RAPETR GEL', 'GRAIBAIT', 'DIFRON 25 SC', 'FLY ATTRACTANT', None,
+    'RAT GLUE', 'RAPETR GEL', 'GRAIBAIT', 'DIFRON 25 SC', 'FLY ATTRACTANT',
+    None,
+    'سبب الإغلاق', 'تاريخ التأجيل',
 ]
 
 _MONTHLY_COL_WIDTHS = [
@@ -975,6 +1041,7 @@ _MONTHLY_COL_WIDTHS = [
     7, 9, 8, 8, 10, 11,
     14, 12, 15, 15,
     9, 10, 9, 12, 15, 4,
+    22, 14,
 ]
 
 
@@ -1009,16 +1076,36 @@ def field_work_monthly_excel(request):
     if date_from > date_to:
         date_from, date_to = date_to, date_from
 
+    from django.db.models import Q
+    status_filters = request.GET.getlist('status_filter')
+    include_all = 'all' in status_filters or not status_filters
+
+    status_q = Q()
+    if not include_all:
+        if 'completed' in status_filters:
+            status_q |= Q(status='completed')
+        if 'closed' in status_filters:
+            status_q |= Q(status__startswith='closed_')
+        if 'postponed' in status_filters:
+            status_q |= Q(status='postponed_client')
+
+    date_q = (
+        Q(request_date__gte=date_from, request_date__lte=date_to) |
+        Q(request_date__isnull=True, created_at__date__gte=date_from, created_at__date__lte=date_to)
+    )
+
     orders = (
         FieldWorkOrder.objects
-        .filter(close_date__gte=date_from, close_date__lte=date_to)
+        .filter(date_q)
+        .filter(status_q if not include_all else Q())
         .select_related('assigned_supervisor', 'received_by', 'report_submitted_by')
-        .order_by('close_date', 'pk')
+        .order_by('request_date', 'created_at', 'pk')
     )
 
     monthly = defaultdict(list)
     for order in orders:
-        monthly[(order.close_date.year, order.close_date.month)].append(order)
+        group_date = order.request_date or timezone.localtime(order.created_at).date()
+        monthly[(group_date.year, group_date.month)].append(order)
 
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
@@ -1058,8 +1145,10 @@ def field_work_monthly_excel(request):
                 c.fill = FILL_INFO
             elif col_idx <= 25:
                 c.fill = FILL_PEST
-            else:
+            elif col_idx <= 41:
                 c.fill = FILL_CHEM
+            else:
+                c.fill = PatternFill('solid', fgColor='4B4B4B')
 
         for row_num, order in enumerate(orders_in_month, start=1):
             r = row_num + 1
@@ -1118,6 +1207,8 @@ def field_work_monthly_excel(request):
                 chk(chem['difron']),         # 39 DIFRON 25 SC
                 chk(chem['fly_attractant']), # 40 FLY ATTRACTANT
                 None,                        # 41 (empty trailing col)
+                order.get_status_display(),  # 42 سبب الإغلاق
+                order.postponed_until,       # 43 تاريخ التأجيل
             ]
 
             for col_idx, val in enumerate(row_vals, start=1):
@@ -1568,6 +1659,9 @@ def field_work_supervisors(request):
                     success = f'تمت إضافة منطقة "{area}" للمراقب {sup.get_full_name() or sup.username}.' if created else 'المنطقة مضافة مسبقاً.'
                 except (ValueError, User.DoesNotExist):
                     error = 'المراقب غير صالح.'
+            if not error:
+                from django.urls import reverse
+                return redirect(reverse('field_work_supervisors') + f'?sel_sup={sup_id}')
 
         elif action == 'remove_area':
             area_id = (request.POST.get('area_id') or '').strip()
@@ -1580,10 +1674,17 @@ def field_work_supervisors(request):
         if not error:
             return redirect('field_work_supervisors')
 
+    sel_sup = (request.GET.get('sel_sup') or '').strip()
+    try:
+        sel_sup_id = int(sel_sup)
+    except (ValueError, TypeError):
+        sel_sup_id = None
+
     return render(request, 'hcsd/field_work_supervisors.html', {
         'supervisors': supervisors,
         'existing_areas': existing_areas,
         'fw_supervisor_users': _fw_supervisor_users_qs(),
         'error': error,
         'success': success,
+        'sel_sup_id': sel_sup_id,
     })

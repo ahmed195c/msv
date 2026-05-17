@@ -115,6 +115,27 @@ td{padding:10px 12px;vertical-align:middle;}
       <label class="fw-filter-label"><span class="t-ar">إلى تاريخ</span><span class="t-en">To Date</span></label>
       <input type="date" name="date_to" id="exp-to" class="fw-filter-select" required>
     </div>
+    <div class="fw-filter-group">
+      <label class="fw-filter-label"><span class="t-ar">الحالات</span><span class="t-en">Statuses</span></label>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:6px 0;">
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
+          <input type="checkbox" name="status_filter" value="completed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+          <span class="t-ar">مكتمل</span><span class="t-en">Completed</span>
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
+          <input type="checkbox" name="status_filter" value="closed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+          <span class="t-ar">مغلق</span><span class="t-en">Closed</span>
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
+          <input type="checkbox" name="status_filter" value="postponed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+          <span class="t-ar">مؤجل</span><span class="t-en">Rescheduled</span>
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
+          <input type="checkbox" name="status_filter" value="all" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+          <span class="t-ar">الكل</span><span class="t-en">All</span>
+        </label>
+      </div>
+    </div>
     <button type="submit" class="btn btn-primary">
       ⬇ <span class="t-ar">تحميل التقرير</span><span class="t-en">Download Report</span>
     </button>

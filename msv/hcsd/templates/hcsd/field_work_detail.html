@@ -127,6 +127,15 @@ select.form-control{cursor:pointer;}
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <a href="{% url 'field_work_report_print' order.pk %}" class="btn btn-primary" target="_blank">🖨 <span class="t-ar">طباعة التقرير</span><span class="t-en">Print Report</span></a>
       <a href="{% url 'field_work_report' order.pk %}" class="btn btn-word">⬇ <span class="t-ar">تحميل تقرير Word</span><span class="t-en">Download Word Report</span></a>
+      {% if can_admin and is_closed %}
+      <form method="post" style="display:inline;" onsubmit="return confirm('إعادة فتح هذا الطلب؟ سيتم تغيير الحالة إلى قيد الانتظار.')">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reopen_order">
+        <button type="submit" class="btn" style="background:#7c3aed;color:#fff;border-color:#7c3aed;">
+          ↩ <span class="t-ar">إعادة فتح الطلب</span><span class="t-en">Reopen Order</span>
+        </button>
+      </form>
+      {% endif %}
       <a href="{% url 'field_work_list' %}" class="btn btn-outline">← <span class="t-ar">رجوع للقائمة</span><span class="t-en">Back to List</span></a>
     </div>
   </div>
@@ -141,7 +150,7 @@ select.form-control{cursor:pointer;}
   <div class="alert alert-success">{{ success }}</div>
   {% endif %}
 
-  {% if can_edit and not is_closed %}
+  {% if can_edit %}
   <!-- Update Details -->
   <div class="card">
     <div class="card-header">
@@ -157,10 +166,54 @@ select.form-control{cursor:pointer;}
         <form method="post" novalidate>
           {% csrf_token %}
           <input type="hidden" name="action" value="update_details">
+
+          {% if order.source == 'excel' %}
+          <!-- Excel order fields -->
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label"><span class="t-ar">نوع العمل</span><span class="t-en">Work Type</span> *</label>
-              <input type="text" name="work_type" class="form-control" value="{{ order.work_type }}" required>
+              <label class="form-label"><span class="t-ar">اسم المتعامل</span><span class="t-en">Customer Name</span></label>
+              <input type="text" name="customer_name" class="form-control" value="{{ order.customer_name }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span class="t-ar">الموبايل</span><span class="t-en">Mobile</span></label>
+              <input type="text" name="mobile" class="form-control" value="{{ order.mobile }}">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span class="t-ar">المنطقة</span><span class="t-en">Area</span></label>
+              <input type="text" name="area" class="form-control" value="{{ order.area }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span class="t-ar">رقم الشارع</span><span class="t-en">Street No.</span></label>
+              <input type="text" name="street_number" class="form-control" value="{{ order.street_number }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span class="t-ar">رقم المنزل</span><span class="t-en">House No.</span></label>
+              <input type="text" name="house_number" class="form-control" value="{{ order.house_number }}">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span class="t-ar">نوع الحشرات</span><span class="t-en">Pest Types</span></label>
+              <input type="text" name="pest_types" class="form-control" value="{{ order.pest_types }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span class="t-ar">تاريخ الإغلاق</span><span class="t-en">Close Date</span></label>
+              <input type="date" name="close_date" class="form-control" value="{{ order.close_date|date:'Y-m-d'|default:'' }}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span class="t-ar">ملاحظات</span><span class="t-en">Notes</span></label>
+            <textarea name="notes" class="form-control">{{ order.notes }}</textarea>
+          </div>
+
+          {% else %}
+          <!-- Non-Excel order fields -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span class="t-ar">نوع العمل</span><span class="t-en">Work Type</span></label>
+              <input type="text" name="work_type" class="form-control" value="{{ order.work_type }}">
             </div>
             <div class="form-group">
               <label class="form-label"><span class="t-ar">اسم الموقع</span><span class="t-en">Site Name</span></label>
@@ -168,6 +221,10 @@ select.form-control{cursor:pointer;}
             </div>
           </div>
           <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span class="t-ar">الموقع</span><span class="t-en">Location</span></label>
+              <input type="text" name="location" class="form-control" value="{{ order.location }}">
+            </div>
             <div class="form-group">
               <label class="form-label"><span class="t-ar">تاريخ التنفيذ</span><span class="t-en">Work Date</span></label>
               <input type="date" name="work_date" class="form-control" value="{{ order.work_date|date:'Y-m-d'|default:'' }}">
@@ -185,6 +242,8 @@ select.form-control{cursor:pointer;}
             <label class="form-label"><span class="t-ar">ملاحظات</span><span class="t-en">Notes</span></label>
             <textarea name="notes" class="form-control">{{ order.notes }}</textarea>
           </div>
+          {% endif %}
+
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">💾 <span class="t-ar">حفظ التفاصيل</span><span class="t-en">Save Details</span></button>
             <button type="button" onclick="toggleEditForm()" class="btn btn-outline"><span class="t-ar">إلغاء</span><span class="t-en">Cancel</span></button>
@@ -201,6 +260,14 @@ select.form-control{cursor:pointer;}
     body.style.display = open ? 'block' : 'none';
     var en = (document.documentElement.getAttribute('data-lang') || 'ar') === 'en';
     label.textContent = open ? (en ? 'Close' : 'إغلاق') : (en ? 'Edit' : 'تعديل');
+  }
+  function toggleReportForm() {
+    var body  = document.getElementById('report-form-body');
+    if (!body) return;
+    var open  = body.style.display === 'none';
+    body.style.display = open ? 'block' : 'none';
+    var btn   = document.getElementById('report-btn-label');
+    if (btn) btn.innerHTML = open ? '<span class="t-ar">إغلاق</span><span class="t-en">Close</span>' : '<span class="t-ar">تعديل التقرير</span><span class="t-en">Edit Report</span>';
   }
   </script>
   {% endif %}
@@ -647,7 +714,7 @@ select.form-control{cursor:pointer;}
   </script>
   {% endif %}{# can_close #}
 
-  {% if can_submit_report and not is_closed %}
+  {% if can_submit_report and not is_closed or can_submit_report and can_admin %}
 
   <!-- Location Card -->
   <div class="card" style="border-color:#d1fae5;">
@@ -704,6 +771,11 @@ select.form-control{cursor:pointer;}
         {% if order.report_submitted_by %} — {{ order.report_submitted_by.get_full_name|default:order.report_submitted_by.username }}{% endif %}
       </span>
       {% endif %}
+      <button type="button" onclick="toggleReportForm()" id="btn-toggle-report"
+        style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span id="report-btn-label"><span class="t-ar">تعديل التقرير</span><span class="t-en">Edit Report</span></span>
+      </button>
     </div>
 
     {% if order.report_submitted_at %}
@@ -782,6 +854,16 @@ select.form-control{cursor:pointer;}
       </div>
       {% endif %}
       {% endif %}
+      {% if order.report_findings %}
+      <div style="grid-column:1/-1;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;"><span class="t-ar">الملاحظات الميدانية</span><span class="t-en">Field Findings</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;">
+          {% for f in order.report_findings %}
+          <span style="display:inline-block;padding:3px 10px;background:#fef9c3;border:1px solid #fde68a;border-radius:20px;font-size:12px;color:#713f12;">{{ f }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
       {% if order.no_answer_screenshot %}
       <div style="grid-column:1/-1;">
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;"><span class="t-ar">صورة الإثبات</span><span class="t-en">Proof Image</span></div>
@@ -810,7 +892,13 @@ select.form-control{cursor:pointer;}
     </div>
     {% endif %}
 
-    {% if not is_closed %}
+    {% if not is_closed or can_admin and is_closed %}
+    <div id="report-form-body" style="display:none;">
+    {% if is_closed and can_admin %}
+    <div style="padding:8px 18px;background:#fef9c3;border-bottom:1.5px solid #fde047;font-size:12px;font-weight:700;color:#92400e;">
+      Admin Edit — this order is closed. Saving will update the report data.
+    </div>
+    {% endif %}
     <div class="card-body">
       <form method="post" enctype="multipart/form-data" novalidate data-role="supervisor-form">
         {% csrf_token %}
@@ -1160,40 +1248,7 @@ select.form-control{cursor:pointer;}
             actWrap.appendChild(actGroup);
             body.appendChild(actWrap);
 
-            // findings
-            var FINDINGS_LIST = [
-              'Standing water','Water in plant pots','AC water leakage','Open water containers',
-              'Blocked drains','Water on roof/balcony','Dirty floor drains','Uncovered tanks',
-              'Gaps under doors','Open food storage','Garbage accumulation','Cluttered storage',
-              'Holes in walls','Dirty kitchen area','Open drainage points','Feeding birds/cats',
-              'Open garbage bins','Food waste','Dirty drains','Bad housekeeping','Rotten materials',
-              'Dirty bin area','Water leakage','Strong bad odor','Dirty kitchen',
-              'Grease accumulation','Cracks and gaps','Food residues','Wet areas','Cluttered area'
-            ];
-            var findWrap = document.createElement('div');
-            findWrap.style.cssText = 'margin-top:12px;padding:12px 14px;background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;';
-            var findLbl = document.createElement('div');
-            findLbl.style.cssText = 'font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;';
-            applyT(findLbl,'الملاحظات الميدانية','Findings');
-            findWrap.appendChild(findLbl);
-            var findGroup = document.createElement('div');
-            findGroup.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;';
-            var existFindings = data.findings || [];
-            FINDINGS_LIST.forEach(function(findName){
-              var lbl = document.createElement('label');
-              lbl.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1.5px solid #fde68a;border-radius:20px;background:#fff;font-size:12.5px;cursor:pointer;user-select:none;transition:border-color .12s,background .12s;';
-              var cb = document.createElement('input');
-              cb.type='checkbox'; cb.value=findName; cb.className='finding-cb';
-              if(existFindings.indexOf(findName)!==-1){ cb.checked=true; lbl.style.background='#fef9c3'; lbl.style.borderColor='#ca8a04'; }
-              cb.addEventListener('change', function(){
-                lbl.style.background = cb.checked?'#fef9c3':'#fff';
-                lbl.style.borderColor = cb.checked?'#ca8a04':'#fde68a';
-              });
-              lbl.appendChild(cb); lbl.appendChild(document.createTextNode(findName));
-              findGroup.appendChild(lbl);
-            });
-            findWrap.appendChild(findGroup);
-            body.appendChild(findWrap);
+            // findings removed from per-entry card — now a single report-level section
 
             card.appendChild(body);
             return card;
@@ -1222,14 +1277,11 @@ select.form-control{cursor:pointer;}
               var infCb = card.querySelector('.inf-cb:checked');
               var actions = [];
               card.querySelectorAll('.action-cb:checked').forEach(function(cb){ actions.push(cb.value); });
-              var findings = [];
-              card.querySelectorAll('.finding-cb:checked').forEach(function(cb){ findings.push(cb.value); });
               entries.push({
                 location: (card.querySelector('.loc-inp')||{value:''}).value.trim(),
                 pests: pests,
                 pesticides: pesticides,
                 infestation: infCb ? infCb.value : '',
-                findings: findings,
                 actions: actions
               });
             });
@@ -1272,6 +1324,50 @@ select.form-control{cursor:pointer;}
             form.addEventListener('submit', function(){
               document.getElementById('spray-entries-json').value = JSON.stringify(serializeEntries());
               try { sessionStorage.removeItem(DRAFT_KEY); } catch(e) {}
+            });
+          }
+        })();
+        </script>
+
+        <!-- Report-level Findings (الملاحظات الميدانية) -->
+        {{ order.report_findings|json_script:"existing-findings-data" }}
+        <input type="hidden" name="report_findings_json" id="report-findings-json">
+        <div style="margin-bottom:16px;padding:14px 16px;background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;">
+          <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:10px;"><span class="t-ar">الملاحظات الميدانية</span><span class="t-en">Field Findings</span></div>
+          <div id="report-findings-group" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+        <script>
+        (function(){
+          var FINDINGS_LIST = [
+            'Standing water','Water in plant pots','AC water leakage','Open water containers',
+            'Blocked drains','Water on roof/balcony','Dirty floor drains','Uncovered tanks',
+            'Gaps under doors','Open food storage','Garbage accumulation','Cluttered storage',
+            'Holes in walls','Dirty kitchen area','Open drainage points','Feeding birds/cats',
+            'Open garbage bins','Food waste','Dirty drains','Bad housekeeping','Rotten materials',
+            'Dirty bin area','Water leakage','Strong bad odor','Dirty kitchen',
+            'Grease accumulation','Cracks and gaps','Food residues','Wet areas','Cluttered area'
+          ];
+          var existFindings = JSON.parse(document.getElementById('existing-findings-data').textContent || '[]');
+          var group = document.getElementById('report-findings-group');
+          FINDINGS_LIST.forEach(function(name){
+            var lbl = document.createElement('label');
+            lbl.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1.5px solid #fde68a;border-radius:20px;background:#fff;font-size:12.5px;cursor:pointer;user-select:none;transition:border-color .12s,background .12s;';
+            var cb = document.createElement('input');
+            cb.type = 'checkbox'; cb.value = name; cb.className = 'report-finding-cb';
+            if (existFindings.indexOf(name) !== -1) { cb.checked = true; lbl.style.background='#fef9c3'; lbl.style.borderColor='#ca8a04'; }
+            cb.addEventListener('change', function(){
+              lbl.style.background = cb.checked ? '#fef9c3' : '#fff';
+              lbl.style.borderColor = cb.checked ? '#ca8a04' : '#fde68a';
+            });
+            lbl.appendChild(cb); lbl.appendChild(document.createTextNode(name));
+            group.appendChild(lbl);
+          });
+          var supForm = document.querySelector('form[data-role="supervisor-form"]');
+          if (supForm) {
+            supForm.addEventListener('submit', function(){
+              var checked = [];
+              document.querySelectorAll('.report-finding-cb:checked').forEach(function(cb){ checked.push(cb.value); });
+              document.getElementById('report-findings-json').value = JSON.stringify(checked);
             });
           }
         })();
@@ -1413,6 +1509,7 @@ select.form-control{cursor:pointer;}
         </div>
       </form>
     </div>
+    </div>{# /report-form-body #}
     {% endif %}{# not is_closed #}
   </div>
 

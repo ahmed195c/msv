@@ -112,7 +112,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
           <select name="supervisor_id" class="form-control" required>
             <option value="">— اختر مراقباً —</option>
             {% for u in fw_supervisor_users %}
-            <option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>
+            <option value="{{ u.pk }}" {% if sel_sup_id == u.pk %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
             {% endfor %}
           </select>
         </div>

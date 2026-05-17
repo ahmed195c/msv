@@ -65,7 +65,7 @@
       font-size: 13px;
       font-weight: 700;
       color: #1a3a1a;
-      margin: 50px 0 6px;
+      margin: 12px 0 4px;
     }
 
     /* ── Tables ── */
@@ -86,10 +86,11 @@
       text-align: center;
     }
     td.lbl {
-      background: #f5f5f5;
-      font-weight: 600;
+      background: #d4e8c2;
+      font-weight: 700;
       white-space: nowrap;
       width: 90px;
+      text-align: center;
     }
     td.val { min-width: 100px; }
 
@@ -112,6 +113,48 @@
       max-width: 100%;
       max-height: 70px;
       object-fit: contain;
+    }
+
+    /* ── Notice boxes ── */
+    .notice-box {
+      border-radius: 4px;
+      padding: 8px 10px;
+      margin-top: 14px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .notice-box.reschedule {
+      border: 1.5px solid #d97706;
+      background: #fffbeb;
+    }
+    .notice-box.closure {
+      border: 1.5px solid #b91c1c;
+      background: #fef2f2;
+    }
+    .notice-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 6px;
+    }
+    .notice-box.reschedule .notice-title { color: #92400e; }
+    .notice-box.closure    .notice-title { color: #991b1b; }
+    .notice-box table {
+      margin-bottom: 0;
+    }
+    .notice-box td.lbl {
+      background: #d4e8c2;
+      color: #1a1a1a;
+    }
+    .proof-img {
+      max-width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      display: block;
+      margin-top: 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
     }
 
     /* ── Footer ── */
@@ -173,7 +216,7 @@
   <!-- Title -->
  
   <!-- General Information -->
-  <div class="section-heading">General Information</div>
+  <div class="section-heading" style="margin-top:50px;">General Information</div>
   <table>
     <colgroup>
       <col style="width:90px;"><col><col style="width:100px;"><col>
@@ -204,61 +247,127 @@
     </tr>
   </table>
 
-  <!-- Materials Used -->
-  <div class="section-heading">Materials Used</div>
+  <!-- Pests Found -->
+  {% if all_pests %}
+  <div class="section-heading">Pests Found / الحشرات الموجودة</div>
   <table>
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th style="width:70px;">Qty</th>
-        <th>Active Ingredient</th>
-        <th>Location</th>
-      </tr>
-    </thead>
     <tbody>
-      {% for row in materials %}
       <tr>
-        <td>{{ row.product }}</td>
-        <td style="text-align:center;">{{ row.qty }}</td>
-        <td>{{ row.active_ingredient }}</td>
-        <td>{{ row.location }}</td>
+        <td style="line-height:1.9;font-size:11.5px;">
+          {% for p in all_pests %}<span style="display:inline-block;padding:2px 9px;margin:2px 3px 2px 0;border:1px solid #555;border-radius:3px;font-size:11px;">{{ p }}</span>{% endfor %}
+        </td>
       </tr>
-      {% empty %}
-      <tr><td colspan="4" style="text-align:center;color:#aaa;padding:10px;">—</td></tr>
-      {% endfor %}
     </tbody>
   </table>
+  {% endif %}
 
-  <!-- Observations / Recommendations -->
-  <div class="section-heading">Observations / Recommendations</div>
+  <!-- Spray Records -->
+  <div class="section-heading">Spray Records / سجلات الرش</div>
   <table>
     <thead>
       <tr>
-        <th>Type</th>
-        <th>Observation</th>
-        <th>Category of Pest</th>
-        <th>Pest Found</th>
+        <th style="width:22px;">#</th>
         <th>Location</th>
-        <th>Action</th>
-        <th>Findings</th>
+        <th>Pests</th>
+        <th>Infestation Level</th>
+        <th>Pesticides Used</th>
+        <th>Actions Taken</th>
       </tr>
     </thead>
     <tbody>
       {% for row in observations %}
       <tr>
-        <td style="text-align:center;">{{ row.building_type }}</td>
-        <td>{{ row.observation }}</td>
-        <td style="text-align:center;">{{ row.pest_category }}</td>
-        <td>{{ row.pest_found }}</td>
+        <td style="text-align:center;font-size:10px;">{{ forloop.counter }}</td>
         <td>{{ row.location }}</td>
+        <td style="font-size:10.5px;">{{ row.pest_found }}</td>
+        <td style="text-align:center;font-size:10.5px;">{{ row.observation }}</td>
+        <td style="font-size:10.5px;">
+          {% for p in row.pesticides %}{{ p }}<br>{% empty %}—{% endfor %}
+        </td>
         <td style="font-size:10.5px;">{{ row.action }}</td>
-        <td style="font-size:10.5px;">{{ row.findings }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="7" style="text-align:center;color:#aaa;padding:10px;">—</td></tr>
+      <tr><td colspan="6" style="text-align:center;color:#aaa;padding:10px;">—</td></tr>
       {% endfor %}
     </tbody>
   </table>
+
+  {% if report_findings %}
+  <div class="section-heading">Field Findings / الملاحظات الميدانية</div>
+  <table>
+    <thead>
+      <tr><th>Findings</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-size:11px;line-height:1.8;">{{ report_findings|join:" &nbsp;·&nbsp; " }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- Reschedule Notice -->
+  {% if is_rescheduled %}
+  <div class="notice-box reschedule">
+    <div class="notice-title">Reschedule Notice</div>
+    <table>
+      <colgroup><col style="width:130px;"><col><col style="width:130px;"><col></colgroup>
+      <tr>
+        <td class="lbl">Rescheduled At</td>
+        <td class="val">{% if order.updated_at %}{{ order.updated_at|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
+        <td class="lbl">New Scheduled Date</td>
+        <td class="val">{% if order.postponed_until %}{{ order.postponed_until|date:"d/m/Y" }}{% else %}—{% endif %}</td>
+      </tr>
+      <tr>
+        <td class="lbl">Notes</td>
+        <td class="val" colspan="3">{{ order.supervisor_notes|default:"—" }}</td>
+      </tr>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Completion Notice (normal report submission) -->
+  {% if is_completed and not is_force_closed %}
+  <div class="section-heading">Report Submitted</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Submitted By</th>
+        <th>Submitted At</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{% if order.report_submitted_by %}{{ order.report_submitted_by.get_full_name|default:order.report_submitted_by.username }}{% else %}—{% endif %}</td>
+        <td>{{ order.report_submitted_at|date:"d/m/Y H:i" }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- Closure Notice (force-close with proof image) -->
+  {% if is_force_closed %}
+  <div class="notice-box closure">
+    <div class="notice-title">Closure Notice</div>
+    <table>
+      <colgroup><col style="width:130px;"><col><col style="width:130px;"><col></colgroup>
+      <tr>
+        <td class="lbl">Closed By</td>
+        <td class="val">{% if order.report_submitted_by %}{{ order.report_submitted_by.get_full_name|default:order.report_submitted_by.username }}{% else %}—{% endif %}</td>
+        <td class="lbl">Closed At</td>
+        <td class="val">{{ order.report_submitted_at|date:"d/m/Y H:i" }}</td>
+      </tr>
+      <tr>
+        <td class="lbl">Reason</td>
+        <td class="val" colspan="3">{{ order.get_status_display }}</td>
+      </tr>
+    </table>
+    {% if proof_img_url %}
+    <div style="margin-top:8px;font-size:10.5px;font-weight:600;color:#991b1b;">Proof / Closure Screenshot:</div>
+    <img class="proof-img" src="{{ proof_img_url }}" alt="Closure proof">
+    {% endif %}
+  </div>
+  {% endif %}
 
   <!-- Signatures -->
   <table class="sig-table" style="margin-top:14px;">
