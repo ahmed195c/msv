@@ -147,7 +147,7 @@ def field_work_detail(request, pk):
         FieldWorkOrder.objects.select_related(
             'created_by', 'assigned_supervisor', 'received_by',
             'report_submitted_by', 'report_submitted_by__fw_supervisor_profile',
-        ), pk=pk
+        ).prefetch_related('photos'), pk=pk
     )
     can_admin = _can_admin(request.user)
     can_data_entry = _can_data_entry(request.user)
@@ -166,7 +166,7 @@ def field_work_detail(request, pk):
         and order.status not in _FW_CLOSED_STATUSES
     )
 
-    photos_all = order.photos.order_by('uploaded_at')
+    photos_all = sorted(order.photos.all(), key=lambda p: p.uploaded_at or p.pk)
 
     errors = []
     success = None
