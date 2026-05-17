@@ -49,7 +49,12 @@ def field_work_list(request):
     source_filter = (request.GET.get('source') or 'all').strip()
     search        = (request.GET.get('q')      or '').strip()
 
-    orders = FieldWorkOrder.objects.select_related('created_by').all()
+    orders = FieldWorkOrder.objects.only(
+        'id', 'order_number', 'customer_name', 'site_name',
+        'area', 'location', 'pest_types', 'request_date', 'work_date',
+        'close_date', 'supervisor_name', 'status', 'excel_status', 'source',
+        'created_at',
+    )
 
     # Supervisors see only their area orders + directly assigned/received
     if _can_fw_supervise(request.user) and not _can_admin(request.user) and not _can_data_entry(request.user):

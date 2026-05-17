@@ -1112,16 +1112,16 @@ class FieldWorkOrder(models.Model):
     report_submitted_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ التقرير')
     time_in             = models.DateTimeField(null=True, blank=True, verbose_name='وقت الوصول')
     status         = models.CharField(
-        max_length=30, choices=STATUS_CHOICES, default='new', verbose_name='الحالة',
+        max_length=30, choices=STATUS_CHOICES, default='new', db_index=True, verbose_name='الحالة',
     )
     source = models.CharField(
-        max_length=10, choices=SOURCE_CHOICES, default='manual', verbose_name='المصدر',
+        max_length=10, choices=SOURCE_CHOICES, default='manual', db_index=True, verbose_name='المصدر',
     )
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='field_work_orders_created', verbose_name='أنشئ بواسطة',
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاريخ الإنشاء')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='تاريخ الإنشاء')
     updated_at = models.DateTimeField(auto_now=True)
 
     # ── Excel import fields ───────────────────────────────────────────────
