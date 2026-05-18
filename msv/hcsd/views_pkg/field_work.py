@@ -1108,7 +1108,7 @@ def field_work_monthly_excel(request):
 
         for row_num, order in enumerate(orders_in_month, start=1):
             r = row_num + 1
-            ws.row_dimensions[r].height = 15
+            ws.row_dimensions[r].height = 20
 
             sup_name = (
                 _user_display_name(order.report_submitted_by)
