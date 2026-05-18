@@ -963,14 +963,14 @@ _MONTHLY_HEADERS = [
     'الرقم', 'رقم الطلب', 'تاريخ الطلب', 'تاريخ الإغلاق', 'اسم المتعامل',
     'حالة الطلب', 'سبب الإغلاق', 'تاريخ التأجيل',
     'الموبايل', 'رقم الشارع', 'رقم المنزل',
-    'المنطقة', 'نوع الحشرات', 'المراقب المسؤول', 'العامل',
+    'المنطقة', 'نوع الحشرات', 'المراقب المسؤول',
 ]
 
 _MONTHLY_COL_WIDTHS = [
     5, 12, 12, 12, 25,
     16, 34, 14,
     14, 10, 10,
-    22, 32, 25, 25,
+    22, 32, 25,
 ]
 
 # Maps status → short category label for col 6
@@ -1141,7 +1141,6 @@ def field_work_monthly_excel(request):
                 order.area or order.location or '',                   # 12
                 pest_col,                                             # 13 نوع الحشرات
                 sup_name,                                             # 14
-                order.worker_name or '',                              # 15
             ]
 
             for col_idx, val in enumerate(row_vals, start=1):
