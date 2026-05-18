@@ -961,16 +961,54 @@ def field_work_excel_report(request, pk):
 
 _MONTHLY_HEADERS = [
     'الرقم', 'رقم الطلب', 'تاريخ الطلب', 'تاريخ الإغلاق', 'اسم المتعامل',
-    'حالة الطلب', 'بيان الحالة', 'الموبايل', 'رقم الشارع', 'رقم المنزل',
+    'حالة الطلب', 'سبب الإغلاق', 'تاريخ التأجيل',
+    'الموبايل', 'رقم الشارع', 'رقم المنزل',
     'المنطقة', 'نوع الحشرات', 'المراقب المسؤول', 'العامل',
-    'سبب الإغلاق', 'تاريخ التأجيل',
 ]
 
 _MONTHLY_COL_WIDTHS = [
-    5, 12, 12, 12, 25, 20, 20, 14, 10, 10,
+    5, 12, 12, 12, 25,
+    16, 34, 14,
+    14, 10, 10,
     22, 32, 25, 25,
-    28, 14,
 ]
+
+# Maps status → short category label for col 6
+_STATUS_CATEGORY = {
+    'completed':        'مكتمل',
+    'postponed_client': 'مؤجل',
+    'other_municipal':  'بلدية أخرى',
+    'new':              'جديد',
+    'assigned':         'معين',
+    'received':         'تم الاستلام',
+}
+
+def _status_category(status: str) -> str:
+    if status in _STATUS_CATEGORY:
+        return _STATUS_CATEGORY[status]
+    if status.startswith('closed_'):
+        return 'مغلق'
+    return status
+
+# Maps status → detailed closure reason for col 7 (only for closed/postponed)
+_CLOSURE_REASON = {
+    'completed':                    '',
+    'postponed_client':             'تأجيل من العميل',
+    'other_municipal':              'تابع لبلدية أخرى',
+    'closed_private_building':      'شركة نظافة خاصة (داخل بناية)',
+    'closed_no_answer':             'لم يرد العميل على الهاتف',
+    'closed_other_municipal':       'تابع لبلدية أخرى',
+    'closed_observation':           'ملاحظة',
+    'closed_low_infestation':       'تفشٍ خفيف',
+    'closed_moderate_infestation':  'تفشٍ متوسط',
+    'closed_high_infestation':      'تفشٍ شديد',
+    'closed_out_of_service':        'خارج نطاق الخدمة',
+    'closed_customer_refused':      'العميل رفض الخدمة',
+    'closed_mobile_off':            'هاتف العميل مغلق',
+    'closed_not_attending':         'العميل لا يرد على المكالمات',
+    'closed_not_available':         'العميل غير متاح',
+    'closed_scheduled_client':      'تم الجدولة من قِبل العميل',
+}
 
 
 @login_required
@@ -1066,10 +1104,7 @@ def field_work_monthly_excel(request):
             c.border    = _border
             c.alignment = ALIGN_CTR
             c.font      = FONT_WHITE
-            if col_idx <= 14:
-                c.fill = FILL_INFO
-            else:
-                c.fill = PatternFill('solid', fgColor='4B4B4B')
+            c.fill = FILL_INFO
 
         for row_num, order in enumerate(orders_in_month, start=1):
             r = row_num + 1
@@ -1092,29 +1127,28 @@ def field_work_monthly_excel(request):
             pest_col = order.pest_types or ', '.join(ordered_pests)
 
             row_vals = [
-                row_num,
-                order.order_number or '',
-                order.request_date,
-                order.close_date,
-                order.customer_name or order.site_name or '',
-                order.excel_status or order.get_status_display(),
-                order.excel_status_note or '',
-                order.mobile or '',
-                order.street_number or '',
-                order.house_number or '',
-                order.area or order.location or '',
-                pest_col,                    # 12 نوع الحشرات
-                sup_name,                    # 13
-                order.worker_name or '',     # 14
-                order.get_status_display(),  # 15 سبب الإغلاق
-                order.postponed_until,       # 16 تاريخ التأجيل
+                row_num,                                              # 1
+                order.order_number or '',                             # 2
+                order.request_date,                                   # 3
+                order.close_date,                                     # 4
+                order.customer_name or order.site_name or '',         # 5
+                _status_category(order.status),                       # 6 حالة الطلب
+                _CLOSURE_REASON.get(order.status, ''),                # 7 سبب الإغلاق
+                order.postponed_until,                                # 8 تاريخ التأجيل
+                order.mobile or '',                                   # 9
+                order.street_number or '',                            # 10
+                order.house_number or '',                             # 11
+                order.area or order.location or '',                   # 12
+                pest_col,                                             # 13 نوع الحشرات
+                sup_name,                                             # 14
+                order.worker_name or '',                              # 15
             ]
 
             for col_idx, val in enumerate(row_vals, start=1):
                 c = ws.cell(row=r, column=col_idx, value=val)
                 c.border    = _border
                 c.font      = FONT_DATA
-                if col_idx in (1, 3, 4, 8, 9, 10, 16):
+                if col_idx in (1, 3, 4, 8, 9, 10, 11):
                     c.alignment = ALIGN_CTR
                 else:
                     c.alignment = ALIGN_LFT
