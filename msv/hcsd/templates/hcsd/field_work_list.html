@@ -99,6 +99,9 @@ td{padding:10px 12px;vertical-align:middle;}
       <button class="btn" style="background:#1d6f42;color:#fff;" onclick="document.getElementById('fw-export-panel').style.display=document.getElementById('fw-export-panel').style.display==='none'?'flex':'none'">
         📊 <span class="t-ar">تصدير Excel الشهري</span><span class="t-en">Monthly Export</span>
       </button>
+      <button class="btn" style="background:#155e75;color:#fff;" onclick="document.getElementById('fw-mat-panel').style.display=document.getElementById('fw-mat-panel').style.display==='none'?'flex':'none'">
+        🧪 <span class="t-ar">تقرير المواد</span><span class="t-en">Materials Report</span>
+      </button>
       {% endif %}
       <a href="{% url 'permit_types' %}" class="btn btn-outline">← <span class="t-ar">الرئيسية</span><span class="t-en">Home</span></a>
     </div>
@@ -144,6 +147,49 @@ td{padding:10px 12px;vertical-align:middle;}
         var jan1  = new Date(new Date().getFullYear(),0,1).toISOString().slice(0,10);
         document.getElementById('exp-from').value = jan1;
         document.getElementById('exp-to').value   = today;
+      })();
+    </script>
+  </form>
+
+  <form id="fw-mat-panel" method="get" action="{% url 'field_work_materials_excel' %}" class="fw-filters" style="display:none;">
+    <div class="fw-filter-group">
+      <label class="fw-filter-label"><span class="t-ar">من تاريخ</span><span class="t-en">From Date</span></label>
+      <input type="date" name="date_from" id="mat-from" class="fw-filter-select" required>
+    </div>
+    <div class="fw-filter-group">
+      <label class="fw-filter-label"><span class="t-ar">إلى تاريخ</span><span class="t-en">To Date</span></label>
+      <input type="date" name="date_to" id="mat-to" class="fw-filter-select" required>
+    </div>
+    <div class="fw-filter-group">
+      <label class="fw-filter-label"><span class="t-ar">الحالات</span><span class="t-en">Statuses</span></label>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:6px 0;">
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
+          <input type="checkbox" name="status_filter" value="completed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+          <span class="t-ar">مكتمل</span><span class="t-en">Completed</span>
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
+          <input type="checkbox" name="status_filter" value="closed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+          <span class="t-ar">مغلق</span><span class="t-en">Closed</span>
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
+          <input type="checkbox" name="status_filter" value="postponed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+          <span class="t-ar">مؤجل</span><span class="t-en">Rescheduled</span>
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
+          <input type="checkbox" name="status_filter" value="all" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+          <span class="t-ar">الكل</span><span class="t-en">All</span>
+        </label>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary" style="background:#155e75;border-color:#155e75;">
+      ⬇ <span class="t-ar">تحميل تقرير المواد</span><span class="t-en">Download Materials Report</span>
+    </button>
+    <script>
+      (function(){
+        var today = new Date().toISOString().slice(0,10);
+        var jan1  = new Date(new Date().getFullYear(),0,1).toISOString().slice(0,10);
+        document.getElementById('mat-from').value = jan1;
+        document.getElementById('mat-to').value   = today;
       })();
     </script>
   </form>

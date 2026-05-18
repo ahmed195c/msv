@@ -1247,6 +1247,189 @@ def field_work_monthly_excel(request):
 
 
 # ---------------------------------------------------------------------------
+# Monthly Materials Excel (one row per pesticide per order)
+# ---------------------------------------------------------------------------
+
+_MAT_HEADERS = [
+    'الرقم', 'رقم الطلب', 'تاريخ الطلب', 'تاريخ التنفيذ', 'تاريخ الإغلاق',
+    'اسم المتعامل', 'حالة الطلب', 'الموبايل',
+    'رقم الشارع', 'رقم المنزل', 'المنطقة', 'نوع المبنى',
+    'المراقب', 'العامل', 'نوع الحشرات',
+    'اسم المادة', 'المادة الفعالة', 'الكمية', 'الوحدة',
+    'مكان التطبيق', 'الآفات المستهدفة', 'فئة الآفة',
+]
+
+_MAT_COL_WIDTHS = [
+    5, 12, 12, 12, 12,
+    28, 22, 14,
+    10, 10, 22, 20,
+    25, 22, 28,
+    22, 22, 10, 8,
+    22, 30, 18,
+]
+
+
+@login_required
+def field_work_materials_excel(request):
+    if not (_can_admin(request.user) or _can_data_entry(request.user)):
+        return redirect('field_work_list')
+
+    try:
+        import openpyxl
+        from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        return HttpResponse('openpyxl is not installed.', status=500)
+
+    today = timezone.localtime(timezone.now()).date()
+    raw_from = (request.GET.get('date_from') or '').strip()
+    raw_to   = (request.GET.get('date_to')   or '').strip()
+
+    try:
+        date_from = _dt.date.fromisoformat(raw_from)
+    except ValueError:
+        date_from = today.replace(month=1, day=1)
+
+    try:
+        date_to = _dt.date.fromisoformat(raw_to)
+    except ValueError:
+        date_to = today
+
+    if date_from > date_to:
+        date_from, date_to = date_to, date_from
+
+    from django.db.models import Q
+    status_filters = request.GET.getlist('status_filter')
+    include_all = 'all' in status_filters or not status_filters
+
+    status_q = Q()
+    if not include_all:
+        if 'completed' in status_filters:
+            status_q |= Q(status='completed')
+        if 'closed' in status_filters:
+            status_q |= Q(status__startswith='closed_')
+        if 'postponed' in status_filters:
+            status_q |= Q(status='postponed_client')
+
+    date_q = (
+        Q(request_date__gte=date_from, request_date__lte=date_to) |
+        Q(request_date__isnull=True, created_at__date__gte=date_from, created_at__date__lte=date_to)
+    )
+
+    orders = (
+        FieldWorkOrder.objects
+        .filter(date_q)
+        .filter(status_q if not include_all else Q())
+        .select_related('assigned_supervisor', 'received_by', 'report_submitted_by')
+        .order_by('request_date', 'created_at', 'pk')
+    )
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f'{date_from} to {date_to}'
+    ws.sheet_view.rightToLeft = True
+    ws.freeze_panes = 'A2'
+
+    _thin   = Side(style='thin', color='AAAAAA')
+    _border = Border(left=_thin, right=_thin, top=_thin, bottom=_thin)
+
+    FILL_HDR  = PatternFill('solid', fgColor='1F4E79')
+    FONT_HDR  = Font(name='Calibri', bold=True, color='FFFFFF', size=9)
+    FONT_DATA = Font(name='Calibri', size=9)
+    ALIGN_CTR = Alignment(horizontal='center', vertical='center', wrap_text=False)
+    ALIGN_LFT = Alignment(horizontal='right',  vertical='center', wrap_text=False)
+
+    for col_idx, width in enumerate(_MAT_COL_WIDTHS, start=1):
+        ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+    ws.row_dimensions[1].height = 30
+    for col_idx, hdr in enumerate(_MAT_HEADERS, start=1):
+        c = ws.cell(row=1, column=col_idx, value=hdr)
+        c.fill      = FILL_HDR
+        c.font      = FONT_HDR
+        c.border    = _border
+        c.alignment = ALIGN_CTR
+
+    row_num = 0
+    r = 1
+    for order in orders:
+        sup_name = (
+            _user_display_name(order.report_submitted_by)
+            or _user_display_name(order.assigned_supervisor)
+            or order.supervisor_name or ''
+        )
+
+        base = [
+            None,                                                    # 1  row num — filled per material row
+            order.order_number or '',                                # 2
+            order.request_date,                                      # 3
+            order.work_date,                                         # 4
+            order.close_date,                                        # 5
+            order.customer_name or order.site_name or '',            # 6
+            order.excel_status or order.get_status_display(),        # 7
+            order.mobile or '',                                      # 8
+            order.street_number or '',                               # 9
+            order.house_number or '',                                # 10
+            order.area or order.location or '',                      # 11
+            order.building_type or '',                               # 12
+            sup_name,                                                # 13
+            order.worker_name or '',                                 # 14
+            order.pest_types or '',                                  # 15
+        ]
+
+        # Build material rows from spray_entries
+        mat_rows = []
+        for entry in (order.spray_entries or []):
+            loc        = entry.get('location', '')
+            pests      = entry.get('pests', [])
+            pest_cat   = _pest_category(pests)
+            pests_str  = ', '.join(pests)
+            pesticides = entry.get('pesticides', [])
+            for p in pesticides:
+                name = p.get('name', '').strip()
+                if not name:
+                    continue
+                mat_rows.append([
+                    name,                                            # 16 اسم المادة
+                    _ACTIVE_INGREDIENTS.get(name, ''),               # 17 المادة الفعالة
+                    p.get('qty', ''),                                # 18 الكمية
+                    p.get('unit', ''),                               # 19 الوحدة
+                    loc,                                             # 20 مكان التطبيق
+                    pests_str,                                       # 21 الآفات المستهدفة
+                    pest_cat,                                        # 22 فئة الآفة
+                ])
+
+        if not mat_rows:
+            mat_rows = [['', '', '', '', '', '', '']]
+
+        for mat in mat_rows:
+            row_num += 1
+            r += 1
+            ws.row_dimensions[r].height = 15
+            row_vals = [row_num] + base[1:] + mat
+            for col_idx, val in enumerate(row_vals, start=1):
+                c = ws.cell(row=r, column=col_idx, value=val)
+                c.border    = _border
+                c.font      = FONT_DATA
+                c.alignment = ALIGN_CTR if col_idx in (1, 3, 4, 5, 8, 9, 10, 18, 19) else ALIGN_LFT
+
+    if r == 1:
+        ws.cell(row=2, column=1, value=f'No orders between {date_from} and {date_to}.')
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    filename = f'FieldWork_Materials_{date_from}_to_{date_to}.xlsx'
+    response = HttpResponse(
+        buf.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+# ---------------------------------------------------------------------------
 # Word Report
 # ---------------------------------------------------------------------------
 
