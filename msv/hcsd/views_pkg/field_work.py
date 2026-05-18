@@ -549,44 +549,6 @@ _OTHERS_PESTS    = frozenset(['Agricultural Pest'])
 _MONTH_ABBR = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
                 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
-_PEST_TO_COL = {
-    'Ants': 'ant',
-    'German Cockroach': 'cockroach', 'American Cockroach': 'cockroach',
-    'Mosquito Adult': 'mosquito', 'Mosquito Aedes': 'mosquito',
-    'Mosquito Culex': 'mosquito', 'Mosquito Anopheles': 'mosquito',
-    'House Flies': 'fly', 'Drain Flies': 'fly', 'Fruit Flies': 'fly',
-    'Rodents Roof Rat': 'rat', 'Rodents Norway Rat': 'rat', 'Rodents House mouse': 'rat',
-    'Snake': 'snake',
-    'Scorpion': 'scorpion',
-    'Wasp And Bee': 'wasps',
-    'Bees': 'bees',
-    'Other Harmful Pest': 'other', 'Agricultural Pest': 'other',
-    'Lizard': 'other', 'Termites': 'other',
-    'Non Poisonous Spider': 'other', 'Poisonous Spider': 'other',
-}
-
-_CHEM_TO_COL = {
-    'BOOM': 'boom',
-    'Aqua k-Othrine': 'kothreni', 'K-Othrine Partix': 'kothreni',
-    'KULCYPERIN 100/3 EC': 'cyphorce', 'DEMON MAX INSECTICIDE': 'cyphorce',
-    'Solfac EC 50': 'cyphorce', 'CYMPERATOR 25 EC': 'cyphorce',
-    'Bio Amplat': 'cyphorce', 'ROTRYN 200': 'cyphorce', 'CYPFORCE 40 EC': 'cyphorce',
-    'Temprid SC': 'cyphorce',
-    'Vertox Oktablok': 'rat_poison', 'FACORAT PELLETS': 'rat_poison',
-    'VICTOR V FAST-KILL BRAND BLOCKS II': 'rat_poison',
-    'SUREFIRE ALL WEATHER BLOCKS': 'rat_poison',
-    'PROTECT SENSATION 2IN1': 'rat_poison', 'VERTOX PASTA BAIT': 'rat_poison',
-    'STELLIOX D50': 'rat_poison', 'TALON WB': 'rat_poison',
-    'SUREFIRE BROMA BLOCKS RODENTICIDE': 'rat_poison',
-    'NOCURAT PARAFFINATO': 'rat_poison',
-    'ECOLARVACIDE EC': 'eco_larvacide', 'GRAYBATE 50 SG': 'eco_larvacide',
-    'TEMEPHOS 55EC': 'eco_larvacide', 'BIOPREN 4 GR': 'eco_larvacide',
-    'LAROXYFEN PLUS WT': 'eco_larvacide', 'Starycide SC 480': 'eco_larvacide',
-    'BuyBlocker Snake Deter': 'snake_deter',
-    'HYMENOPHTHOR GR': 'hymenopthor',
-    'PERMETHOR': 'permothor',
-    'DIFRON 25 SC': 'difron',
-}
 
 
 def _user_display_name(user):
@@ -596,35 +558,7 @@ def _user_display_name(user):
     return name if name else user.username
 
 
-def _order_checks(order):
-    """Return (pest_checks, chem_checks) dicts: key → bool, derived from boolean fields + spray_entries."""
-    pest = {
-        'ant': order.treated_ant, 'cockroach': order.treated_cockroach,
-        'mosquito': order.treated_mosquito, 'fly': order.treated_fly,
-        'rat': order.treated_rat, 'snake': order.treated_snake,
-        'scorpion': order.treated_scorpion, 'wasps': order.treated_wasps,
-        'bees': order.treated_bees, 'other': order.treated_other,
-    }
-    chem = {
-        'boom': order.used_boom, 'kothreni': order.used_kothreni,
-        'diesel': order.used_diesel, 'petrol': order.used_petrol,
-        'cyphorce': order.used_cyphorce, 'rat_poison': order.used_rat_poison,
-        'eco_larvacide': order.used_eco_larvacide, 'snake_deter': order.used_snake_deter,
-        'hymenopthor': order.used_hymenopthor, 'permothor': order.used_permothor,
-        'rat_glue': order.used_rat_glue, 'rapetr_gel': order.used_rapetr_gel,
-        'graibait': order.used_graibait, 'difron': order.used_difron,
-        'fly_attractant': order.used_fly_attractant,
-    }
-    for entry in (order.spray_entries or []):
-        for p in entry.get('pests', []):
-            col = _PEST_TO_COL.get(p)
-            if col:
-                pest[col] = True
-        for p in entry.get('pesticides', []):
-            col = _CHEM_TO_COL.get(p.get('name', ''))
-            if col:
-                chem[col] = True
-    return pest, chem
+
 
 def _pest_category(pests):
     cats = []
@@ -1029,24 +963,13 @@ _MONTHLY_HEADERS = [
     'الرقم', 'رقم الطلب', 'تاريخ الطلب', 'تاريخ الإغلاق', 'اسم المتعامل',
     'حالة الطلب', None, 'الموبايل', 'رقم الشارع', 'رقم المنزل',
     'المنطقة', 'نوع الحشرات', 'TREATED SUPERVISOR', None,
-    'ANT ', 'COCKROACH', 'بعوض', 'باعوض', 'FLY', 'RAT', 'SNAKE',
-    'Scorpions', 'Wasps', 'Bees', 'other',
-    'BOOM', 'K OTHRENI', 'DIESEL', 'PETROL', 'CYPHORCE', 'RAT-POSION',
-    'ECO LARVACIDE', 'SNAKE DETER ', 'HYMENOPTHOR GR', 'PERMOTHOR DUST',
-    'RAT GLUE', 'RAPETR GEL', 'GRAIBAIT', 'DIFRON 25 SC', 'FLY ATTRACTANT',
-    None,
     'سبب الإغلاق', 'تاريخ التأجيل',
 ]
 
 _MONTHLY_COL_WIDTHS = [
     5, 12, 12, 12, 25, 20, 20, 14, 10, 10,
-    22, 22, 25, 25,
-    6, 10, 7, 7, 6, 6, 8,
-    9, 7, 6, 6,
-    7, 9, 8, 8, 10, 11,
-    14, 12, 15, 15,
-    9, 10, 9, 12, 15, 4,
-    22, 14,
+    22, 32, 25, 25,
+    28, 14,
 ]
 
 
@@ -1119,10 +1042,7 @@ def field_work_monthly_excel(request):
     _border = Border(left=_thin, right=_thin, top=_thin, bottom=_thin)
 
     FILL_INFO  = PatternFill('solid', fgColor='1F4E79')
-    FILL_PEST  = PatternFill('solid', fgColor='375623')
-    FILL_CHEM  = PatternFill('solid', fgColor='833C00')
     FONT_WHITE = Font(name='Calibri', bold=True, color='FFFFFF', size=9)
-    FONT_WING  = Font(name='Wingdings', size=11, color='006400')
     FONT_DATA  = Font(name='Calibri', size=9)
     ALIGN_CTR  = Alignment(horizontal='center', vertical='center', wrap_text=False)
     ALIGN_LFT  = Alignment(horizontal='left',   vertical='center', wrap_text=False)
@@ -1148,10 +1068,6 @@ def field_work_monthly_excel(request):
             c.font      = FONT_WHITE
             if col_idx <= 14:
                 c.fill = FILL_INFO
-            elif col_idx <= 25:
-                c.fill = FILL_PEST
-            elif col_idx <= 41:
-                c.fill = FILL_CHEM
             else:
                 c.fill = PatternFill('solid', fgColor='4B4B4B')
 
@@ -1159,16 +1075,21 @@ def field_work_monthly_excel(request):
             r = row_num + 1
             ws.row_dimensions[r].height = 15
 
-            pest, chem = _order_checks(order)
-
             sup_name = (
                 _user_display_name(order.report_submitted_by)
                 or _user_display_name(order.assigned_supervisor)
                 or order.supervisor_name or ''
             )
 
-            def chk(flag):
-                return 'ü' if flag else None
+            # Collect unique pests from spray_entries; fall back to pest_types text
+            seen_pests: set = set()
+            ordered_pests: list = []
+            for entry in (order.spray_entries or []):
+                for p in entry.get('pests', []):
+                    if p not in seen_pests:
+                        seen_pests.add(p)
+                        ordered_pests.append(p)
+            pest_col = order.pest_types or ', '.join(ordered_pests)
 
             row_vals = [
                 row_num,
@@ -1182,51 +1103,20 @@ def field_work_monthly_excel(request):
                 order.street_number or '',
                 order.house_number or '',
                 order.area or order.location or '',
-                order.pest_types or '',
-                sup_name,
-                order.worker_name or '',
-                chk(pest['ant']),        # 15 ANT
-                chk(pest['cockroach']),  # 16 COCKROACH
-                chk(pest['mosquito']),   # 17 بعوض
-                None,                    # 18 باعوض (always empty)
-                chk(pest['fly']),        # 19 FLY
-                chk(pest['rat']),        # 20 RAT
-                chk(pest['snake']),      # 21 SNAKE
-                chk(pest['scorpion']),   # 22 Scorpions
-                chk(pest['wasps']),      # 23 Wasps
-                chk(pest['bees']),       # 24 Bees
-                chk(pest['other']),      # 25 other
-                chk(chem['boom']),           # 26 BOOM
-                chk(chem['kothreni']),       # 27 K OTHRENI
-                chk(chem['diesel']),         # 28 DIESEL
-                chk(chem['petrol']),         # 29 PETROL
-                chk(chem['cyphorce']),       # 30 CYPHORCE
-                chk(chem['rat_poison']),     # 31 RAT-POSION
-                chk(chem['eco_larvacide']),  # 32 ECO LARVACIDE
-                chk(chem['snake_deter']),    # 33 SNAKE DETER
-                chk(chem['hymenopthor']),    # 34 HYMENOPTHOR GR
-                chk(chem['permothor']),      # 35 PERMOTHOR DUST
-                chk(chem['rat_glue']),       # 36 RAT GLUE
-                chk(chem['rapetr_gel']),     # 37 RAPETR GEL
-                chk(chem['graibait']),       # 38 GRAIBAIT
-                chk(chem['difron']),         # 39 DIFRON 25 SC
-                chk(chem['fly_attractant']), # 40 FLY ATTRACTANT
-                None,                        # 41 (empty trailing col)
-                order.get_status_display(),  # 42 سبب الإغلاق
-                order.postponed_until,       # 43 تاريخ التأجيل
+                pest_col,                    # 12 نوع الحشرات
+                sup_name,                    # 13
+                order.worker_name or '',     # 14
+                order.get_status_display(),  # 15 سبب الإغلاق
+                order.postponed_until,       # 16 تاريخ التأجيل
             ]
 
             for col_idx, val in enumerate(row_vals, start=1):
                 c = ws.cell(row=r, column=col_idx, value=val)
-                c.border = _border
-                if col_idx >= 15 and val == 'ü':
-                    c.font      = FONT_WING
-                    c.alignment = ALIGN_CTR
-                elif col_idx <= 4 or col_idx in (8, 9, 10, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25):
-                    c.font      = FONT_DATA
+                c.border    = _border
+                c.font      = FONT_DATA
+                if col_idx in (1, 3, 4, 8, 9, 10, 16):
                     c.alignment = ALIGN_CTR
                 else:
-                    c.font      = FONT_DATA
                     c.alignment = ALIGN_LFT
 
     if not wb.sheetnames:
