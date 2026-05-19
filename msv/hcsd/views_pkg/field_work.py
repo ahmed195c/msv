@@ -973,14 +973,14 @@ def field_work_excel_report(request, pk):
 # ---------------------------------------------------------------------------
 
 _MONTHLY_HEADERS = [
-    'الرقم', 'رقم الطلب', 'تاريخ الطلب', 'تاريخ الإغلاق', 'اسم المتعامل',
+    'رقم الطلب', 'تاريخ الطلب', 'تاريخ الإغلاق', 'اسم المتعامل',
     'حالة الطلب', 'سبب الإغلاق', 'تاريخ التأجيل',
     'الموبايل', 'رقم الشارع', 'رقم المنزل',
     'المنطقة', 'نوع الحشرات', 'المراقب المسؤول',
 ]
 
 _MONTHLY_COL_WIDTHS = [
-    5, 12, 12, 12, 25,
+    12, 12, 12, 25,
     16, 34, 14,
     14, 10, 10,
     22, 32, 25,
@@ -1108,7 +1108,7 @@ def field_work_monthly_excel(request):
 
         yr2 = str(yr)[-2:]
         ws = wb.create_sheet(title=f'{_MONTH_ABBR[month - 1]} - {yr2}')
-        ws.sheet_view.rightToLeft = False
+        ws.sheet_view.rightToLeft = True
         ws.freeze_panes = 'A2'
 
         for col_idx, width in enumerate(_MONTHLY_COL_WIDTHS, start=1):
@@ -1122,9 +1122,8 @@ def field_work_monthly_excel(request):
             c.font      = FONT_WHITE
             c.fill = FILL_INFO
 
-        for row_num, order in enumerate(orders_in_month, start=1):
-            r = row_num + 1
-            ws.row_dimensions[r].height = 20
+        for r_idx, order in enumerate(orders_in_month, start=2):
+            ws.row_dimensions[r_idx].height = 20
 
             sup_name = (
                 _sup_name(order.received_by)
@@ -1143,27 +1142,26 @@ def field_work_monthly_excel(request):
             pest_col = order.pest_types or ', '.join(ordered_pests)
 
             row_vals = [
-                row_num,                                              # 1
-                order.order_number or '',                             # 2
-                order.request_date,                                   # 3
-                order.close_date,                                     # 4
-                order.customer_name or order.site_name or '',         # 5
-                _status_category(order.status),                       # 6 حالة الطلب
-                _CLOSURE_REASON.get(order.status, ''),                # 7 سبب الإغلاق
-                order.postponed_until,                                # 8 تاريخ التأجيل
-                order.mobile or '',                                   # 9
-                order.street_number or '',                            # 10
-                order.house_number or '',                             # 11
-                order.area or order.location or '',                   # 12
-                pest_col,                                             # 13 نوع الحشرات
-                sup_name,                                             # 14
+                order.order_number or '',                             # 1
+                order.request_date,                                   # 2
+                order.close_date,                                     # 3
+                order.customer_name or order.site_name or '',         # 4
+                _status_category(order.status),                       # 5 حالة الطلب
+                _CLOSURE_REASON.get(order.status, ''),                # 6 سبب الإغلاق
+                order.postponed_until,                                 # 7 تاريخ التأجيل
+                order.mobile or '',                                   # 8
+                order.street_number or '',                            # 9
+                order.house_number or '',                             # 10
+                order.area or order.location or '',                   # 11
+                pest_col,                                             # 12 نوع الحشرات
+                sup_name,                                             # 13
             ]
 
             for col_idx, val in enumerate(row_vals, start=1):
-                c = ws.cell(row=r, column=col_idx, value=val)
+                c = ws.cell(row=r_idx, column=col_idx, value=val)
                 c.border    = _border
                 c.font      = FONT_DATA
-                if col_idx in (1, 3, 4, 8, 9, 10, 11):
+                if col_idx in (2, 3, 7, 8, 9, 10):
                     c.alignment = ALIGN_CTR
                 else:
                     c.alignment = ALIGN_LFT
@@ -1190,7 +1188,7 @@ def field_work_monthly_excel(request):
 # ---------------------------------------------------------------------------
 
 _MAT_HEADERS = [
-    'الرقم', 'رقم الطلب', 'تاريخ الطلب', 'تاريخ التنفيذ', 'تاريخ الإغلاق',
+    'رقم الطلب', 'تاريخ الطلب', 'تاريخ التنفيذ', 'تاريخ الإغلاق',
     'اسم المتعامل', 'حالة الطلب', 'الموبايل',
     'رقم الشارع', 'رقم المنزل', 'المنطقة', 'نوع المبنى',
     'المراقب', 'نوع الحشرات',
@@ -1199,7 +1197,7 @@ _MAT_HEADERS = [
 ]
 
 _MAT_COL_WIDTHS = [
-    5, 12, 12, 12, 12,
+    12, 12, 12, 12,
     28, 22, 14,
     10, 10, 22, 20,
     25, 28,
@@ -1292,7 +1290,6 @@ def field_work_materials_excel(request):
         c.border    = _border
         c.alignment = ALIGN_CTR
 
-    row_num = 0
     r = 1
     for order in orders:
         sup_name = (
@@ -1302,20 +1299,19 @@ def field_work_materials_excel(request):
         )
 
         base = [
-            None,                                                    # 1  row num — filled per material row
-            order.order_number or '',                                # 2
-            order.request_date,                                      # 3
-            order.work_date,                                         # 4
-            order.close_date,                                        # 5
-            order.customer_name or order.site_name or '',            # 6
-            order.get_status_display(),                              # 7
-            order.mobile or '',                                      # 8
-            order.street_number or '',                               # 9
-            order.house_number or '',                                # 10
-            order.area or order.location or '',                      # 11
-            order.building_type or '',                               # 12
-            sup_name,                                                # 13
-            order.pest_types or '',                                  # 14
+            order.order_number or '',                                # 1
+            order.request_date,                                      # 2
+            order.work_date,                                         # 3
+            order.close_date,                                        # 4
+            order.customer_name or order.site_name or '',            # 5
+            order.get_status_display(),                              # 6
+            order.mobile or '',                                      # 7
+            order.street_number or '',                               # 8
+            order.house_number or '',                                # 9
+            order.area or order.location or '',                      # 10
+            order.building_type or '',                               # 11
+            sup_name,                                                # 12
+            order.pest_types or '',                                  # 13
         ]
 
         # Build material rows from spray_entries
@@ -1331,28 +1327,27 @@ def field_work_materials_excel(request):
                 if not name:
                     continue
                 mat_rows.append([
-                    name,                                            # 16 اسم المادة
-                    _ACTIVE_INGREDIENTS.get(name, ''),               # 17 المادة الفعالة
-                    p.get('qty', ''),                                # 18 الكمية
-                    p.get('unit', ''),                               # 19 الوحدة
-                    loc,                                             # 20 مكان التطبيق
-                    pests_str,                                       # 21 الآفات المستهدفة
-                    pest_cat,                                        # 22 فئة الآفة
+                    name,                                            # 14 اسم المادة
+                    _ACTIVE_INGREDIENTS.get(name, ''),               # 15 المادة الفعالة
+                    p.get('qty', ''),                                # 16 الكمية
+                    p.get('unit', ''),                               # 17 الوحدة
+                    loc,                                             # 18 مكان التطبيق
+                    pests_str,                                       # 19 الآفات المستهدفة
+                    pest_cat,                                        # 20 فئة الآفة
                 ])
 
         if not mat_rows:
             mat_rows = [['', '', '', '', '', '', '']]
 
         for mat in mat_rows:
-            row_num += 1
             r += 1
             ws.row_dimensions[r].height = 15
-            row_vals = [row_num] + base[1:] + mat
+            row_vals = base + mat
             for col_idx, val in enumerate(row_vals, start=1):
                 c = ws.cell(row=r, column=col_idx, value=val)
                 c.border    = _border
                 c.font      = FONT_DATA
-                c.alignment = ALIGN_CTR if col_idx in (1, 3, 4, 5, 8, 9, 10, 17, 18) else ALIGN_LFT
+                c.alignment = ALIGN_CTR if col_idx in (2, 3, 4, 7, 8, 9, 16, 17) else ALIGN_LFT
 
     if r == 1:
         ws.cell(row=2, column=1, value=f'No orders between {date_from} and {date_to}.')
