@@ -558,6 +558,19 @@ def _user_display_name(user):
     return name if name else user.username
 
 
+def _sup_name(user) -> str:
+    """Return the supervisor's Arabic profile name, falling back to full name / username."""
+    if not user:
+        return ''
+    try:
+        name_ar = user.fw_supervisor_profile.name_ar
+        if name_ar:
+            return name_ar
+    except Exception:
+        pass
+    return _user_display_name(user)
+
+
 
 
 def _pest_category(pests):
@@ -1064,7 +1077,10 @@ def field_work_monthly_excel(request):
         FieldWorkOrder.objects
         .filter(date_q)
         .filter(status_q if not include_all else Q())
-        .select_related('assigned_supervisor', 'received_by', 'report_submitted_by')
+        .select_related(
+            'assigned_supervisor', 'assigned_supervisor__fw_supervisor_profile',
+            'received_by', 'received_by__fw_supervisor_profile',
+        )
         .order_by('request_date', 'created_at', 'pk')
     )
 
@@ -1111,8 +1127,8 @@ def field_work_monthly_excel(request):
             ws.row_dimensions[r].height = 20
 
             sup_name = (
-                _user_display_name(order.report_submitted_by)
-                or _user_display_name(order.assigned_supervisor)
+                _sup_name(order.received_by)
+                or _sup_name(order.assigned_supervisor)
                 or order.supervisor_name or ''
             )
 
@@ -1177,7 +1193,7 @@ _MAT_HEADERS = [
     'الرقم', 'رقم الطلب', 'تاريخ الطلب', 'تاريخ التنفيذ', 'تاريخ الإغلاق',
     'اسم المتعامل', 'حالة الطلب', 'الموبايل',
     'رقم الشارع', 'رقم المنزل', 'المنطقة', 'نوع المبنى',
-    'المراقب', 'العامل', 'نوع الحشرات',
+    'المراقب', 'نوع الحشرات',
     'اسم المادة', 'المادة الفعالة', 'الكمية', 'الوحدة',
     'مكان التطبيق', 'الآفات المستهدفة', 'فئة الآفة',
 ]
@@ -1186,7 +1202,7 @@ _MAT_COL_WIDTHS = [
     5, 12, 12, 12, 12,
     28, 22, 14,
     10, 10, 22, 20,
-    25, 22, 28,
+    25, 28,
     22, 22, 10, 8,
     22, 30, 18,
 ]
@@ -1243,7 +1259,10 @@ def field_work_materials_excel(request):
         FieldWorkOrder.objects
         .filter(date_q)
         .filter(status_q if not include_all else Q())
-        .select_related('assigned_supervisor', 'received_by', 'report_submitted_by')
+        .select_related(
+            'assigned_supervisor', 'assigned_supervisor__fw_supervisor_profile',
+            'received_by', 'received_by__fw_supervisor_profile',
+        )
         .order_by('request_date', 'created_at', 'pk')
     )
 
@@ -1277,8 +1296,8 @@ def field_work_materials_excel(request):
     r = 1
     for order in orders:
         sup_name = (
-            _user_display_name(order.report_submitted_by)
-            or _user_display_name(order.assigned_supervisor)
+            _sup_name(order.received_by)
+            or _sup_name(order.assigned_supervisor)
             or order.supervisor_name or ''
         )
 
@@ -1289,15 +1308,14 @@ def field_work_materials_excel(request):
             order.work_date,                                         # 4
             order.close_date,                                        # 5
             order.customer_name or order.site_name or '',            # 6
-            order.excel_status or order.get_status_display(),        # 7
+            order.get_status_display(),                              # 7
             order.mobile or '',                                      # 8
             order.street_number or '',                               # 9
             order.house_number or '',                                # 10
             order.area or order.location or '',                      # 11
             order.building_type or '',                               # 12
             sup_name,                                                # 13
-            order.worker_name or '',                                 # 14
-            order.pest_types or '',                                  # 15
+            order.pest_types or '',                                  # 14
         ]
 
         # Build material rows from spray_entries
@@ -1334,7 +1352,7 @@ def field_work_materials_excel(request):
                 c = ws.cell(row=r, column=col_idx, value=val)
                 c.border    = _border
                 c.font      = FONT_DATA
-                c.alignment = ALIGN_CTR if col_idx in (1, 3, 4, 5, 8, 9, 10, 18, 19) else ALIGN_LFT
+                c.alignment = ALIGN_CTR if col_idx in (1, 3, 4, 5, 8, 9, 10, 17, 18) else ALIGN_LFT
 
     if r == 1:
         ws.cell(row=2, column=1, value=f'No orders between {date_from} and {date_to}.')
