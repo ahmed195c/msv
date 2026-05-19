@@ -47,6 +47,14 @@ def pest_control_permit(request):
     if not _can_data_entry(request.user):
         return redirect('clearance_list')
     companies = Company.objects.select_related('enginer').all().order_by('name')
+    _eng_qs = list(
+        Enginer.objects.order_by('name')
+        .values('id', 'name', 'phone', 'card_number', 'public_health_cert')
+    )
+    all_engineers = [
+        {**e, 'has_cert': bool(e.pop('public_health_cert'))}
+        for e in _eng_qs
+    ]
     selected_company_id = _parse_int(request.GET.get('company_id') or request.POST.get('company_id'))
     selected_company = (
         Company.objects.select_related('enginer').filter(id=selected_company_id).first()
@@ -74,8 +82,8 @@ def pest_control_permit(request):
         'company_email': selected_company.email if selected_company else '',
         'business_activity': selected_company.business_activity if selected_company else '',
         'request_email': '',
+        'engineer_id': selected_enginer.id if selected_enginer else '',
         'engineer_name': selected_enginer.name if selected_enginer else '',
-        'engineer_email': selected_enginer.email if selected_enginer else '',
         'engineer_phone': selected_enginer.phone if selected_enginer else '',
         'expiry_date': initial_expiry_date.isoformat() if initial_expiry_date else '',
         'allowed_other': '',
@@ -113,8 +121,8 @@ def pest_control_permit(request):
                 'company_email': (request.POST.get('company_email') or '').strip(),
                 'business_activity': (request.POST.get('business_activity') or '').strip(),
                 'request_email': (request.POST.get('request_email') or '').strip(),
-                'engineer_name': (request.POST.get('engineer_name') or '').strip(),
-                'engineer_email': (request.POST.get('engineer_email') or '').strip(),
+                'engineer_id': _parse_int(request.POST.get('engineer_id')) or '',
+                'engineer_name': '',
                 'engineer_phone': (request.POST.get('engineer_phone') or '').strip(),
                 'allowed_other': (request.POST.get('allowed_other') or '').strip(),
                 'restricted_other': (request.POST.get('restricted_other') or '').strip(),
@@ -146,43 +154,28 @@ def pest_control_permit(request):
             form_errors.append('request_email_required')
 
         enginer = None
-        pending_enginer_fields = []
-        if company:
-            enginer = company.enginer
+        engineer_id = _parse_int(form_data['engineer_id'])
+        if engineer_id:
+            enginer = Enginer.objects.filter(id=engineer_id).first()
             if not enginer:
-                engineer_notice = 'تنبيه: هذه الشركة بدون مهندس مسجل حالياً. يمكن تقديم الطلب واستكمال بيانات المهندس لاحقاً.'
+                form_errors.append('engineer_select_invalid')
             else:
-                if _can_admin(request.user):
-                    pending_enginer_fields = []
-                    if form_data['engineer_name'] and enginer.name != form_data['engineer_name']:
-                        enginer.name = form_data['engineer_name']
-                        pending_enginer_fields.append('name')
-                    if form_data['engineer_email'] and enginer.email != form_data['engineer_email']:
-                        enginer.email = form_data['engineer_email']
-                        pending_enginer_fields.append('email')
-                    if form_data['engineer_phone'] and enginer.phone != form_data['engineer_phone']:
-                        enginer.phone = form_data['engineer_phone']
-                        pending_enginer_fields.append('phone')
-                engineer_notice = _engineer_no_certificate_notice(enginer)
-        else:
-            if form_data['engineer_name'] or form_data['engineer_email'] or form_data['engineer_phone']:
-                if not (form_data['engineer_name'] and form_data['engineer_email'] and form_data['engineer_phone']):
-                    form_errors.append('engineer_required')
+                form_data['engineer_name'] = enginer.name
+                if not form_data['engineer_phone']:
+                    form_data['engineer_phone'] = enginer.phone
+                if not enginer.public_health_cert:
+                    engineer_notice = 'تنبيه: المهندس المختار لا يملك شهادة الصحة العامة — يرجى إضافة الشهادة لاحقاً حتى يكتمل ملف المهندس.'
                 else:
-                    enginer = Enginer.objects.filter(email=form_data['engineer_email']).first()
-                    if not enginer:
-                        form_errors.append('engineer_not_registered')
-                    else:
-                        pending_enginer_fields = []
-                        if form_data['engineer_name'] and enginer.name != form_data['engineer_name']:
-                            enginer.name = form_data['engineer_name']
-                            pending_enginer_fields.append('name')
-                        if form_data['engineer_phone'] and enginer.phone != form_data['engineer_phone']:
-                            enginer.phone = form_data['engineer_phone']
-                            pending_enginer_fields.append('phone')
-                        engineer_notice = _engineer_no_certificate_notice(enginer)
-            else:
-                engineer_notice = 'تنبيه: يمكن تقديم الطلب بدون مهندس للشركة الجديدة، وسيتم استكمال المهندس لاحقاً.'
+                    engineer_notice = _engineer_no_certificate_notice(enginer)
+        elif company and company.enginer:
+            enginer = company.enginer
+            form_data['engineer_id'] = enginer.id
+            form_data['engineer_name'] = enginer.name
+            if not form_data['engineer_phone']:
+                form_data['engineer_phone'] = enginer.phone
+            engineer_notice = _engineer_no_certificate_notice(enginer)
+        elif company:
+            engineer_notice = 'تنبيه: هذه الشركة بدون مهندس مسجل حالياً. يمكن تقديم الطلب واستكمال بيانات المهندس لاحقاً.'
 
         allowed_activities = _activities_for_enginer(enginer)
         restricted_activities = _restricted_activities_for_enginer(enginer)
@@ -203,8 +196,9 @@ def pest_control_permit(request):
 
         if not form_errors:
           with transaction.atomic():
-            if enginer and pending_enginer_fields:
-                enginer.save(update_fields=pending_enginer_fields)
+            if enginer and form_data['engineer_phone'] and enginer.phone != form_data['engineer_phone']:
+                enginer.phone = form_data['engineer_phone']
+                enginer.save(update_fields=['phone'])
             if not company:
                 company = Company.objects.create(
                     name=form_data['company_name'],
@@ -272,6 +266,7 @@ def pest_control_permit(request):
 
     context = {
         'companies': companies,
+        'all_engineers': all_engineers,
         'selected_company_id': selected_company_id,
         'form_data': form_data,
         'selected_allowed_activities': selected_allowed_activities,

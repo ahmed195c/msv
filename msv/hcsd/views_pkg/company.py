@@ -13,7 +13,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from ..models import (
-    Company, CompanyChangeLog, EngineerCertificateRequest, EngineerLeave,
+    Company, CompanyChangeLog, EngineerCertificateRequest, EngineerCompanyRemoval,
+    EngineerLeave, EngineerRemovalDocument,
     Enginer, EnginerStatusLog, InspectorReview, PesticideTransportPermit,
     PirmetChangeLog, PirmetClearance, PirmetDocument, PublicHealthExamRequest,
     PublicHealthExamRequestDocument, RequirementInsuranceRequest,
@@ -313,6 +314,7 @@ def company_detail(request, id):
     error = ''
     extension_error = ''
     extension_notice = ''
+    removal_error = ''
     form_data = {
         'name': company.name,
         'number': company.number,
@@ -364,6 +366,37 @@ def company_detail(request, id):
                     notes=' — '.join(notes_parts),
                 )
             return redirect('company_detail', id=company.id)
+        elif action == 'remove_engineer':
+            if not _can_admin(request.user):
+                extension_error = 'إزالة المهندس متاحة للإدارة فقط.'
+            elif not company.enginer:
+                extension_error = 'لا يوجد مهندس مرتبط بهذه الشركة.'
+            else:
+                notes = (request.POST.get('removal_notes') or '').strip()
+                docs  = request.FILES.getlist('removal_documents')
+                invalid = [d.name for d in docs if os.path.splitext(d.name)[1].lower() not in ALLOWED_DOC_EXTENSIONS]
+                if not docs:
+                    extension_error = 'يرجى إرفاق مستند إثبات واحد على الأقل.'
+                elif invalid:
+                    extension_error = 'الملفات المسموحة هي PDF أو صور فقط: ' + ', '.join(invalid)
+                else:
+                    with transaction.atomic():
+                        removal = EngineerCompanyRemoval.objects.create(
+                            enginer=company.enginer,
+                            company=company,
+                            removed_by=request.user,
+                            notes=notes,
+                        )
+                        for doc in docs:
+                            EngineerRemovalDocument.objects.create(removal=removal, file=doc)
+                        old_enginer = company.enginer
+                        company.enginer = None
+                        company.save(update_fields=['enginer'])
+                        _log_company_change(
+                            company, 'engineer_removed', request.user,
+                            notes=f'تمت إزالة المهندس {old_enginer.name} — {notes or "بدون ملاحظات"}',
+                        )
+                    return redirect('company_detail', id=company.id)
         elif action == 'close_extension':
             if not _can_admin(request.user):
                 extension_error = 'إغلاق المهلة متاح للإدارة فقط.'
@@ -421,7 +454,6 @@ def company_detail(request, id):
                 owner_phone = (request.POST.get('owner_phone') or '').strip()
                 email = (request.POST.get('email') or '').strip()
                 business_activity_text = (request.POST.get('business_activity') or '').strip()
-                pest_control_type = (request.POST.get('pest_control_type') or '').strip()
                 enginer_id = _parse_int(request.POST.get('enginer'))
                 enginer_ids = _parse_int_list(request.POST.getlist('enginers'))
                 if enginer_id and enginer_id not in enginer_ids:
@@ -441,14 +473,9 @@ def company_detail(request, id):
                         'enginer_ids': [str(i) for i in enginer_ids],
                     }
                 )
-                selected_pest_control_type = pest_control_type
 
                 if not name or not number or not address:
                     error = 'يرجى إدخال الاسم ورقم الرخصة والعنوان.'
-                elif not pest_control_type:
-                    error = 'يرجى اختيار نوع المكافحة.'
-                elif not enginer_id:
-                    error = 'يرجى اختيار مهندس.'
 
                 trade_license_exp = _parse_date(trade_license_exp_value)
                 if trade_license_exp_value and not trade_license_exp:
@@ -466,14 +493,17 @@ def company_detail(request, id):
                     if len(selected_engineers) != len(enginer_ids):
                         error = 'يرجى اختيار مهندسين صحيحين.'
 
-                if not error and enginer:
-                    error = _validate_engineer_for_type(enginer, pest_control_type) or ''
-                if not error:
-                    for engineer_item in selected_engineers:
-                        validation_error = _validate_engineer_for_type(engineer_item, pest_control_type)
-                        if validation_error:
-                            error = validation_error
-                            break
+                # Auto-derive pest_control_type from selected engineer
+                if enginer:
+                    if enginer.has_termite_cert:
+                        pest_control_type = 'termite_control'
+                    elif enginer.has_public_health_cert:
+                        pest_control_type = 'public_health_pest_control'
+                    else:
+                        pest_control_type = company.pest_control_type or 'public_health_pest_control'
+                else:
+                    pest_control_type = company.pest_control_type or ''
+                selected_pest_control_type = pest_control_type
 
                 if not error:
                     changes = []
@@ -628,7 +658,9 @@ def company_detail(request, id):
             'error': error,
             'extension_error': extension_error,
             'extension_notice': extension_notice,
+            'removal_error': removal_error,
             'can_edit_company': can_edit_company,
+            'can_remove_engineer': _can_admin(request.user),
             'can_request_extension': can_request_extension,
             'can_manage_requirement_insurance': can_manage_requirement_insurance,
             'logs': logs,

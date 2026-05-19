@@ -164,32 +164,32 @@
 
       <div class="permit-card">
         <p class="permit-card__title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</p>
-        <p class="permit-card__desc">طلب تصريح لشركات مكافحة آفات الصحة العامة مع بيانات المهندس والمستندات اللازمة.</p>
+        <p class="permit-card__desc">انشاء طلب لتجديد تصريح مزاولة النشاط لشركات مكافحة الحشرات و النظافه</p>
         <button class="pt-btn pt-btn--primary" onclick="document.getElementById('pest-modal').style.display='flex';document.getElementById('pest-search').focus()">بدء الطلب</button>
       </div>
 
       <div class="permit-card">
         <p class="permit-card__title">تصريح المركبة للشركات</p>
-        <p class="permit-card__desc">تقديم مستندات المركبة ثم متابعة إجراءات المعالجة حتى إصدار التصريح النهائي.</p>
-        <a class="pt-btn pt-btn--primary" href="{% url 'vehicle_permit' %}">بدء الطلب</a>
+        <p class="permit-card__desc">انشاء طلب تصريح مركبة ومتابعته</p>
+        <button class="pt-btn pt-btn--primary" onclick="document.getElementById('vehicle-modal').style.display='flex';document.getElementById('vehicle-search').focus()">بدء الطلب</button>
       </div>
 
       <div class="permit-card">
         <p class="permit-card__title">تصريح التخلص من النفايات</p>
-        <p class="permit-card__desc">تقديم بيانات النفايات والوثائق المطلوبة ثم متابعة إجراءات التفتيش وإصدار التصريح.</p>
-        <a class="pt-btn pt-btn--primary" href="{% url 'waste_permit' %}">بدء الطلب</a>
+        <p class="permit-card__desc">انشاء طلب اصدار تصريح التخلص من النفايات ومتابعته </p>
+        <button class="pt-btn pt-btn--primary" onclick="document.getElementById('waste-modal').style.display='flex';document.getElementById('waste-search').focus()">بدء الطلب</button>
       </div>
 
       <div class="permit-card">
         <p class="permit-card__title">إضافة مهندس جديد</p>
-        <p class="permit-card__desc">طلب إضافة مهندس لشركة معينة مع بيانات الشهادات ومتابعة إجراءات التفتيش حتى التسجيل.</p>
+        <p class="permit-card__desc">طلب إضافة مهندس لشركة جديده او اضافت مهندس ثاني لنفس الشركة .</p>
         <a class="pt-btn pt-btn--primary" href="{% url 'engineer_addition_create' %}">بدء الطلب</a>
       </div>
 
       {% if active_disposal_permits %}
       <div class="permit-card">
         <p class="permit-card__title">طلب تخلص من عبوات مبيدات فارغة</p>
-        <p class="permit-card__desc">إنشاء طلب تخلص سريع لشركة لديها تصريح تخلص ساري — ابحث بالاسم أو رقم الشركة.</p>
+        <p class="permit-card__desc">إنشاء طلب تخلص من العبوات الفارغة.</p>
         <button class="pt-btn pt-btn--primary" onclick="document.getElementById('disposal-modal').style.display='flex';document.getElementById('disposal-search').focus()">بدء الطلب</button>
       </div>
       {% endif %}
@@ -381,6 +381,50 @@
   </div>
 </div>
 
+<!-- ── Vehicle permit company-select modal ── -->
+<div id="vehicle-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
+    <div style="background:#1e40af;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="color:#fff;font-size:15px;font-weight:700;">تصريح المركبة — اختر الشركة</div>
+        <div style="color:#bfdbfe;font-size:12px;margin-top:3px;">ابحث بالاسم أو رقم الشركة</div>
+      </div>
+      <button onclick="closeVehicleModal()" style="background:none;border:none;color:#93c5fd;font-size:20px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div style="padding:18px 22px 8px;">
+      <input id="vehicle-search" type="text" autocomplete="off"
+             placeholder="اسم الشركة أو رقمها…"
+             style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+             oninput="filterVehicleCompanies(this.value)">
+      <div id="vehicle-count" style="font-size:11px;color:#94a3b8;margin-top:6px;text-align:left;"></div>
+    </div>
+    <div id="vehicle-results" style="max-height:340px;overflow-y:auto;padding:0 22px 18px;display:flex;flex-direction:column;gap:6px;"></div>
+    <div id="vehicle-empty" style="display:none;padding:24px;text-align:center;color:#94a3b8;font-size:13px;">لا توجد شركات مطابقة للبحث</div>
+  </div>
+</div>
+
+<!-- ── Waste permit company-select modal ── -->
+<div id="waste-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
+    <div style="background:#1e40af;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="color:#fff;font-size:15px;font-weight:700;">تصريح التخلص من النفايات — اختر الشركة</div>
+        <div style="color:#bfdbfe;font-size:12px;margin-top:3px;">ابحث بالاسم أو رقم الشركة</div>
+      </div>
+      <button onclick="closeWasteModal()" style="background:none;border:none;color:#93c5fd;font-size:20px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div style="padding:18px 22px 8px;">
+      <input id="waste-search" type="text" autocomplete="off"
+             placeholder="اسم الشركة أو رقمها…"
+             style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+             oninput="filterWasteCompanies(this.value)">
+      <div id="waste-count" style="font-size:11px;color:#94a3b8;margin-top:6px;text-align:left;"></div>
+    </div>
+    <div id="waste-results" style="max-height:340px;overflow-y:auto;padding:0 22px 18px;display:flex;flex-direction:column;gap:6px;"></div>
+    <div id="waste-empty" style="display:none;padding:24px;text-align:center;color:#94a3b8;font-size:13px;">لا توجد شركات مطابقة للبحث</div>
+  </div>
+</div>
+
 <!-- ── Empty-container disposal quick-create modal ── -->
 <div id="disposal-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;">
   <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
@@ -477,66 +521,111 @@ document.getElementById('disposal-modal').addEventListener('click', function(e){
 // pre-render on page load
 if (DISPOSAL_PERMITS.length) renderDisposalResults(DISPOSAL_PERMITS);
 
-// ── Pest-control modal ──────────────────────────────────────────────────────
+// ── Shared company data ──────────────────────────────────────────────────────
 var ALL_COMPANIES = [
   {% for c in all_companies %}
-  {id: {{ c.id }}, name: "{{ c.name|escapejs }}", number: "{{ c.number|escapejs }}", expiry: "{{ c.expiry }}", expired: {{ c.expired|yesno:'true,false' }}},
+  {id: {{ c.id }}, name: "{{ c.name|escapejs }}", number: "{{ c.number|escapejs }}",
+   pest_expiry: "{{ c.pest_expiry }}", pest_expired: {{ c.pest_expired|yesno:'true,false' }},
+   vehicle_expiry: "{{ c.vehicle_expiry }}", vehicle_expired: {{ c.vehicle_expired|yesno:'true,false' }},
+   waste_expiry: "{{ c.waste_expiry }}", waste_expired: {{ c.waste_expired|yesno:'true,false' }}},
   {% endfor %}
 ];
 
-var PEST_URL_TPL = "{% url 'pest_control_permit' %}?company_id=COMPANY_ID";
+function _makePermitRow(urlTpl, c, expiryField, expiredField) {
+  var expired = c[expiredField];
+  var expiry  = c[expiryField];
+  var border  = expired ? '#fca5a5' : '#e2e8f0';
+  var bgHover = expired ? '#fef2f2' : '#eff6ff';
+  var bdHover = expired ? '#ef4444' : '#2563eb';
+  var row = document.createElement('a');
+  row.href = urlTpl.replace('COMPANY_ID', c.id);
+  row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid ' + border + ';border-radius:8px;text-decoration:none;color:#0f172a;transition:.12s;' + (expired ? 'background:#fff5f5;' : '');
+  row.onmouseover = function(){this.style.background=bgHover;this.style.borderColor=bdHover;};
+  row.onmouseout  = function(){this.style.background=expired?'#fff5f5':'';this.style.borderColor=border;};
+  var badge = expired
+    ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#fee2e2;color:#b91c1c;border-radius:10px;white-space:nowrap;">منتهي ' + expiry + '</span>'
+    : (expiry ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#dcfce7;color:#166534;border-radius:10px;white-space:nowrap;">ساري حتى ' + expiry + '</span>' : '');
+  row.innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:3px;">' +
+      '<div style="font-size:14px;font-weight:600;">' + c.name + '</div>' +
+      '<div style="font-size:11px;color:#64748b;">رقم الشركة: ' + c.number + '</div>' +
+      (badge ? '<div style="margin-top:2px;">' + badge + '</div>' : '') +
+    '</div>' +
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (expired?'#ef4444':'#2563eb') + '" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  return row;
+}
 
-function renderPestResults(items) {
-  var box   = document.getElementById('pest-results');
-  var empty = document.getElementById('pest-empty');
-  var count = document.getElementById('pest-count');
+function _renderModalResults(resultsDivId, emptyDivId, countDivId, urlTpl, expiryField, expiredField, items) {
+  var box   = document.getElementById(resultsDivId);
+  var empty = document.getElementById(emptyDivId);
+  var count = document.getElementById(countDivId);
   box.innerHTML = '';
   if (!items.length) { empty.style.display = 'block'; count.textContent = ''; return; }
   empty.style.display = 'none';
   count.textContent = items.length + ' شركة';
-  items.forEach(function(c) {
-    var expired = c.expired;
-    var border  = expired ? '#fca5a5' : '#e2e8f0';
-    var bgHover = expired ? '#fef2f2' : '#eff6ff';
-    var bdHover = expired ? '#ef4444' : '#2563eb';
-    var row = document.createElement('a');
-    row.href = PEST_URL_TPL.replace('COMPANY_ID', c.id);
-    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid ' + border + ';border-radius:8px;text-decoration:none;color:#0f172a;transition:.12s;' + (expired ? 'background:#fff5f5;' : '');
-    row.onmouseover = function(){this.style.background=bgHover;this.style.borderColor=bdHover;};
-    row.onmouseout  = function(){this.style.background=expired?'#fff5f5':'';this.style.borderColor=border;};
-    var badge = expired
-      ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#fee2e2;color:#b91c1c;border-radius:10px;white-space:nowrap;">منتهي ' + c.expiry + '</span>'
-      : (c.expiry ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#dcfce7;color:#166534;border-radius:10px;white-space:nowrap;">ساري حتى ' + c.expiry + '</span>' : '');
-    row.innerHTML =
-      '<div style="display:flex;flex-direction:column;gap:3px;">' +
-        '<div style="font-size:14px;font-weight:600;">' + c.name + '</div>' +
-        '<div style="font-size:11px;color:#64748b;">رقم الشركة: ' + c.number + '</div>' +
-        (badge ? '<div style="margin-top:2px;">' + badge + '</div>' : '') +
-      '</div>' +
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (expired?'#ef4444':'#2563eb') + '" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
-    box.appendChild(row);
-  });
+  items.forEach(function(c) { box.appendChild(_makePermitRow(urlTpl, c, expiryField, expiredField)); });
 }
 
-function filterPestCompanies(q) {
+function _filterModal(resultsDivId, emptyDivId, countDivId, urlTpl, expiryField, expiredField, q) {
   q = q.trim().toLowerCase();
   var filtered = q
     ? ALL_COMPANIES.filter(function(c){ return c.name.toLowerCase().includes(q) || c.number.toLowerCase().includes(q); })
     : ALL_COMPANIES;
-  renderPestResults(filtered);
+  _renderModalResults(resultsDivId, emptyDivId, countDivId, urlTpl, expiryField, expiredField, filtered);
 }
 
+// ── Pest-control modal ──────────────────────────────────────────────────────
+var PEST_URL_TPL = "{% url 'pest_control_permit' %}?company_id=COMPANY_ID";
+
+function renderPestResults(items) {
+  _renderModalResults('pest-results', 'pest-empty', 'pest-count', PEST_URL_TPL, 'pest_expiry', 'pest_expired', items);
+}
+function filterPestCompanies(q) { _filterModal('pest-results', 'pest-empty', 'pest-count', PEST_URL_TPL, 'pest_expiry', 'pest_expired', q); }
 function closePestModal() {
   document.getElementById('pest-modal').style.display = 'none';
   document.getElementById('pest-search').value = '';
   renderPestResults(ALL_COMPANIES);
 }
-
-document.getElementById('pest-modal').addEventListener('click', function(e){
-  if (e.target === this) closePestModal();
-});
-
+document.getElementById('pest-modal').addEventListener('click', function(e){ if (e.target === this) closePestModal(); });
 renderPestResults(ALL_COMPANIES);
+
+// ── Vehicle permit modal ────────────────────────────────────────────────────
+var VEHICLE_URL_TPL = "{% url 'vehicle_permit' %}?company_id=COMPANY_ID";
+
+function renderVehicleResults(items) {
+  _renderModalResults('vehicle-results', 'vehicle-empty', 'vehicle-count', VEHICLE_URL_TPL, 'vehicle_expiry', 'vehicle_expired', items);
+}
+function filterVehicleCompanies(q) { _filterModal('vehicle-results', 'vehicle-empty', 'vehicle-count', VEHICLE_URL_TPL, 'vehicle_expiry', 'vehicle_expired', q); }
+function closeVehicleModal() {
+  document.getElementById('vehicle-modal').style.display = 'none';
+  document.getElementById('vehicle-search').value = '';
+  renderVehicleResults(ALL_COMPANIES);
+}
+document.getElementById('vehicle-modal').addEventListener('click', function(e){ if (e.target === this) closeVehicleModal(); });
+renderVehicleResults(ALL_COMPANIES);
+
+// ── Waste permit modal ──────────────────────────────────────────────────────
+var WASTE_URL_TPL = "{% url 'waste_permit' %}?company_id=COMPANY_ID";
+
+function renderWasteResults(items) {
+  _renderModalResults('waste-results', 'waste-empty', 'waste-count', WASTE_URL_TPL, 'waste_expiry', 'waste_expired', items);
+}
+function filterWasteCompanies(q) { _filterModal('waste-results', 'waste-empty', 'waste-count', WASTE_URL_TPL, 'waste_expiry', 'waste_expired', q); }
+function closeWasteModal() {
+  document.getElementById('waste-modal').style.display = 'none';
+  document.getElementById('waste-search').value = '';
+  renderWasteResults(ALL_COMPANIES);
+}
+document.getElementById('waste-modal').addEventListener('click', function(e){ if (e.target === this) closeWasteModal(); });
+renderWasteResults(ALL_COMPANIES);
+
+// ── Auto-open modal from ?open= param ──────────────────────────────────────
+(function () {
+  var open = new URLSearchParams(window.location.search).get('open');
+  if (open === 'pest')    { document.getElementById('pest-modal').style.display    = 'flex'; document.getElementById('pest-search').focus(); }
+  if (open === 'vehicle') { document.getElementById('vehicle-modal').style.display = 'flex'; document.getElementById('vehicle-search').focus(); }
+  if (open === 'waste')   { document.getElementById('waste-modal').style.display   = 'flex'; document.getElementById('waste-search').focus(); }
+})();
 </script>
 {% endif %}
 

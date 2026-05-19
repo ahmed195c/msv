@@ -2,446 +2,426 @@
 {% load static %}
 {% block title %}متابعة تصريح التخلص من النفايات{% endblock %}
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
-  <style>
-    .permit-page {
-      --pd-ink: #304357;
-      --pd-ink-2: #455c75;
-      --pd-ink-3: #6f8297;
-      --pd-paper: #ffffff;
-      --pd-surface: #f1f4f7;
-      --pd-surface-2: #e8eef4;
-      --pd-line: #d4dce5;
-      --pd-line-2: #bcc8d5;
-      --pd-accent: #304357;
-      --pd-accent-dark: #26384a;
-      --pd-radius: 8px;
-      --pd-shadow: 0 10px 24px rgba(48, 67, 87, 0.08);
-      padding: 20px 10px 36px;
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(241, 244, 247, 0.86)),
-        var(--pd-surface);
-      direction: rtl;
-      color: var(--pd-ink);
-      font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
-    }
+<style>
+  .permit-page {
+    --pd-ink: #304357;
+    --pd-ink-2: #455c75;
+    --pd-ink-3: #6f8297;
+    --pd-paper: #ffffff;
+    --pd-surface: #f1f4f7;
+    --pd-surface-2: #e8eef4;
+    --pd-line: #d4dce5;
+    --pd-line-2: #bcc8d5;
+    --pd-accent: #304357;
+    --pd-accent-dark: #26384a;
+    padding: 20px 10px 36px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
+    direction: rtl;
+  }
 
-    .permit-card {
-      max-width: 1160px;
-      margin: 0 auto;
-      background: var(--pd-paper);
-      border: 1.5px solid var(--pd-line);
-      border-radius: var(--pd-radius);
-      box-shadow: var(--pd-shadow);
-      padding: 18px;
-      color: var(--pd-ink);
-    }
+  .permit-card {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: var(--pd-surface);
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(48,67,87,0.10);
+    padding: 20px;
+    color: var(--pd-ink);
+  }
 
-    .back-link,
-    .action-link,
-    .review-form button,
-    .status-table a {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 38px;
-      padding: 8px 14px;
-      border-radius: 6px;
-      border: 1.5px solid var(--pd-line-2);
-      background: var(--pd-paper);
-      color: var(--pd-ink);
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 700;
-      transition: background 0.15s ease, border-color 0.15s ease;
-    }
+  /* ── Action bar ── */
+  .action-bar {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    align-items: center; justify-content: space-between;
+    margin-bottom: 14px; padding: 12px 18px;
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
+  }
+  .back-link {
+    display: inline-flex; align-items: center;
+    padding: 7px 14px; border-radius: 6px;
+    font-size: 13px; font-weight: 700; text-decoration: none;
+    border: 1.5px solid var(--pd-line-2);
+    background: var(--pd-surface); color: var(--pd-ink);
+    transition: background 0.15s;
+  }
+  .back-link:hover { background: var(--pd-surface-2); }
+  .print-button {
+    display: inline-flex; align-items: center;
+    padding: 7px 16px; border-radius: 6px;
+    font-size: 13px; font-weight: 700; text-decoration: none;
+    background: var(--pd-accent); color: #fff; border: none;
+    transition: background 0.15s;
+  }
+  .print-button:hover { background: var(--pd-accent-dark); }
+  .municipality { display: flex; align-items: center; gap: 10px; }
+  .logo-box { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .logo-box img { width: 100%; height: 100%; object-fit: contain; }
+  .municipality-text .title { font-size: 14px; font-weight: 800; color: var(--pd-ink); margin-bottom: 2px; }
+  .municipality-text .sub { font-size: 11px; color: var(--pd-ink-3); font-weight: 600; line-height: 1.5; }
 
-    .action-link,
-    .review-form button,
-    .status-table a {
-      background: var(--pd-accent);
-      border-color: var(--pd-accent);
-      color: #fff;
-    }
+  /* ── Status bar ── */
+  .status-bar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 18px; margin-bottom: 14px;
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
+    flex-wrap: wrap;
+  }
+  .status-bar-label {
+    font-size: 11px; font-weight: 700; color: var(--pd-ink-3);
+    text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap;
+  }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    border-radius: 6px; padding: 5px 13px;
+    font-size: 13px; font-weight: 700; line-height: 1.4;
+    border: 1.5px solid var(--pd-accent);
+    background: #edf2f7; color: var(--pd-accent);
+  }
+  .status-badge::before {
+    content: ''; display: inline-block;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor; flex-shrink: 0;
+  }
+  .status-badge--pending  { border-color: #b07d10; background: #fef9ec; color: #7a5500; }
+  .status-badge--issued   { border-color: #155e2e; background: #d4f5e2; color: #0e3d1d; }
+  .status-badge--active   { border-color: #1f6b3e; background: #edf7f2; color: #1a5233; }
+  .status-badge--warning  { border-color: #9c3a12; background: #fdf0ea; color: #7a2c0d; }
+  .status-badge--closed   { border-color: #5a5a5a; background: #f2f2f2; color: #3d3d3d; }
 
-    .action-link:hover,
-    .review-form button:hover,
-    .status-table a:hover {
-      background: var(--pd-accent-dark);
-      border-color: var(--pd-accent-dark);
-    }
+  /* ── Section cards ── */
+  .permit-section--doc {
+    margin-top: 12px; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
+  }
+  .doc-band {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; background: #fff;
+    border-bottom: 1.5px solid var(--pd-line); gap: 12px;
+    flex-wrap: wrap;
+  }
+  .doc-band-title { font-size: 12px; font-weight: 800; color: var(--pd-ink-2); letter-spacing: 0.03em; }
+  .doc-band-company { font-size: 16px; font-weight: 800; color: var(--pd-ink); }
+  .doc-band-ref { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; flex-shrink: 0; }
+  .doc-band-ref-label { font-size: 10px; color: var(--pd-ink-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .doc-band-ref-no { font-size: 20px; font-weight: 800; color: var(--pd-accent); font-family: "JetBrains Mono","Courier New",monospace; line-height: 1; }
 
-    .back-link:hover {
-      background: var(--pd-surface-2);
-      border-color: var(--pd-ink-3);
-    }
+  /* ── Detail rows ── */
+  .doc-table { background: #fff; }
+  .detail-item {
+    display: flex; align-items: flex-start;
+    padding: 10px 18px; border-bottom: 1px solid #eef1f5;
+  }
+  .detail-item:last-child { border-bottom: none; }
+  .detail-item:nth-child(even) { background: #fafbfc; }
+  .detail-item .label {
+    width: 38%; flex-shrink: 0;
+    font-size: 12.5px; color: var(--pd-ink-3); font-weight: 600;
+    line-height: 1.5; padding-left: 16px;
+  }
+  .detail-item .value {
+    flex: 1; font-size: 13.5px; font-weight: 700;
+    color: var(--pd-ink); word-break: break-word; line-height: 1.5;
+  }
+  .detail-item .value a { color: var(--pd-accent); text-decoration: underline; text-underline-offset: 3px; }
 
-    .permit-title {
-      border-radius: 6px;
-      border: 1.5px solid var(--pd-line);
-      background: var(--pd-surface);
-      color: var(--pd-ink);
-    }
+  /* ── Doc table divider ── */
+  .doc-table-divider {
+    padding: 6px 18px; background: var(--pd-surface);
+    border-top: 1.5px solid var(--pd-line); border-bottom: 1px solid var(--pd-line);
+  }
+  .doc-table-divider span { font-size: 11px; font-weight: 700; color: var(--pd-ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
 
-    .permit-title--hero {
-      margin: 4px 0 14px;
-      font-size: clamp(22px, 2.5vw, 30px);
-      font-weight: 800;
-      text-align: center;
-      border: 1.5px solid var(--pd-accent);
-      background: linear-gradient(180deg, #3a4f66 0%, #304357 100%);
-      color: #fff;
-      letter-spacing: -0.01em;
-      padding: 10px 12px;
-    }
+  /* ── Docs / photos ── */
+  .doc-photos-grid {
+    padding: 14px 18px 16px; background: #fff;
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .inspection-photo {
+    width: 90px; height: 90px; border-radius: 6px; overflow: hidden;
+    border: 1.5px solid var(--pd-line); background: var(--pd-surface);
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none; font-size: 12px; font-weight: 700; color: var(--pd-ink-3);
+    transition: border-color 0.15s;
+  }
+  .inspection-photo:hover { border-color: var(--pd-accent); }
+  .inspection-photo img { width: 100%; height: 100%; object-fit: cover; }
 
-    .permit-section {
-      margin-top: 14px;
-      border: 1.5px solid var(--pd-line);
-      border-radius: 6px;
-      background: #fff;
-      padding: 12px;
-    }
+  /* ── Forms inside doc cards ── */
+  .doc-form-body { padding: 16px 18px 18px; background: #fff; }
+  .review-form { display: grid; gap: 8px; }
+  .review-form label { font-size: 12px; font-weight: 700; color: var(--pd-ink-2); }
+  .review-form input,
+  .review-form select,
+  .review-form textarea {
+    width: 100%; border: 1.5px solid var(--pd-line-2); border-radius: 6px;
+    background: #fff; color: var(--pd-ink); font-size: 13px;
+    font-family: inherit; padding: 8px 10px; outline: none;
+    direction: rtl; text-align: right; box-sizing: border-box;
+    transition: border-color 0.15s;
+  }
+  .review-form textarea { min-height: 90px; resize: vertical; }
+  .review-form input:focus,
+  .review-form select:focus,
+  .review-form textarea:focus { border-color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(48,67,87,0.08); }
 
-    .section-title {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 6px;
-      border: 1.5px solid var(--pd-accent);
-      background: var(--pd-accent);
-      color: #fff;
-      font-size: 14.5px;
-      font-weight: 800;
-      margin-bottom: 14px;
-      text-align: center;
-      box-sizing: border-box;
-      letter-spacing: 0.01em;
-    }
+  /* ── Buttons ── */
+  .btn-action {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 9px 20px; border-radius: 7px; font-size: 13.5px; font-weight: 800;
+    font-family: inherit; cursor: pointer; border: none;
+    background: var(--pd-accent); color: #fff; transition: background 0.15s;
+  }
+  .btn-action:hover { background: var(--pd-accent-dark); }
+  .btn-action--danger { background: #8c2f2f; }
+  .btn-action--danger:hover { background: #6b2020; }
+  .btn-new {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 6px;
+    font-size: 12.5px; font-weight: 700; text-decoration: none;
+    background: var(--pd-accent); color: #fff; transition: background 0.15s;
+  }
+  .btn-new:hover { background: var(--pd-accent-dark); }
 
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 10px;
-    }
+  /* ── Disposal requests table ── */
+  .disposal-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
+  .disposal-table th {
+    background: var(--pd-surface); color: var(--pd-ink-2);
+    border-bottom: 1.5px solid var(--pd-line);
+    padding: 9px 14px; font-size: 11.5px; font-weight: 700;
+    text-align: right; white-space: nowrap;
+  }
+  .disposal-table td {
+    padding: 10px 14px; border-bottom: 1px solid #eef1f5;
+    color: var(--pd-ink); vertical-align: middle; text-align: right;
+  }
+  .disposal-table tr:last-child td { border-bottom: none; }
+  .disposal-table tr:nth-child(even) td { background: #fafbfc; }
+  .disposal-table a { color: var(--pd-accent); font-weight: 700; text-decoration: none; }
+  .disposal-table a:hover { text-decoration: underline; }
 
-    .detail-item {
-      display: grid;
-      gap: 6px;
-      border: 1.5px solid var(--pd-line);
-      border-radius: 6px;
-      padding: 10px;
-      background: #fff;
-    }
+  /* ── Drop zone ── */
+  .drop-zone {
+    border: 2px dashed var(--pd-line-2); border-radius: 6px;
+    padding: 20px 16px; text-align: center; cursor: pointer;
+    color: var(--pd-ink-3); font-size: 13px; font-weight: 600;
+    background: var(--pd-surface); transition: border-color 0.15s, background 0.15s;
+  }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--pd-accent); background: var(--pd-surface-2); }
+  .drop-zone input[type="file"] { display: none; }
+  .drop-zone .dz-chosen { margin-top: 6px; font-size: 12px; color: var(--pd-ink-2); }
 
-    .detail-item--status {
-      grid-column: 1 / -1;
-    }
+  /* ── Alert ── */
+  .alert {
+    border: 1.5px solid #d8a7a7; border-radius: 6px;
+    background: #fff3f3; color: #8c2f2f;
+    padding: 10px 14px; margin-top: 12px; font-size: 13px;
+  }
+  .alert-list { padding-inline-start: 18px; margin-top: 6px; line-height: 1.9; }
 
-    .detail-item .label {
-      font-size: 12.5px;
-      color: var(--pd-ink-2);
-      font-weight: 700;
-    }
-
-    .detail-item .value {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--pd-ink);
-      word-break: break-word;
-    }
-
-    .status-badge {
-      display: block;
-      border: 1.5px solid var(--pd-accent);
-      border-radius: 6px;
-      background: #edf2f7;
-      color: var(--pd-accent);
-      text-align: center;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1.55;
-      padding: 8px 10px;
-    }
-
-    .review-form label {
-      display: block;
-      margin-bottom: 6px;
-      color: var(--pd-ink-3);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .review-form input,
-    .review-form select,
-    .review-form textarea {
-      width: 100%;
-      min-height: 42px;
-      padding: 10px 12px;
-      border: 1.5px solid var(--pd-line);
-      border-radius: 6px;
-      background: #fff;
-      color: var(--pd-ink);
-      font-family: inherit;
-      font-size: 14px;
-      margin-bottom: 12px;
-      box-sizing: border-box;
-    }
-
-    .review-form textarea {
-      min-height: 110px;
-      resize: vertical;
-    }
-
-    .review-form input:focus,
-    .review-form select:focus,
-    .review-form textarea:focus {
-      outline: none;
-      border-color: var(--pd-accent);
-      box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.12);
-    }
-
-    .status-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .status-table th {
-      background: var(--pd-accent);
-      color: #fff;
-      border: 1.5px solid var(--pd-accent-dark);
-      padding: 10px;
-      font-size: 13px;
-    }
-
-    .status-table td {
-      border: 1.5px solid var(--pd-line);
-      padding: 10px;
-      background: #fff;
-      color: var(--pd-ink);
-      text-align: center;
-    }
-
-    .status-table tr:nth-child(even) td {
-      background: #f9fbfd;
-    }
-
-    .alert {
-      margin-top: 14px;
-      border: 1.5px solid #d9ab95;
-      border-radius: 6px;
-      background: #fdf0ea;
-      color: #7a2c0d;
-      padding: 12px 14px;
-    }
-
-    .alert-list {
-      margin: 8px 0 0;
-    }
-
-    @media (max-width: 720px) {
-      .permit-page { padding: 8px 4px 24px; }
-      .permit-card { padding: 10px; border-radius: 8px; }
-
-      /* ── Action bar ── */
-      .action-bar { flex-direction: column; align-items: stretch; gap: 6px; }
-      .action-link, .back-link { width: 100%; text-align: center; font-size: 13px; box-sizing: border-box; }
-
-      /* ── Detail grid — label/value side by side ── */
-      .detail-grid { grid-template-columns: 1fr !important; gap: 5px; }
-      .detail-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 10px;
-        min-height: unset;
-      }
-      .detail-item .label {
-        width: 42%;
-        flex-shrink: 0;
-        font-size: 12px;
-        border-left: 1.5px solid var(--pd-line, #d4dce5);
-        padding-left: 8px;
-      }
-      .detail-item .value { flex: 1; font-size: 13px; }
-
-      /* ── Status table ── */
-      .status-table { display: block; overflow-x: auto; white-space: nowrap; }
-
-      /* ── Sections ── */
-      .permit-section { padding: 10px; margin-top: 10px; }
-      .section-title  { font-size: 12px; padding: 4px 9px; }
-
-      /* ── Forms ── */
-      .review-form button { width: 100%; font-size: 15px; padding: 12px; }
-      .review-form input,
-      .review-form select,
-      .review-form textarea { font-size: 15px; }
-
-      /* ── Upload ── */
-      .upload-grid-two { grid-template-columns: 1fr; }
-      .upload-dropzone  { min-height: 90px; }
-    }
-
-    /* ── Reset pirmet_detail.css box styles ── */
-    .permit-section { border: none; border-top: 1.5px solid var(--pd-line); background: transparent; border-radius: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; }
-    .detail-item { border: none; border-bottom: 1px solid var(--pd-line); background: transparent; border-radius: 0; box-shadow: none; min-height: unset; }
-    .payment-box { border: none; background: transparent; border-radius: 0; box-shadow: none; min-height: unset; padding: 0; }
-    .meta-item { border: none; border-left: 1px solid var(--pd-line); border-bottom: 1px solid var(--pd-line); border-radius: 0; box-shadow: none; }
-    .meta-item:last-child { border-left: none; }
-    .municipality { background: transparent; border: none; border-radius: 0; }
-    .logo-box { border: none; background: transparent; box-shadow: none; }
-  </style>
+  @media (max-width: 640px) {
+    .permit-card { padding: 12px; }
+    .action-bar { flex-direction: column; align-items: flex-start; }
+    .detail-item { flex-direction: column; gap: 3px; }
+    .detail-item .label { width: 100%; padding-left: 0; }
+    .disposal-table { display: block; overflow-x: auto; }
+  }
+</style>
 {% endblock %}
 {% block content %}
 <section class="permit-page" lang="ar" dir="rtl">
-  <div class="permit-card">
-    <div class="action-bar no-print">
-      <a class="back-link" href="{% url 'clearance_list' %}">العودة إلى قائمة الطلبات</a>
-      {% if pirmet.status == "issued" or pirmet.status == "disposal_approved" %}
-      <a class="btn btn--primary" href="{% url 'waste_disposal_permit_print' pirmet.id %}" target="_blank" style="margin-inline-start:auto;">طباعة التصريح</a>
-      {% endif %}
+<div class="permit-card">
+
+  <!-- Action bar -->
+  <div class="action-bar no-print">
+    <a class="back-link" href="{% url 'clearance_list' %}">← العودة إلى قائمة الطلبات</a>
+    <div class="municipality">
+      <div class="logo-box">
+        <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+      </div>
+      <div class="municipality-text">
+        <div class="title">بلدية مدينة الشارقة</div>
+        <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+        <div class="sub">قسم رقابة وتنظيم النفايات</div>
+      </div>
     </div>
-
-    <div class="permit-title permit-title--hero">متابعة تصريح التخلص من النفايات</div>
-    <section class="permit-section">
-      <div class="section-title">بيانات الشركة</div>
-      <div class="detail-grid">
-        <div class="detail-item"><span class="label">اسم الشركة</span><span class="value">{{ pirmet.company.name }}</span></div>
-        <div class="detail-item"><span class="label">رقم الرخصة التجارية</span><span class="value">{{ pirmet.company.number|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">عنوان الشركة</span><span class="value">{{ pirmet.company.address|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">البريد الإلكتروني</span><span class="value">{{ pirmet.company.email|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">هاتف الشركة</span><span class="value">{{ pirmet.company.owner_phone|default:pirmet.company.landline|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">تاريخ انتهاء الرخصة التجارية</span><span class="value">{{ pirmet.company.trade_license_exp|date:"d/m/Y"|default:"-" }}</span></div>
-      </div>
-    </section>
-
-    <section class="permit-section">
-      <div class="section-title">بيانات التصريح الأساسي</div>
-      <div class="detail-grid">
-        <div class="detail-item"><span class="label">رقم التصريح</span><span class="value">{{ pirmet.permit_no|default:"-" }}</span></div>
-        <div class="detail-item detail-item--status">
-          <span class="label">الحالة</span>
-          <span class="value status-badge">{{ pirmet.get_status_display }}</span>
-        </div>
-        <div class="detail-item"><span class="label">تاريخ إنشاء الطلب</span><span class="value">{{ pirmet.dateOfCreation|date:"d/m/Y"|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">بريد مقدم الطلب</span><span class="value">{{ pirmet.request_email|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">تاريخ الإصدار</span><span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">تاريخ الانتهاء</span><span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">تاريخ الدفع</span><span class="value">{{ pirmet.payment_date|date:"d/m/Y"|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">إثبات دفع التصريح</span><span class="value">{% if pirmet.payment_receipt %}<a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">عرض الإثبات</a>{% else %}-{% endif %}</span></div>
-      </div>
-    </section>
-
-    <section class="permit-section">
-      <div class="section-title">بيانات التخلص المسجلة</div>
-      <div class="detail-grid">
-        <div class="detail-item"><span class="label">تصنيف النفايات</span><span class="value">{{ waste_details.waste_classification|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">كمية النفايات شهرياً</span><span class="value">{% if waste_details and waste_details.waste_quantity_monthly %}{{ waste_details.waste_quantity_monthly }}{% else %}-{% endif %}</span></div>
-        <div class="detail-item"><span class="label">أنواع النفايات</span><span class="value">{{ waste_details.waste_types|default:"-" }}</span></div>
-        <div class="detail-item"><span class="label">حالة المادة</span><span class="value">{{ waste_details.material_state|default:"-" }}</span></div>
-      </div>
-    </section>
-
-    <section class="permit-section">
-      <div class="section-title">مستندات التصريح الأساسي</div>
-      {% if request_documents %}
-        <div class="inspection-photos">
-          {% for doc in request_documents %}
-            {% if doc.file.url|lower|slice:"-4:" == ".pdf" %}
-              <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
-                <span>PDF</span>
-              </a>
-            {% else %}
-              <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener">
-                <img src="{{ doc.file.url }}" alt="مستند تصريح التخلص {{ forloop.counter }}">
-              </a>
-            {% endif %}
-          {% endfor %}
-        </div>
-      {% else %}
-        <p>لا توجد مستندات مرفقة مع التصريح الأساسي.</p>
-      {% endif %}
-    </section>
-
-    {% if review_errors %}
-      <div class="alert">
-        <strong>يرجى تصحيح التالي:</strong>
-        <ul class="alert-list">{% for error in review_errors %}<li>{{ error }}</li>{% endfor %}</ul>
-      </div>
+    {% if pirmet.status == "issued" or pirmet.status == "disposal_approved" %}
+      <a class="print-button" href="{% url 'waste_disposal_permit_print' pirmet.id %}" target="_blank">طباعة التصريح</a>
     {% endif %}
+  </div>
 
-    {% if can_record_payment and pirmet.status == "payment_pending" and not pirmet.PaymentNumber %}
-      <section class="permit-section no-print">
-        <div class="section-title">إدخال رقم الدفع</div>
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="status-bar-label">حالة الطلب</span>
+    <span class="status-badge
+      {% if pirmet.status == 'issued' %}status-badge--issued
+      {% elif pirmet.status == 'disposal_approved' %}status-badge--active
+      {% elif pirmet.status == 'disposal_rejected' or pirmet.status == 'closed_requirements_pending' %}status-badge--warning
+      {% elif pirmet.status == 'closed' or pirmet.status == 'cancelled' %}status-badge--closed
+      {% else %}status-badge--pending{% endif %}">
+      {{ pirmet.get_status_display }}
+    </span>
+    {% if pirmet.permit_no %}
+      <span style="margin-inline-start:auto;font-size:11px;color:var(--pd-ink-3);font-weight:600;">
+        رقم التصريح: <strong style="color:var(--pd-ink);font-family:'JetBrains Mono','Courier New',monospace;">{{ pirmet.permit_no }}</strong>
+      </span>
+    {% endif %}
+  </div>
+
+  <!-- بيانات الشركة -->
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-company">{{ pirmet.company.name }}</span>
+      <div class="doc-band-ref">
+        <span class="doc-band-ref-label">رقم الرخصة</span>
+        <span class="doc-band-ref-no">{{ pirmet.company.number|default:"—" }}</span>
+      </div>
+    </div>
+    <div class="doc-table">
+      <div class="detail-item"><span class="label">عنوان الشركة</span><span class="value">{{ pirmet.company.address|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">البريد الإلكتروني</span><span class="value">{{ pirmet.company.email|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">هاتف الشركة</span><span class="value">{{ pirmet.company.owner_phone|default:pirmet.company.landline|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">تاريخ انتهاء الرخصة التجارية</span><span class="value">{{ pirmet.company.trade_license_exp|date:"d/m/Y"|default:"—" }}</span></div>
+    </div>
+  </div>
+
+  <!-- بيانات التصريح -->
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-title">بيانات التصريح</span>
+    </div>
+    <div class="doc-table">
+      <div class="detail-item"><span class="label">تاريخ إنشاء الطلب</span><span class="value">{{ pirmet.dateOfCreation|date:"d/m/Y"|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">بريد مقدم الطلب</span><span class="value">{{ pirmet.request_email|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">تاريخ الإصدار</span><span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">تاريخ الانتهاء</span><span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"—" }}</span></div>
+      <div class="doc-table-divider"><span>بيانات الدفع</span></div>
+      <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ pirmet.PaymentNumber|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">تاريخ الدفع</span><span class="value">{{ pirmet.payment_date|date:"d/m/Y"|default:"—" }}</span></div>
+      <div class="detail-item">
+        <span class="label">إثبات الدفع</span>
+        <span class="value">
+          {% if pirmet.payment_receipt %}<a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">عرض الإثبات ↗</a>{% else %}—{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- بيانات التخلص -->
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-title">بيانات التخلص المسجلة</span>
+    </div>
+    <div class="doc-table">
+      <div class="detail-item"><span class="label">تصنيف النفايات</span><span class="value">{{ waste_details.waste_classification|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">الكمية شهرياً</span><span class="value">{% if waste_details and waste_details.waste_quantity_monthly %}{{ waste_details.waste_quantity_monthly }}{% else %}—{% endif %}</span></div>
+      <div class="detail-item"><span class="label">أنواع النفايات</span><span class="value">{{ waste_details.waste_types|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">حالة المادة</span><span class="value">{{ waste_details.material_state|default:"—" }}</span></div>
+    </div>
+  </div>
+
+  <!-- مستندات التصريح -->
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-title">مستندات التصريح</span>
+    </div>
+    {% if request_documents %}
+      <div class="doc-photos-grid">
+        {% for doc in request_documents %}
+          {% if doc.file.url|lower|slice:"-4:" == ".pdf" %}
+            <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener">PDF</a>
+          {% else %}
+            <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener">
+              <img src="{{ doc.file.url }}" alt="مستند {{ forloop.counter }}">
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="padding:14px 18px;background:#fff;font-size:13px;color:var(--pd-ink-3);">لا توجد مستندات مرفقة.</div>
+    {% endif %}
+  </div>
+
+  {% if review_errors %}
+    <div class="alert">
+      <strong>يرجى تصحيح التالي:</strong>
+      <ul class="alert-list">{% for error in review_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <!-- إدخال رقم الدفع -->
+  {% if can_record_payment and pirmet.status == "payment_pending" and not pirmet.PaymentNumber %}
+    <div class="permit-section--doc no-print">
+      <div class="doc-band"><span class="doc-band-title">إدخال رقم الدفع</span></div>
+      <div class="doc-form-body">
         <form method="post" class="review-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="send_payment_link">
           <label for="payment_number">رقم أمر الدفع</label>
           <input id="payment_number" name="payment_number" type="text" required>
-          <button type="submit">حفظ رقم الدفع</button>
+          <button type="submit" class="btn-action">حفظ رقم الدفع</button>
         </form>
-      </section>
-    {% endif %}
+      </div>
+    </div>
+  {% endif %}
 
-    {% if can_record_payment and pirmet.status == "payment_pending" and pirmet.PaymentNumber %}
-      <section class="permit-section no-print">
-        <div class="section-title">تأكيد الدفع</div>
-        <form method="post" enctype="multipart/form-data" class="review-form">
+  <!-- تأكيد الدفع -->
+  {% if can_record_payment and pirmet.status == "payment_pending" and pirmet.PaymentNumber %}
+    <div class="permit-section--doc no-print">
+      <div class="doc-band">
+        <span class="doc-band-title">تأكيد الدفع</span>
+        <span style="font-size:11px;color:var(--pd-ink-3);font-weight:600;">PDF أو صورة JPG/PNG</span>
+      </div>
+      <div class="doc-form-body">
+        <form method="post" enctype="multipart/form-data" class="review-form" id="payment-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="payment">
-          <label for="payment_receipt">إيصال الدفع (PDF أو صورة)</label>
-          <input id="payment_receipt" name="payment_receipt" type="file" required>
-          <button type="submit">تأكيد الدفع</button>
+          <div class="drop-zone" id="receipt-drop-zone">
+            <input id="payment_receipt" name="payment_receipt" type="file" accept=".pdf,.jpg,.jpeg,.png" required>
+            <div>اسحب الملف هنا أو <strong>انقر للاختيار</strong></div>
+            <div style="font-size:11px;color:var(--pd-ink-3);margin-top:4px;">PDF أو صور JPG/PNG</div>
+            <div class="dz-chosen" id="receipt-chosen"></div>
+          </div>
+          <button type="submit" class="btn-action" style="margin-top:10px;width:100%;">تأكيد الدفع</button>
         </form>
-      </section>
-    {% endif %}
+      </div>
+    </div>
+  {% endif %}
 
-    {% if False %}{# issue action removed - payment goes directly to issued #}
-      <section class="permit-section no-print">
-        <div class="section-title">إصدار التصريح</div>
+  <!-- إغلاق الطلب -->
+  {% if show_admin_close_form %}
+    <div class="permit-section--doc no-print">
+      <div class="doc-band"><span class="doc-band-title">إغلاق الطلب</span></div>
+      <div class="doc-form-body">
         <form method="post" class="review-form">
           {% csrf_token %}
-          <input type="hidden" name="action" value="issue">
-          <button type="submit">إصدار التصريح لمدة 6 أشهر</button>
+          <input type="hidden" name="action" value="cancel_admin">
+          <label for="cancel_reason_w">ملاحظة *</label>
+          <textarea id="cancel_reason_w" name="cancel_reason" rows="3" required placeholder="أدخل سبب إغلاق الطلب…"></textarea>
+          <button type="submit" class="btn-action btn-action--danger"
+            onclick="return confirm('هل أنت متأكد من إغلاق هذا الطلب؟')">إغلاق الطلب</button>
         </form>
-      </section>
-    {% endif %}
+      </div>
+    </div>
+  {% endif %}
 
-    {% if show_admin_close_form %}
-    <section class="permit-section no-print">
-      <div class="section-title">إغلاق الطلب</div>
-      <form method="post" class="review-form">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="cancel_admin">
-        <label for="cancel_reason_w">ملاحظة *</label>
-        <textarea id="cancel_reason_w" name="cancel_reason" rows="3" required
-          placeholder="أدخل سبب إغلاق الطلب…"></textarea>
-        <button type="submit" style="background:#8c2f2f;"
-          onclick="return confirm('هل أنت متأكد من إغلاق هذا الطلب؟')">إغلاق الطلب</button>
-      </form>
-    </section>
-    {% endif %}
-
-    <section class="permit-section">
-      <div class="section-title">طلبات التخلص المرتبطة</div>
+  <!-- طلبات التخلص -->
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-title">طلبات التخلص المرتبطة</span>
       {% if is_active %}
-        <div class="no-print" style="margin-bottom:10px;">
-          <a class="action-link" href="{% url 'waste_disposal_request_new' permit_id=pirmet.id %}">إضافة طلب التخلص</a>
-        </div>
-      {% else %}
-        <p>لا يمكن إضافة طلبات جديدة إلا إذا كان التصريح الأساسي ساريًا.</p>
+        <a class="btn-new no-print" href="{% url 'waste_disposal_request_new' permit_id=pirmet.id %}">+ إضافة طلب</a>
       {% endif %}
-      {% if disposal_requests %}
-        <table class="status-table">
+    </div>
+    {% if disposal_requests %}
+      <div style="overflow-x:auto;background:#fff;">
+        <table class="disposal-table">
           <thead>
             <tr>
               <th>#</th>
               <th>تاريخ الطلب</th>
-              <th>الحالة</th>
               <th>رقم الدفع</th>
               <th>المفتش</th>
               <th>ملاحظات التفتيش</th>
@@ -453,19 +433,47 @@
               <tr>
                 <td>{{ item.id }}</td>
                 <td>{{ item.request_date|date:"d/m/Y" }}</td>
-                <td>{{ item.get_status_display }}</td>
-                <td>{{ item.disposal_reference|default:"-" }}</td>
+                <td>{{ item.disposal_reference|default:"—" }}</td>
                 <td>{{ item.inspected_by_name }}</td>
-                <td>{{ item.inspection_notes|default:"-" }}</td>
+                <td>{{ item.inspection_notes|default:"—" }}</td>
                 <td><a href="{% url 'waste_disposal_request_detail' permit_id=pirmet.id request_id=item.id %}">عرض</a></td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
-      {% else %}
-        <p>لا توجد طلبات مرتبطة حتى الآن.</p>
-      {% endif %}
-    </section>
+      </div>
+    {% else %}
+      <div style="padding:14px 18px;background:#fff;font-size:13px;color:var(--pd-ink-3);">
+        {% if not is_active %}لا يمكن إضافة طلبات إلا إذا كان التصريح ساريًا.{% else %}لا توجد طلبات مرتبطة حتى الآن.{% endif %}
+      </div>
+    {% endif %}
   </div>
+
+</div>
 </section>
+<script>
+(function () {
+  var zone  = document.getElementById('receipt-drop-zone');
+  var input = document.getElementById('payment_receipt');
+  var label = document.getElementById('receipt-chosen');
+  if (!zone || !input) return;
+  zone.addEventListener('click', function () { input.click(); });
+  input.addEventListener('change', function () {
+    label.textContent = input.files.length ? input.files[0].name : '';
+    zone.style.borderColor = input.files.length ? 'var(--pd-accent)' : '';
+  });
+  zone.addEventListener('dragover',  function (e) { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', function ()  { zone.classList.remove('dragover'); });
+  zone.addEventListener('drop', function (e) {
+    e.preventDefault(); zone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+      var dt = new DataTransfer();
+      dt.items.add(e.dataTransfer.files[0]);
+      input.files = dt.files;
+      label.textContent = input.files[0].name;
+      zone.style.borderColor = 'var(--pd-accent)';
+    }
+  });
+})();
+</script>
 {% endblock %}

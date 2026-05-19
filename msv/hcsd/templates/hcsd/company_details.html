@@ -33,13 +33,14 @@
   display: flex; align-items: flex-start; justify-content: space-between;
   flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
 }
-.cd-page-header__left .cd-num {
+.cd-page-header__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.cd-page-header__title { width: 100%; margin-top: 10px; padding-top: 12px; border-top: 1.5px solid var(--border); }
+.cd-page-header__title .cd-num {
   font-family: var(--mono); font-size: 12px; color: var(--ink-4); margin-bottom: 4px;
 }
-.cd-page-header__left h1 {
-  font-size: clamp(18px,2.2vw,24px); font-weight: 700; color: var(--ink-1); margin: 0;
+.cd-page-header__title h1 {
+  font-size: clamp(20px,2.5vw,28px); font-weight: 700; color: var(--ink-1); margin: 0;
 }
-.cd-page-header__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
 /* ── Status strip ── */
 .cd-status-strip {
@@ -242,6 +243,45 @@
   .tl-track     { display: none; }
   .cd-page-header { flex-direction: column; }
 }
+.eng-picker { position:relative; }
+.eng-picker__input-wrap { position:relative;display:flex;align-items:center; }
+.eng-picker__icon-search { position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--ink-4);pointer-events:none; }
+.eng-picker__search { width:100%;padding:9px 40px 9px 34px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;font-family:inherit;direction:rtl;text-align:right;outline:none;transition:border-color .15s;background:#fff;box-sizing:border-box; }
+.eng-picker__search:focus { border-color:var(--accent); }
+.eng-picker__search--ok  { border-color:#22c55e !important; }
+.eng-picker__search--warn{ border-color:#d97706 !important; }
+.eng-picker__search:disabled { background:var(--surface-1);color:var(--ink-3); }
+.eng-picker__clear { position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:13px;color:var(--ink-3);cursor:pointer;padding:2px 5px;border-radius:4px;line-height:1; }
+.eng-picker__clear:hover { color:var(--danger);background:var(--danger-bg); }
+.eng-picker__dropdown { position:fixed;background:#fff;border:1.5px solid var(--accent);border-top:none;border-radius:0 0 8px 8px;max-height:220px;overflow-y:auto;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.10); }
+.eng-picker__item { padding:10px 14px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-1);border-bottom:1px solid var(--surface-2);display:flex;align-items:center;justify-content:space-between;gap:8px; }
+.eng-picker__item:last-child { border-bottom:none; }
+.eng-picker__item:hover { background:var(--surface-1); }
+.eng-picker__empty { padding:10px 14px;font-size:12.5px;color:var(--ink-4); }
+.drop-zone { border:2px dashed var(--border);border-radius:9px;padding:22px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s; }
+.drop-zone.drag-over { border-color:var(--accent);background:var(--accent-bg,#eff6ff); }
+.drop-zone__icon { font-size:26px;margin-bottom:6px; }
+.drop-zone__text { font-size:13.5px;color:var(--ink-2); }
+.drop-zone__link { color:var(--accent);text-decoration:underline;cursor:pointer; }
+.drop-zone__hint { font-size:11.5px;color:var(--ink-4);margin-top:4px; }
+.drop-zone__list { list-style:none;margin:10px 0 0;padding:0;text-align:right; }
+.drop-zone__list li { font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid var(--border); }
+.doc-band { display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface-1);border-bottom:1.5px solid var(--border); }
+.doc-band-title { font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3); }
+.doc-band--sub { background:var(--surface-2);padding:7px 16px;border-top:1.5px solid var(--border); }
+.doc-band--sub .doc-band-title { font-size:10.5px;color:var(--ink-4); }
+.fields-table { background:#fff; }
+.field-row { display:flex;align-items:stretch;border-bottom:1px solid var(--surface-2); }
+.field-row--top { align-items:flex-start; }
+.field-row--top .field-lbl { padding-top:13px; }
+.field-row:last-child { border-bottom:none; }
+.field-row:nth-child(even) { background:#fafbfc; }
+.field-lbl { width:170px;min-width:140px;padding:11px 16px;font-size:12.5px;font-weight:600;color:var(--ink-3);border-left:1px solid var(--surface-2);display:flex;align-items:center;flex-shrink:0; }
+.field-val { flex:1;padding:11px 16px;font-size:13.5px;color:var(--ink-1);word-break:break-word; }
+.field-val input[type=text]:not(.eng-picker__search),.field-val input[type=email],.field-val input[type=date],.field-val textarea { width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:13.5px;font-family:inherit;color:var(--ink-1);background:#fff;box-sizing:border-box;transition:border-color .15s; }
+.field-val input:not(.eng-picker__search):disabled,.field-val textarea:disabled { background:var(--surface-1);color:var(--ink-3);border-color:var(--surface-2); }
+.field-val input:not(.eng-picker__search):focus,.field-val textarea:focus { outline:none;border-color:var(--accent); }
+.field-val textarea { resize:vertical;min-height:80px; }
 </style>
 {% endblock %}
 
@@ -251,18 +291,24 @@
 
   {# ── Page header ── #}
   <div class="cd-page-header">
-    <div class="cd-page-header__left">
-      <div class="cd-num">{{ company.number }}</div>
-      <h1>{{ company.name }}</h1>
-    </div>
     <div class="cd-page-header__actions">
-      {% if can_edit_company %}
-        <button type="button" class="btn btn-primary" data-request-edit>تعديل بيانات الشركة</button>
+      <a class="btn btn-outline" href="{% url 'company_list' %}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        العودة لقائمة الشركات
+      </a>
+      {% if can_remove_engineer and company.enginer %}
+        <button type="button" class="btn btn-outline" style="color:#b91c1c;border-color:#b91c1c;" data-remove-engineer>إزالة المهندس</button>
       {% endif %}
       {% if can_request_extension %}
         <button type="button" class="btn btn-outline" data-request-extension>+ طلب مهلة</button>
       {% endif %}
-      <a class="btn btn-outline" href="{% url 'company_list' %}">← رجوع للشركات</a>
+      {% if can_edit_company %}
+        <button type="button" class="btn btn-primary" data-request-edit>تعديل بيانات الشركة</button>
+      {% endif %}
+    </div>
+    <div class="cd-page-header__title">
+      <div class="cd-num">{{ company.number }}</div>
+      <h1>{{ company.name }}</h1>
     </div>
   </div>
 
@@ -311,112 +357,114 @@
     </div>
   </div>
 
+  {# ── Engineer removal panel ── #}
+  {% if can_remove_engineer and company.enginer %}
+  <div class="card" data-remove-engineer-panel {% if not removal_error %}hidden{% endif %} style="border-top:3px solid #b91c1c;">
+    <div class="card-header" style="background:#fef2f2;"><h2 style="color:#b91c1c;">إزالة المهندس من الشركة</h2></div>
+    <div class="card-body">
+      {% if removal_error %}<div class="alert alert-err">{{ removal_error }}</div>{% endif %}
+      <p style="color:#374151;margin:0 0 14px;">سيتم إزالة <strong>{{ company.enginer.name }}</strong> من هذه الشركة. يرجى إرفاق مستند إثبات.</p>
+      <form method="POST" enctype="multipart/form-data" class="ext-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="remove_engineer">
+        <label>ملاحظات (اختياري)</label>
+        <input type="text" name="removal_notes" placeholder="مثال: انتهاء العقد / انتقل لشركة أخرى">
+        <label>مستندات الإثبات <span style="color:#b91c1c;">*</span></label>
+        <div class="drop-zone" id="removal-drop-zone">
+          <input type="file" name="removal_documents" id="removal-docs-input" accept=".pdf,image/*" multiple required style="display:none;">
+          <div class="drop-zone__icon">📎</div>
+          <div class="drop-zone__text">اسحب الملفات هنا أو <span class="drop-zone__link" onclick="document.getElementById('removal-docs-input').click()">اضغط للاختيار</span></div>
+          <div class="drop-zone__hint">PDF أو صور — يمكن إرفاق أكثر من ملف</div>
+          <ul class="drop-zone__list" id="removal-docs-list"></ul>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button type="submit" class="btn btn-primary" style="background:#b91c1c;border-color:#b91c1c;">تأكيد الإزالة</button>
+          <button type="button" class="btn btn-outline" data-cancel-remove>إلغاء</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
   {# ── Edit panel ── #}
   <div class="card cd-panel" data-edit-panel {% if not error %}hidden{% endif %}>
-    <div class="card-header"><h2>تعديل بيانات الشركة</h2></div>
-    <div class="card-body">
-      {% if error %}<div class="alert alert-err">{{ error }}</div>{% endif %}
-      {% if can_edit_company %}
-        <form method="POST" data-edit-form>
-          {% csrf_token %}
-          <div class="form-grid">
-            <div class="form-field"><label>الاسم التجاري</label><input type="text" name="name" value="{{ form_data.name|default:'' }}" required disabled data-editable></div>
-            <div class="form-field"><label>رقم الرخصة التجارية</label><input type="text" name="number" value="{{ form_data.number|default:'' }}" required disabled data-editable></div>
-            <div class="form-field"><label>تاريخ انتهاء الرخصة</label><input type="date" name="trade_license_exp" value="{{ form_data.trade_license_exp|default:'' }}" disabled data-editable></div>
-            <div class="form-field"><label>عنوان الشركة</label><input type="text" name="address" value="{{ form_data.address|default:'' }}" required disabled data-editable></div>
-            <div class="form-field"><label>رقم الهاتف الأرضي</label><input type="text" name="landline" value="{{ form_data.landline|default:'' }}" disabled data-editable></div>
-            <div class="form-field"><label>رقم هاتف المالك</label><input type="text" name="owner_phone" value="{{ form_data.owner_phone|default:'' }}" disabled data-editable></div>
-            <div class="form-field"><label>البريد الإلكتروني</label><input type="email" name="email" value="{{ form_data.email|default:'' }}" disabled data-editable></div>
-          </div>
-          <div class="card" style="margin-top:16px;">
-            <div class="card-header"><h2>أنشطة الرخصة</h2></div>
-            <div class="card-body">
-              <div class="form-field"><label>تفاصيل الأنشطة</label><textarea name="business_activity" rows="3" disabled data-editable>{{ form_data.business_activity|default:'' }}</textarea></div>
-            </div>
-          </div>
-          <div class="card" style="margin-top:16px;">
-            <div class="card-header"><h2>التصنيف والمهندس</h2></div>
-            <div class="card-body">
-              <div class="form-grid">
-                <div class="form-field">
-                  <label>نوع المكافحة</label>
-                  <select name="pest_control_type" required disabled data-editable>
-                    <option value="">اختيار نوع المكافحة</option>
-                    <option value="public_health_pest_control" {% if selected_pest_control_type == "public_health_pest_control" %}selected{% endif %}>مكافحة آفات الصحة العامة</option>
-                    <option value="termite_control" {% if selected_pest_control_type == "termite_control" %}selected{% endif %}>مكافحة النمل الأبيض</option>
-                    <option value="grain_pests" {% if selected_pest_control_type == "grain_pests" %}selected{% endif %}>مكافحة آفات الحبوب</option>
-                  </select>
-                </div>
-                <div class="form-field">
-                  <label>المهندس المسؤول</label>
-                  <select name="enginer" required disabled data-editable>
-                    <option value="">اختيار مهندس</option>
-                    {% for eng in engineers %}
-                      <option value="{{ eng.id }}"
-                              data-public="{{ eng.has_public_health_cert|yesno:'1,0' }}"
-                              data-termite="{{ eng.has_termite_cert|yesno:'1,0' }}"
-                              {% if form_data.enginer_id == eng.id|stringformat:"s" %}selected{% endif %}>
-                        {{ eng.name }}
-                        {% if eng.has_public_health_cert %}{% if eng.has_termite_cert %}(معتمد نمل أبيض){% else %}(معتمد صحة عامة){% endif %}{% else %}(غير مكتمل الشهادات){% endif %}
-                      </option>
-                    {% endfor %}
-                  </select>
-                  <small>لا يظهر للاختيار إلا المهندس الذي أكمل الشهادات المطلوبة.</small>
-                </div>
-                <div class="form-field">
-                  <label>مهندسون إضافيون</label>
-                  <select name="enginers" multiple size="6" disabled data-editable>
-                    {% for eng in engineers %}
-                      <option value="{{ eng.id }}" {% if eng.id|stringformat:"s" in form_data.enginer_ids %}selected{% endif %}>{{ eng.name }}</option>
-                    {% endfor %}
-                  </select>
-                  <small>يمكن اختيار أكثر من مهندس (Ctrl/Cmd + Click).</small>
-                </div>
+    <div class="doc-band"><span class="doc-band-title">تعديل بيانات الشركة</span></div>
+    {% if error %}<div class="alert alert-err" style="margin:14px 16px 0;">{{ error }}</div>{% endif %}
+    {% if can_edit_company %}
+    <form method="POST" data-edit-form>
+      {% csrf_token %}
+      <div class="doc-band doc-band--sub"><span class="doc-band-title">البيانات الأساسية</span></div>
+      <div class="fields-table">
+        <div class="field-row"><span class="field-lbl">الاسم التجاري <span style="color:#b91c1c;">*</span></span><span class="field-val"><input type="text" name="name" value="{{ form_data.name|default:'' }}" required disabled data-editable></span></div>
+        <div class="field-row"><span class="field-lbl">رقم الرخصة التجارية <span style="color:#b91c1c;">*</span></span><span class="field-val"><input type="text" name="number" value="{{ form_data.number|default:'' }}" required disabled data-editable style="font-family:var(--mono);"></span></div>
+        <div class="field-row"><span class="field-lbl">تاريخ انتهاء الرخصة</span><span class="field-val"><input type="date" name="trade_license_exp" value="{{ form_data.trade_license_exp|default:'' }}" disabled data-editable></span></div>
+        <div class="field-row"><span class="field-lbl">عنوان الشركة <span style="color:#b91c1c;">*</span></span><span class="field-val"><input type="text" name="address" value="{{ form_data.address|default:'' }}" required disabled data-editable></span></div>
+        <div class="field-row"><span class="field-lbl">رقم الهاتف الأرضي</span><span class="field-val"><input type="text" name="landline" value="{{ form_data.landline|default:'' }}" disabled data-editable></span></div>
+        <div class="field-row"><span class="field-lbl">رقم هاتف المالك</span><span class="field-val"><input type="text" name="owner_phone" value="{{ form_data.owner_phone|default:'' }}" disabled data-editable></span></div>
+        <div class="field-row"><span class="field-lbl">البريد الإلكتروني</span><span class="field-val"><input type="email" name="email" value="{{ form_data.email|default:'' }}" disabled data-editable></span></div>
+      </div>
+      <div class="doc-band doc-band--sub"><span class="doc-band-title">أنشطة الرخصة</span></div>
+      <div class="fields-table">
+        <div class="field-row field-row--top"><span class="field-lbl">تفاصيل الأنشطة</span><span class="field-val"><textarea name="business_activity" rows="3" disabled data-editable>{{ form_data.business_activity|default:'' }}</textarea></span></div>
+      </div>
+      <div class="doc-band doc-band--sub"><span class="doc-band-title">المهندس المسؤول <span style="font-size:10px;color:var(--ink-4);text-transform:none;letter-spacing:0;">(اختياري)</span></span></div>
+      <div class="fields-table" style="overflow:visible;">
+        <div class="field-row" style="overflow:visible;">
+          <span class="field-lbl">المهندس</span>
+          <span class="field-val" style="overflow:visible;position:relative;">
+            <input type="hidden" id="co-enginer-id" name="enginer" value="{{ form_data.enginer_id|default:'' }}" data-editable>
+            <div class="eng-picker" id="co-eng-picker">
+              <div class="eng-picker__input-wrap">
+                <svg class="eng-picker__icon-search" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="co-eng-search" class="eng-picker__search" placeholder="ابحث عن مهندس..." autocomplete="off" disabled data-editable>
+                <button type="button" id="co-eng-clear" class="eng-picker__clear" title="إزالة المهندس" style="display:none;">✕</button>
               </div>
+              <div id="co-eng-dropdown" class="eng-picker__dropdown" style="display:none;"></div>
             </div>
-          </div>
-          <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
-            <button type="submit" class="btn btn-primary" data-save-button disabled>حفظ التعديلات</button>
-            <a class="btn btn-outline" href="{% url 'company_detail' company.id %}">إلغاء</a>
-          </div>
-        </form>
-      {% else %}
-        <p class="muted">التعديل متاح للإدارة فقط.</p>
-      {% endif %}
-    </div>
+            <div id="co-eng-cert-notice" style="display:none;margin-top:6px;padding:7px 10px;background:#fef3c7;border:1px solid #fbbf24;border-radius:6px;font-size:12.5px;color:#92400e;"></div>
+          </span>
+        </div>
+      </div>
+      <div style="padding:14px 16px;display:flex;gap:8px;flex-wrap:wrap;border-top:1.5px solid var(--border);">
+        <button type="submit" class="btn btn-primary" data-save-button disabled>حفظ التعديلات</button>
+        <a class="btn btn-outline" href="{% url 'company_detail' company.id %}">إلغاء</a>
+      </div>
+    </form>
+    {% else %}
+      <div style="padding:16px;color:var(--ink-4);font-size:13.5px;">التعديل متاح للإدارة فقط.</div>
+    {% endif %}
   </div>
 
   {# ── معلومات الشركة ── #}
   <div class="card">
-    <div class="card-header"><h2>معلومات الشركة</h2></div>
-    <div class="card-body">
-      <div class="info-grid">
-        <div class="info-row"><span class="info-label">الاسم التجاري</span><span class="info-value">{{ company.name }}</span></div>
-        <div class="info-row"><span class="info-label">رقم الرخصة التجارية</span><span class="info-value">{{ company.number }}</span></div>
-        <div class="info-row"><span class="info-label">تاريخ انتهاء الرخصة</span><span class="info-value">{{ company.trade_license_exp|default:"—" }}</span></div>
-        <div class="info-row"><span class="info-label">نوع المكافحة المعتمد</span>
-          <span class="info-value">
-            {% if company.pest_control_type == "termite_control" %}مكافحة النمل الأبيض + مكافحة آفات الصحة العامة
-            {% elif company.pest_control_type == "public_health_pest_control" %}مكافحة آفات الصحة العامة
-            {% elif company.pest_control_type == "grain_pests" %}مكافحة آفات الحبوب
-            {% else %}—{% endif %}
-          </span>
-        </div>
-        <div class="info-row full"><span class="info-label">أنشطة الرخصة</span><span class="info-value">{{ company.business_activity_display|default:"—" }}</span></div>
-        <div class="info-row"><span class="info-label">عنوان الشركة</span><span class="info-value">{{ company.address }}</span></div>
-        {% if company.latitude and company.longitude %}
-        <div class="info-row">
-          <span class="info-label">الموقع الجغرافي</span>
-          <span class="info-value">
-            <span style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">{{ company.latitude }}, {{ company.longitude }}</span>
-            &nbsp;<a href="https://www.google.com/maps?q={{ company.latitude }},{{ company.longitude }}" target="_blank" rel="noopener">◎ Google Maps</a>
-          </span>
-        </div>
-        {% endif %}
-        <div class="info-row"><span class="info-label">رقم الهاتف الأرضي</span><span class="info-value">{{ company.landline|default:"—" }}</span></div>
-        <div class="info-row"><span class="info-label">رقم هاتف المالك</span><span class="info-value">{{ company.owner_phone|default:"—" }}</span></div>
-        <div class="info-row"><span class="info-label">البريد الإلكتروني</span><span class="info-value">{{ company.email|default:"—" }}</span></div>
+    <div class="doc-band"><span class="doc-band-title">معلومات الشركة</span></div>
+    <div class="fields-table">
+      <div class="field-row"><span class="field-lbl">الاسم التجاري</span><span class="field-val">{{ company.name }}</span></div>
+      <div class="field-row"><span class="field-lbl">رقم الرخصة التجارية</span><span class="field-val" style="font-family:var(--mono);font-size:13px;">{{ company.number }}</span></div>
+      <div class="field-row"><span class="field-lbl">تاريخ انتهاء الرخصة</span><span class="field-val">{{ company.trade_license_exp|date:"d/m/Y"|default:"—" }}</span></div>
+      <div class="field-row">
+        <span class="field-lbl">نوع المكافحة</span>
+        <span class="field-val">
+          {% if company.pest_control_type == "termite_control" %}مكافحة النمل الأبيض + مكافحة آفات الصحة العامة
+          {% elif company.pest_control_type == "public_health_pest_control" %}مكافحة آفات الصحة العامة
+          {% elif company.pest_control_type == "grain_pests" %}مكافحة آفات الحبوب
+          {% else %}—{% endif %}
+        </span>
       </div>
+      <div class="field-row"><span class="field-lbl">أنشطة الرخصة</span><span class="field-val">{{ company.business_activity_display|default:"—" }}</span></div>
+      <div class="field-row"><span class="field-lbl">عنوان الشركة</span><span class="field-val">{{ company.address }}</span></div>
+      {% if company.latitude and company.longitude %}
+      <div class="field-row">
+        <span class="field-lbl">الموقع الجغرافي</span>
+        <span class="field-val">
+          <span style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">{{ company.latitude }}, {{ company.longitude }}</span>
+          &nbsp;<a href="https://www.google.com/maps?q={{ company.latitude }},{{ company.longitude }}" target="_blank" rel="noopener" style="color:var(--accent);">◎ Google Maps</a>
+        </span>
+      </div>
+      {% endif %}
+      <div class="field-row"><span class="field-lbl">رقم الهاتف الأرضي</span><span class="field-val">{{ company.landline|default:"—" }}</span></div>
+      <div class="field-row"><span class="field-lbl">رقم هاتف المالك</span><span class="field-val">{{ company.owner_phone|default:"—" }}</span></div>
+      <div class="field-row"><span class="field-lbl">البريد الإلكتروني</span><span class="field-val">{{ company.email|default:"—" }}</span></div>
     </div>
   </div>
 
@@ -484,71 +532,54 @@
 
   {# ── المهندس المسؤول ── #}
   <div class="card">
-    <div class="card-header"><h2>المهندس المسؤول</h2></div>
-    <div class="card-body">
-      {% if engineer_active_leave %}
-      <div class="leave-notice">
-        <div>
-          <div class="leave-notice__title">المهندس المسؤول في إجازة حالياً</div>
-          <div class="leave-notice__meta">
-            <span>من: <strong>{{ engineer_active_leave.start_date|date:"d/m/Y" }}</strong></span>
-            {% if engineer_active_leave.expected_return_date %}<span>عودة متوقعة: <strong>{{ engineer_active_leave.expected_return_date|date:"d/m/Y" }}</strong></span>{% endif %}
-            {% if engineer_active_leave.substitute %}<span>البديل: <strong><a href="{% url 'enginer_detail' engineer_active_leave.substitute.id %}">{{ engineer_active_leave.substitute.name }}</a></strong></span>
-            {% else %}<span>لا يوجد مهندس بديل مسجل</span>{% endif %}
-          </div>
-        </div>
-      </div>
-      {% endif %}
-      {% if company.enginer %}
-        <div class="info-grid">
-          <div class="info-row">
-            <span class="info-label">الاسم</span>
-            <span class="info-value">
-              <a href="{% url 'enginer_detail' company.enginer.id %}">{{ company.enginer.name }}</a>
-              {% if engineer_active_leave %}<span style="font-size:11px;color:#92400e;font-weight:700;margin-right:6px;">(في إجازة)</span>{% endif %}
-            </span>
-          </div>
-          <div class="info-row"><span class="info-label">رقم الهاتف</span><span class="info-value">{{ company.enginer.phone|default:"—" }}</span></div>
-          <div class="info-row"><span class="info-label">البريد الإلكتروني</span><span class="info-value">{{ company.enginer.email|default:"—" }}</span></div>
-          <div class="info-row">
-            <span class="info-label">شهادة الصحة العامة</span>
-            <span class="info-value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              {% if company.enginer.has_public_health_cert %}
-                <span class="badge badge-ok">معتمدة</span>
-                {% if company.enginer.public_health_cert_expiry_date %}
-                  <span style="font-size:12px;color:var(--ink-3);">تنتهي: {{ company.enginer.public_health_cert_expiry_date|date:"d/m/Y" }}</span>
-                {% endif %}
-              {% else %}
-                <span class="badge badge-exp">غير مكتملة</span>
-              {% endif %}
-            </span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">شهادة النمل الأبيض</span>
-            <span class="info-value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              {% if company.enginer.has_termite_cert %}
-                <span class="badge badge-ok">معتمدة</span>
-                {% if company.enginer.termite_cert_expiry_date %}
-                  <span style="font-size:12px;color:var(--ink-3);">تنتهي: {{ company.enginer.termite_cert_expiry_date|date:"d/m/Y" }}</span>
-                {% endif %}
-              {% else %}
-                <span class="badge badge-exp">غير مكتملة</span>
-              {% endif %}
-            </span>
-          </div>
-          {% with extra_engineers=company.engineers.all %}
-          {% if extra_engineers %}
-          <div class="info-row full">
-            <span class="info-label">كل المهندسين المرتبطين</span>
-            <span class="info-value">{% for e in extra_engineers %}{{ e.name }}{% if not forloop.last %}، {% endif %}{% endfor %}</span>
-          </div>
-          {% endif %}
-          {% endwith %}
-        </div>
-      {% else %}
-        <p class="muted">لا يوجد مهندس مرتبط.</p>
-      {% endif %}
+    <div class="doc-band">
+      <span class="doc-band-title">المهندس المسؤول</span>
+      {% if engineer_active_leave %}<span class="sbadge sbadge-warn" style="font-size:11px;">في إجازة</span>{% endif %}
     </div>
+    {% if engineer_active_leave %}
+    <div style="padding:12px 16px;background:#fff7ed;border-bottom:1.5px solid var(--border);font-size:13px;">
+      <strong style="color:#92400e;">المهندس في إجازة</strong> —
+      من: {{ engineer_active_leave.start_date|date:"d/m/Y" }}
+      {% if engineer_active_leave.expected_return_date %} · عودة متوقعة: {{ engineer_active_leave.expected_return_date|date:"d/m/Y" }}{% endif %}
+      {% if engineer_active_leave.substitute %} · البديل: <a href="{% url 'enginer_detail' engineer_active_leave.substitute.id %}">{{ engineer_active_leave.substitute.name }}</a>{% else %} · لا يوجد بديل{% endif %}
+    </div>
+    {% endif %}
+    {% if company.enginer %}
+    <div class="fields-table">
+      <div class="field-row">
+        <span class="field-lbl">الاسم</span>
+        <span class="field-val">
+          <a href="{% url 'enginer_detail' company.enginer.id %}" style="color:var(--accent);font-weight:600;">{{ company.enginer.name }}</a>
+        </span>
+      </div>
+      <div class="field-row"><span class="field-lbl">رقم الهاتف</span><span class="field-val">{{ company.enginer.phone|default:"—" }}</span></div>
+      <div class="field-row"><span class="field-lbl">البريد الإلكتروني</span><span class="field-val">{{ company.enginer.email|default:"—" }}</span></div>
+      <div class="field-row">
+        <span class="field-lbl">شهادة الصحة العامة</span>
+        <span class="field-val" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          {% if company.enginer.has_public_health_cert %}
+            <span class="badge badge-ok">معتمدة</span>
+            {% if company.enginer.public_health_cert_expiry_date %}<span style="font-size:12px;color:var(--ink-3);">تنتهي: {{ company.enginer.public_health_cert_expiry_date|date:"d/m/Y" }}</span>{% endif %}
+          {% else %}
+            <span class="badge badge-exp">غير مكتملة</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="field-row">
+        <span class="field-lbl">شهادة النمل الأبيض</span>
+        <span class="field-val" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          {% if company.enginer.has_termite_cert %}
+            <span class="badge badge-ok">معتمدة</span>
+            {% if company.enginer.termite_cert_expiry_date %}<span style="font-size:12px;color:var(--ink-3);">تنتهي: {{ company.enginer.termite_cert_expiry_date|date:"d/m/Y" }}</span>{% endif %}
+          {% else %}
+            <span class="badge badge-exp">غير مكتملة</span>
+          {% endif %}
+        </span>
+      </div>
+    </div>
+    {% else %}
+    <div style="padding:14px 16px;color:var(--ink-4);font-size:13.5px;">لا يوجد مهندس مرتبط بهذه الشركة.</div>
+    {% endif %}
   </div>
 
   {# ── التصاريح السارية ── #}
@@ -821,85 +852,232 @@
 </div>{# end cd-page #}
 
 <script>
+var CO_ENGINEERS = [
+  {% for eng in engineers %}{id:{{ eng.id }},name:"{{ eng.name|escapejs }}",card:"{{ eng.card_number|default:''|escapejs }}",hasPH:{{ eng.has_public_health_cert|yesno:"true,false" }},hasTC:{{ eng.has_termite_cert|yesno:"true,false" }}},
+  {% endfor %}
+];
+
 (function () {
-  const form         = document.querySelector('[data-edit-form]');
-  const requestBtn   = document.querySelector('[data-request-edit]');
-  const editPanel    = document.querySelector('[data-edit-panel]');
-  const extensionBtn = document.querySelector('[data-request-extension]');
-  const extPanel     = document.querySelector('[data-extension-panel]');
-  const saveBtn      = document.querySelector('[data-save-button]');
-  const editables    = form ? Array.from(form.querySelectorAll('[data-editable]')) : [];
+  var form       = document.querySelector('[data-edit-form]');
+  var requestBtn = document.querySelector('[data-request-edit]');
+  var editPanel  = document.querySelector('[data-edit-panel]');
+  var extBtn     = document.querySelector('[data-request-extension]');
+  var extPanel   = document.querySelector('[data-extension-panel]');
+  var saveBtn    = document.querySelector('[data-save-button]');
+  var editables  = form ? Array.from(form.querySelectorAll('[data-editable]')) : [];
 
-  const typeSelect = document.querySelector('select[name="pest_control_type"]');
-  const engSelect  = document.querySelector('select[name="enginer"]');
-  const options    = engSelect  ? Array.from(engSelect.options).filter(o => o.value)  : [];
-  const typeOpts   = typeSelect ? Array.from(typeSelect.options).filter(o => o.value) : [];
+  var editMode = false;
 
-  let editMode = false;
-
-  const setEditMode = (on) => {
+  function setEditMode(on) {
     editMode = on;
-    editables.forEach(el => { el.disabled = !on; });
+    editables.forEach(function(el) { el.disabled = !on; });
     if (saveBtn)    saveBtn.disabled    = !on;
     if (requestBtn) requestBtn.disabled =  on;
-  };
-
-  const applyFilter = () => {
-    if (!typeSelect || !engSelect) return;
-    const type = typeSelect.value;
-    options.forEach(opt => {
-      const allow = type === 'termite_control' ? opt.dataset.termite === '1' : opt.dataset.public === '1';
-      opt.disabled = !allow;
-      if (editMode && !allow && opt.selected) engSelect.value = '';
-    });
-  };
-
-  const filterTypesByEng = () => {
-    if (!typeSelect || !engSelect) return;
-    const sel = engSelect.options[engSelect.selectedIndex];
-    if (!sel || !sel.value) { typeOpts.forEach(o => o.disabled = false); return; }
-    typeOpts.forEach(o => {
-      if (o.value === 'termite_control') o.disabled = sel.dataset.termite !== '1';
-      else o.disabled = sel.dataset.public !== '1';
-    });
-    if (editMode && typeSelect.value && typeSelect.options[typeSelect.selectedIndex].disabled) typeSelect.value = '';
-    if (editMode && !typeSelect.value) {
-      if (sel.dataset.termite === '1') typeSelect.value = 'termite_control';
-      else if (sel.dataset.public === '1') typeSelect.value = 'public_health_pest_control';
+    // Sync picker UI with edit mode
+    var search   = document.getElementById('co-eng-search');
+    var clearBtn = document.getElementById('co-eng-clear');
+    if (search) search.disabled = !on;
+    if (clearBtn && on) {
+      var hiddenId = document.getElementById('co-enginer-id');
+      clearBtn.style.display = (hiddenId && hiddenId.value) ? '' : 'none';
     }
-  };
+  }
 
-  const openEdit = () => {
-    if (editPanel) { editPanel.hidden = false; editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-    setEditMode(true); filterTypesByEng(); applyFilter();
-    const first = editables.find(el => !el.disabled);
+  function openEdit() {
+    if (editPanel) { editPanel.hidden = false; editPanel.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    setEditMode(true);
+    var first = editables.find(function(el) { return !el.disabled && el.tagName !== 'SELECT'; });
     if (first) first.focus();
-  };
+  }
 
-  const openExt = () => {
+  function openExt() {
     if (extPanel) {
       extPanel.hidden = false;
-      const inp = extPanel.querySelector('input[name="extension_type"]');
+      var inp = extPanel.querySelector('input[name="extension_type"]');
       if (inp) inp.focus();
     }
-  };
+  }
 
-  if (requestBtn)   requestBtn.addEventListener('click', openEdit);
-  if (extensionBtn) extensionBtn.addEventListener('click', openExt);
-  if (typeSelect)   typeSelect.addEventListener('change', () => { filterTypesByEng(); applyFilter(); });
-  if (engSelect)    engSelect.addEventListener('change',  () => { filterTypesByEng(); applyFilter(); });
+  if (requestBtn)  requestBtn.addEventListener('click', openEdit);
+  if (extBtn)      extBtn.addEventListener('click', openExt);
 
   if (form) {
-    form.addEventListener('submit', e => {
+    form.addEventListener('submit', function(e) {
       if (!editMode) { e.preventDefault(); return; }
       if (!window.confirm('هل ترغب بحفظ التغييرات؟')) e.preventDefault();
     });
   }
 
-  if (editPanel && !editPanel.hidden) { editPanel.classList.add('is-active'); openEdit(); }
-  else { setEditMode(false); filterTypesByEng(); applyFilter(); }
+  if (editPanel && !editPanel.hidden) { openEdit(); }
+  else { setEditMode(false); }
   if (extPanel && !extPanel.hidden) openExt();
+
+  // ── Engineer picker ──────────────────────────────────────────
+  var pickerWrap  = document.getElementById('co-eng-picker');
+  var hiddenId    = document.getElementById('co-enginer-id');
+  var searchInput = document.getElementById('co-eng-search');
+  var clearBtn    = document.getElementById('co-eng-clear');
+  var dropdown    = document.getElementById('co-eng-dropdown');
+  var notice      = document.getElementById('co-eng-cert-notice');
+
+  if (searchInput && hiddenId) {
+    // Pre-fill name if engineer already selected
+    var preId = parseInt(hiddenId.value);
+    if (preId) {
+      var found = CO_ENGINEERS.find(function(e) { return e.id === preId; });
+      if (found) { searchInput.value = found.name; applyCertStyle(found); }
+    }
+
+    function openDrop() {
+      var rect = searchInput.getBoundingClientRect();
+      dropdown.style.top    = rect.bottom + 'px';
+      dropdown.style.left   = rect.left + 'px';
+      dropdown.style.width  = rect.width + 'px';
+      dropdown.style.display = 'block';
+      searchInput.style.borderRadius = '8px 8px 0 0';
+      searchInput.style.borderBottomColor = 'transparent';
+    }
+    function closeDrop() {
+      dropdown.style.display = 'none';
+      searchInput.style.borderRadius = '8px';
+      searchInput.style.borderBottomColor = '';
+    }
+
+    function renderDrop(list) {
+      dropdown.innerHTML = '';
+      if (!list.length) {
+        dropdown.innerHTML = '<div class="eng-picker__empty">لا توجد نتائج</div>';
+        openDrop(); return;
+      }
+      list.slice(0, 50).forEach(function(e) {
+        var item = document.createElement('div');
+        item.className = 'eng-picker__item';
+        var certBadge = e.hasTC
+          ? '<span style="font-size:10px;color:#166534;background:#dcfce7;padding:2px 7px;border-radius:4px;font-weight:700;white-space:nowrap;">✓ نمل أبيض</span>'
+          : e.hasPH
+          ? '<span style="font-size:10px;color:#1e40af;background:#dbeafe;padding:2px 7px;border-radius:4px;font-weight:700;white-space:nowrap;">✓ صحة عامة</span>'
+          : '<span style="font-size:10px;color:#92400e;background:#fef3c7;padding:2px 7px;border-radius:4px;font-weight:700;white-space:nowrap;">بدون شهادة</span>';
+        var cardBadge = e.card ? '<span style="font-size:11px;color:var(--ink-4);background:var(--surface-2);padding:2px 6px;border-radius:4px;">#'+e.card+'</span>' : '';
+        item.innerHTML = '<span>'+e.name+'</span><span style="display:flex;gap:5px;align-items:center;">'+cardBadge+certBadge+'</span>';
+        item.addEventListener('mousedown', function(ev) { ev.preventDefault(); selectEng(e); });
+        dropdown.appendChild(item);
+      });
+      openDrop();
+    }
+
+    function selectEng(e) {
+      hiddenId.value    = e.id;
+      searchInput.value = e.name;
+      clearBtn.style.display = '';
+      closeDrop();
+      applyCertStyle(e);
+    }
+
+    function applyCertStyle(e) {
+      searchInput.classList.remove('eng-picker__search--ok','eng-picker__search--warn');
+      if (e.hasPH || e.hasTC) {
+        searchInput.classList.add('eng-picker__search--ok');
+        if (notice) notice.style.display = 'none';
+      } else {
+        searchInput.classList.add('eng-picker__search--warn');
+        if (notice) { notice.style.display = ''; notice.textContent = 'تنبيه: المهندس المختار لا يملك شهادات معتمدة — يمكن الحفظ لكن يُفضَّل إضافة الشهادات لاحقاً.'; }
+      }
+    }
+
+    searchInput.addEventListener('click', function() {
+      if (searchInput.disabled) return;
+      var q = searchInput.value.trim();
+      var list = q ? CO_ENGINEERS.filter(function(e) { return e.name.indexOf(q) !== -1; }) : CO_ENGINEERS;
+      renderDrop(list);
+    });
+
+    searchInput.addEventListener('input', function() {
+      if (searchInput.disabled) return;
+      hiddenId.value = '';
+      clearBtn.style.display = 'none';
+      searchInput.classList.remove('eng-picker__search--ok','eng-picker__search--warn');
+      if (notice) notice.style.display = 'none';
+      var q = searchInput.value.trim();
+      var list = q ? CO_ENGINEERS.filter(function(e) { return e.name.indexOf(q) !== -1; }) : CO_ENGINEERS;
+      renderDrop(list);
+    });
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        hiddenId.value = '';
+        searchInput.value = '';
+        clearBtn.style.display = 'none';
+        searchInput.classList.remove('eng-picker__search--ok','eng-picker__search--warn');
+        if (notice) notice.style.display = 'none';
+      });
+    }
+
+    document.addEventListener('click', function(ev) {
+      if (!pickerWrap.contains(ev.target) && !dropdown.contains(ev.target)) closeDrop();
+    });
+
+    var navbarEl = document.querySelector('.app-chrome');
+    function reposDrop() {
+      if (dropdown.style.display !== 'block') return;
+      var rect      = searchInput.getBoundingClientRect();
+      var navBottom = navbarEl ? navbarEl.getBoundingClientRect().bottom : 0;
+      if (rect.bottom <= navBottom) { closeDrop(); return; }
+      dropdown.style.top   = rect.bottom + 'px';
+      dropdown.style.left  = rect.left + 'px';
+      dropdown.style.width = rect.width + 'px';
+    }
+
+    window.addEventListener('scroll', reposDrop, true);
+    window.addEventListener('resize', reposDrop);
+  }
+
+  // ── Engineer removal panel ───────────────────────────────────
+  var removeEngBtn    = document.querySelector('[data-remove-engineer]');
+  var removeEngPanel  = document.querySelector('[data-remove-engineer-panel]');
+  var cancelRemoveBtn = document.querySelector('[data-cancel-remove]');
+  if (removeEngBtn && removeEngPanel) {
+    removeEngBtn.addEventListener('click', function() {
+      removeEngPanel.hidden = false;
+      removeEngPanel.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  }
+  if (cancelRemoveBtn && removeEngPanel) {
+    cancelRemoveBtn.addEventListener('click', function() { removeEngPanel.hidden = true; });
+  }
+  if (removeEngPanel && !removeEngPanel.hidden) {
+    removeEngPanel.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  initDropZone('removal-drop-zone', 'removal-docs-input', 'removal-docs-list');
 })();
+
+function initDropZone(zoneId, inputId, listId) {
+  var zoneEl  = document.getElementById(zoneId);
+  var inputEl = document.getElementById(inputId);
+  var listEl  = document.getElementById(listId);
+  if (!zoneEl || !inputEl) return;
+  zoneEl.addEventListener('click', function(e) {
+    if (!e.target.classList.contains('drop-zone__link')) inputEl.click();
+  });
+  zoneEl.addEventListener('dragover', function(e) { e.preventDefault(); zoneEl.classList.add('drag-over'); });
+  zoneEl.addEventListener('dragleave', function() { zoneEl.classList.remove('drag-over'); });
+  zoneEl.addEventListener('drop', function(e) {
+    e.preventDefault(); zoneEl.classList.remove('drag-over');
+    var dt = new DataTransfer();
+    Array.from(e.dataTransfer.files).forEach(function(f) { dt.items.add(f); });
+    inputEl.files = dt.files;
+    renderList(dt.files);
+  });
+  inputEl.addEventListener('change', function() { renderList(inputEl.files); });
+  function renderList(files) {
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    Array.from(files).forEach(function(f) {
+      var li = document.createElement('li');
+      li.textContent = f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
+      listEl.appendChild(li);
+    });
+  }
+}
 
 function captureCompanyLocation() {
   var btn    = document.getElementById('loc-gps-btn');

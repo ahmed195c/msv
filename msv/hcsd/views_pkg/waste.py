@@ -313,10 +313,10 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
         permit_type='waste_disposal',
     )
     today = datetime.date.today()
-    if not permit.dateOfExpiry or permit.dateOfExpiry < today:
-        return redirect('waste_permit_detail', id=permit.id)
 
     if request_id is None:
+        if not permit.dateOfExpiry or permit.dateOfExpiry < today:
+            return redirect('waste_permit_detail', id=permit.id)
         if not _can_data_entry(request.user):
             return redirect('waste_permit_detail', id=permit.id)
         active_request = (

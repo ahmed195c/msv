@@ -14,340 +14,357 @@
     --pd-line-2: #bcc8d5;
     --pd-accent: #304357;
     --pd-accent-dark: #26384a;
-    --pd-radius: 8px;
-    --pd-shadow: 0 10px 24px rgba(48,67,87,0.08);
     padding: 20px 10px 36px;
     background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
     direction: rtl;
   }
 
-  .permit-card {
-    max-width: 960px;
-    margin: 0 auto;
-    background: var(--pd-paper);
-    border: 1.5px solid var(--pd-line);
-    border-radius: var(--pd-radius);
-    box-shadow: var(--pd-shadow);
-    padding: 0;
-    overflow: hidden;
-  }
+  .permit-card { max-width: 960px; margin: 0 auto; }
 
-  .hero-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    background: linear-gradient(160deg, #3a4f66 0%, #304357 55%, #26384a 100%);
-    color: #fff;
+  /* ── Action bar ── */
+  .action-bar {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    align-items: center; justify-content: space-between;
+    margin-bottom: 14px; padding: 12px 18px;
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
   }
-
-  .hero-title {
-    font-size: clamp(17px, 2vw, 22px);
-    font-weight: 800;
-  }
-
-  .hero-back {
-    color: #c8d8e8;
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    border: 1.5px solid rgba(255,255,255,0.25);
-    border-radius: 6px;
-    padding: 6px 12px;
+  .back-link {
+    display: inline-flex; align-items: center;
+    padding: 7px 14px; border-radius: 6px;
+    font-size: 13px; font-weight: 700; text-decoration: none;
+    border: 1.5px solid var(--pd-line-2);
+    background: var(--pd-surface); color: var(--pd-ink);
     transition: background 0.15s;
   }
+  .back-link:hover { background: var(--pd-surface-2); }
+  .municipality { display: flex; align-items: center; gap: 10px; }
+  .logo-box { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .logo-box img { width: 100%; height: 100%; object-fit: contain; }
+  .municipality-text .title { font-size: 14px; font-weight: 800; color: var(--pd-ink); margin-bottom: 2px; }
+  .municipality-text .sub { font-size: 11px; color: var(--pd-ink-3); font-weight: 600; line-height: 1.5; }
 
-  .hero-back:hover {
-    background: rgba(255,255,255,0.1);
+  /* ── Section card ── */
+  .permit-section--doc {
+    margin-top: 12px; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
+  }
+  .doc-band {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 16px;
+    background: var(--pd-surface);
+    border-bottom: 1.5px solid var(--pd-line);
+  }
+  .doc-band-title {
+    font-size: 12px; font-weight: 800;
+    color: var(--pd-ink-2); letter-spacing: 0.03em;
   }
 
-  .form-body {
-    padding: 16px 18px;
-  }
+  /* ── Fields table ── */
+  .fields-table { background: #fff; }
 
-  .alert {
-    background: #fef2f2;
-    border: 1.5px solid #f5c6cb;
-    border-radius: 6px;
-    padding: 10px 14px;
-    color: #8c1f1f;
-    margin-bottom: 14px;
-  }
-
-  .alert-list {
-    padding-inline-start: 18px;
-    margin-top: 6px;
-    line-height: 1.9;
-    font-size: 13px;
-  }
-
-  .form-section {
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    padding: 14px;
-    margin-bottom: 14px;
-  }
-
-  .section-title {
-    display: inline-flex;
+  .field-row {
+    display: flex;
     align-items: center;
-    padding: 5px 10px;
-    border-radius: 6px;
-    background: var(--pd-accent);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 800;
-    margin-bottom: 12px;
+    border-bottom: 1px solid #eef1f5;
+    min-height: 46px;
   }
+  .field-row:last-child { border-bottom: none; }
+  .field-row:nth-child(even) { background: #fafbfc; }
 
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-  }
-
-  .field-full { grid-column: 1 / -1; }
-
-  .field label {
-    font-size: 12px;
-    font-weight: 700;
+  .field-label {
+    width: 170px;
+    min-width: 170px;
+    padding: 10px 14px 10px 0;
+    font-size: 12px; font-weight: 700;
     color: var(--pd-ink-3);
-    display: block;
-    margin-bottom: 5px;
+    line-height: 1.4;
+    flex-shrink: 0;
+    border-left: 1px solid #eef1f5;
   }
 
-  .field input,
-  .field select {
+  .field-cell {
+    flex: 1;
+    padding: 6px 10px;
+  }
+
+  .field-cell input,
+  .field-cell select {
     width: 100%;
     border: 1.5px solid var(--pd-line-2);
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--pd-ink);
-    background: var(--pd-paper);
-    font-family: inherit;
-    box-sizing: border-box;
-  }
-
-  .field input[readonly] {
-    background: var(--pd-surface);
-    color: var(--pd-ink-2);
-  }
-
-  .field input:focus,
-  .field select:focus {
-    border-color: var(--pd-accent);
+    border-radius: 5px;
+    padding: 7px 10px;
+    font-size: 13px; font-weight: 600;
+    color: var(--pd-ink); background: #fff;
+    font-family: inherit; box-sizing: border-box;
+    direction: rtl; text-align: right;
+    transition: border-color 0.15s, box-shadow 0.15s;
     outline: none;
   }
+  .field-cell input[readonly] {
+    background: var(--pd-surface); color: var(--pd-ink-2);
+    border-color: var(--pd-line);
+  }
+  .field-cell input:not([readonly]):focus,
+  .field-cell select:focus {
+    border-color: var(--pd-accent);
+    box-shadow: 0 0 0 3px rgba(48,67,87,0.08);
+  }
 
+  /* ── Company selector ── */
+  .company-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; gap: 8px; flex-wrap: wrap;
+  }
+  .company-bar--selected { background: #eff6ff; border-bottom: 1px solid #bfdbfe; }
+  .company-bar--empty    { background: #fef9c3; border-bottom: 1px solid #fde68a; justify-content: center; }
+  .company-bar .co-name  { font-size: 13.5px; font-weight: 700; color: #1e40af; }
+  .company-bar .co-num   { font-size: 11.5px; color: #3b82f6; margin-top: 1px; }
+  .btn-change {
+    font-size: 12px; color: #475569; text-decoration: none;
+    border: 1px solid #cbd5e1; padding: 4px 12px;
+    border-radius: 5px; background: #fff; white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .btn-change:hover { background: #f1f5f9; }
+
+  /* ── Documents ── */
+  .doc-form-body { padding: 14px 16px 16px; background: #fff; }
+  .drop-zone {
+    border: 2px dashed var(--pd-line-2); border-radius: 6px;
+    padding: 22px 16px; text-align: center; cursor: pointer;
+    color: var(--pd-ink-3); font-size: 13px; font-weight: 600;
+    transition: border-color 0.15s, background 0.15s;
+    background: var(--pd-surface);
+  }
+  .drop-zone.dragover { border-color: var(--pd-accent); background: var(--pd-surface-2); }
+  .drop-zone input[type="file"] { display: none; }
+  #file-list { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .file-chip {
+    background: var(--pd-surface-2); border: 1px solid var(--pd-line);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 12px; font-weight: 600; color: var(--pd-ink-2);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .file-chip .remove-file { cursor: pointer; color: #e05; font-weight: 900; font-size: 14px; line-height: 1; }
+
+  /* ── Alert ── */
+  .alert {
+    border: 1.5px solid #d8a7a7; border-radius: 6px;
+    background: #fff3f3; color: #8c2f2f;
+    padding: 10px 14px; margin-top: 12px; font-size: 13px;
+  }
+  .alert-list { padding-inline-start: 18px; margin-top: 6px; line-height: 1.9; font-size: 13px; }
+
+  /* ── Form actions ── */
   .form-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    padding-top: 6px;
+    display: flex; gap: 10px; align-items: center;
+    margin-top: 12px; padding: 13px 16px;
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
   }
-
   .btn-submit {
-    background: var(--pd-accent);
-    border: none;
-    color: #fff;
-    font-weight: 800;
-    font-size: 14px;
-    padding: 10px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: inherit;
+    background: var(--pd-accent); border: none; color: #fff;
+    font-weight: 800; font-size: 14px; padding: 9px 24px;
+    border-radius: 7px; cursor: pointer; font-family: inherit;
+    transition: background 0.15s;
   }
-
-  .btn-submit:hover {
-    background: var(--pd-accent-dark);
-  }
-
+  .btn-submit:hover { background: var(--pd-accent-dark); }
   .btn-cancel {
-    color: var(--pd-ink-2);
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    border: 1.5px solid var(--pd-line-2);
-    border-radius: 6px;
-    padding: 9px 16px;
+    color: var(--pd-ink-2); font-size: 13px; font-weight: 700;
+    text-decoration: none; border: 1.5px solid var(--pd-line-2);
+    border-radius: 6px; padding: 8px 16px;
+  }
+
+  @media (max-width: 600px) {
+    .action-bar { flex-direction: column; align-items: flex-start; }
+    .field-label { width: 120px; min-width: 120px; }
   }
 </style>
 {% endblock %}
 {% block content %}
 <section class="permit-page" lang="ar" dir="rtl">
-  <div class="permit-card">
-    <div class="hero-bar">
-      <a href="{% url 'clearance_list' %}" class="hero-back">← العودة</a>
-      <span class="hero-title">تصريح المركبة للشركات</span>
-    </div>
-    <form method="post" enctype="multipart/form-data" autocomplete="off" class="form-body">
-      {% csrf_token %}
+<div class="permit-card">
 
-      {% if form_errors %}
-        <div class="alert">
-          <strong>يرجى تصحيح التالي:</strong>
-          <ul class="alert-list">
-            {% for error in form_errors %}
-              <li>
-                {% if error == "company_select_invalid" %}
-                  يرجى اختيار شركة صحيحة.
-                {% elif error == "company_has_active_extension" %}
-                  هذه الشركة موقوفة بسبب مهلة نشطة — لا يمكن إنشاء تصاريح جديدة حتى يتم إغلاق المهلة.
-                {% elif error == "request_email_required" %}
-                  يرجى إدخال بريد مقدم الطلب.
-                {% elif error == "vehicle_type_required" %}
-                  يرجى إدخال نوع المركبة.
-                {% elif error == "vehicle_number_required" %}
-                  يرجى إدخال رقم المركبة.
-                {% elif error == "vehicle_color_required" %}
-                  يرجى إدخال لون المركبة.
-                {% elif error == "issue_authority_required" %}
-                  يرجى إدخال مصدر الرخصة.
-                {% elif error == "vehicle_license_expiry_required" %}
-                  يرجى إدخال تاريخ انتهاء ملكية المركبة.
-                {% elif error == "vehicle_license_expiry_invalid" %}
-                  تاريخ انتهاء ملكية المركبة غير صالح.
-                {% elif error == "documents_required" %}
-                  يرجى إرفاق مستند واحد على الأقل.
-                {% elif error == "documents_invalid" %}
-                  الملفات المسموحة هي PDF أو صور فقط: {{ invalid_docs|join:", " }}
-                {% else %}
-                  {{ error }}
-                {% endif %}
-              </li>
-            {% endfor %}
-          </ul>
+  <div class="action-bar">
+    <a href="{% url 'clearance_list' %}" class="back-link">← العودة إلى قائمة الطلبات</a>
+    <div class="municipality">
+      <div class="logo-box">
+        <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+      </div>
+      <div class="municipality-text">
+        <div class="title">بلدية مدينة الشارقة</div>
+        <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+        <div class="sub">قسم رقابة وتنظيم النفايات</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="permit-section--doc" style="margin-top:0;">
+    <div class="doc-band">
+      <span class="doc-band-title">تصريح المركبة للشركات</span>
+    </div>
+  </div>
+
+  {% if form_errors %}
+    <div class="alert">
+      <strong>يرجى تصحيح التالي:</strong>
+      <ul class="alert-list">
+        {% for error in form_errors %}
+          <li>
+            {% if error == "company_select_invalid" %}يرجى اختيار شركة صحيحة.
+            {% elif error == "company_has_active_extension" %}هذه الشركة موقوفة بسبب مهلة نشطة — لا يمكن إنشاء تصاريح جديدة حتى يتم إغلاق المهلة.
+            {% elif error == "request_email_required" %}يرجى إدخال بريد مقدم الطلب.
+            {% elif error == "vehicle_type_required" %}يرجى إدخال نوع المركبة.
+            {% elif error == "vehicle_number_required" %}يرجى إدخال رقم المركبة.
+            {% elif error == "vehicle_color_required" %}يرجى إدخال لون المركبة.
+            {% elif error == "issue_authority_required" %}يرجى إدخال مصدر الرخصة.
+            {% elif error == "vehicle_license_expiry_required" %}يرجى إدخال تاريخ انتهاء ملكية المركبة.
+            {% elif error == "vehicle_license_expiry_invalid" %}تاريخ انتهاء ملكية المركبة غير صالح.
+            {% elif error == "documents_required" %}يرجى إرفاق مستند واحد على الأقل.
+            {% elif error == "documents_invalid" %}الملفات المسموحة هي PDF أو صور فقط: {{ invalid_docs|join:", " }}
+            {% else %}{{ error }}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" autocomplete="off">
+    {% csrf_token %}
+
+    <!-- بيانات الشركة -->
+    <section class="permit-section--doc">
+      <div class="doc-band"><span class="doc-band-title">بيانات الشركة</span></div>
+      <input type="hidden" name="company_id" value="{{ selected_company_id|default:'' }}">
+
+      {% if selected_company %}
+      <div class="company-bar company-bar--selected">
+        <div>
+          <div class="co-name">{{ selected_company.name }}</div>
+          <div class="co-num">رقم الرخصة: {{ selected_company.number }}</div>
         </div>
+        <a href="{% url 'permit_types' %}?open=vehicle" class="btn-change">تغيير الشركة</a>
+      </div>
+      {% else %}
+      <div class="company-bar company-bar--empty">
+        <span style="font-size:13px;color:#92400e;font-weight:600;">لم يتم اختيار شركة —</span>
+        <a href="{% url 'permit_types' %}?open=vehicle" style="font-size:13px;color:#2563eb;font-weight:700;margin-right:4px;">العودة لاختيار الشركة</a>
+      </div>
       {% endif %}
 
-      <div class="form-section">
-        <div class="section-title">بيانات الشركة</div>
-        <div class="form-grid">
-          <div class="field field-full">
-            <label for="company_search">بحث عن الشركة</label>
-            <input type="text" id="company_search" placeholder="ابحث باسم الشركة أو رقم الرخصة…" autocomplete="off" style="margin-bottom:6px;">
-            <label for="company_id">اختيار الشركة المسجلة</label>
-            <select id="company_id" name="company_id" required size="8" style="width:100%;box-sizing:border-box;height:auto;min-height:160px;overflow-y:auto;">
-              <option value="">-- اختيار --</option>
-              {% for company in companies %}
-                <option value="{{ company.id }}"
-                  data-name="{{ company.name }}"
-                  data-number="{{ company.number }}"
-                  data-phone="{{ company.owner_phone|default:company.landline|default_if_none:'' }}"
-                  data-exp="{{ company.trade_license_exp|date:'Y-m-d' }}"
-                  {% if company.id == selected_company_id %}selected{% endif %}>
-                  {{ company.name }} - {{ company.number }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="field">
-            <label>اسم الشركة</label>
-            <input id="company_name" type="text" value="{{ selected_company.name|default:'' }}" readonly>
-          </div>
-          <div class="field">
-            <label>رقم الرخصة التجارية</label>
-            <input id="company_number" type="text" value="{{ selected_company.number|default:'' }}" readonly>
-          </div>
-          <div class="field">
-            <label>رقم التواصل</label>
-            <input id="company_phone" type="text" value="{% if selected_company %}{{ selected_company.owner_phone|default:selected_company.landline|default:'' }}{% endif %}" readonly>
-          </div>
-          <div class="field">
-            <label>تاريخ انتهاء الرخصة التجارية</label>
-            <input id="company_trade_exp" type="date" value="{{ selected_company.trade_license_exp|date:'Y-m-d'|default:'' }}" readonly>
-          </div>
-          <div class="field">
-            <label for="request_email">بريد مقدم الطلب</label>
-            <input id="request_email" name="request_email" type="email" value="{{ form_data.request_email|default:'' }}" required>
-          </div>
+      <div class="fields-table">
+        <div class="field-row">
+          <span class="field-label">اسم الشركة</span>
+          <span class="field-cell"><input type="text" value="{{ selected_company.name|default:'' }}" readonly></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">رقم الرخصة التجارية</span>
+          <span class="field-cell"><input type="text" value="{{ selected_company.number|default:'' }}" readonly></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">رقم التواصل</span>
+          <span class="field-cell"><input type="text" value="{% if selected_company %}{{ selected_company.owner_phone|default:selected_company.landline|default:'' }}{% endif %}" readonly></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">تاريخ انتهاء الرخصة التجارية</span>
+          <span class="field-cell"><input type="date" value="{{ selected_company.trade_license_exp|date:'Y-m-d'|default:'' }}" lang="ar-AE" dir="rtl" readonly></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">بريد مقدم الطلب</span>
+          <span class="field-cell"><input id="request_email" name="request_email" type="email" value="{{ form_data.request_email|default:'' }}" required></span>
         </div>
       </div>
+    </section>
 
-      <div class="form-section">
-        <div class="section-title">بيانات المركبة</div>
-        <div class="form-grid">
-          <div class="field">
-            <label for="vehicle_type">نوع المركبة</label>
-            <input id="vehicle_type" name="vehicle_type" type="text" value="{{ form_data.vehicle_type|default:'' }}" required>
-          </div>
-          <div class="field">
-            <label for="vehicle_number">رقم المركبة</label>
-            <input id="vehicle_number" name="vehicle_number" type="text" value="{{ form_data.vehicle_number|default:'' }}" required>
-          </div>
-          <div class="field">
-            <label for="vehicle_color">لون المركبة</label>
-            <input id="vehicle_color" name="vehicle_color" type="text" value="{{ form_data.vehicle_color|default:'' }}" required>
-          </div>
-          <div class="field">
-            <label for="issue_authority">مصدر الرخصة</label>
-            <input id="issue_authority" name="issue_authority" type="text" value="{{ form_data.issue_authority|default:'' }}" required>
-          </div>
-          <div class="field">
-            <label for="vehicle_license_expiry">تاريخ انتهاء ملكية المركبة</label>
-            <input id="vehicle_license_expiry" name="vehicle_license_expiry" type="date" value="{{ form_data.vehicle_license_expiry|default:'' }}" required>
-          </div>
+    <!-- بيانات المركبة -->
+    <section class="permit-section--doc">
+      <div class="doc-band"><span class="doc-band-title">بيانات المركبة</span></div>
+      <div class="fields-table">
+        <div class="field-row">
+          <span class="field-label">نوع المركبة</span>
+          <span class="field-cell"><input id="vehicle_type" name="vehicle_type" type="text" value="{{ form_data.vehicle_type|default:'' }}" required></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">رقم المركبة</span>
+          <span class="field-cell"><input id="vehicle_number" name="vehicle_number" type="text" value="{{ form_data.vehicle_number|default:'' }}" required></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">لون المركبة</span>
+          <span class="field-cell"><input id="vehicle_color" name="vehicle_color" type="text" value="{{ form_data.vehicle_color|default:'' }}" required></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">مصدر الرخصة</span>
+          <span class="field-cell"><input id="issue_authority" name="issue_authority" type="text" value="{{ form_data.issue_authority|default:'' }}" required></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">تاريخ انتهاء ملكية المركبة</span>
+          <span class="field-cell"><input id="vehicle_license_expiry" name="vehicle_license_expiry" type="date" value="{{ form_data.vehicle_license_expiry|default:'' }}" lang="ar-AE" dir="rtl" required></span>
         </div>
       </div>
+    </section>
 
-      <div class="form-section">
-        <div class="section-title">المستندات المطلوبة</div>
-        <div class="field">
-          <label for="documents">إرفاق المستندات (PDF أو صور)</label>
-          <input id="documents" type="file" name="documents" multiple required>
+    <!-- المستندات -->
+    <section class="permit-section--doc">
+      <div class="doc-band">
+        <span class="doc-band-title">المستندات المطلوبة</span>
+        <span style="font-size:11px;color:var(--pd-ink-3);font-weight:600;">PDF أو صور JPG/PNG</span>
+      </div>
+      <div class="doc-form-body">
+        <div class="drop-zone" id="drop-zone">
+          <input id="documents" type="file" name="documents" multiple accept=".pdf,.jpg,.jpeg,.png">
+          <div>اسحب الملفات هنا أو <strong>انقر للاختيار</strong></div>
+          <div style="font-size:11px;color:var(--pd-ink-3);margin-top:4px;">PDF أو صور JPG/PNG</div>
         </div>
+        <div id="file-list"></div>
       </div>
+    </section>
 
-      <div class="form-actions">
-        <button type="submit" class="btn-submit">إرسال الطلب</button>
-        <a class="btn-cancel" href="{% url 'clearance_list' %}">العودة للطلبات</a>
-      </div>
-    </form>
-  </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-submit">إرسال الطلب</button>
+      <a class="btn-cancel" href="{% url 'clearance_list' %}">العودة للطلبات</a>
+    </div>
+  </form>
+
+</div>
 </section>
 <script>
-  (function () {
-    var companySelect = document.getElementById('company_id');
-    if (!companySelect) return;
-    var companyName = document.getElementById('company_name');
-    var companyNumber = document.getElementById('company_number');
-    var companyPhone = document.getElementById('company_phone');
-    var companyTradeExp = document.getElementById('company_trade_exp');
-
-    function fillCompanyFields() {
-      var option = companySelect.options[companySelect.selectedIndex];
-      if (!option || !option.value) {
-        companyName.value = '';
-        companyNumber.value = '';
-        companyPhone.value = '';
-        companyTradeExp.value = '';
-        return;
-      }
-      companyName.value = option.dataset.name || '';
-      companyNumber.value = option.dataset.number || '';
-      companyPhone.value = option.dataset.phone || '';
-      companyTradeExp.value = option.dataset.exp || '';
+(function () {
+  var dropZone  = document.getElementById('drop-zone');
+  var fileInput = document.getElementById('documents');
+  var fileList  = document.getElementById('file-list');
+  var dt        = new DataTransfer();
+  function renderChips() {
+    fileList.innerHTML = '';
+    Array.from(dt.files).forEach(function (f, i) {
+      var chip = document.createElement('span');
+      chip.className = 'file-chip';
+      chip.innerHTML = f.name + ' <span class="remove-file" data-index="' + i + '">×</span>';
+      fileList.appendChild(chip);
+    });
+    fileInput.files = dt.files;
+  }
+  dropZone.addEventListener('click', function () { fileInput.click(); });
+  fileInput.addEventListener('change', function () {
+    Array.from(fileInput.files).forEach(function (f) { dt.items.add(f); });
+    renderChips();
+  });
+  dropZone.addEventListener('dragover',  function (e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', function ()  { dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', function (e) {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    Array.from(e.dataTransfer.files).forEach(function (f) { dt.items.add(f); });
+    renderChips();
+  });
+  fileList.addEventListener('click', function (e) {
+    if (e.target.classList.contains('remove-file')) {
+      var idx = parseInt(e.target.dataset.index);
+      var newDt = new DataTransfer();
+      Array.from(dt.files).forEach(function (f, i) { if (i !== idx) newDt.items.add(f); });
+      dt = newDt; renderChips();
     }
-
-    companySelect.addEventListener('change', fillCompanyFields);
-    fillCompanyFields();
-
-    // Company search filter
-    const companySearch = document.getElementById('company_search');
-    const allOptions = Array.from(companySelect.options);
-    if (companySearch) {
-      companySearch.addEventListener('input', function () {
-        const q = this.value.trim().toLowerCase();
-        allOptions.forEach(function (opt) {
-          if (!opt.value) { opt.style.display = ''; return; }
-          const name = (opt.dataset.name || opt.text || '').toLowerCase();
-          const num  = (opt.dataset.number || '').toLowerCase();
-          opt.style.display = (!q || name.includes(q) || num.includes(q)) ? '' : 'none';
-        });
-      });
-    }
-  })();
+  });
+})();
 </script>
 {% endblock %}

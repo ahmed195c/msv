@@ -1,552 +1,681 @@
 {% extends "hcsd/base.html" %}
 {% load static %}
-{% block title %}طلب التخلص من النفايات{% endblock %}
+{% block title %}طلب التخلص من النفايات #{{ disposal_request.id }}{% endblock %}
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'hcsd/pirmet_detail.css' %}">
-  <style>
-    .permit-page {
-      --pd-ink: #304357;
-      --pd-ink-2: #455c75;
-      --pd-ink-3: #6f8297;
-      --pd-paper: #ffffff;
-      --pd-surface: #f1f4f7;
-      --pd-surface-2: #e8eef4;
-      --pd-line: #d4dce5;
-      --pd-line-2: #bcc8d5;
-      --pd-accent: #304357;
-      --pd-accent-dark: #26384a;
-      --pd-radius: 8px;
-      --pd-shadow: 0 10px 24px rgba(48, 67, 87, 0.08);
-      padding: 20px 10px 36px;
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(241, 244, 247, 0.86)),
-        var(--pd-surface);
-      direction: rtl;
-      color: var(--pd-ink);
-      font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
-    }
+<style>
+  .permit-page {
+    --pd-ink: #304357;
+    --pd-ink-2: #455c75;
+    --pd-ink-3: #6f8297;
+    --pd-paper: #ffffff;
+    --pd-surface: #f1f4f7;
+    --pd-surface-2: #e8eef4;
+    --pd-line: #d4dce5;
+    --pd-line-2: #bcc8d5;
+    --pd-accent: #304357;
+    --pd-accent-dark: #26384a;
+    padding: 20px 10px 36px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
+    direction: rtl;
+  }
 
-    .permit-card {
-      max-width: 1160px;
-      margin: 0 auto;
-      background: var(--pd-paper);
-      border: 1.5px solid var(--pd-line);
-      border-radius: var(--pd-radius);
-      box-shadow: var(--pd-shadow);
-      padding: 18px;
-      color: var(--pd-ink);
-    }
+  .permit-card {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: var(--pd-surface);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(48,67,87,0.10);
+    padding: 20px;
+    color: var(--pd-ink);
+    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
+  }
 
-    .back-link,
-    .review-form button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 38px;
-      padding: 8px 14px;
-      border-radius: 6px;
-      border: 1.5px solid var(--pd-line-2);
-      background: var(--pd-paper);
-      color: var(--pd-ink);
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 700;
-      transition: background 0.15s ease, border-color 0.15s ease;
-    }
+  /* ── Action bar ── */
+  .action-bar {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    align-items: center; justify-content: space-between;
+    margin-bottom: 14px; padding: 12px 18px;
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
+  }
+  .back-link {
+    display: inline-flex; align-items: center;
+    padding: 7px 14px; border-radius: 6px;
+    font-size: 13px; font-weight: 700; text-decoration: none;
+    border: 1.5px solid var(--pd-line-2);
+    background: var(--pd-surface); color: var(--pd-ink);
+    transition: background 0.15s;
+  }
+  .back-link:hover { background: var(--pd-surface-2); }
+  .municipality { display: flex; align-items: center; gap: 10px; }
+  .logo-box { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .logo-box img { width: 100%; height: 100%; object-fit: contain; }
+  .municipality-text .title { font-size: 14px; font-weight: 800; color: var(--pd-ink); margin-bottom: 2px; }
+  .municipality-text .sub   { font-size: 11px; color: var(--pd-ink-3); font-weight: 600; line-height: 1.5; }
 
-    .review-form button {
-      background: var(--pd-accent);
-      border-color: var(--pd-accent);
-      color: #fff;
-    }
+  /* ── Status bar ── */
+  .status-bar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 11px 18px; margin-bottom: 14px;
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
+  }
+  .status-bar-label { font-size: 11px; font-weight: 700; color: var(--pd-ink-3); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    border-radius: 6px; padding: 5px 13px;
+    font-size: 13px; font-weight: 700; line-height: 1.4;
+    border: 1.5px solid var(--pd-accent);
+    background: #edf2f7; color: var(--pd-accent);
+  }
+  .status-badge::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .status-badge--pending  { border-color: #b07d10; background: #fef9ec; color: #7a5500; }
+  .status-badge--active   { border-color: #1f6b3e; background: #edf7f2; color: #1a5233; }
+  .status-badge--issued   { border-color: #155e2e; background: #d4f5e2; color: #0e3d1d; }
+  .status-badge--warning  { border-color: #9c3a12; background: #fdf0ea; color: #7a2c0d; }
+  .status-badge--closed   { border-color: #5a5a5a; background: #f2f2f2; color: #3d3d3d; }
 
-    .review-form button:hover {
-      background: var(--pd-accent-dark);
-      border-color: var(--pd-accent-dark);
-    }
+  /* ── Timeline ── */
+  .wf-timeline {
+    display: flex; align-items: flex-start; gap: 0;
+    padding: 18px 6px 10px; overflow-x: auto;
+    background: #fff; border-radius: 8px; margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
+  }
+  .wf-step {
+    display: flex; flex-direction: column; align-items: center;
+    flex: 1; min-width: 72px; position: relative;
+  }
+  .wf-step:not(:last-child)::after {
+    content: ''; position: absolute; top: 13px;
+    width: 100%; height: 2px; background: var(--pd-line); left: 50%; z-index: 0;
+  }
+  .wf-step.done::after      { background: #16a34a; }
+  .wf-step.cancelled::after { background: #dc2626; }
+  .wf-dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid var(--pd-line-2); background: #fff; z-index: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--pd-ink-3); flex-shrink: 0;
+  }
+  .wf-step.done .wf-dot      { background: #16a34a; border-color: #16a34a; color: #fff; }
+  .wf-step.active .wf-dot    { background: #fff; border-color: var(--pd-accent); color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(48,67,87,0.12); }
+  .wf-step.cancelled .wf-dot { background: #dc2626; border-color: #dc2626; color: #fff; }
+  .wf-label { font-size: 10px; color: var(--pd-ink-3); margin-top: 6px; text-align: center; line-height: 1.3; max-width: 68px; }
+  .wf-step.done .wf-label      { color: #16a34a; font-weight: 600; }
+  .wf-step.active .wf-label    { color: var(--pd-accent); font-weight: 700; }
+  .wf-step.cancelled .wf-label { color: #dc2626; font-weight: 700; }
 
-    .back-link:hover {
-      background: var(--pd-surface-2);
-      border-color: var(--pd-ink-3);
-    }
+  /* ── Section cards ── */
+  .permit-section--doc {
+    margin-top: 12px; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
+  }
+  .doc-band {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; background: #fff;
+    border-bottom: 1.5px solid var(--pd-line); gap: 12px; flex-wrap: wrap;
+  }
+  .doc-band-title   { font-size: 12px; font-weight: 800; color: var(--pd-ink-2); letter-spacing: 0.03em; }
+  .doc-band-company { font-size: 16px; font-weight: 800; color: var(--pd-ink); }
+  .doc-band-ref     { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; flex-shrink: 0; }
+  .doc-band-ref-label { font-size: 10px; color: var(--pd-ink-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .doc-band-ref-no  { font-size: 20px; font-weight: 800; color: var(--pd-accent); font-family: "JetBrains Mono","Courier New",monospace; line-height: 1; }
 
-    .permit-title {
-      border-radius: 6px;
-      border: 1.5px solid var(--pd-line);
-      background: var(--pd-surface);
-      color: var(--pd-ink);
-    }
+  /* ── Detail rows ── */
+  .doc-table { background: #fff; }
+  .detail-item {
+    display: flex; align-items: flex-start;
+    padding: 10px 18px; border-bottom: 1px solid #eef1f5;
+  }
+  .detail-item:last-child { border-bottom: none; }
+  .detail-item:nth-child(even) { background: #fafbfc; }
+  .detail-item .label {
+    width: 38%; flex-shrink: 0;
+    font-size: 12.5px; color: var(--pd-ink-3); font-weight: 600;
+    line-height: 1.5; padding-left: 16px;
+  }
+  .detail-item .value {
+    flex: 1; font-size: 13.5px; font-weight: 700;
+    color: var(--pd-ink); word-break: break-word; line-height: 1.5;
+  }
+  .detail-item .value a { color: var(--pd-accent); text-decoration: underline; text-underline-offset: 3px; }
 
-    .permit-title--hero {
-      margin: 4px 0 14px;
-      font-size: clamp(22px, 2.5vw, 30px);
-      font-weight: 800;
-      text-align: center;
-      border: 1.5px solid var(--pd-accent);
-      background: linear-gradient(180deg, #3a4f66 0%, #304357 100%);
-      color: #fff;
-      letter-spacing: -0.01em;
-      padding: 10px 12px;
-    }
+  /* ── Doc table divider ── */
+  .doc-table-divider {
+    padding: 6px 18px; background: var(--pd-surface);
+    border-top: 1.5px solid var(--pd-line); border-bottom: 1px solid var(--pd-line);
+  }
+  .doc-table-divider span { font-size: 11px; font-weight: 700; color: var(--pd-ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
 
-    .permit-section {
-      margin-top: 14px;
-      border: 1.5px solid var(--pd-line);
-      border-radius: 6px;
-      background: #fff;
-      padding: 12px;
-    }
+  /* ── Photo grid ── */
+  .doc-photos-grid {
+    padding: 14px 18px 16px; background: #fff;
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .doc-photo {
+    width: 90px; height: 90px; border-radius: 6px; overflow: hidden;
+    border: 1.5px solid var(--pd-line); background: var(--pd-surface);
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none; font-size: 12px; font-weight: 700; color: var(--pd-ink-3);
+    transition: border-color 0.15s;
+  }
+  .doc-photo:hover { border-color: var(--pd-accent); }
+  .doc-photo img   { width: 100%; height: 100%; object-fit: cover; }
 
-    .section-title {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 6px;
-      border: 1.5px solid var(--pd-accent);
-      background: var(--pd-accent);
-      color: #fff;
-      font-size: 14.5px;
-      font-weight: 800;
-      margin-bottom: 14px;
-      text-align: center;
-      box-sizing: border-box;
-      letter-spacing: 0.01em;
-    }
+  /* ── Forms ── */
+  .doc-form-body  { padding: 16px 18px 18px; background: #fff; }
+  .review-form    { display: grid; gap: 8px; }
+  .review-form label { font-size: 12px; font-weight: 700; color: var(--pd-ink-2); }
+  .review-form input,
+  .review-form select,
+  .review-form textarea {
+    width: 100%; border: 1.5px solid var(--pd-line-2); border-radius: 6px;
+    background: #fff; color: var(--pd-ink); font-size: 13px;
+    font-family: inherit; padding: 8px 10px; outline: none;
+    direction: rtl; text-align: right; box-sizing: border-box;
+    transition: border-color 0.15s;
+  }
+  .review-form textarea { min-height: 90px; resize: vertical; }
+  .review-form input:focus,
+  .review-form select:focus,
+  .review-form textarea:focus { border-color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(48,67,87,0.08); }
 
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 10px;
-    }
+  /* ── Drop zone ── */
+  .drop-zone {
+    border: 2px dashed var(--pd-line-2); border-radius: 6px;
+    padding: 20px 16px; text-align: center; cursor: pointer;
+    color: var(--pd-ink-3); font-size: 13px; font-weight: 600;
+    background: var(--pd-surface); transition: border-color 0.15s, background 0.15s;
+  }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--pd-accent); background: var(--pd-surface-2); }
+  .drop-zone input[type="file"] { display: none; }
+  .dz-chosen { margin-top: 6px; font-size: 12px; color: var(--pd-ink-2); }
 
-    .detail-item {
-      display: grid;
-      gap: 6px;
-      border: 1.5px solid var(--pd-line);
-      border-radius: 6px;
-      padding: 10px;
-      background: #fff;
-    }
+  /* ── Buttons ── */
+  .btn-action {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 9px 20px; border-radius: 7px; font-size: 13.5px; font-weight: 800;
+    font-family: inherit; cursor: pointer; border: none;
+    background: var(--pd-accent); color: #fff; transition: background 0.15s;
+  }
+  .btn-action:hover         { background: var(--pd-accent-dark); }
+  .btn-action--danger       { background: #8c2f2f; }
+  .btn-action--danger:hover { background: #6b2020; }
+  .btn-action--full         { width: 100%; margin-top: 10px; }
 
-    .detail-item .label {
-      font-size: 12.5px;
-      color: var(--pd-ink-2);
-      font-weight: 700;
-    }
+  /* ── Inspection result badge ── */
+  .result-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 14px; border-radius: 6px; font-size: 13px; font-weight: 700;
+  }
+  .result-badge--approved { background: #d4f5e2; color: #0e3d1d; border: 1.5px solid #155e2e; }
+  .result-badge--rejected { background: #fdf0ea; color: #7a2c0d; border: 1.5px solid #9c3a12; }
 
-    .detail-item .value {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--pd-ink);
-      word-break: break-word;
-    }
+  /* ── Alert ── */
+  .alert {
+    border: 1.5px solid #d8a7a7; border-radius: 6px;
+    background: #fff3f3; color: #8c2f2f;
+    padding: 10px 14px; margin-top: 12px; font-size: 13px;
+  }
+  .alert-list { padding-inline-start: 18px; margin-top: 6px; line-height: 1.9; }
 
-    .review-form label {
-      display: block;
-      margin-bottom: 6px;
-      color: var(--pd-ink-3);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .review-form input,
-    .review-form select,
-    .review-form textarea {
-      width: 100%;
-      min-height: 42px;
-      padding: 10px 12px;
-      border: 1.5px solid var(--pd-line);
-      border-radius: 6px;
-      background: #fff;
-      color: var(--pd-ink);
-      font-family: inherit;
-      font-size: 14px;
-      margin-bottom: 12px;
-      box-sizing: border-box;
-    }
-
-    .review-form textarea {
-      min-height: 110px;
-      resize: vertical;
-    }
-
-    .review-form input:focus,
-    .review-form select:focus,
-    .review-form textarea:focus {
-      outline: none;
-      border-color: var(--pd-accent);
-      box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.12);
-    }
-
-    .inspection-photos {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-    }
-
-    .inspection-photo {
-      border: 1.5px solid var(--pd-line);
-      border-radius: 6px;
-      overflow: hidden;
-      background: #fff;
-      min-height: 120px;
-    }
-
-    .inspection-photo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .alert {
-      margin-top: 14px;
-      border: 1.5px solid #d9ab95;
-      border-radius: 6px;
-      background: #fdf0ea;
-      color: #7a2c0d;
-      padding: 12px 14px;
-    }
-
-    .alert-list {
-      margin: 8px 0 0;
-    }
-
-    @media (max-width: 720px) {
-      .permit-page { padding: 8px 4px 24px; }
-      .permit-card { padding: 10px; border-radius: 8px; }
-
-      /* ── Action bar ── */
-      .action-bar { flex-direction: column; align-items: stretch; gap: 6px; }
-      .back-link { width: 100%; text-align: center; font-size: 13px; box-sizing: border-box; }
-
-      /* ── Detail grid — label/value side by side ── */
-      .detail-grid { grid-template-columns: 1fr !important; gap: 5px; }
-      .detail-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 10px;
-        min-height: unset;
-      }
-      .detail-item .label {
-        width: 42%;
-        flex-shrink: 0;
-        font-size: 12px;
-        border-left: 1.5px solid var(--pd-line, #d4dce5);
-        padding-left: 8px;
-      }
-      .detail-item .value { flex: 1; font-size: 13px; }
-
-      /* ── Sections ── */
-      .permit-section { padding: 10px; margin-top: 10px; }
-      .section-title  { font-size: 12px; padding: 4px 9px; }
-
-      /* ── Forms ── */
-      .review-form button { width: 100%; font-size: 15px; padding: 12px; }
-      .review-form input,
-      .review-form select,
-      .review-form textarea { font-size: 15px; }
-
-      /* ── Upload ── */
-      .upload-grid-two { grid-template-columns: 1fr; }
-      .upload-dropzone  { min-height: 90px; }
-    }
-
-    /* ── Reset pirmet_detail.css box styles ── */
-    .permit-section { border: none; border-top: 1.5px solid var(--pd-line); background: transparent; border-radius: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; }
-    .detail-item { border: none; border-bottom: 1px solid var(--pd-line); background: transparent; border-radius: 0; box-shadow: none; min-height: unset; }
-    .payment-box { border: none; background: transparent; border-radius: 0; box-shadow: none; min-height: unset; padding: 0; }
-    .meta-item { border: none; border-left: 1px solid var(--pd-line); border-bottom: 1px solid var(--pd-line); border-radius: 0; box-shadow: none; }
-    .meta-item:last-child { border-left: none; }
-    .municipality { background: transparent; border: none; border-radius: 0; }
-    .logo-box { border: none; background: transparent; box-shadow: none; }
-  </style>
+  @media (max-width: 640px) {
+    .permit-card { padding: 12px; }
+    .action-bar  { flex-direction: column; align-items: flex-start; }
+    .detail-item { flex-direction: column; gap: 3px; }
+    .detail-item .label { width: 100%; padding-left: 0; }
+  }
+</style>
 {% endblock %}
 {% block content %}
 <section class="permit-page" lang="ar" dir="rtl">
-  <div class="permit-card">
-    <div class="action-bar no-print">
-      <a class="back-link" href="{% url 'waste_permit_detail' id=permit.id %}">العودة لتصريح النفايات</a>
-      {% if permit.status == "issued" or permit.status == "disposal_approved" %}
-      <a class="back-link" href="{% url 'waste_disposal_permit_print' permit.id %}" target="_blank" style="margin-inline-start:auto;background:#2d6e4e;color:#fff;border-color:#2d6e4e;">طباعة التصريح</a>
+<div class="permit-card">
+
+  <!-- Action bar -->
+  <div class="action-bar no-print">
+    <a class="back-link" href="{% url 'waste_permit_detail' id=permit.id %}">← العودة لتصريح النفايات</a>
+    <div class="municipality">
+      <div class="logo-box">
+        <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+      </div>
+      <div class="municipality-text">
+        <div class="title">بلدية مدينة الشارقة</div>
+        <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+        <div class="sub">قسم رقابة وتنظيم النفايات</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="status-bar-label">حالة الطلب</span>
+    {% with s=disposal_request.status %}
+      {% if s == 'completed' %}
+        <span class="status-badge status-badge--issued">مكتمل — معتمد</span>
+      {% elif s == 'rejected' %}
+        <span class="status-badge status-badge--warning">مرفوض</span>
+      {% elif s == 'cancelled_admin' %}
+        <span class="status-badge status-badge--closed">ملغى إدارياً</span>
+      {% elif s == 'inspection_pending' and assigned_inspector_name %}
+        <span class="status-badge status-badge--active">بانتظار التفتيش — {{ assigned_inspector_name }}</span>
+      {% elif s == 'inspection_pending' %}
+        <span class="status-badge status-badge--pending">جاهز للاستلام للتفتيش</span>
+      {% else %}
+        <span class="status-badge status-badge--pending">{{ disposal_request.get_status_display }}</span>
+      {% endif %}
+    {% endwith %}
+    <span style="margin-inline-start:auto;font-size:11px;color:var(--pd-ink-3);font-weight:600;">
+      طلب رقم: <strong style="color:var(--pd-ink);font-family:'JetBrains Mono','Courier New',monospace;">{{ disposal_request.id }}</strong>
+    </span>
+  </div>
+
+  <!-- Timeline -->
+  {% with s=disposal_request.status %}
+  <div class="wf-timeline no-print">
+
+    <div class="wf-step done">
+      <div class="wf-dot">✓</div>
+      <div class="wf-label">إنشاء الطلب</div>
+    </div>
+
+    <div class="wf-step
+      {% if s == 'payment_pending' %}active
+      {% elif s == 'inspection_pending' or s == 'completed' or s == 'rejected' or s == 'cancelled_admin' %}done
+      {% endif %}">
+      <div class="wf-dot">
+        {% if s == 'inspection_pending' or s == 'completed' or s == 'rejected' or s == 'cancelled_admin' %}✓
+        {% else %}٢{% endif %}
+      </div>
+      <div class="wf-label">تأكيد الدفع</div>
+    </div>
+
+    <div class="wf-step
+      {% if s == 'inspection_pending' %}active
+      {% elif s == 'completed' or s == 'rejected' %}done
+      {% elif s == 'cancelled_admin' %}cancelled
+      {% endif %}">
+      <div class="wf-dot">
+        {% if s == 'completed' or s == 'rejected' %}✓
+        {% elif s == 'cancelled_admin' %}✕
+        {% else %}٣{% endif %}
+      </div>
+      <div class="wf-label">التفتيش</div>
+    </div>
+
+    <div class="wf-step
+      {% if s == 'completed' %}done
+      {% elif s == 'rejected' %}cancelled
+      {% endif %}">
+      <div class="wf-dot">
+        {% if s == 'completed' %}✓
+        {% elif s == 'rejected' %}✕
+        {% else %}٤{% endif %}
+      </div>
+      <div class="wf-label">النتيجة</div>
+    </div>
+
+  </div>
+  {% endwith %}
+
+  {% if review_errors %}
+    <div class="alert">
+      <strong>يرجى تصحيح التالي:</strong>
+      <ul class="alert-list">{% for error in review_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <!-- بيانات الشركة والتصريح -->
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-company">{{ permit.company.name }}</span>
+      <div class="doc-band-ref">
+        <span class="doc-band-ref-label">رقم التصريح</span>
+        <span class="doc-band-ref-no">{{ permit.permit_no|default:"—" }}</span>
+      </div>
+    </div>
+    <div class="doc-table">
+      <div class="detail-item">
+        <span class="label">رقم الرخصة التجارية</span>
+        <span class="value">{{ permit.company.number|default:"—" }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">هاتف الشركة</span>
+        <span class="value">{{ permit.company.owner_phone|default:permit.company.landline|default:"—" }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">انتهاء التصريح</span>
+        <span class="value">{{ permit.dateOfExpiry|date:"d/m/Y"|default:"—" }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">تاريخ الطلب</span>
+        <span class="value">{{ disposal_request.request_date|date:"d/m/Y" }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- بيانات طلب التخلص -->
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-title">بيانات طلب التخلص</span>
+    </div>
+    <div class="doc-table">
+      <div class="detail-item">
+        <span class="label">تصنيف النفايات</span>
+        <span class="value">{{ disposal_request.get_waste_classification_display }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">أنواع النفايات</span>
+        <span class="value">{{ disposal_request.get_waste_type_display }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">حالة المادة</span>
+        <span class="value">{{ disposal_request.get_material_state_display }}</span>
+      </div>
+      <div class="doc-table-divider"><span>بيانات الدفع</span></div>
+      <div class="detail-item">
+        <span class="label">رقم أمر الدفع</span>
+        <span class="value">{{ disposal_request.disposal_reference|default:"—" }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">إيصال الدفع</span>
+        <span class="value">
+          {% if disposal_request.disposal_payment_receipt %}
+            <a href="{{ disposal_request.disposal_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال ↗</a>
+          {% else %}—{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- مستندات الطلب -->
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-title">مستندات طلب التخلص</span>
+    </div>
+    {% if request_documents %}
+      <div class="doc-photos-grid">
+        {% for doc in request_documents %}
+          {% if doc.file.url|lower|slice:"-4:" == ".pdf" %}
+            <a class="doc-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener">PDF</a>
+          {% else %}
+            <a class="doc-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener">
+              <img src="{{ doc.file.url }}" alt="مستند {{ forloop.counter }}">
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="padding:14px 18px;background:#fff;font-size:13px;color:var(--pd-ink-3);">لا توجد مستندات مرفقة.</div>
+    {% endif %}
+  </div>
+
+  <!-- تقرير التفتيش (للعرض) -->
+  {% if disposal_request.status == 'completed' or disposal_request.status == 'rejected' %}
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-title">تقرير التفتيش</span>
+      {% if disposal_request.status == 'completed' %}
+        <span class="result-badge result-badge--approved">✓ معتمد</span>
+      {% else %}
+        <span class="result-badge result-badge--rejected">✕ مرفوض</span>
       {% endif %}
     </div>
-    {% if create_mode %}
-      <div class="permit-title permit-title--hero">إنشاء طلب التخلص من النفايات</div>
-    {% else %}
-      <div class="permit-title permit-title--hero">طلب التخلص #{{ disposal_request.id }}</div>
-    {% endif %}
-
-    {% if review_errors %}
-      <div class="alert">
-        <strong>يرجى تصحيح التالي:</strong>
-        <ul class="alert-list">{% for error in review_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    <div class="doc-table">
+      <div class="detail-item">
+        <span class="label">المفتش</span>
+        <span class="value">{{ assigned_inspector_name|default:"—" }}</span>
+      </div>
+      {% if disposal_request.inspection_notes %}
+      <div class="detail-item">
+        <span class="label">ملاحظات التفتيش</span>
+        <span class="value">{{ disposal_request.inspection_notes }}</span>
+      </div>
+      {% endif %}
+    </div>
+    {% if inspection_photos %}
+      <div class="doc-photos-grid">
+        {% for photo in inspection_photos %}
+          {% if photo.file.url|lower|slice:"-4:" == ".pdf" %}
+            <a class="doc-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">PDF</a>
+          {% else %}
+            <a class="doc-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
+              <img src="{{ photo.file.url }}" alt="صورة تفتيش {{ forloop.counter }}">
+            </a>
+          {% endif %}
+        {% endfor %}
       </div>
     {% endif %}
+  </div>
+  {% endif %}
 
-    {% if create_mode %}
-      <section class="permit-section">
-        <div class="section-title">بيانات التصريح الأساسي</div>
-        <div class="detail-grid">
-          <div class="detail-item"><span class="label">الشركة</span><span class="value">{{ permit.company.name }}</span></div>
-          <div class="detail-item"><span class="label">رقم التصريح</span><span class="value">{{ permit.permit_no|default:"-" }}</span></div>
-          <div class="detail-item"><span class="label">تاريخ الانتهاء</span><span class="value">{{ permit.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span></div>
-          <div class="detail-item"><span class="label">الحالة</span><span class="value">{{ permit.get_status_display }}</span></div>
+  <!-- ════ فورمات الإجراءات ════ -->
+
+  <!-- إدخال رقم الدفع -->
+  {% if can_record_payment and disposal_request.status == 'payment_pending' and not disposal_request.disposal_reference %}
+  <div class="permit-section--doc no-print">
+    <div class="doc-band"><span class="doc-band-title">إدخال رقم أمر الدفع</span></div>
+    <div class="doc-form-body">
+      <form method="post" class="review-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="send_payment_link">
+        <label for="disposal_reference">رقم أمر الدفع</label>
+        <input id="disposal_reference" name="disposal_reference" type="text" required>
+        <button type="submit" class="btn-action btn-action--full">حفظ رقم الدفع</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- تأكيد الدفع -->
+  {% if can_record_payment and disposal_request.status == 'payment_pending' and disposal_request.disposal_reference %}
+  <div class="permit-section--doc no-print">
+    <div class="doc-band">
+      <span class="doc-band-title">تأكيد الدفع</span>
+      <span style="font-size:11px;color:var(--pd-ink-3);font-weight:600;">PDF أو صورة JPG/PNG</span>
+    </div>
+    <div class="doc-form-body">
+      <form method="post" enctype="multipart/form-data" class="review-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="payment">
+        <div class="drop-zone" id="pay-dz">
+          <input id="pay-file" name="disposal_payment_receipt" type="file" accept=".pdf,.jpg,.jpeg,.png" required>
+          <div>اسحب الملف هنا أو <strong>انقر للاختيار</strong></div>
+          <div style="font-size:11px;color:var(--pd-ink-3);margin-top:4px;">PDF أو صور JPG/PNG</div>
+          <div class="dz-chosen" id="pay-chosen"></div>
         </div>
-      </section>
+        <button type="submit" class="btn-action btn-action--full">تأكيد الدفع والانتقال للتفتيش</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
 
-      {% if can_create_disposal_request %}
-        <section class="permit-section no-print">
-          <div class="section-title">بيانات التخلص</div>
-          <form method="post" enctype="multipart/form-data" class="review-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="create_request">
+  <!-- استلام للتفتيش -->
+  {% if can_receive_disposal_request %}
+  <div class="permit-section--doc no-print">
+    <div class="doc-band"><span class="doc-band-title">استلام الطلب للتفتيش</span></div>
+    <div class="doc-form-body">
+      <form method="post" class="review-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="receive_for_inspection">
+        <button type="submit" class="btn-action btn-action--full">استلام الطلب للتفتيش</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
 
-            <label for="waste_classification">تصنيف النفايات</label>
-            <select id="waste_classification" name="waste_classification" required>
-              <option value="hazardous">المخلفات الخطرة</option>
-              <option value="non_hazardous">المخلفات الغير خطرة</option>
-            </select>
+  <!-- حالة الاستلام (للمشاهدة فقط) -->
+  {% if disposal_request.status == 'inspection_pending' and assigned_inspector_name and not can_submit_disposal_report and not can_reassign_disposal_inspector %}
+  <div class="permit-section--doc no-print">
+    <div class="doc-band"><span class="doc-band-title">حالة الاستلام</span></div>
+    <div style="padding:14px 18px;background:#fff;font-size:13px;color:var(--pd-ink);">
+      تم استلام الطلب بواسطة <strong>{{ assigned_inspector_name }}</strong>
+    </div>
+  </div>
+  {% endif %}
 
-            <label for="waste_type">أنواع النفايات</label>
-            <select id="waste_type" name="waste_type" required>
-              <option value="empty_pesticide_containers">عبوات مبيدات فارغة</option>
-              <option value="general_waste">نفايات عامة</option>
-              <option value="sorted_dry_waste">نفايات جافة مفرزة</option>
-              <option value="green_waste">المخلفات الخضراء</option>
-              <option value="tires">إطارات</option>
-              <option value="commercial_industrial_waste">المخلفات التجارية والصناعية</option>
-              <option value="wood">خشب</option>
-              <option value="liquid_waste">النفايات السائلة</option>
-              <option value="construction_demolition_waste">مخلفات الهدم والبناء</option>
-            </select>
+  <!-- تغيير المفتش -->
+  {% if can_reassign_disposal_inspector %}
+  <div class="permit-section--doc no-print">
+    <div class="doc-band"><span class="doc-band-title">تغيير المفتش المستلم</span></div>
+    <div class="doc-form-body">
+      <form method="post" class="review-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reassign_inspector">
+        <label for="inspector_id">المفتش</label>
+        <select id="inspector_id" name="inspector_id" required>
+          <option value="">-- اختيار المفتش --</option>
+          {% for insp in inspector_users %}
+            <option value="{{ insp.id }}" {% if assigned_inspector_id == insp.id %}selected{% endif %}>
+              {{ insp.get_full_name|default:insp.username }}
+            </option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-action btn-action--full">حفظ تغيير المفتش</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
 
-            <label for="material_state">حالة المادة</label>
-            <select id="material_state" name="material_state" required>
-              <option value="solid">صلبة</option>
-              <option value="gas">غازية</option>
-            </select>
-
-            <label for="request_documents">إرفاق المستندات (PDF أو صور)</label>
-            <input id="request_documents" name="request_documents" type="file" accept=".pdf,image/*" multiple required>
-            <button type="submit">إنشاء طلب التخلص</button>
-          </form>
-        </section>
-      {% endif %}
-    {% else %}
-      <section class="permit-section">
-        <div class="section-title">بيانات الطلب</div>
-        <div class="detail-grid">
-          <div class="detail-item"><span class="label">الشركة</span><span class="value">{{ permit.company.name }}</span></div>
-          <div class="detail-item"><span class="label">تاريخ الطلب</span><span class="value">{{ disposal_request.request_date|date:"d/m/Y" }}</span></div>
-          <div class="detail-item"><span class="label">الحالة</span><span class="value">{{ disposal_request.get_status_display }}</span></div>
-          <div class="detail-item"><span class="label">تصنيف النفايات</span><span class="value">{{ disposal_request.get_waste_classification_display }}</span></div>
-          <div class="detail-item"><span class="label">أنواع النفايات</span><span class="value">{{ disposal_request.get_waste_type_display }}</span></div>
-          <div class="detail-item"><span class="label">حالة المادة</span><span class="value">{{ disposal_request.get_material_state_display }}</span></div>
-          <div class="detail-item"><span class="label">رقم أمر الدفع</span><span class="value">{{ disposal_request.disposal_reference|default:"-" }}</span></div>
-          <div class="detail-item"><span class="label">إيصال الدفع</span><span class="value">{% if disposal_request.disposal_payment_receipt %}<a href="{{ disposal_request.disposal_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>{% else %}-{% endif %}</span></div>
-          <div class="detail-item"><span class="label">المفتش المستلم</span><span class="value">{{ assigned_inspector_name|default:"-" }}</span></div>
-          <div class="detail-item"><span class="label">ملاحظات التفتيش</span><span class="value">{{ disposal_request.inspection_notes|default:"-" }}</span></div>
-        </div>
-      </section>
-
-      <section class="permit-section">
-        <div class="section-title">مستندات طلب التخلص</div>
-        {% if request_documents %}
-          <div class="inspection-photos">
-            {% for doc in request_documents %}
-              {% if doc.file.url|lower|slice:"-4:" == ".pdf" %}
-                <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
-                  <span>PDF</span>
-                </a>
-              {% else %}
-                <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener">
-                  <img src="{{ doc.file.url }}" alt="مستند طلب التخلص {{ forloop.counter }}">
-                </a>
-              {% endif %}
-            {% endfor %}
-          </div>
-        {% else %}
-          <p>لا توجد مستندات مرفقة.</p>
-        {% endif %}
-      </section>
-
-      {% if can_record_payment and disposal_request.status == "payment_pending" and not disposal_request.disposal_reference %}
-        <section class="permit-section no-print">
-          <div class="section-title">إدخال رقم دفع طلب التخلص</div>
-          <form method="post" class="review-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="send_payment_link">
-            <label for="disposal_reference">رقم أمر الدفع</label>
-            <input id="disposal_reference" name="disposal_reference" type="text" required>
-            <button type="submit">حفظ رقم الدفع</button>
-          </form>
-        </section>
-      {% endif %}
-
-      {% if can_record_payment and disposal_request.status == "payment_pending" and disposal_request.disposal_reference %}
-        <section class="permit-section no-print">
-          <div class="section-title">تأكيد دفع طلب التخلص</div>
-          <form method="post" enctype="multipart/form-data" class="review-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="payment">
-            <label for="disposal_payment_receipt">إيصال الدفع (PDF أو صورة)</label>
-            <input id="disposal_payment_receipt" name="disposal_payment_receipt" type="file" required>
-            <button type="submit">تأكيد الدفع والانتقال للتفتيش</button>
-          </form>
-        </section>
-      {% endif %}
-
-      {% if can_receive_disposal_request %}
-        <section class="permit-section no-print">
-          <div class="section-title">استلام طلب التخلص للتفتيش</div>
-          <form method="post" class="review-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="receive_for_inspection">
-            <button type="submit">استلام الطلب للتفتيش</button>
-          </form>
-        </section>
-      {% endif %}
-
-      {% if disposal_request.status == "inspection_pending" and assigned_inspector_name and not can_submit_disposal_report %}
-        <section class="permit-section no-print">
-          <div class="section-title">حالة الاستلام</div>
-          <p>تم استلام الطلب - <strong>{{ assigned_inspector_name }}</strong></p>
-        </section>
-      {% endif %}
-
-      {% if can_reassign_disposal_inspector %}
-        <section class="permit-section no-print">
-          <div class="section-title">تغيير المفتش المستلم</div>
-          <form method="post" class="review-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="reassign_inspector">
-            <label for="inspector_id">المفتش الجديد</label>
-            <select id="inspector_id" name="inspector_id" required>
-              <option value="">-- اختيار المفتش --</option>
-              {% for inspector_user in inspector_users %}
-                <option value="{{ inspector_user.id }}" {% if assigned_inspector_id == inspector_user.id %}selected{% endif %}>
-                  {{ inspector_user.get_full_name|default:inspector_user.username }}
-                </option>
-              {% endfor %}
-            </select>
-            <button type="submit">حفظ تغيير المفتش</button>
-          </form>
-        </section>
-      {% endif %}
-
-      {% if can_submit_disposal_report %}
-        <section class="permit-section no-print">
-          <div class="section-title">تقرير التفتيش</div>
-
-          {% if inspection_photos %}
-            <div class="inspection-photos" style="margin-bottom:14px;">
-              {% for photo in inspection_photos %}
-                {% if photo.file.url|lower|slice:"-4:" == ".pdf" %}
-                  <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
-                    <span>PDF</span>
-                  </a>
-                {% else %}
-                  <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
-                    <img src="{{ photo.file.url }}" alt="صورة تفتيش {{ forloop.counter }}">
-                  </a>
-                {% endif %}
-                <form method="post" style="display:inline;" onsubmit="return confirm('حذف الصورة؟')">
-                  {% csrf_token %}
-                  <input type="hidden" name="action" value="delete_inspection_photo">
-                  <input type="hidden" name="photo_id" value="{{ photo.id }}">
-                  <button type="submit" style="background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer;">حذف</button>
-                </form>
-              {% endfor %}
-            </div>
+  <!-- رفع صور التفتيش -->
+  {% if can_upload_inspection_photos %}
+  <div class="permit-section--doc no-print">
+    <div class="doc-band">
+      <span class="doc-band-title">رفع صور التفتيش</span>
+      <span style="font-size:11px;color:var(--pd-ink-3);font-weight:600;">PDF أو صور</span>
+    </div>
+    {% if inspection_photos %}
+      <div class="doc-photos-grid" style="border-bottom:1px solid var(--pd-line);">
+        {% for photo in inspection_photos %}
+          {% if photo.file.url|lower|slice:"-4:" == ".pdf" %}
+            <a class="doc-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">PDF</a>
+          {% else %}
+            <a class="doc-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
+              <img src="{{ photo.file.url }}" alt="صورة تفتيش {{ forloop.counter }}">
+            </a>
           {% endif %}
-
-          <form method="post" enctype="multipart/form-data" class="review-form">
+          <form method="post" onsubmit="return confirm('حذف الصورة؟')">
             {% csrf_token %}
-            <input type="hidden" name="action" value="submit_inspection_report">
-            <label for="inspection_decision">النتيجة</label>
-            <select id="inspection_decision" name="inspection_decision" required>
-              <option value="">-- اختيار --</option>
-              <option value="approved">معتمد</option>
-              <option value="rejected">مرفوض</option>
-            </select>
-            <label for="inspection_notes">ملاحظات التفتيش</label>
-            <textarea id="inspection_notes" name="inspection_notes" rows="4"></textarea>
-
-            <label>صور ومستندات التفتيش</label>
-            <label for="inspection_photos_input" id="photo-drop-zone" style="
-              display:flex; flex-direction:column; align-items:center; justify-content:center;
-              gap:8px; padding:22px 16px; border:2px dashed #bcc8d5; border-radius:10px;
-              background:#f8fafc; cursor:pointer; transition:border-color .15s, background .15s;
-              text-align:center; color:#6f8297; font-size:13px; font-weight:600;
-            ">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#bcc8d5" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <span id="photo-drop-label">اضغط لاختيار صور أو مستندات PDF</span>
-              <span style="font-size:11px;font-weight:400;color:#94a3b8;">يمكن اختيار أكثر من ملف</span>
-            </label>
-            <input id="inspection_photos_input" name="inspection_photos" type="file" accept=".pdf,image/*" multiple style="display:none;">
-
-            <button type="submit">حفظ تقرير التفتيش</button>
+            <input type="hidden" name="action" value="delete_inspection_photo">
+            <input type="hidden" name="photo_id" value="{{ photo.id }}">
+            <button type="submit" style="background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer;margin-top:4px;">حذف</button>
           </form>
-        </section>
-      {% elif inspection_photos %}
-        <section class="permit-section">
-          <div class="section-title">صور ومستندات التفتيش</div>
-          <div class="inspection-photos">
-            {% for photo in inspection_photos %}
-              {% if photo.file.url|lower|slice:"-4:" == ".pdf" %}
-                <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
-                  <span>PDF</span>
-                </a>
-              {% else %}
-                <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
-                  <img src="{{ photo.file.url }}" alt="صورة تفتيش {{ forloop.counter }}">
-                </a>
-              {% endif %}
-            {% endfor %}
-          </div>
-        </section>
-      {% endif %}
+        {% endfor %}
+      </div>
     {% endif %}
+    <div class="doc-form-body">
+      <form method="post" enctype="multipart/form-data" class="review-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_inspection_photos">
+        <div class="drop-zone" id="photo-dz">
+          <input id="photo-file" name="inspection_photos" type="file" accept=".pdf,image/*" multiple>
+          <div>اسحب الملفات هنا أو <strong>انقر للاختيار</strong></div>
+          <div style="font-size:11px;color:var(--pd-ink-3);margin-top:4px;">يمكن اختيار أكثر من ملف</div>
+          <div class="dz-chosen" id="photo-chosen"></div>
+        </div>
+        <button type="submit" class="btn-action btn-action--full">رفع الصور</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
 
-    {% if show_admin_close_form %}
-    <section class="permit-section no-print">
-      <div class="section-title">إغلاق الطلب</div>
+  <!-- تقرير التفتيش (للإدخال) -->
+  {% if can_submit_disposal_report %}
+  <div class="permit-section--doc no-print">
+    <div class="doc-band"><span class="doc-band-title">إدخال تقرير التفتيش</span></div>
+    {% if inspection_photos %}
+      <div class="doc-photos-grid" style="border-bottom:1px solid var(--pd-line);">
+        {% for photo in inspection_photos %}
+          {% if photo.file.url|lower|slice:"-4:" == ".pdf" %}
+            <a class="doc-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">PDF</a>
+          {% else %}
+            <a class="doc-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
+              <img src="{{ photo.file.url }}" alt="صورة تفتيش {{ forloop.counter }}">
+            </a>
+          {% endif %}
+          <form method="post" onsubmit="return confirm('حذف الصورة؟')">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_inspection_photo">
+            <input type="hidden" name="photo_id" value="{{ photo.id }}">
+            <button type="submit" style="background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer;margin-top:4px;">حذف</button>
+          </form>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <div class="doc-form-body">
+      <form method="post" enctype="multipart/form-data" class="review-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="submit_inspection_report">
+        <label for="inspection_decision">النتيجة</label>
+        <select id="inspection_decision" name="inspection_decision" required>
+          <option value="">-- اختيار --</option>
+          <option value="approved">معتمد</option>
+          <option value="rejected">مرفوض</option>
+        </select>
+        <label for="inspection_notes">ملاحظات التفتيش</label>
+        <textarea id="inspection_notes" name="inspection_notes" rows="4" placeholder="أدخل ملاحظات التفتيش…"></textarea>
+        <label>صور ومستندات التفتيش</label>
+        <div class="drop-zone" id="report-dz">
+          <input id="report-file" name="inspection_photos" type="file" accept=".pdf,image/*" multiple>
+          <div>اسحب الملفات هنا أو <strong>انقر للاختيار</strong></div>
+          <div style="font-size:11px;color:var(--pd-ink-3);margin-top:4px;">PDF أو صور — يمكن اختيار أكثر من ملف</div>
+          <div class="dz-chosen" id="report-chosen"></div>
+        </div>
+        <button type="submit" class="btn-action btn-action--full">حفظ تقرير التفتيش</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- إغلاق الطلب -->
+  {% if show_admin_close_form %}
+  <div class="permit-section--doc no-print">
+    <div class="doc-band"><span class="doc-band-title">إغلاق الطلب</span></div>
+    <div class="doc-form-body">
       <form method="post" class="review-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="cancel_admin">
         <label for="cancel_reason_wd">ملاحظة *</label>
-        <textarea id="cancel_reason_wd" name="cancel_reason" rows="3" required
-          placeholder="أدخل سبب إغلاق الطلب…"></textarea>
-        <button type="submit" style="background:#8c2f2f;"
+        <textarea id="cancel_reason_wd" name="cancel_reason" rows="3" required placeholder="أدخل سبب إغلاق الطلب…"></textarea>
+        <button type="submit" class="btn-action btn-action--danger btn-action--full"
           onclick="return confirm('هل أنت متأكد من إغلاق هذا الطلب؟')">إغلاق الطلب</button>
       </form>
-    </section>
-    {% endif %}
+    </div>
   </div>
+  {% endif %}
+
+</div>
 </section>
 <script>
-(function(){
-  var input = document.getElementById('inspection_photos_input');
-  var zone  = document.getElementById('photo-drop-zone');
-  var lbl   = document.getElementById('photo-drop-label');
-  if (!input) return;
-  input.addEventListener('change', function(){
-    var n = input.files.length;
-    lbl.textContent = n ? 'تم اختيار ' + n + ' ملف' : 'اضغط لاختيار صور أو مستندات PDF';
-    zone.style.borderColor = n ? '#304357' : '#bcc8d5';
-    zone.style.background  = n ? '#f0f4f8' : '#f8fafc';
-  });
-  zone.addEventListener('dragover',  function(e){ e.preventDefault(); zone.style.borderColor='#304357'; zone.style.background='#e8eef4'; });
-  zone.addEventListener('dragleave', function(){ zone.style.borderColor='#bcc8d5'; zone.style.background='#f8fafc'; });
-  zone.addEventListener('drop', function(e){
-    e.preventDefault();
-    input.files = e.dataTransfer.files;
-    input.dispatchEvent(new Event('change'));
-  });
+(function () {
+  function initDropZone(zoneId, inputId, chosenId, multi) {
+    var zone  = document.getElementById(zoneId);
+    var input = document.getElementById(inputId);
+    var label = document.getElementById(chosenId);
+    if (!zone || !input) return;
+    zone.addEventListener('click', function () { input.click(); });
+    input.addEventListener('change', function () {
+      if (input.files.length === 0) { label.textContent = ''; return; }
+      label.textContent = input.files.length > 1
+        ? 'تم اختيار ' + input.files.length + ' ملف'
+        : input.files[0].name;
+      zone.style.borderColor = 'var(--pd-accent)';
+    });
+    zone.addEventListener('dragover',  function (e) { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', function ()  { zone.classList.remove('dragover'); });
+    zone.addEventListener('drop', function (e) {
+      e.preventDefault(); zone.classList.remove('dragover');
+      if (!e.dataTransfer.files.length) return;
+      var dt = new DataTransfer();
+      if (multi) { Array.from(e.dataTransfer.files).forEach(function (f) { dt.items.add(f); }); }
+      else        { dt.items.add(e.dataTransfer.files[0]); }
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change'));
+    });
+  }
+  initDropZone('pay-dz',    'pay-file',    'pay-chosen',    false);
+  initDropZone('photo-dz',  'photo-file',  'photo-chosen',  true);
+  initDropZone('report-dz', 'report-file', 'report-chosen', true);
 })();
 </script>
 {% endblock %}

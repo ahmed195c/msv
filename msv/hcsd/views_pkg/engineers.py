@@ -13,7 +13,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from ..models import (
-    Company, CompanyChangeLog, EngineerCertificateRequest, EngineerLeave,
+    Company, CompanyChangeLog, EngineerCertificateRequest, EngineerCompanyRemoval,
+    EngineerLeave, EngineerRemovalDocument,
     Enginer, EnginerStatusLog, InspectorReview, PesticideTransportPermit,
     PirmetChangeLog, PirmetClearance, PirmetDocument, PublicHealthExamRequest,
     PublicHealthExamRequestDocument, RequirementInsuranceRequest,
@@ -165,6 +166,7 @@ def enginer_detail(request, id):
     enginer = get_object_or_404(Enginer, id=id)
     error = ''
     leave_error = ''
+    removal_error = ''
     all_engineers = Enginer.objects.exclude(id=enginer.id).order_by('name')
     active_leave = enginer.leaves.filter(actual_return_date__isnull=True).order_by('-created_at').first()
 
@@ -226,6 +228,40 @@ def enginer_detail(request, id):
                 )
                 return redirect('enginer_detail', id=enginer.id)
 
+        elif action == 'remove_from_company':
+            primary_company = Company.objects.filter(enginer=enginer).first()
+            if not _can_admin(request.user):
+                removal_error = 'إزالة المهندس متاحة للإدارة فقط.'
+            elif not primary_company:
+                removal_error = 'المهندس غير مرتبط بأي شركة كمهندس رئيسي.'
+            else:
+                notes = (request.POST.get('removal_notes') or '').strip()
+                docs  = request.FILES.getlist('removal_documents')
+                invalid = [d.name for d in docs if os.path.splitext(d.name)[1].lower() not in ALLOWED_DOC_EXTENSIONS]
+                if not docs:
+                    removal_error = 'يرجى إرفاق مستند إثبات واحد على الأقل.'
+                elif invalid:
+                    removal_error = 'الملفات المسموحة هي PDF أو صور فقط: ' + ', '.join(invalid)
+                else:
+                    with transaction.atomic():
+                        removal = EngineerCompanyRemoval.objects.create(
+                            enginer=enginer,
+                            company=primary_company,
+                            removed_by=request.user,
+                            notes=notes,
+                        )
+                        for doc in docs:
+                            EngineerRemovalDocument.objects.create(removal=removal, file=doc)
+                        primary_company.enginer = None
+                        primary_company.save(update_fields=['enginer'])
+                        EnginerStatusLog.objects.create(
+                            enginer=enginer,
+                            action='removed_from_company',
+                            notes=f'تمت إزالة المهندس من شركة {primary_company.name} — {notes or "بدون ملاحظات"}',
+                            changed_by=request.user,
+                        )
+                    return redirect('enginer_detail', id=enginer.id)
+
         elif not _can_data_entry(request.user):
             error = 'التحديث متاح لموظفي الإدخال أو الإدارة فقط.'
         else:
@@ -285,6 +321,14 @@ def enginer_detail(request, id):
     )
     for co in associated_companies:
         co.is_primary = (co.enginer_id == enginer.id)
+    primary_company = next((co for co in associated_companies if co.is_primary), None)
+    removal_records = (
+        EngineerCompanyRemoval.objects
+        .filter(enginer=enginer)
+        .select_related('company', 'removed_by')
+        .prefetch_related('documents')
+        .order_by('-removed_at')
+    )
     return render(
         request,
         'hcsd/enginer_detail.html',
@@ -295,6 +339,7 @@ def enginer_detail(request, id):
             'can_create_exam_request': _can_create_exam_request(request.user),
             'error': error,
             'leave_error': leave_error,
+            'removal_error': removal_error,
             'active_leave': active_leave,
             'leave_history': leave_history,
             'all_engineers': all_engineers,
@@ -305,6 +350,8 @@ def enginer_detail(request, id):
             'termite_expiry_date': termite_expiry_date,
             'termite_is_expired': termite_is_expired,
             'associated_companies': associated_companies,
+            'primary_company': primary_company,
+            'removal_records': removal_records,
         },
     )
 

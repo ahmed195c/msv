@@ -533,40 +533,38 @@ def permit_types(request):
         .values('id', 'company__name', 'company__number')
     )
 
-    # All companies for the pest-control permit quick-select modal
-    # Annotate each with their latest issued pest_control permit expiry
+    # Build latest issued permit expiry per company, per permit type
     from ..models import Company as _Company
-    pest_permit_expiry = {
-        p['company_id']: p['dateOfExpiry']
-        for p in (
-            PirmetClearance.objects
-            .filter(permit_type='pest_control', status='issued')
-            .order_by('company_id', '-id')
-            .values('company_id', 'dateOfExpiry')
-        )
-        # keep only the first (latest) per company — dict comprehension naturally keeps last,
-        # so reverse order then re-reverse by iterating reversed list
-    }
-    # Re-fetch ordered by -id so we keep the latest permit per company
-    _seen = set()
-    pest_permit_expiry = {}
-    for p in PirmetClearance.objects.filter(
-        permit_type='pest_control', status='issued'
-    ).order_by('-id').values('company_id', 'dateOfExpiry'):
-        if p['company_id'] not in _seen:
-            _seen.add(p['company_id'])
-            pest_permit_expiry[p['company_id']] = p['dateOfExpiry']
+
+    def _latest_expiry_by_company(permit_type):
+        seen = set()
+        result = {}
+        for p in PirmetClearance.objects.filter(
+            permit_type=permit_type, status='issued'
+        ).order_by('-id').values('company_id', 'dateOfExpiry'):
+            if p['company_id'] not in seen:
+                seen.add(p['company_id'])
+                result[p['company_id']] = p['dateOfExpiry']
+        return result
+
+    pest_expiry_map     = _latest_expiry_by_company('pest_control')
+    vehicle_expiry_map  = _latest_expiry_by_company('pesticide_transport')
+    waste_expiry_map    = _latest_expiry_by_company('waste_disposal')
 
     all_companies = []
     for c in _Company.objects.order_by('name').values('id', 'name', 'number'):
-        expiry = pest_permit_expiry.get(c['id'])
-        expired = expiry is not None and expiry < today
+        def _info(expiry_map):
+            exp = expiry_map.get(c['id'])
+            return exp.isoformat() if exp else '', exp is not None and exp < today
+
+        p_exp, p_expired = _info(pest_expiry_map)
+        v_exp, v_expired = _info(vehicle_expiry_map)
+        w_exp, w_expired = _info(waste_expiry_map)
         all_companies.append({
-            'id': c['id'],
-            'name': c['name'],
-            'number': c['number'],
-            'expiry': expiry.isoformat() if expiry else '',
-            'expired': expired,
+            'id': c['id'], 'name': c['name'], 'number': c['number'],
+            'pest_expiry': p_exp,     'pest_expired': p_expired,
+            'vehicle_expiry': v_exp,  'vehicle_expired': v_expired,
+            'waste_expiry': w_exp,    'waste_expired': w_expired,
         })
 
     return render(

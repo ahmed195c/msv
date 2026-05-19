@@ -14,393 +14,520 @@
     --pd-line-2: #bcc8d5;
     --pd-accent: #304357;
     --pd-accent-dark: #26384a;
-    --pd-radius: 8px;
-    --pd-shadow: 0 10px 24px rgba(48,67,87,0.08);
     padding: 20px 10px 36px;
     background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
     direction: rtl;
   }
 
-  .permit-card {
-    max-width: 1000px;
-    margin: 0 auto;
-    background: var(--pd-paper);
-    border: 1.5px solid var(--pd-line);
-    border-radius: var(--pd-radius);
-    box-shadow: var(--pd-shadow);
-    padding: 0;
-    overflow: hidden;
+  .permit-card { max-width: 960px; margin: 0 auto; }
+
+  .action-bar {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    align-items: center; justify-content: space-between;
+    margin-bottom: 14px; padding: 12px 18px;
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
   }
-
-  .hero-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    background: linear-gradient(160deg, #3a4f66 0%, #304357 55%, #26384a 100%);
-    color: #fff;
-  }
-
-  .hero-title {
-    font-size: clamp(15px, 2vw, 20px);
-    font-weight: 800;
-    text-align: center;
-    flex: 1;
-  }
-
-  .hero-back {
-    color: #c8d8e8;
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    border: 1.5px solid rgba(255,255,255,0.25);
-    border-radius: 6px;
-    padding: 6px 12px;
-    transition: background 0.15s;
-    white-space: nowrap;
-  }
-
-  .hero-back:hover { background: rgba(255,255,255,0.1); }
-
-  .form-body { padding: 16px 18px; }
-
-  .alert {
-    background: #fef2f2;
-    border: 1.5px solid #f5c6cb;
-    border-radius: 6px;
-    padding: 10px 14px;
-    color: #8c1f1f;
-    margin-bottom: 14px;
-    font-size: 13px;
-  }
-
-  .alert-list {
-    padding-inline-start: 18px;
-    margin-top: 6px;
-    line-height: 1.9;
-    font-size: 13px;
-  }
-
-  .alert-warn {
-    background: #fffbeb;
-    border: 1.5px solid #fcd34d;
-    border-radius: 6px;
-    padding: 10px 14px;
-    color: #78350f;
-    margin-bottom: 14px;
-    font-size: 13px;
-  }
-
-  .form-section {
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    padding: 14px;
-    margin-bottom: 14px;
-  }
-
-  .section-title {
-    display: inline-flex;
-    align-items: center;
-    padding: 5px 10px;
-    border-radius: 6px;
-    background: var(--pd-accent);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 800;
-    margin-bottom: 12px;
-  }
-
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-  }
-
-  .field label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--pd-ink-3);
-    display: block;
-    margin-bottom: 5px;
-  }
-
-  .field input,
-  .field select,
-  .field textarea {
-    width: 100%;
+  .back-link {
+    display: inline-flex; align-items: center;
+    padding: 7px 14px; border-radius: 6px;
+    font-size: 13px; font-weight: 700; text-decoration: none;
     border: 1.5px solid var(--pd-line-2);
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--pd-ink);
-    background: var(--pd-paper);
-    font-family: inherit;
-    box-sizing: border-box;
+    background: var(--pd-surface); color: var(--pd-ink);
+    transition: background 0.15s;
   }
+  .back-link:hover { background: var(--pd-surface-2); }
+  .municipality { display: flex; align-items: center; gap: 10px; }
+  .logo-box { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .logo-box img { width: 100%; height: 100%; object-fit: contain; }
+  .municipality-text .title { font-size: 14px; font-weight: 800; color: var(--pd-ink); margin-bottom: 2px; }
+  .municipality-text .sub { font-size: 11px; color: var(--pd-ink-3); font-weight: 600; line-height: 1.5; }
 
-  .field textarea { resize: vertical; }
-
-  .field input[readonly] {
+  .permit-section--doc {
+    margin-top: 12px; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
+  }
+  .doc-band {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 16px;
     background: var(--pd-surface);
-    color: var(--pd-ink-2);
+    border-bottom: 1.5px solid var(--pd-line);
+  }
+  .doc-band-title {
+    font-size: 12px; font-weight: 800;
+    color: var(--pd-ink-2); letter-spacing: 0.03em;
   }
 
-  .field input:focus,
-  .field select:focus,
-  .field textarea:focus {
-    border-color: var(--pd-accent);
+  .fields-table { background: #fff; }
+  .field-row {
+    display: flex; align-items: center;
+    border-bottom: 1px solid #eef1f5;
+    min-height: 46px;
+  }
+  .field-row:last-child { border-bottom: none; }
+  .field-row:nth-child(even) { background: #fafbfc; }
+  .field-row--top { align-items: flex-start; }
+  .field-label {
+    width: 170px; min-width: 170px;
+    padding: 10px 14px 10px 0;
+    font-size: 12px; font-weight: 700;
+    color: var(--pd-ink-3); line-height: 1.4;
+    flex-shrink: 0;
+    border-left: 1px solid #eef1f5;
+  }
+  .field-row--top .field-label { padding-top: 13px; }
+  .field-cell { flex: 1; padding: 6px 10px; }
+  .field-cell input,
+  .field-cell select,
+  .field-cell textarea {
+    width: 100%;
+    border: 1.5px solid var(--pd-line-2); border-radius: 5px;
+    padding: 7px 10px; font-size: 13px; font-weight: 600;
+    color: var(--pd-ink); background: #fff;
+    font-family: inherit; box-sizing: border-box;
+    direction: rtl; text-align: right;
+    transition: border-color 0.15s, box-shadow 0.15s;
     outline: none;
   }
-
-  .hint {
-    font-size: 11.5px;
-    color: var(--pd-ink-3);
-    margin-top: 5px;
-    line-height: 1.5;
+  .field-cell textarea { resize: vertical; }
+  .field-cell input[readonly] {
+    background: var(--pd-surface); color: var(--pd-ink-2);
+    border-color: var(--pd-line);
   }
+  .field-cell input:not([readonly]):focus,
+  .field-cell select:focus,
+  .field-cell textarea:focus {
+    border-color: var(--pd-accent);
+    box-shadow: 0 0 0 3px rgba(48,67,87,0.08);
+  }
+  .field-hint { font-size: 11px; color: var(--pd-ink-3); margin-top: 4px; line-height: 1.5; }
 
-  .field-full { grid-column: 1 / -1; }
+  .company-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; gap: 8px; flex-wrap: wrap;
+  }
+  .company-bar--selected { background: #eff6ff; border-bottom: 1px solid #bfdbfe; }
+  .company-bar--empty    { background: #fef9c3; border-bottom: 1px solid #fde68a; justify-content: center; }
+  .company-bar .co-name  { font-size: 13.5px; font-weight: 700; color: #1e40af; }
+  .company-bar .co-num   { font-size: 11.5px; color: #3b82f6; margin-top: 1px; }
+  .btn-change {
+    font-size: 12px; color: #475569; text-decoration: none;
+    border: 1px solid #cbd5e1; padding: 4px 12px;
+    border-radius: 5px; background: #fff; white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .btn-change:hover { background: #f1f5f9; }
+
+  .doc-form-body { padding: 14px 16px 16px; background: #fff; }
+  .drop-zone {
+    border: 2px dashed var(--pd-line-2); border-radius: 6px;
+    padding: 22px 16px; text-align: center; cursor: pointer;
+    color: var(--pd-ink-3); font-size: 13px; font-weight: 600;
+    transition: border-color 0.15s, background 0.15s;
+    background: var(--pd-surface);
+  }
+  .drop-zone.dragover { border-color: var(--pd-accent); background: var(--pd-surface-2); }
+  .drop-zone input[type="file"] { display: none; }
+  #file-list { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .file-chip {
+    background: var(--pd-surface-2); border: 1px solid var(--pd-line);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 12px; font-weight: 600; color: var(--pd-ink-2);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .file-chip .remove-file { cursor: pointer; color: #e05; font-weight: 900; font-size: 14px; line-height: 1; }
+
+  .alert {
+    border: 1.5px solid #d8a7a7; border-radius: 6px;
+    background: #fff3f3; color: #8c2f2f;
+    padding: 10px 14px; margin-top: 12px; font-size: 13px;
+  }
+  .alert-list { padding-inline-start: 18px; margin-top: 6px; line-height: 1.9; font-size: 13px; }
+  .alert-warn {
+    background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 6px;
+    padding: 10px 14px; color: #78350f; margin-top: 12px; font-size: 13px;
+  }
 
   .form-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    padding-top: 6px;
+    display: flex; gap: 10px; align-items: center;
+    margin-top: 12px; padding: 13px 16px;
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.08), 0 0 0 1px rgba(48,67,87,0.07);
   }
-
   .btn-submit {
-    background: var(--pd-accent);
-    border: none;
-    color: #fff;
-    font-weight: 800;
-    font-size: 14px;
-    padding: 10px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: inherit;
+    background: var(--pd-accent); border: none; color: #fff;
+    font-weight: 800; font-size: 14px; padding: 9px 24px;
+    border-radius: 7px; cursor: pointer; font-family: inherit;
+    transition: background 0.15s;
+  }
+  .btn-submit:hover { background: var(--pd-accent-dark); }
+  .btn-cancel {
+    color: var(--pd-ink-2); font-size: 13px; font-weight: 700;
+    text-decoration: none; border: 1.5px solid var(--pd-line-2);
+    border-radius: 6px; padding: 8px 16px;
   }
 
-  .btn-submit:hover { background: var(--pd-accent-dark); }
-
-  .btn-cancel {
-    color: var(--pd-ink-2);
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    border: 1.5px solid var(--pd-line-2);
-    border-radius: 6px;
-    padding: 9px 16px;
+  @media (max-width: 600px) {
+    .action-bar { flex-direction: column; align-items: flex-start; }
+    .field-label { width: 120px; min-width: 120px; }
   }
 </style>
 {% endblock %}
 {% block content %}
 <section class="permit-page" lang="ar" dir="rtl">
-  <div class="permit-card">
-    <div class="hero-bar">
-      <a href="{% url 'clearance_list' %}" class="hero-back">← العودة</a>
-      <span class="hero-title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</span>
+<div class="permit-card">
+
+  <div class="action-bar">
+    <a href="{% url 'clearance_list' %}" class="back-link">← العودة إلى قائمة الطلبات</a>
+    <div class="municipality">
+      <div class="logo-box">
+        <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+      </div>
+      <div class="municipality-text">
+        <div class="title">بلدية مدينة الشارقة</div>
+        <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+        <div class="sub">قسم رقابة وتنظيم النفايات</div>
+      </div>
     </div>
-
-    <form method="post" enctype="multipart/form-data" autocomplete="off" class="form-body">
-      {% csrf_token %}
-
-      {% if form_errors %}
-        <div class="alert">
-          <strong>يرجى تصحيح التالي:</strong>
-          <ul class="alert-list">
-            {% for error in form_errors %}
-              <li>
-                {% if error == "company_select_invalid" %}
-                  يرجى اختيار شركة مسجلة صحيحة.
-                {% elif error == "company_has_active_extension" %}
-                  هذه الشركة موقوفة بسبب مهلة نشطة — لا يمكن إنشاء تصاريح جديدة حتى يتم إغلاق المهلة.
-                {% elif error == "company_name_required" %}
-                  يرجى إدخال الاسم التجاري.
-                {% elif error == "trade_license_no_required" %}
-                  يرجى إدخال رقم الرخصة التجارية.
-                {% elif error == "company_address_required" %}
-                  يرجى إدخال عنوان الشركة.
-                {% elif error == "trade_license_exp_required" %}
-                  يرجى إدخال تاريخ انتهاء الرخصة التجارية.
-                {% elif error == "trade_license_exp_invalid" %}
-                  تاريخ انتهاء الرخصة التجارية غير صالح.
-                {% elif error == "trade_license_expired" %}
-                  الرخصة التجارية منتهية، يرجى تجديدها أولاً.
-                {% elif error == "request_email_required" %}
-                  يرجى إدخال البريد الإلكتروني الذي وصل منه الطلب.
-                {% elif error == "engineer_required" %}
-                  يرجى إدخال بيانات المهندس كاملة.
-                {% elif error == "company_engineer_missing" %}
-                  الشركة المختارة لا تحتوي على مهندس مسجل.
-                {% elif error == "engineer_not_registered" %}
-                  يرجى تسجيل المهندس وإرفاق الشهادات أولاً.
-                {% elif error == "engineer_cert_required" %}
-                  لا يمكن اختيار مهندس بدون شهادة نجاح الصحة العامة.
-                {% elif error == "documents_required" %}
-                  يرجى إرفاق مستند واحد على الأقل.
-                {% elif error == "documents_invalid" %}
-                  الملفات المسموحة هي PDF أو صور فقط: {{ invalid_docs|join:", " }}
-                {% else %}
-                  {{ error }}
-                {% endif %}
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-      {% endif %}
-
-      {% if trade_license_notice %}
-        <div class="alert-warn">{{ trade_license_notice }}</div>
-      {% endif %}
-
-      {% if engineer_notice %}
-        <div class="alert-warn">{{ engineer_notice }}</div>
-      {% endif %}
-
-      <!-- بيانات الشركة -->
-      <div class="form-section">
-        <div class="section-title">بيانات الشركة</div>
-        <div class="form-grid">
-          <div class="field field-full">
-            <input type="hidden" name="company_id" value="{{ selected_company_id|default:'' }}">
-            {% if form_data.company_name %}
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#eff6ff;border:1.5px solid #2563eb;border-radius:8px;">
-              <div>
-                <div style="font-size:14px;font-weight:700;color:#1e40af;">{{ form_data.company_name }}</div>
-                <div style="font-size:12px;color:#3b82f6;margin-top:2px;">رقم الشركة: {{ form_data.trade_license_no }}</div>
-              </div>
-              <a href="{% url 'permit_types' %}" style="font-size:12px;color:#64748b;text-decoration:none;border:1px solid #cbd5e1;padding:4px 10px;border-radius:6px;">تغيير</a>
-            </div>
-            <div id="engineer-cert-inline-warning" class="alert" style="{% if engineer_notice %}display:block{% else %}display:none{% endif %};margin-top:8px;">
-              تنبيه: المهندس المسجل لهذه الشركة لا يملك حالياً شهادات لمن يهمه الأمر.
-            </div>
-            {% else %}
-            <div style="padding:16px;background:#fef9c3;border:1.5px solid #fbbf24;border-radius:8px;text-align:center;">
-              <div style="font-size:13px;color:#92400e;font-weight:600;">لم يتم اختيار شركة</div>
-              <a href="{% url 'permit_types' %}" style="display:inline-block;margin-top:8px;font-size:13px;color:#2563eb;">← العودة لاختيار الشركة</a>
-            </div>
-            {% endif %}
-          </div>
-          <div class="field">
-            <label for="company_name">الاسم التجاري</label>
-            <input type="text" id="company_name" name="company_name" value="{{ form_data.company_name|default:'' }}" data-company-field>
-          </div>
-          <div class="field">
-            <label for="trade_license_no">رقم الرخصة التجارية</label>
-            <input type="text" id="trade_license_no" name="trade_license_no" value="{{ form_data.trade_license_no|default:'' }}" data-company-field>
-          </div>
-          <div class="field">
-            <label for="trade_license_exp">تاريخ انتهاء الرخصة التجارية</label>
-            <input type="date" id="trade_license_exp" name="trade_license_exp" value="{{ form_data.trade_license_exp|default:'' }}" data-company-field>
-          </div>
-          <div class="field">
-            <label for="company_address">عنوان الشركة</label>
-            <input type="text" id="company_address" name="company_address" value="{{ form_data.company_address|default:'' }}" data-company-field>
-          </div>
-          <div class="field">
-            <label for="landline">رقم الهاتف الأرضي</label>
-            <input type="tel" id="landline" name="landline" value="{{ form_data.landline|default:'' }}" data-company-field>
-          </div>
-          <div class="field">
-            <label for="owner_phone">رقم هاتف المالك</label>
-            <input type="tel" id="owner_phone" name="owner_phone" value="{{ form_data.owner_phone|default:'' }}" data-company-field>
-          </div>
-          <div class="field">
-            <label for="company_email">البريد الإلكتروني</label>
-            <input type="email" id="company_email" name="company_email" value="{{ form_data.company_email|default:'' }}" data-company-field>
-          </div>
-          <div class="field">
-            <label for="request_email">بريد مقدم الطلب</label>
-            <input type="email" id="request_email" name="request_email" value="{{ form_data.request_email|default:'' }}" required>
-          </div>
-          <div class="field field-full">
-            <label for="business_activity">أنشطة الرخصة</label>
-            <textarea id="business_activity" name="business_activity" rows="3" data-company-field>{{ form_data.business_activity|default:'' }}</textarea>
-            <div class="hint">اكتب الأنشطة كما هي بالرخصة التجارية.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- بيانات التصريح -->
-      <div class="form-section">
-        <div class="section-title">بيانات التصريح</div>
-        <div class="form-grid">
-          <div class="field">
-            <label for="expiry_date">تاريخ انتهاء التصريح</label>
-            <input type="date" id="expiry_date" name="expiry_date" value="{{ form_data.expiry_date|default:'' }}" readonly>
-            <div class="hint">يُحتسب تلقائياً بعد سنة من انتهاء الرخصة التجارية.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- بيانات المهندس -->
-      <div class="form-section">
-        <div class="section-title">بيانات المهندس</div>
-        <div class="form-grid">
-          <div class="field">
-            <label for="engineer_name">اسم المهندس</label>
-            <input type="text" id="engineer_name" name="engineer_name" value="{{ form_data.engineer_name|default:'' }}" data-company-field>
-          </div>
-          <div class="field">
-            <label for="engineer_phone">رقم الهاتف المتحرك</label>
-            <input type="tel" id="engineer_phone" name="engineer_phone" value="{{ form_data.engineer_phone|default:'' }}" data-company-field>
-          </div>
-        </div>
-      </div>
-
-      <!-- المستندات -->
-      <div class="form-section">
-        <div class="section-title">المستندات المطلوبة</div>
-        <div class="field">
-          <label for="documents">إرفاق المستندات (PDF أو صور)</label>
-          <input id="documents" type="file" name="documents" multiple required>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn-submit">إرسال الطلب</button>
-        <a class="btn-cancel" href="{% url 'clearance_list' %}">العودة للطلبات</a>
-      </div>
-    </form>
   </div>
+
+  <div class="permit-section--doc" style="margin-top:0;">
+    <div class="doc-band">
+      <span class="doc-band-title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</span>
+    </div>
+  </div>
+
+  {% if form_errors %}
+    <div class="alert">
+      <strong>يرجى تصحيح التالي:</strong>
+      <ul class="alert-list">
+        {% for error in form_errors %}
+          <li>
+            {% if error == "company_select_invalid" %}يرجى اختيار شركة مسجلة صحيحة.
+            {% elif error == "company_has_active_extension" %}هذه الشركة موقوفة بسبب مهلة نشطة — لا يمكن إنشاء تصاريح جديدة حتى يتم إغلاق المهلة.
+            {% elif error == "company_name_required" %}يرجى إدخال الاسم التجاري.
+            {% elif error == "trade_license_no_required" %}يرجى إدخال رقم الرخصة التجارية.
+            {% elif error == "company_address_required" %}يرجى إدخال عنوان الشركة.
+            {% elif error == "trade_license_exp_required" %}يرجى إدخال تاريخ انتهاء الرخصة التجارية.
+            {% elif error == "trade_license_exp_invalid" %}تاريخ انتهاء الرخصة التجارية غير صالح.
+            {% elif error == "trade_license_expired" %}الرخصة التجارية منتهية، يرجى تجديدها أولاً.
+            {% elif error == "request_email_required" %}يرجى إدخال البريد الإلكتروني الذي وصل منه الطلب.
+            {% elif error == "engineer_required" %}يرجى إدخال بيانات المهندس كاملة.
+            {% elif error == "company_engineer_missing" %}الشركة المختارة لا تحتوي على مهندس مسجل.
+            {% elif error == "engineer_not_registered" %}يرجى تسجيل المهندس وإرفاق الشهادات أولاً.
+            {% elif error == "engineer_select_invalid" %}المهندس المختار غير موجود في النظام.
+            {% elif error == "documents_required" %}يرجى إرفاق مستند واحد على الأقل.
+            {% elif error == "documents_invalid" %}الملفات المسموحة هي PDF أو صور فقط: {{ invalid_docs|join:", " }}
+            {% else %}{{ error }}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+  {% if trade_license_notice %}<div class="alert-warn">{{ trade_license_notice }}</div>{% endif %}
+  {% if engineer_notice %}<div class="alert-warn">{{ engineer_notice }}</div>{% endif %}
+
+  <form method="post" enctype="multipart/form-data" autocomplete="off">
+    {% csrf_token %}
+
+    <!-- بيانات الشركة -->
+    <section class="permit-section--doc">
+      <div class="doc-band"><span class="doc-band-title">بيانات الشركة</span></div>
+      <input type="hidden" name="company_id" value="{{ selected_company_id|default:'' }}">
+
+      {% if form_data.company_name %}
+      <div class="company-bar company-bar--selected">
+        <div>
+          <div class="co-name">{{ form_data.company_name }}</div>
+          <div class="co-num">رقم الشركة: {{ form_data.trade_license_no }}</div>
+        </div>
+        <a href="{% url 'permit_types' %}?open=pest" class="btn-change">تغيير الشركة</a>
+      </div>
+      {% else %}
+      <div class="company-bar company-bar--empty">
+        <span style="font-size:13px;color:#92400e;font-weight:600;">لم يتم اختيار شركة —</span>
+        <a href="{% url 'permit_types' %}?open=pest" style="font-size:13px;color:#2563eb;font-weight:700;margin-right:4px;">العودة لاختيار الشركة</a>
+      </div>
+      {% endif %}
+
+      <div class="fields-table">
+        <div class="field-row">
+          <span class="field-label">الاسم التجاري</span>
+          <span class="field-cell"><input type="text" id="company_name" name="company_name" value="{{ form_data.company_name|default:'' }}" data-company-field></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">رقم الرخصة التجارية</span>
+          <span class="field-cell"><input type="text" id="trade_license_no" name="trade_license_no" value="{{ form_data.trade_license_no|default:'' }}" data-company-field></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">تاريخ انتهاء الرخصة التجارية</span>
+          <span class="field-cell"><input type="date" id="trade_license_exp" name="trade_license_exp" value="{{ form_data.trade_license_exp|default:'' }}" lang="ar-AE" dir="rtl" data-company-field></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">عنوان الشركة</span>
+          <span class="field-cell"><input type="text" id="company_address" name="company_address" value="{{ form_data.company_address|default:'' }}" data-company-field></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">رقم الهاتف الأرضي</span>
+          <span class="field-cell"><input type="tel" id="landline" name="landline" value="{{ form_data.landline|default:'' }}" data-company-field></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">رقم هاتف المالك</span>
+          <span class="field-cell"><input type="tel" id="owner_phone" name="owner_phone" value="{{ form_data.owner_phone|default:'' }}" data-company-field></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">البريد الإلكتروني</span>
+          <span class="field-cell"><input type="email" id="company_email" name="company_email" value="{{ form_data.company_email|default:'' }}" data-company-field></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">بريد مقدم الطلب</span>
+          <span class="field-cell"><input type="email" id="request_email" name="request_email" value="{{ form_data.request_email|default:'' }}" required></span>
+        </div>
+        <div class="field-row field-row--top">
+          <span class="field-label">أنشطة الرخصة</span>
+          <span class="field-cell">
+            <textarea id="business_activity" name="business_activity" rows="3" data-company-field>{{ form_data.business_activity|default:'' }}</textarea>
+            <div class="field-hint">اكتب الأنشطة كما هي بالرخصة التجارية.</div>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- بيانات التصريح -->
+    <section class="permit-section--doc">
+      <div class="doc-band"><span class="doc-band-title">بيانات التصريح</span></div>
+      <div class="fields-table">
+        <div class="field-row">
+          <span class="field-label">تاريخ انتهاء التصريح</span>
+          <span class="field-cell">
+            <input type="date" id="expiry_date" name="expiry_date" value="{{ form_data.expiry_date|default:'' }}" lang="ar-AE" dir="rtl" readonly>
+            <div class="field-hint">يُحتسب تلقائياً بعد سنة من انتهاء الرخصة التجارية.</div>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- بيانات المهندس -->
+    <section class="permit-section--doc">
+      <div class="doc-band"><span class="doc-band-title">بيانات المهندس</span></div>
+      <div class="fields-table">
+        <div class="field-row" style="align-items:flex-start;">
+          <span class="field-label" style="padding-top:13px;">اسم المهندس</span>
+          <span class="field-cell" style="padding:8px 10px;position:relative;">
+            <input type="hidden" id="engineer_id" name="engineer_id" value="{{ form_data.engineer_id|default:'' }}">
+            <div style="position:relative;">
+              <input type="text" id="engineer_search"
+                     placeholder="اختر مهندساً..."
+                     autocomplete="off"
+                     value="{{ form_data.engineer_name|default:'' }}"
+                     style="width:100%;border:1.5px solid var(--pd-line-2);border-radius:5px;padding:7px 36px 7px 32px;font-size:13px;font-weight:600;color:var(--pd-ink);background:#fff;font-family:inherit;box-sizing:border-box;direction:rtl;text-align:right;outline:none;cursor:pointer;">
+              <!-- search icon right -->
+              <svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:#6f8297;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <!-- chevron left -->
+              <svg id="eng-chevron" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:#6f8297;transition:transform 0.15s;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div id="engineer-dropdown"
+                 style="display:none;position:absolute;top:calc(100% - 2px);right:10px;left:10px;background:#fff;border:1.5px solid var(--pd-line-2);border-top:none;border-radius:0 0 6px 6px;max-height:220px;overflow-y:auto;z-index:50;box-shadow:0 4px 12px rgba(48,67,87,0.12);">
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">رقم الهاتف</span>
+          <span class="field-cell"><input type="tel" id="engineer_phone_display" name="engineer_phone" value="{{ form_data.engineer_phone|default:'' }}"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- المستندات -->
+    <section class="permit-section--doc">
+      <div class="doc-band">
+        <span class="doc-band-title">المستندات المطلوبة</span>
+        <span style="font-size:11px;color:var(--pd-ink-3);font-weight:600;">PDF أو صور JPG/PNG</span>
+      </div>
+      <div class="doc-form-body">
+        <div class="drop-zone" id="drop-zone">
+          <input id="documents" type="file" name="documents" multiple accept=".pdf,.jpg,.jpeg,.png">
+          <div>اسحب الملفات هنا أو <strong>انقر للاختيار</strong></div>
+          <div style="font-size:11px;color:var(--pd-ink-3);margin-top:4px;">PDF أو صور JPG/PNG</div>
+        </div>
+        <div id="file-list"></div>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-submit">إرسال الطلب</button>
+      <a class="btn-cancel" href="{% url 'clearance_list' %}">العودة للطلبات</a>
+    </div>
+  </form>
+
+</div>
 </section>
 <script>
+var ALL_ENGINEERS = [
+  {% for e in all_engineers %}
+  {id: {{ e.id }}, name: "{{ e.name|escapejs }}", phone: "{{ e.phone|escapejs }}", card: "{{ e.card_number|default:''|escapejs }}", hasCert: {{ e.has_cert|yesno:"true,false" }}},
+  {% endfor %}
+];
+
+(function () {
+  var searchInput     = document.getElementById('engineer_search');
+  var engineerIdInput = document.getElementById('engineer_id');
+  var phoneDisplay    = document.getElementById('engineer_phone_display');
+  var dropdown        = document.getElementById('engineer-dropdown');
+  var chevron         = document.getElementById('eng-chevron');
+
+  function openDropdown() {
+    dropdown.style.display = 'block';
+    chevron.style.transform = 'translateY(-50%) rotate(180deg)';
+    searchInput.style.borderRadius = '5px 5px 0 0';
+    searchInput.style.borderBottomColor = 'transparent';
+  }
+  function closeDropdown() {
+    dropdown.style.display = 'none';
+    chevron.style.transform = 'translateY(-50%) rotate(0deg)';
+    searchInput.style.borderRadius = '5px';
+    searchInput.style.borderBottomColor = '';
+  }
+
+  function renderDropdown(results) {
+    dropdown.innerHTML = '';
+    if (!results.length) {
+      dropdown.innerHTML = '<div style="padding:10px 14px;font-size:12.5px;color:#6f8297;">لا توجد نتائج</div>';
+      openDropdown();
+      return;
+    }
+    results.slice(0, 40).forEach(function (e) {
+      var item = document.createElement('div');
+      item.style.cssText = 'padding:9px 14px;cursor:pointer;font-size:13px;font-weight:600;color:#304357;border-bottom:1px solid #f1f4f7;display:flex;align-items:center;justify-content:space-between;gap:8px;';
+      var certBadge = e.hasCert
+        ? '<span style="font-size:10px;color:#166534;font-weight:700;background:#dcfce7;padding:2px 7px;border-radius:4px;white-space:nowrap;">✓ شهادة</span>'
+        : '<span style="font-size:10px;color:#92400e;font-weight:700;background:#fef3c7;padding:2px 7px;border-radius:4px;white-space:nowrap;">بدون شهادة</span>';
+      var cardBadge = e.card ? '<span style="font-size:11px;color:#6f8297;font-weight:500;background:#f1f4f7;padding:2px 6px;border-radius:4px;">#' + e.card + '</span>' : '';
+      item.innerHTML = '<span>' + e.name + '</span><span style="display:flex;gap:5px;align-items:center;">' + cardBadge + certBadge + '</span>';
+      item.addEventListener('mousedown', function (ev) { ev.preventDefault(); selectEngineer(e); });
+      item.addEventListener('mouseenter', function () { item.style.background = '#f8fafc'; });
+      item.addEventListener('mouseleave', function () { item.style.background = ''; });
+      dropdown.appendChild(item);
+    });
+    openDropdown();
+  }
+
+  function selectEngineer(e) {
+    engineerIdInput.value = e.id;
+    searchInput.value     = e.name;
+    if (!phoneDisplay.value) phoneDisplay.value = e.phone;
+    closeDropdown();
+    if (e.hasCert) {
+      searchInput.style.borderColor = '#22c55e';
+      searchInput.style.borderBottomColor = '#22c55e';
+    } else {
+      searchInput.style.borderColor = '#d97706';
+      searchInput.style.borderBottomColor = '#d97706';
+    }
+    var noticeEl = document.getElementById('engineer-notice-dynamic');
+    if (!noticeEl) {
+      noticeEl = document.createElement('div');
+      noticeEl.id = 'engineer-notice-dynamic';
+      noticeEl.className = 'alert-warn';
+      searchInput.closest('.field-cell').appendChild(noticeEl);
+    }
+    noticeEl.style.display = e.hasCert ? 'none' : '';
+    noticeEl.textContent   = e.hasCert ? '' : 'تنبيه: المهندس المختار لا يملك شهادة الصحة العامة — يرجى إضافة الشهادة لاحقاً.';
+  }
+
+  function clearSelection() {
+    engineerIdInput.value = '';
+    searchInput.style.borderColor = '';
+  }
+
+  searchInput.addEventListener('click', function () {
+    var q = searchInput.value.trim();
+    var list = q
+      ? ALL_ENGINEERS.filter(function (e) { return e.name.indexOf(q) !== -1; })
+      : ALL_ENGINEERS;
+    renderDropdown(list);
+  });
+
+  searchInput.addEventListener('input', function () {
+    clearSelection();
+    var q = searchInput.value.trim();
+    var list = q
+      ? ALL_ENGINEERS.filter(function (e) { return e.name.indexOf(q) !== -1; })
+      : ALL_ENGINEERS;
+    renderDropdown(list);
+  });
+
+  document.addEventListener('click', function (ev) {
+    if (!searchInput.contains(ev.target) && !dropdown.contains(ev.target)) {
+      closeDropdown();
+    }
+  });
+
   (function () {
-    const tradeExp  = document.getElementById('trade_license_exp');
-    const expiryDate = document.getElementById('expiry_date');
-
-    const pad = (value) => String(value).padStart(2, '0');
-    const daysInMonth = (year, month) => new Date(year, month, 0).getDate();
-    const addYear = (value) => {
-      if (!value) {
-        return '';
+    var preId = parseInt(engineerIdInput.value);
+    if (preId) {
+      var found = ALL_ENGINEERS.find(function (e) { return e.id === preId; });
+      if (found) {
+        searchInput.style.borderColor = '#22c55e';
       }
-      const parts = value.split('-');
-      if (parts.length !== 3) {
-        return '';
-      }
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
-      if ([year, month, day].some((part) => Number.isNaN(part))) {
-        return '';
-      }
-      const nextYear = year + 1;
-      const maxDay = daysInMonth(nextYear, month);
-      const safeDay = Math.min(day, maxDay);
-      return `${nextYear}-${pad(month)}-${pad(safeDay)}`;
-    };
-
-    const updateExpiry = () => {
-      if (!tradeExp || !expiryDate) return;
-      expiryDate.value = addYear(tradeExp.value);
-    };
-
-    if (tradeExp) {
-      tradeExp.addEventListener('change', updateExpiry);
-      tradeExp.addEventListener('blur', updateExpiry);
     }
   })();
+})();
+
+(function () {
+  var tradeExp   = document.getElementById('trade_license_exp');
+  var expiryDate = document.getElementById('expiry_date');
+  var pad = function(v){ return String(v).padStart(2,'0'); };
+  var daysInMonth = function(y,m){ return new Date(y,m,0).getDate(); };
+  var addYear = function(val) {
+    if (!val) return '';
+    var p = val.split('-');
+    if (p.length !== 3) return '';
+    var y = parseInt(p[0],10), m = parseInt(p[1],10), d = parseInt(p[2],10);
+    if ([y,m,d].some(isNaN)) return '';
+    var ny = y+1, maxD = daysInMonth(ny,m);
+    return ny+'-'+pad(m)+'-'+pad(Math.min(d,maxD));
+  };
+  if (tradeExp) {
+    tradeExp.addEventListener('change', function(){ if(expiryDate) expiryDate.value = addYear(tradeExp.value); });
+    tradeExp.addEventListener('blur',   function(){ if(expiryDate) expiryDate.value = addYear(tradeExp.value); });
+  }
+
+  var dropZone  = document.getElementById('drop-zone');
+  var fileInput = document.getElementById('documents');
+  var fileList  = document.getElementById('file-list');
+  var dt        = new DataTransfer();
+  function renderChips() {
+    fileList.innerHTML = '';
+    Array.from(dt.files).forEach(function(f, i) {
+      var chip = document.createElement('span');
+      chip.className = 'file-chip';
+      chip.innerHTML = f.name + ' <span class="remove-file" data-index="' + i + '">×</span>';
+      fileList.appendChild(chip);
+    });
+    fileInput.files = dt.files;
+  }
+  dropZone.addEventListener('click', function(){ fileInput.click(); });
+  fileInput.addEventListener('change', function(){
+    Array.from(fileInput.files).forEach(function(f){ dt.items.add(f); });
+    renderChips();
+  });
+  dropZone.addEventListener('dragover',  function(e){ e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', function(){ dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', function(e){
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    Array.from(e.dataTransfer.files).forEach(function(f){ dt.items.add(f); });
+    renderChips();
+  });
+  fileList.addEventListener('click', function(e){
+    if (e.target.classList.contains('remove-file')) {
+      var idx = parseInt(e.target.dataset.index);
+      var newDt = new DataTransfer();
+      Array.from(dt.files).forEach(function(f,i){ if(i!==idx) newDt.items.add(f); });
+      dt = newDt; renderChips();
+    }
+  });
+})();
 </script>
 {% endblock %}

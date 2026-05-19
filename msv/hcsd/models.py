@@ -119,22 +119,22 @@ class Enginer(models.Model):
     
 class PirmetClearance(models.Model):
     STATUS_CHOICES = [
-        ('order_received', 'Order Received'),
-        ('inspection_payment_pending', 'Inspection Payment Pending'),
-        ('review_pending', 'Pending Inspector Review'),
-        ('needs_completion', 'Needs Completion'),
-        ('approved', 'Inspector Approved'),
-        ('payment_pending', 'Waiting for Payment'),
-        ('issued', 'Issued'),
-        ('inspection_pending', 'Inspection Pending'),
-        ('inspection_completed', 'Inspection Completed'),
-        ('violation_payment_link_pending', 'Violation Payment Link Pending'),
-        ('violation_payment_pending', 'Violation Payment Pending'),
+        ('order_received', 'تم استلام الطلب'),
+        ('inspection_payment_pending', 'بانتظار دفع التفتيش'),
+        ('review_pending', 'بانتظار مراجعة المفتش'),
+        ('needs_completion', 'يحتاج استكمال'),
+        ('approved', 'معتمد من المفتش'),
+        ('payment_pending', 'بانتظار الدفع'),
+        ('issued', 'صادر'),
+        ('inspection_pending', 'بانتظار التفتيش'),
+        ('inspection_completed', 'اكتمل التفتيش'),
+        ('violation_payment_link_pending', 'بانتظار رابط دفع المخالفة'),
+        ('violation_payment_pending', 'بانتظار دفع المخالفة'),
         ('head_approved', 'الاعتماد النهائي'),
-        ('closed_requirements_pending', 'Closed - Requirements Pending'),
-        ('cancelled_admin', 'Cancelled Administratively'),
-        ('disposal_approved', 'Disposal Approved'),
-        ('disposal_rejected', 'Disposal Rejected'),
+        ('closed_requirements_pending', 'مغلق - متطلبات معلقة'),
+        ('cancelled_admin', 'ملغى إدارياً'),
+        ('disposal_approved', 'موافقة على التخلص'),
+        ('disposal_rejected', 'رفض التخلص'),
     ]
     unapprovedReason = models.TextField(null=True, blank=True)
     unapprovedBy = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='unapproved_pirmets')
@@ -269,12 +269,12 @@ class WasteDisposalPermit(models.Model):
 
 class WasteDisposalRequest(models.Model):
     STATUS_CHOICES = [
-        ('payment_pending', 'Waiting for Disposal Payment'),
-        ('inspection_pending', 'Inspection Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('completed', 'Completed'),
-        ('cancelled_admin', 'Cancelled Administratively'),
+        ('payment_pending', 'بانتظار الدفع'),
+        ('inspection_pending', 'بانتظار التفتيش'),
+        ('approved', 'معتمد'),
+        ('rejected', 'مرفوض'),
+        ('completed', 'مكتمل'),
+        ('cancelled_admin', 'ملغى إدارياً'),
     ]
 
     WASTE_CLASSIFICATION_CHOICES = [
@@ -426,6 +426,7 @@ class EnginerStatusLog(models.Model):
         ('termite_cert_uploaded', 'Termite Certificate Uploaded'),
         ('leave_recorded', 'Leave Recorded'),
         ('leave_closed', 'Leave Closed'),
+        ('removed_from_company', 'Removed From Company'),
     ]
 
     enginer = models.ForeignKey(
@@ -1535,3 +1536,33 @@ class WeedRemovalPhoto(models.Model):
 
     def __str__(self):
         return f"{self.get_phase_display()} — {self.request}"
+
+
+class EngineerCompanyRemoval(models.Model):
+    enginer    = models.ForeignKey('Enginer', on_delete=models.CASCADE, related_name='company_removals')
+    company    = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='engineer_removals')
+    removed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='engineer_removals_recorded')
+    removed_at = models.DateTimeField(auto_now_add=True)
+    notes      = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-removed_at']
+        verbose_name        = 'سجل إزالة مهندس'
+        verbose_name_plural = 'سجلات إزالة المهندسين'
+
+    def __str__(self):
+        return f"{self.enginer.name} ← {self.company.name}"
+
+
+class EngineerRemovalDocument(models.Model):
+    removal     = models.ForeignKey(EngineerCompanyRemoval, on_delete=models.CASCADE, related_name='documents')
+    file        = models.FileField(upload_to='engineer_removals/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['uploaded_at']
+        verbose_name        = 'مستند إزالة مهندس'
+        verbose_name_plural = 'مستندات إزالة المهندسين'
+
+    def __str__(self):
+        return f"مستند — {self.removal}"
