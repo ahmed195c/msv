@@ -133,12 +133,6 @@
       <p class="pt-header__sub">إنشاء التصاريح ومتابعة حالتها</p>
     </div>
     <div class="pt-btn-group">
-      {% if can_create_pirmet %}
-      <button class="pt-btn pt-btn--primary" onclick="document.getElementById('disposal-modal').style.display='flex'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        طلب تخلص من عبوات فارغة
-      </button>
-      {% endif %}
       <a href="{% url 'permits_report_excel' %}" class="pt-btn" download>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         تقرير الشركات
@@ -152,7 +146,7 @@
 
   <!-- Permit cards -->
   <div class="pt-section">
-    <p class="pt-section__label">إنشاء تصريح جديد</p>
+    <p class="pt-section__label">إنشاء طلب جديد</p>
 
     <div class="permit-types__skeleton" aria-hidden="true">
       {% for _ in "123" %}
@@ -191,6 +185,14 @@
         <p class="permit-card__desc">طلب إضافة مهندس لشركة معينة مع بيانات الشهادات ومتابعة إجراءات التفتيش حتى التسجيل.</p>
         <a class="pt-btn pt-btn--primary" href="{% url 'engineer_addition_create' %}">بدء الطلب</a>
       </div>
+
+      {% if active_disposal_permits %}
+      <div class="permit-card">
+        <p class="permit-card__title">طلب تخلص من عبوات مبيدات فارغة</p>
+        <p class="permit-card__desc">إنشاء طلب تخلص سريع لشركة لديها تصريح تخلص ساري — ابحث بالاسم أو رقم الشركة.</p>
+        <button class="pt-btn pt-btn--primary" onclick="document.getElementById('disposal-modal').style.display='flex';document.getElementById('disposal-search').focus()">بدء الطلب</button>
+      </div>
+      {% endif %}
 
     </div>
     {% else %}
