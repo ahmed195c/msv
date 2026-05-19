@@ -524,6 +524,15 @@ def permit_types(request):
         reverse=True,
     )[:50]
 
+    # Companies with a currently valid waste_disposal permit (for the quick-create modal)
+    active_disposal_permits = list(
+        PirmetClearance.objects
+        .select_related('company')
+        .filter(permit_type='waste_disposal', status='issued', dateOfExpiry__gte=today)
+        .order_by('company__name')
+        .values('id', 'company__name', 'company__number')
+    )
+
     return render(
         request,
         'hcsd/permit_types.html',
@@ -531,6 +540,7 @@ def permit_types(request):
             'can_create_pirmet': _can_data_entry(request.user),
             'expiring_permits': _enrich(expiring_permits),
             'finished_permits': _enrich(finished_permits),
+            'active_disposal_permits': active_disposal_permits,
         },
     )
 
