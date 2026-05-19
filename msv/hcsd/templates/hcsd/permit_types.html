@@ -480,7 +480,7 @@ if (DISPOSAL_PERMITS.length) renderDisposalResults(DISPOSAL_PERMITS);
 // ── Pest-control modal ──────────────────────────────────────────────────────
 var ALL_COMPANIES = [
   {% for c in all_companies %}
-  {id: {{ c.id }}, name: "{{ c.name|escapejs }}", number: "{{ c.number|escapejs }}"},
+  {id: {{ c.id }}, name: "{{ c.name|escapejs }}", number: "{{ c.number|escapejs }}", expiry: "{{ c.expiry }}", expired: {{ c.expired|yesno:'true,false' }}},
   {% endfor %}
 ];
 
@@ -495,17 +495,25 @@ function renderPestResults(items) {
   empty.style.display = 'none';
   count.textContent = items.length + ' شركة';
   items.forEach(function(c) {
+    var expired = c.expired;
+    var border  = expired ? '#fca5a5' : '#e2e8f0';
+    var bgHover = expired ? '#fef2f2' : '#eff6ff';
+    var bdHover = expired ? '#ef4444' : '#2563eb';
     var row = document.createElement('a');
     row.href = PEST_URL_TPL.replace('COMPANY_ID', c.id);
-    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#0f172a;transition:.12s;';
-    row.onmouseover = function(){this.style.background='#eff6ff';this.style.borderColor='#2563eb';};
-    row.onmouseout  = function(){this.style.background='';this.style.borderColor='#e2e8f0';};
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid ' + border + ';border-radius:8px;text-decoration:none;color:#0f172a;transition:.12s;' + (expired ? 'background:#fff5f5;' : '');
+    row.onmouseover = function(){this.style.background=bgHover;this.style.borderColor=bdHover;};
+    row.onmouseout  = function(){this.style.background=expired?'#fff5f5':'';this.style.borderColor=border;};
+    var badge = expired
+      ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#fee2e2;color:#b91c1c;border-radius:10px;white-space:nowrap;">منتهي ' + c.expiry + '</span>'
+      : (c.expiry ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#dcfce7;color:#166534;border-radius:10px;white-space:nowrap;">ساري حتى ' + c.expiry + '</span>' : '');
     row.innerHTML =
-      '<div>' +
+      '<div style="display:flex;flex-direction:column;gap:3px;">' +
         '<div style="font-size:14px;font-weight:600;">' + c.name + '</div>' +
-        '<div style="font-size:11px;color:#64748b;margin-top:2px;">رقم الشركة: ' + c.number + '</div>' +
+        '<div style="font-size:11px;color:#64748b;">رقم الشركة: ' + c.number + '</div>' +
+        (badge ? '<div style="margin-top:2px;">' + badge + '</div>' : '') +
       '</div>' +
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (expired?'#ef4444':'#2563eb') + '" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
     box.appendChild(row);
   });
 }

@@ -534,10 +534,40 @@ def permit_types(request):
     )
 
     # All companies for the pest-control permit quick-select modal
+    # Annotate each with their latest issued pest_control permit expiry
     from ..models import Company as _Company
-    all_companies = list(
-        _Company.objects.order_by('name').values('id', 'name', 'number')
-    )
+    pest_permit_expiry = {
+        p['company_id']: p['dateOfExpiry']
+        for p in (
+            PirmetClearance.objects
+            .filter(permit_type='pest_control', status='issued')
+            .order_by('company_id', '-id')
+            .values('company_id', 'dateOfExpiry')
+        )
+        # keep only the first (latest) per company — dict comprehension naturally keeps last,
+        # so reverse order then re-reverse by iterating reversed list
+    }
+    # Re-fetch ordered by -id so we keep the latest permit per company
+    _seen = set()
+    pest_permit_expiry = {}
+    for p in PirmetClearance.objects.filter(
+        permit_type='pest_control', status='issued'
+    ).order_by('-id').values('company_id', 'dateOfExpiry'):
+        if p['company_id'] not in _seen:
+            _seen.add(p['company_id'])
+            pest_permit_expiry[p['company_id']] = p['dateOfExpiry']
+
+    all_companies = []
+    for c in _Company.objects.order_by('name').values('id', 'name', 'number'):
+        expiry = pest_permit_expiry.get(c['id'])
+        expired = expiry is not None and expiry < today
+        all_companies.append({
+            'id': c['id'],
+            'name': c['name'],
+            'number': c['number'],
+            'expiry': expiry.isoformat() if expiry else '',
+            'expired': expired,
+        })
 
     return render(
         request,
