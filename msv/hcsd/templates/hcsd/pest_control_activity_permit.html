@@ -263,35 +263,24 @@
         <div class="section-title">بيانات الشركة</div>
         <div class="form-grid">
           <div class="field field-full">
-            <label for="company_search">بحث عن الشركة</label>
-            <input type="text" id="company_search" placeholder="ابحث باسم الشركة أو رقم الرخصة…" autocomplete="off" style="margin-bottom:6px;">
-            <label for="company_id">اختيار الشركة المسجلة</label>
-            <select id="company_id" name="company_id" size="8" style="width:100%;box-sizing:border-box;height:auto;min-height:160px;overflow-y:auto;">
-              <option value="">-- اختيار --</option>
-              {% for company in companies %}
-                <option value="{{ company.id }}"
-                  data-name="{{ company.name }}"
-                  data-number="{{ company.number }}"
-                  data-trade-exp="{{ company.trade_license_exp|date:'Y-m-d' }}"
-                  data-address="{{ company.address }}"
-                  data-landline="{{ company.landline|default_if_none:'' }}"
-                  data-owner-phone="{{ company.owner_phone|default_if_none:'' }}"
-                  data-email="{{ company.email|default_if_none:'' }}"
-                  data-engineer-public="{% if company.enginer and company.enginer.public_health_cert %}1{% else %}0{% endif %}"
-                  data-engineer-termite="{% if company.enginer and company.enginer.termite_cert %}1{% else %}0{% endif %}"
-                  data-engineer-name="{% if company.enginer %}{{ company.enginer.name }}{% endif %}"
-                  data-engineer-email="{% if company.enginer %}{{ company.enginer.email }}{% endif %}"
-                  data-engineer-phone="{% if company.enginer %}{{ company.enginer.phone }}{% endif %}"
-                  data-business="{{ company.business_activity|default_if_none:'' }}"
-                  {% if company.id == selected_company_id %}selected{% endif %}>
-                  {{ company.name }} - {{ company.number }}
-                </option>
-              {% endfor %}
-            </select>
-            <div class="hint">عند اختيار شركة يتم تعبئة البيانات تلقائياً، ويمكن تعديلها هنا قبل إرسال الطلب.</div>
-            <div id="engineer-cert-inline-warning" class="alert" style="display:none; margin-top:8px;">
+            <input type="hidden" name="company_id" value="{{ selected_company_id|default:'' }}">
+            {% if form_data.company_name %}
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#eff6ff;border:1.5px solid #2563eb;border-radius:8px;">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:#1e40af;">{{ form_data.company_name }}</div>
+                <div style="font-size:12px;color:#3b82f6;margin-top:2px;">رقم الشركة: {{ form_data.trade_license_no }}</div>
+              </div>
+              <a href="{% url 'permit_types' %}" style="font-size:12px;color:#64748b;text-decoration:none;border:1px solid #cbd5e1;padding:4px 10px;border-radius:6px;">تغيير</a>
+            </div>
+            <div id="engineer-cert-inline-warning" class="alert" style="{% if engineer_notice %}display:block{% else %}display:none{% endif %};margin-top:8px;">
               تنبيه: المهندس المسجل لهذه الشركة لا يملك حالياً شهادات لمن يهمه الأمر.
             </div>
+            {% else %}
+            <div style="padding:16px;background:#fef9c3;border:1.5px solid #fbbf24;border-radius:8px;text-align:center;">
+              <div style="font-size:13px;color:#92400e;font-weight:600;">لم يتم اختيار شركة</div>
+              <a href="{% url 'permit_types' %}" style="display:inline-block;margin-top:8px;font-size:13px;color:#2563eb;">← العودة لاختيار الشركة</a>
+            </div>
+            {% endif %}
           </div>
           <div class="field">
             <label for="company_name">الاسم التجاري</label>
@@ -378,27 +367,8 @@
 </section>
 <script>
   (function () {
-    const companySelect = document.getElementById('company_id');
-    if (!companySelect) {
-      return;
-    }
-
-    const fields = {
-      company_name: document.getElementById('company_name'),
-      trade_license_no: document.getElementById('trade_license_no'),
-      trade_license_exp: document.getElementById('trade_license_exp'),
-      company_address: document.getElementById('company_address'),
-      landline: document.getElementById('landline'),
-      owner_phone: document.getElementById('owner_phone'),
-      company_email: document.getElementById('company_email'),
-      engineer_name: document.getElementById('engineer_name'),
-      engineer_phone: document.getElementById('engineer_phone'),
-      engineer_email: document.getElementById('engineer_email'),
-      expiry_date: document.getElementById('expiry_date'),
-    };
-
-    const businessActivityField = document.getElementById('business_activity');
-    const engineerCertInlineWarning = document.getElementById('engineer-cert-inline-warning');
+    const tradeExp  = document.getElementById('trade_license_exp');
+    const expiryDate = document.getElementById('expiry_date');
 
     const pad = (value) => String(value).padStart(2, '0');
     const daysInMonth = (year, month) => new Date(year, month, 0).getDate();
@@ -423,62 +393,13 @@
     };
 
     const updateExpiry = () => {
-      if (!fields.trade_license_exp || !fields.expiry_date) {
-        return;
-      }
-      fields.expiry_date.value = addYear(fields.trade_license_exp.value);
+      if (!tradeExp || !expiryDate) return;
+      expiryDate.value = addYear(tradeExp.value);
     };
 
-    const applyCompany = () => {
-      const option = companySelect.options[companySelect.selectedIndex];
-      const hasCompany = option && option.value;
-      if (!hasCompany) {
-        if (engineerCertInlineWarning) {
-          engineerCertInlineWarning.style.display = 'none';
-        }
-        updateExpiry();
-        return;
-      }
-      if (fields.company_name) fields.company_name.value = option.dataset.name || '';
-      if (fields.trade_license_no) fields.trade_license_no.value = option.dataset.number || '';
-      if (fields.trade_license_exp) fields.trade_license_exp.value = option.dataset.tradeExp || '';
-      if (fields.company_address) fields.company_address.value = option.dataset.address || '';
-      if (fields.landline) fields.landline.value = option.dataset.landline || '';
-      if (fields.owner_phone) fields.owner_phone.value = option.dataset.ownerPhone || '';
-      if (fields.company_email) fields.company_email.value = option.dataset.email || '';
-      if (fields.engineer_name) fields.engineer_name.value = option.dataset.engineerName || '';
-      if (fields.engineer_email) fields.engineer_email.value = option.dataset.engineerEmail || '';
-      if (fields.engineer_phone) fields.engineer_phone.value = option.dataset.engineerPhone || '';
-      if (businessActivityField) businessActivityField.value = option.dataset.business || '';
-      const hasPublic = option.dataset.engineerPublic === '1';
-      const hasTermite = option.dataset.engineerTermite === '1';
-      if (engineerCertInlineWarning) {
-        const hasEngineerName = Boolean((option.dataset.engineerName || '').trim());
-        engineerCertInlineWarning.style.display = hasEngineerName && !hasPublic && !hasTermite ? 'block' : 'none';
-      }
-      updateExpiry();
-    };
-
-    if (fields.trade_license_exp) {
-      fields.trade_license_exp.addEventListener('change', updateExpiry);
-      fields.trade_license_exp.addEventListener('blur', updateExpiry);
-    }
-    companySelect.addEventListener('change', applyCompany);
-    applyCompany();
-
-    // Company search filter
-    const companySearch = document.getElementById('company_search');
-    const allOptions = Array.from(companySelect.options);
-    if (companySearch) {
-      companySearch.addEventListener('input', function () {
-        const q = this.value.trim().toLowerCase();
-        allOptions.forEach(function (opt) {
-          if (!opt.value) { opt.style.display = ''; return; }
-          const name = (opt.dataset.name || opt.text || '').toLowerCase();
-          const num  = (opt.dataset.number || '').toLowerCase();
-          opt.style.display = (!q || name.includes(q) || num.includes(q)) ? '' : 'none';
-        });
-      });
+    if (tradeExp) {
+      tradeExp.addEventListener('change', updateExpiry);
+      tradeExp.addEventListener('blur', updateExpiry);
     }
   })();
 </script>

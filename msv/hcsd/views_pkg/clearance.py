@@ -533,6 +533,12 @@ def permit_types(request):
         .values('id', 'company__name', 'company__number')
     )
 
+    # All companies for the pest-control permit quick-select modal
+    from ..models import Company as _Company
+    all_companies = list(
+        _Company.objects.order_by('name').values('id', 'name', 'number')
+    )
+
     return render(
         request,
         'hcsd/permit_types.html',
@@ -541,6 +547,7 @@ def permit_types(request):
             'expiring_permits': _enrich(expiring_permits),
             'finished_permits': _enrich(finished_permits),
             'active_disposal_permits': active_disposal_permits,
+            'all_companies': all_companies,
         },
     )
 
