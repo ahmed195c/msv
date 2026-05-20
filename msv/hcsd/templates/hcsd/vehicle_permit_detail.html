@@ -231,6 +231,37 @@
     .upload-file-chip-size { color: var(--pd-ink-3); white-space: nowrap; font-size: 12px; }
     .upload-grid-two { display: grid; gap: 12px; grid-template-columns: repeat(2,minmax(0,1fr)); }
 
+    /* ── Photo grid ── */
+    .doc-table-divider {
+      padding: 7px 18px 6px; background: var(--pd-surface);
+      border-top: 1.5px solid var(--pd-line); border-bottom: 1px solid var(--pd-line);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .doc-table-divider span {
+      font-size: 11px; font-weight: 700; color: var(--pd-ink-3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .doc-photos-grid {
+      padding: 14px 18px 16px; background: #fff;
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .inspection-photo {
+      display: block; width: 160px;
+      border: 1.5px solid var(--pd-line); border-radius: 6px;
+      background: #fff; overflow: hidden; padding: 4px;
+    }
+    .inspection-photo img {
+      width: 100%; height: 150px; object-fit: cover;
+      display: block; border-radius: 4px;
+    }
+    .btn-delete-photo {
+      width: 100%; padding: 5px 0; font-size: 11.5px; font-weight: 700;
+      font-family: inherit; background: #fff; color: #8c2f2f;
+      border: 1.5px solid #d9a0a0; border-radius: 5px;
+      cursor: pointer; transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-delete-photo:hover { background: #fdf0f0; border-color: #8c2f2f; }
+
     @media (max-width: 720px) {
       .permit-page { padding: 8px 4px 24px; }
       .permit-card { padding: 10px; border-radius: 8px; gap: 10px; }
@@ -429,14 +460,20 @@
         <div class="doc-band">
           <div class="doc-band-company">مستندات الطلب</div>
         </div>
-        <div class="doc-table">
+        <div class="doc-photos-grid">
           {% for doc in request_documents %}
-            <div class="detail-item">
-              <span class="label">مستند {{ forloop.counter }}</span>
-              <span class="value">
-                <a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name|cut:"pirmet_documents/" }}</a>
+            <a class="inspection-photo" href="{{ doc.file.url }}" target="_blank" rel="noopener"
+              style="display:flex;align-items:center;justify-content:center;height:160px;">
+              <img src="{{ doc.file.url }}" alt="مستند {{ forloop.counter }}"
+                style="width:100%;height:150px;object-fit:cover;display:block;border-radius:4px;"
+                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <span style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--pd-ink-3);">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <span style="font-size:11px;font-weight:700;">PDF</span>
               </span>
-            </div>
+            </a>
           {% endfor %}
         </div>
       </section>
@@ -465,19 +502,27 @@
             <span class="label">الملاحظات</span>
             <span class="value">{{ inspection_report_notes|default:"-" }}</span>
           </div>
-          {% if inspection_report_photos %}
-            <div class="detail-item">
-              <span class="label">صور التفتيش</span>
-              <span class="value">
-                {% for doc in inspection_report_photos %}
-                  <a href="{{ doc.file.url }}" target="_blank" rel="noopener" style="display:block;margin-bottom:3px;">
-                    {{ doc.file.name|cut:"pirmet_documents/" }}
-                  </a>
-                {% endfor %}
-              </span>
-            </div>
-          {% endif %}
         </div>
+        {% if inspection_report_photos %}
+          <div class="doc-table-divider"><span>صور تقرير التفتيش</span></div>
+          <div class="doc-photos-grid">
+            {% for photo in inspection_report_photos %}
+              <div>
+                <a class="inspection-photo" href="{{ photo.file.url }}" target="_blank" rel="noopener">
+                  <img src="{{ photo.file.url }}" alt="صورة تقرير التفتيش {{ forloop.counter }}">
+                </a>
+                {% if can_manage_inspection_photos %}
+                  <form method="post" class="no-print" style="margin-top:6px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_inspection_photo">
+                    <input type="hidden" name="photo_id" value="{{ photo.id }}">
+                    <button type="submit" class="btn-delete-photo" onclick="return confirm('حذف الصورة؟')">حذف</button>
+                  </form>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
       </section>
     {% endif %}
 

@@ -313,13 +313,54 @@
   <div class="permit-section--doc">
     <div class="doc-band">
       <span class="doc-band-title">بيانات التخلص المسجلة</span>
+      {% if can_edit_waste_details %}
+      <button type="button" id="wd-edit-btn" onclick="toggleWasteEdit()"
+        style="background:var(--pd-surface);color:var(--pd-ink-2);border:1.5px solid var(--pd-line-2);border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:background 0.15s;">
+        ✏ تعديل
+      </button>
+      {% endif %}
     </div>
     <div class="doc-table">
-      <div class="detail-item"><span class="label">تصنيف النفايات</span><span class="value">{{ waste_details.waste_classification|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">تصنيف النفايات</span><span class="value">{{ waste_detail_labels.waste_classification }}</span></div>
       <div class="detail-item"><span class="label">الكمية شهرياً</span><span class="value">{% if waste_details and waste_details.waste_quantity_monthly %}{{ waste_details.waste_quantity_monthly }}{% else %}—{% endif %}</span></div>
-      <div class="detail-item"><span class="label">أنواع النفايات</span><span class="value">{{ waste_details.waste_types|default:"—" }}</span></div>
-      <div class="detail-item"><span class="label">حالة المادة</span><span class="value">{{ waste_details.material_state|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">أنواع النفايات</span><span class="value">{{ waste_detail_labels.waste_types }}</span></div>
+      <div class="detail-item"><span class="label">حالة المادة</span><span class="value">{{ waste_detail_labels.material_state }}</span></div>
     </div>
+    {% if can_edit_waste_details %}
+    <div id="wd-edit-panel" style="display:none;border-top:1.5px solid var(--pd-line);">
+      <div class="doc-form-body">
+        <form method="post" class="review-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="edit_waste_details">
+          <label>تصنيف النفايات</label>
+          <select name="waste_classification">
+            {% for val, lbl in waste_detail_choices.waste_classification %}
+            <option value="{{ val }}"{% if waste_details and waste_details.waste_classification == val %} selected{% endif %}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+          <label>نوع النفايات</label>
+          <select name="waste_types">
+            {% for val, lbl in waste_detail_choices.waste_types %}
+            <option value="{{ val }}"{% if waste_details and waste_details.waste_types == val %} selected{% endif %}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+          <label>حالة المادة</label>
+          <select name="material_state">
+            {% for val, lbl in waste_detail_choices.material_state %}
+            <option value="{{ val }}"{% if waste_details and waste_details.material_state == val %} selected{% endif %}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <button type="submit" class="btn-action" style="flex:1;">حفظ التعديلات</button>
+            <button type="button" onclick="toggleWasteEdit()"
+              style="flex:1;background:#fff;color:var(--pd-ink-2);border:1.5px solid var(--pd-line-2);border-radius:7px;padding:9px 20px;font-size:13.5px;font-weight:800;font-family:inherit;cursor:pointer;">
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   <!-- مستندات التصريح -->
@@ -475,5 +516,14 @@
     }
   });
 })();
+
+function toggleWasteEdit() {
+  var panel = document.getElementById('wd-edit-panel');
+  var btn   = document.getElementById('wd-edit-btn');
+  if (!panel) return;
+  var open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? '✏ تعديل' : '✕ إغلاق';
+}
 </script>
 {% endblock %}

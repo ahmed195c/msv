@@ -253,6 +253,43 @@
       </div>
     </section>
 
+    <!-- بيانات التخلص -->
+    <section class="permit-section--doc">
+      <div class="doc-band"><span class="doc-band-title">بيانات التخلص من النفايات</span></div>
+      <div class="fields-table">
+        <div class="field-row">
+          <span class="field-label">تصنيف النفايات</span>
+          <span class="field-cell">
+            <select name="waste_classification">
+              {% for val, lbl in waste_detail_choices.waste_classification %}
+              <option value="{{ val }}"{% if form_data.waste_classification == val %} selected{% endif %}>{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">نوع النفايات</span>
+          <span class="field-cell">
+            <select name="waste_types">
+              {% for val, lbl in waste_detail_choices.waste_types %}
+              <option value="{{ val }}"{% if form_data.waste_types == val %} selected{% endif %}>{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">حالة المادة</span>
+          <span class="field-cell">
+            <select name="material_state">
+              {% for val, lbl in waste_detail_choices.material_state %}
+              <option value="{{ val }}"{% if form_data.material_state == val %} selected{% endif %}>{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </span>
+        </div>
+      </div>
+    </section>
+
     <!-- المستندات -->
     <section class="permit-section--doc">
       <div class="doc-band">

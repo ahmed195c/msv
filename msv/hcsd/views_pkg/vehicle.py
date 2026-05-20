@@ -189,6 +189,18 @@ def vehicle_permit_detail(request, id):
         and assigned_inspector_user
         and assigned_inspector_user.id == request.user.id
     )
+    can_manage_inspection_photos = _can_admin(request.user)
+    can_add_inspection_photos = (
+        (
+            _can_admin(request.user)
+            or (
+                _can_inspector(request.user)
+                and assigned_inspector_user
+                and assigned_inspector_user.id == request.user.id
+            )
+        )
+        and pirmet.status in {'inspection_completed', 'payment_pending', 'issued'}
+    )
 
     latest_inspection_receive = (
         PirmetChangeLog.objects.filter(
@@ -516,6 +528,61 @@ def vehicle_permit_detail(request, id):
                     _log_pirmet_change(pirmet, 'details_update', request.user, notes='payment_receipt:replaced')
             return redirect('vehicle_permit_detail', id=pirmet.id)
 
+        if action == 'add_inspection_photos':
+            if not can_add_inspection_photos:
+                review_errors.append('ليس لديك صلاحية لإضافة صور التفتيش.')
+            photos = request.FILES.getlist('inspection_report_photos_extra')
+            if not photos:
+                review_errors.append('يرجى اختيار صورة واحدة على الأقل.')
+            invalid_photos = [
+                p.name for p in photos
+                if os.path.splitext(p.name)[1].lower() not in {'.png', '.jpg', '.jpeg'}
+            ]
+            if invalid_photos:
+                review_errors.append('يُسمح فقط برفع صور JPG/PNG: ' + ', '.join(invalid_photos))
+            if not review_errors:
+                timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
+                for index, photo in enumerate(photos, start=1):
+                    ext = os.path.splitext(photo.name)[1].lower() or '.jpg'
+                    photo.name = (
+                        f'{VEHICLE_INSPECTION_REPORT_PHOTO_PREFIX}'
+                        f'{pirmet.id}_{timestamp}_extra_{index}{ext}'
+                    )
+                    PirmetDocument.objects.create(pirmet=pirmet, file=photo)
+                _log_pirmet_change(
+                    pirmet,
+                    'document_upload',
+                    request.user,
+                    notes=f'Vehicle inspection report photos uploaded: {len(photos)}',
+                )
+                return redirect('vehicle_permit_detail', id=pirmet.id)
+
+        if action == 'delete_inspection_photo':
+            if not can_manage_inspection_photos:
+                review_errors.append('ليس لديك صلاحية لحذف صور التفتيش.')
+            photo_id = _parse_int(request.POST.get('photo_id'))
+            photo_doc = (
+                PirmetDocument.objects.filter(id=photo_id, pirmet=pirmet).first()
+                if photo_id else None
+            )
+            inspection_photo_ids = {doc.id for doc in _vehicle_inspection_report_photo_docs(pirmet)}
+            if not photo_doc:
+                review_errors.append('الصورة غير موجودة.')
+            elif photo_doc.id not in inspection_photo_ids:
+                review_errors.append('لا يمكن حذف هذا الملف لأنه ليس صورة تفتيش.')
+            if not review_errors and photo_doc:
+                deleted_name = os.path.basename(photo_doc.file.name or '')
+                if photo_doc.file:
+                    photo_doc.file.delete(save=False)
+                photo_doc.delete()
+                _log_pirmet_change(
+                    pirmet,
+                    'details_update',
+                    request.user,
+                    notes=f'Vehicle inspection report photo deleted: {deleted_name}',
+                )
+                return redirect('vehicle_permit_detail', id=pirmet.id)
+
         if action == 'cancel_admin':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لإغلاق الطلب.')
@@ -593,6 +660,8 @@ def vehicle_permit_detail(request, id):
             'can_receive_inspection_request': can_receive_inspection_request,
             'can_reassign_inspector': can_reassign_inspector,
             'can_submit_inspection_report': can_submit_inspection_report,
+            'can_manage_inspection_photos': can_manage_inspection_photos,
+            'can_add_inspection_photos': can_add_inspection_photos,
             'can_record_payment': _can_admin(request.user),
             'user_is_admin': _can_admin(request.user),
             'show_admin_close_form': (

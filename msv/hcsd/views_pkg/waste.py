@@ -17,7 +17,8 @@ from ..models import (
     Enginer, EnginerStatusLog, InspectorReview, PesticideTransportPermit,
     PirmetChangeLog, PirmetClearance, PirmetDocument, PublicHealthExamRequest,
     PublicHealthExamRequestDocument, RequirementInsuranceRequest,
-    WasteDisposalRequest, WasteDisposalRequestDocument, WasteDisposalInspectionPhoto,
+    WasteDisposalPermit, WasteDisposalRequest, WasteDisposalRequestDocument,
+    WasteDisposalInspectionPhoto,
 )
 from ..forms import StaffRegistrationForm
 from .common import (
@@ -54,8 +55,15 @@ def waste_permit(request):
         if selected_company_id
         else None
     )
+    _valid_wc = {c[0] for c in WasteDisposalRequest.WASTE_CLASSIFICATION_CHOICES}
+    _valid_wt = {c[0] for c in WasteDisposalRequest.WASTE_TYPE_CHOICES}
+    _valid_ms = {c[0] for c in WasteDisposalRequest.MATERIAL_STATE_CHOICES}
+
     form_data = {
         'request_email': '',
+        'waste_classification': 'hazardous',
+        'waste_types': 'empty_pesticide_containers',
+        'material_state': 'solid',
     }
     form_errors = []
     invalid_docs = []
@@ -72,11 +80,15 @@ def waste_permit(request):
         elif _company_has_active_extension(company):
             form_errors.append('company_has_active_extension')
 
-        form_data.update(
-            {
-                'request_email': (request.POST.get('request_email') or '').strip(),
-            }
-        )
+        wc = request.POST.get('waste_classification', 'hazardous')
+        wt = request.POST.get('waste_types', 'empty_pesticide_containers')
+        ms = request.POST.get('material_state', 'solid')
+        form_data.update({
+            'request_email': (request.POST.get('request_email') or '').strip(),
+            'waste_classification': wc if wc in _valid_wc else 'hazardous',
+            'waste_types': wt if wt in _valid_wt else 'empty_pesticide_containers',
+            'material_state': ms if ms in _valid_ms else 'solid',
+        })
         if not form_data['request_email']:
             form_errors.append('request_email_required')
 
@@ -97,6 +109,12 @@ def waste_permit(request):
                 permit_type='waste_disposal',
                 status='payment_pending',
                 request_email=form_data['request_email'] or None,
+            )
+            WasteDisposalPermit.objects.create(
+                pirmet=permit,
+                waste_classification=form_data['waste_classification'],
+                waste_types=form_data['waste_types'],
+                material_state=form_data['material_state'],
             )
             for doc in documents:
                 PirmetDocument.objects.create(pirmet=permit, file=doc)
@@ -127,6 +145,11 @@ def waste_permit(request):
         'selected_company': selected_company,
         'form_data': form_data,
         'form_errors': form_errors,
+        'waste_detail_choices': {
+            'waste_classification': WasteDisposalRequest.WASTE_CLASSIFICATION_CHOICES,
+            'waste_types': WasteDisposalRequest.WASTE_TYPE_CHOICES,
+            'material_state': WasteDisposalRequest.MATERIAL_STATE_CHOICES,
+        },
     }
     if invalid_docs:
         context['invalid_docs'] = invalid_docs
@@ -280,21 +303,81 @@ def waste_permit_detail(request, id):
                     )
                     return redirect('waste_permit_detail', id=pirmet.id)
 
+        if action == 'edit_waste_details':
+            if not _can_admin(request.user):
+                review_errors.append('ليس لديك صلاحية لتعديل بيانات التخلص.')
+            else:
+                wc_key = (request.POST.get('waste_classification') or '').strip()
+                wt_key = (request.POST.get('waste_types') or '').strip()
+                ms_key = (request.POST.get('material_state') or '').strip()
+                valid_wc = {c[0] for c in WasteDisposalRequest.WASTE_CLASSIFICATION_CHOICES}
+                valid_wt = {c[0] for c in WasteDisposalRequest.WASTE_TYPE_CHOICES}
+                valid_ms = {c[0] for c in WasteDisposalRequest.MATERIAL_STATE_CHOICES}
+                if wc_key not in valid_wc:
+                    review_errors.append('تصنيف النفايات غير صالح.')
+                if wt_key not in valid_wt:
+                    review_errors.append('نوع النفايات غير صالح.')
+                if ms_key not in valid_ms:
+                    review_errors.append('حالة المادة غير صالحة.')
+                if not review_errors:
+                    if waste_details is None:
+                        waste_details = WasteDisposalPermit(pirmet=pirmet)
+                    waste_details.waste_classification = wc_key
+                    waste_details.waste_types = wt_key
+                    waste_details.material_state = ms_key
+                    if waste_details.pk:
+                        waste_details.save(update_fields=[
+                            'waste_classification', 'waste_types', 'material_state'
+                        ])
+                    else:
+                        waste_details.save()
+                    _log_pirmet_change(
+                        pirmet,
+                        'details_update',
+                        request.user,
+                        notes='تم تحديث بيانات التخلص: التصنيف / النوع / حالة المادة.',
+                    )
+                    return redirect('waste_permit_detail', id=pirmet.id)
+
     disposal_requests = list(
         pirmet.waste_disposal_requests.select_related('inspected_by').order_by('-created_at')
     )
     for disposal_request in disposal_requests:
         disposal_request.inspected_by_name = _display_user_name(disposal_request.inspected_by) or '-'
+    _wc_map = dict(WasteDisposalRequest.WASTE_CLASSIFICATION_CHOICES)
+    _wt_map = dict(WasteDisposalRequest.WASTE_TYPE_CHOICES)
+    _ms_map = dict(WasteDisposalRequest.MATERIAL_STATE_CHOICES)
+    waste_detail_labels = {
+        'waste_classification': _wc_map.get(
+            waste_details.waste_classification if waste_details else '',
+            waste_details.waste_classification or '—' if waste_details else '—',
+        ),
+        'waste_types': _wt_map.get(
+            waste_details.waste_types if waste_details else '',
+            waste_details.waste_types or '—' if waste_details else '—',
+        ),
+        'material_state': _ms_map.get(
+            waste_details.material_state if waste_details else '',
+            waste_details.material_state or '—' if waste_details else '—',
+        ),
+    }
     return render(
         request,
         'hcsd/waste_permit_detail.html',
         {
             'pirmet': pirmet,
             'waste_details': waste_details,
+            'waste_detail_labels': waste_detail_labels,
+            'waste_detail_choices': {
+                'waste_classification': WasteDisposalRequest.WASTE_CLASSIFICATION_CHOICES,
+                'waste_types': WasteDisposalRequest.WASTE_TYPE_CHOICES,
+                'material_state': WasteDisposalRequest.MATERIAL_STATE_CHOICES,
+            },
             'review_errors': review_errors,
             'request_documents': _request_documents(pirmet),
             'can_record_payment': _can_admin(request.user),
             'can_issue_pirmet': _can_admin(request.user),
+            'can_edit_waste_details': _can_admin(request.user),
             'is_active': is_active,
             'disposal_requests': disposal_requests,
             'show_admin_close_form': (
@@ -402,6 +485,11 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 'review_errors': review_errors,
                 'create_mode': True,
                 'can_create_disposal_request': _can_data_entry(request.user),
+                'disposal_request_choices': {
+                    'waste_classification': WasteDisposalRequest.WASTE_CLASSIFICATION_CHOICES,
+                    'waste_type': WasteDisposalRequest.WASTE_TYPE_CHOICES,
+                    'material_state': WasteDisposalRequest.MATERIAL_STATE_CHOICES,
+                },
             },
         )
 

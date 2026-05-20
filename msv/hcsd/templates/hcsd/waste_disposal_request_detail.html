@@ -247,6 +247,93 @@
     </div>
   </div>
 
+  {% if not disposal_request %}
+  <!-- ── فورم إنشاء طلب جديد ── -->
+  <div class="permit-section--doc" style="margin-bottom:0;">
+    <div class="doc-band"><span class="doc-band-title">إنشاء طلب تخلص من العبوات</span></div>
+    <div style="padding:18px;background:#fff;">
+      <div style="padding:10px 14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;margin-bottom:18px;font-size:13px;color:#1e40af;">
+        تصريح: <strong>{{ permit.permit_no|default:"—" }}</strong> — شركة: <strong>{{ permit.company.name }}</strong>
+      </div>
+      {% if review_errors %}
+        <div class="alert"><strong>يرجى تصحيح التالي:</strong><ul class="alert-list">{% for e in review_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+      {% endif %}
+      {% if can_create_disposal_request %}
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_request">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:600;color:var(--pd-ink-3);margin-bottom:6px;">تصنيف النفايات</label>
+            <select name="waste_classification" style="width:100%;padding:8px 10px;border:1.5px solid var(--pd-line-2);border-radius:6px;font-size:13.5px;font-family:inherit;color:var(--pd-ink);">
+              {% for val, label in disposal_request_choices.waste_classification %}
+              <option value="{{ val }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:600;color:var(--pd-ink-3);margin-bottom:6px;">نوع النفايات</label>
+            <select name="waste_type" style="width:100%;padding:8px 10px;border:1.5px solid var(--pd-line-2);border-radius:6px;font-size:13.5px;font-family:inherit;color:var(--pd-ink);">
+              {% for val, label in disposal_request_choices.waste_type %}
+              <option value="{{ val }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:600;color:var(--pd-ink-3);margin-bottom:6px;">حالة المادة</label>
+            <select name="material_state" style="width:100%;padding:8px 10px;border:1.5px solid var(--pd-line-2);border-radius:6px;font-size:13.5px;font-family:inherit;color:var(--pd-ink);">
+              {% for val, label in disposal_request_choices.material_state %}
+              <option value="{{ val }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="display:block;font-size:12.5px;font-weight:600;color:var(--pd-ink-3);margin-bottom:6px;">مستندات الطلب <span style="color:#dc2626;">*</span> <span style="font-weight:400;">(PDF أو صور)</span></label>
+          <div class="drop-zone" id="create-drop-zone" onclick="document.getElementById('create-docs-input').click()">
+            <input type="file" name="request_documents" id="create-docs-input" accept=".pdf,image/*" multiple required style="display:none;" onchange="updateCreateList(this)">
+            <div style="font-size:24px;margin-bottom:6px;">📎</div>
+            <div style="font-size:13.5px;color:var(--pd-ink-3);">اسحب الملفات هنا أو <span style="color:var(--pd-accent);text-decoration:underline;">اضغط للاختيار</span></div>
+            <div style="font-size:11.5px;color:var(--pd-ink-3);margin-top:4px;">PDF أو صور — يمكن إرفاق أكثر من ملف</div>
+            <ul id="create-docs-list" style="list-style:none;margin:10px 0 0;padding:0;text-align:right;"></ul>
+          </div>
+        </div>
+        <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="submit" style="background:var(--pd-accent);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">إنشاء طلب التخلص</button>
+          <a href="{% url 'waste_permit_detail' id=permit.id %}" style="background:#fff;color:var(--pd-ink-2);border:1.5px solid var(--pd-line-2);border-radius:8px;padding:10px 18px;font-size:13.5px;font-weight:600;text-decoration:none;">إلغاء</a>
+        </div>
+      </form>
+      {% else %}
+        <p style="color:var(--pd-ink-3);font-size:13.5px;">إنشاء الطلب متاح لموظفي الإدخال أو الإدارة فقط.</p>
+      {% endif %}
+    </div>
+  </div>
+  <script>
+  function updateCreateList(input) {
+    var list = document.getElementById('create-docs-list');
+    list.innerHTML = '';
+    Array.from(input.files).forEach(function(f) {
+      var li = document.createElement('li');
+      li.style.cssText = 'font-size:12px;color:var(--pd-ink-2);padding:3px 0;border-bottom:1px solid var(--pd-line);';
+      li.textContent = f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
+      list.appendChild(li);
+    });
+  }
+  var dz = document.getElementById('create-drop-zone');
+  var di = document.getElementById('create-docs-input');
+  if (dz && di) {
+    dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.style.borderColor='var(--pd-accent)'; });
+    dz.addEventListener('dragleave', function(){ dz.style.borderColor=''; });
+    dz.addEventListener('drop', function(e){
+      e.preventDefault(); dz.style.borderColor='';
+      var dt = new DataTransfer();
+      Array.from(e.dataTransfer.files).forEach(function(f){ dt.items.add(f); });
+      di.files = dt.files; updateCreateList(di);
+    });
+  }
+  </script>
+
+  {% else %}
   <!-- Status bar -->
   <div class="status-bar">
     <span class="status-bar-label">حالة الطلب</span>
@@ -644,6 +731,7 @@
   </div>
   {% endif %}
 
+  {% endif %}
 </div>
 </section>
 <script>
