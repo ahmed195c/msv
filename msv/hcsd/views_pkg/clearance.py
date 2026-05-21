@@ -19,7 +19,7 @@ from ..models import (
     Enginer, EnginerStatusLog, InspectorReview, PesticideTransportPermit,
     PirmetChangeLog, PirmetClearance, PirmetDocument, PublicHealthExamRequest,
     PublicHealthExamRequestDocument, RequirementInsuranceRequest,
-    WasteDisposalRequest, WasteDisposalRequestDocument,
+    FieldWorkSupervisorProfile, WasteDisposalRequest, WasteDisposalRequestDocument,
 )
 from ..forms import StaffRegistrationForm
 from .common import (
@@ -64,12 +64,22 @@ def clearance_list(request):
         'issued', 'closed_requirements_pending', 'cancelled_admin',
         'disposal_approved', 'disposal_rejected', 'needs_completion', 'rejected',
     }
+
+    _inspector_pirmet_ids = (
+        InspectorReview.objects.filter(
+            inspector_user__username__icontains=search_query
+        ).values_list('pirmet_id', flat=True)
+        if search_query else []
+    )
+
     _counts_base = PirmetClearance.objects.filter(
         permit_type__in=list(_valid_tab_keys)
     ).exclude(status__in=_finished_statuses_set)
     if search_query:
         _counts_base = _counts_base.filter(
-            Q(company__name__icontains=search_query) | Q(company__number__icontains=search_query)
+            Q(company__name__icontains=search_query)
+            | Q(company__number__icontains=search_query)
+            | Q(id__in=_inspector_pirmet_ids)
         )
     _tab_active_counts = dict(
         _counts_base.values('permit_type').annotate(c=Count('id')).values_list('permit_type', 'c')
@@ -89,6 +99,7 @@ def clearance_list(request):
         clearances_qs = clearances_qs.filter(
             Q(company__name__icontains=search_query)
             | Q(company__number__icontains=search_query)
+            | Q(id__in=_inspector_pirmet_ids)
         )
     # Evaluate once — reuse the ID list for all related queries to avoid subqueries
     clearances = list(clearances_qs)
