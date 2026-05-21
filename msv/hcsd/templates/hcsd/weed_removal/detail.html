@@ -427,7 +427,7 @@
           </label>
         </div>
 
-        <div><label class="f-label">📷 صور النهاية</label>
+        <div><label class="f-label">📷 صور انتهاء العمل</label>
           <label class="upload-zone">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             <span style="font-size:11px;color:var(--ink-3);display:block;" id="lbl-end">اختر صور</span>
@@ -628,7 +628,7 @@
           </div>
           {% endif %}
           {% if s.photos_end %}
-          <div class="meta-label" style="margin-bottom:6px;">صور النهاية ({{ s.photos_end|length }})</div>
+          <div class="meta-label" style="margin-bottom:6px;">صور انتهاء العمل ({{ s.photos_end|length }})</div>
           <div class="photo-grid">
             {% for p in s.photos_end %}
             <div class="photo-thumb"><img src="{{ p.file.url }}" alt="نهاية">
