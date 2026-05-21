@@ -552,7 +552,10 @@
         <div class="session-num">{{ forloop.counter }}</div>
         <div style="flex:1;">
           <div style="font-size:13px;font-weight:700;color:var(--ink);">{{ s.started_at|date:"d/m/Y" }}</div>
-          <div style="font-size:11.5px;color:var(--ink-3);" dir="ltr">{{ s.started_at|date:"H:i" }} ← {{ s.ended_at|date:"H:i" }}</div>
+          <div style="font-size:11.5px;color:var(--ink-3);margin-top:2px;">
+            بدأ <span dir="ltr" style="font-family:monospace;font-weight:600;">{{ s.started_at|date:"H:i" }}</span>
+            — انتهى <span dir="ltr" style="font-family:monospace;font-weight:600;">{{ s.ended_at|date:"H:i" }}</span>
+          </div>
         </div>
         {% if s.end_type == 'postponed' %}<span class="tag-postponed">مؤجل</span>
         {% elif s.end_type == 'completed' %}<span class="tag-completed">مكتمل</span>{% endif %}
@@ -565,6 +568,7 @@
           </div>
           {% endif %}
         </div>
+
         {% if s.vehicles.all %}
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
           <div class="meta-label" style="margin-bottom:8px;">المركبات</div>
@@ -581,12 +585,31 @@
           </table>
         </div>
         {% endif %}
+
         {% if s.notes %}
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
           <div class="meta-label" style="margin-bottom:5px;">ملاحظات</div>
           <p style="font-size:13px;color:var(--ink-2);margin:0;line-height:1.7;">{{ s.notes }}</p>
         </div>
         {% endif %}
+
+        {% if s.photos.all %}
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
+          <div class="meta-label" style="margin-bottom:8px;">الصور ({{ s.photos.count }})</div>
+          <div class="photo-grid">
+            {% for p in s.photos.all %}
+            <div class="photo-thumb">
+              <img src="{{ p.file.url }}" alt="{{ p.get_phase_display }}">
+              {% if can_manage or p.uploaded_by_id == request.user.id %}
+              <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
+                <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
+              </form>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
       </div>
     </div>
     {% endfor %}

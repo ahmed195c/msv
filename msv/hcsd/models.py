@@ -1597,6 +1597,10 @@ class WeedRemovalPhoto(models.Model):
     request = models.ForeignKey(
         WeedRemovalRequest, on_delete=models.CASCADE, related_name='photos',
     )
+    session = models.ForeignKey(
+        'WeedRemovalWorkSession', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='photos', verbose_name='الجلسة',
+    )
     phase       = models.CharField(max_length=10, choices=PHASE_CHOICES, verbose_name='المرحلة')
     file        = models.ImageField(upload_to='weed_removal/photos/', verbose_name='الصورة')
     uploaded_by = models.ForeignKey(

@@ -151,7 +151,7 @@ def weed_detail(request, pk):
     if supervisor_task:
         all_sessions = list(
             supervisor_task.work_sessions
-            .prefetch_related('vehicles')
+            .prefetch_related('vehicles', 'photos')
             .order_by('started_at')
         )
         current_session = next((s for s in all_sessions if s.ended_at is None), None)
@@ -366,17 +366,17 @@ def weed_report_submit(request, pk):
                 session=session, vehicle_type=vtype, count=count,
             )
 
-    # Save photos (during + after)
+    # Save photos (during + after) linked to this session
     for photo_file in request.FILES.getlist('during_photos'):
         if _is_valid_photo(photo_file):
             WeedRemovalPhoto.objects.create(
-                request=obj, phase='during',
+                request=obj, session=session, phase='during',
                 file=photo_file, uploaded_by=request.user,
             )
     for photo_file in request.FILES.getlist('after_photos'):
         if _is_valid_photo(photo_file):
             WeedRemovalPhoto.objects.create(
-                request=obj, phase='after',
+                request=obj, session=session, phase='after',
                 file=photo_file, uploaded_by=request.user,
             )
 
