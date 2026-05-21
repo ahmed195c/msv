@@ -302,15 +302,6 @@ def weed_work_start(request, pk):
     if obj.status not in ('supervisor_assigned', 'work_paused') or already_open:
         return redirect('weed_detail', pk=pk)
 
-    # First session: save workers_count from form
-    if obj.status == 'supervisor_assigned':
-        workers_raw = (request.POST.get('workers_count') or '').strip()
-        try:
-            task.workers_count = int(workers_raw) if workers_raw else None
-        except ValueError:
-            task.workers_count = None
-        task.save(update_fields=['workers_count'])
-
     started_at = timezone.now()
     time_raw = (request.POST.get('start_time') or '').strip()
     if time_raw:
