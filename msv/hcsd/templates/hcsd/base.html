@@ -637,7 +637,7 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
           </a>
           {% if user.is_authenticated %}
             <span class="nav-user">{{ user.get_full_name|default:user.username }}</span>
-            {% if user.is_superuser or user.groups.filter(name__in=["admin","Administration"]).exists %}
+            {% if user.is_superuser or nav_is_admin %}
             <a class="nav-ghost" href="{% url 'user_list' %}">الحسابات</a>
             {% endif %}
             <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
