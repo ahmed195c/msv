@@ -292,7 +292,8 @@ def weed_work_start(request, pk):
     if task.supervisor_id != request.user.id and not _can_manage(request.user):
         return redirect('weed_detail', pk=pk)
 
-    if obj.status not in ('supervisor_assigned', 'work_paused'):
+    already_open = task.work_sessions.filter(ended_at__isnull=True).exists()
+    if obj.status not in ('supervisor_assigned', 'work_paused') or already_open:
         return redirect('weed_detail', pk=pk)
 
     # First session: save workers_count from form
@@ -304,7 +305,21 @@ def weed_work_start(request, pk):
             task.workers_count = None
         task.save(update_fields=['workers_count'])
 
-    WeedRemovalWorkSession.objects.create(task=task, started_at=timezone.now())
+    started_at = timezone.now()
+    time_raw = (request.POST.get('start_time') or '').strip()
+    if time_raw:
+        try:
+            import datetime as dt
+            h, m = map(int, time_raw.split(':'))
+            local_now = timezone.localtime(started_at)
+            started_at = started_at.replace(
+                hour=h, minute=m, second=0, microsecond=0,
+                tzinfo=local_now.tzinfo,
+            )
+        except (ValueError, AttributeError):
+            pass
+
+    WeedRemovalWorkSession.objects.create(task=task, started_at=started_at)
     obj.status = 'work_in_progress'
     obj.save(update_fields=['status', 'updated_at'])
     return redirect('weed_detail', pk=pk)
@@ -328,7 +343,8 @@ def weed_report_submit(request, pk):
 
     session = task.work_sessions.filter(ended_at__isnull=True).last()
     if not session:
-        return redirect('weed_detail', pk=pk)
+        # Legacy: request entered work_in_progress before session tracking existed — auto-open one
+        session = WeedRemovalWorkSession.objects.create(task=task, started_at=timezone.now())
 
     # Save workers + notes to session
     workers_raw = (request.POST.get('workers_count') or '').strip()

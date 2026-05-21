@@ -146,7 +146,7 @@
     {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_paused,work_done,closed' %}done
     {% elif step_key == 'work_in_progress' and s in 'work_done,closed' %}done
     {% elif step_key == 'work_done' and s == 'closed' %}done
-    {% elif step_key == s or (step_key == 'work_in_progress' and s == 'work_paused') %}active
+    {% elif step_key == s or step_key == 'work_in_progress' and s == 'work_paused' %}active
     {% elif s == 'rejected' and step_key == 'inspector_assigned' %}rejected-step
     {% endif %}">
     <div class="wf-dot">
@@ -340,10 +340,17 @@
   </div>
   <form method="post" action="{% url 'weed_work_start' obj.pk %}">
     {% csrf_token %}
-    <div class="f-row"><label class="f-label">عدد العمال</label>
-      <input type="number" name="workers_count" min="1" max="999" class="f-input" style="width:160px;" placeholder="مثال: 4">
+    <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
+      <div class="f-row" style="margin-bottom:0;">
+        <label class="f-label">عدد العمال</label>
+        <input type="number" name="workers_count" min="1" max="999" class="f-input" style="width:140px;" placeholder="مثال: 4">
+      </div>
+      <div class="f-row" style="margin-bottom:0;">
+        <label class="f-label">وقت بدء العمل</label>
+        <input type="time" name="start_time" class="f-input" style="width:140px;" id="start-time-1">
+      </div>
     </div>
-    <button type="submit" class="btn-primary">▶ بدء العمل</button>
+    <button type="submit" class="btn-primary" style="margin-top:14px;">▶ بدء العمل</button>
   </form>
 </div>
 {% endif %}
@@ -358,6 +365,10 @@
   <p style="font-size:13px;color:var(--ink-3);margin:0 0 14px;">تم تأجيل العمل في جلسة سابقة. اضغط لفتح جلسة عمل جديدة.</p>
   <form method="post" action="{% url 'weed_work_start' obj.pk %}">
     {% csrf_token %}
+    <div class="f-row">
+      <label class="f-label">وقت بدء العمل</label>
+      <input type="time" name="start_time" class="f-input" style="width:140px;">
+    </div>
     <button type="submit" class="btn-orange">▶ استئناف العمل</button>
   </form>
 </div>
