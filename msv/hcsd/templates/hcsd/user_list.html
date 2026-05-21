@@ -1,0 +1,134 @@
+{% extends "hcsd/base.html" %}
+{% block title %}إدارة الحسابات{% endblock %}
+{% block content %}
+<style>
+.ul-page {
+  --ink-1: #1a2a3a; --ink-2: #3a4a5a; --ink-3: #5a6a7a; --ink-4: #8a9aaa;
+  --surface-1: #f4f6f8; --surface-2: #e8ecf0; --border: #d0d8e0;
+  --accent: #1a5c9a; --accent-dk: #14487a; --accent-lt: #e8f0f8;
+  --mono: 'JetBrains Mono', monospace;
+  padding: 24px 16px 56px;
+  background: var(--surface-1);
+  direction: rtl;
+  font-family: 'IBM Plex Sans Arabic', 'Tahoma', sans-serif;
+  color: var(--ink-1);
+}
+.ul-wrap { max-width: 960px; margin: 0 auto; }
+.ul-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+}
+.ul-header h1 { font-size: clamp(18px,2.2vw,22px); font-weight: 700; margin: 0; }
+.ul-header__sub { font-size: 13px; color: var(--ink-4); margin-top: 3px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; font-size: 13.5px;
+  font-weight: 600; text-decoration: none; cursor: pointer;
+  transition: .15s; font-family: inherit; white-space: nowrap; border: none;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-dk); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.card {
+  background: #fff; border-radius: 12px;
+  border: 1px solid var(--border); overflow: hidden; margin-bottom: 16px;
+}
+.card-body { padding: 16px 20px; }
+.search-bar {
+  display: flex; gap: 8px; margin-bottom: 20px;
+}
+.search-bar input {
+  flex: 1; padding: 9px 14px; border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 14px; font-family: inherit; direction: rtl;
+  outline: none; transition: .15s;
+}
+.search-bar input:focus { border-color: var(--accent); }
+.search-bar button {
+  padding: 9px 18px; background: var(--accent); color: #fff;
+  border: none; border-radius: 8px; font-size: 13.5px; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+}
+.ul-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.ul-table th {
+  text-align: right; padding: 10px 14px; font-size: 12px; font-weight: 600;
+  color: var(--ink-3); border-bottom: 1.5px solid var(--border);
+  background: var(--surface-1); white-space: nowrap;
+}
+.ul-table td {
+  padding: 11px 14px; border-bottom: 1px solid #eef0f2; vertical-align: middle;
+}
+.ul-table tr:last-child td { border-bottom: none; }
+.ul-table tr:hover td { background: var(--accent-lt); }
+.admin-num {
+  font-family: var(--mono); font-size: 13px; color: var(--ink-2);
+  background: var(--surface-1); padding: 2px 7px; border-radius: 5px;
+  border: 1px solid var(--border); display: inline-block;
+}
+.group-badge {
+  font-size: 11px; color: #fff; background: var(--ink-3);
+  padding: 2px 7px; border-radius: 10px; display: inline-block; margin: 1px;
+}
+.empty-state { text-align: center; padding: 40px; color: var(--ink-4); font-size: 14px; }
+</style>
+
+<div class="ul-page">
+  <div class="ul-wrap">
+
+    <div class="ul-header">
+      <div>
+        <h1>إدارة الحسابات</h1>
+        <div class="ul-header__sub">جميع حسابات الموظفين والمستخدمين</div>
+      </div>
+      {% if can_register %}
+      <a href="{% url 'register' %}" class="btn btn-primary btn-sm">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        إنشاء حساب جديد
+      </a>
+      {% endif %}
+    </div>
+
+    <form method="get" class="search-bar">
+      <input type="text" name="q" value="{{ query }}" placeholder="ابحث بالاسم أو الرقم الإداري أو البريد…">
+      <button type="submit">بحث</button>
+    </form>
+
+    <div class="card">
+      {% if users %}
+      <table class="ul-table">
+        <thead>
+          <tr>
+            <th>الاسم</th>
+            <th>الرقم الإداري</th>
+            <th>البريد الإلكتروني</th>
+            <th>الصلاحيات</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in users %}
+          <tr>
+            <td>{{ item.user.get_full_name|default:item.user.username }}</td>
+            <td><span class="admin-num">{{ item.admin_number }}</span></td>
+            <td style="direction:ltr;text-align:right;">{{ item.user.email|default:"—" }}</td>
+            <td>
+              {% for g in item.user.groups.all %}
+              <span class="group-badge">{{ g.name }}</span>
+              {% empty %}—{% endfor %}
+            </td>
+            <td>
+              <a href="{% url 'user_detail' item.user.id %}" class="btn btn-sm" style="background:var(--surface-1);border:1px solid var(--border);color:var(--ink-2);text-decoration:none;">
+                تعديل
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">لا توجد نتائج</div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

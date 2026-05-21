@@ -65,12 +65,19 @@ def clearance_list(request):
         'disposal_approved', 'disposal_rejected', 'needs_completion', 'rejected',
     }
 
-    _inspector_pirmet_ids = (
-        InspectorReview.objects.filter(
+    _inspector_pirmet_ids = []
+    if search_query:
+        _via_review = InspectorReview.objects.filter(
             inspector_user__username__icontains=search_query
         ).values_list('pirmet_id', flat=True)
-        if search_query else []
-    )
+        _via_report = PirmetChangeLog.objects.filter(
+            change_type='details_update',
+            notes__startswith='inspection_report:',
+            changed_by__username__icontains=search_query,
+        ).values_list('pirmet_id', flat=True)
+        _inspector_pirmet_ids = (
+            list(_via_review) + list(_via_report)
+        )
 
     _counts_base = PirmetClearance.objects.filter(
         permit_type__in=list(_valid_tab_keys)

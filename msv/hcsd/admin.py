@@ -11,6 +11,7 @@ from .models import (
     PirmetChangeLog,
     PesticideTransportPermit,
     RequirementInsuranceRequest,
+    UserProfile,
     WasteDisposalPermit,
 )
 
@@ -46,3 +47,18 @@ admin.site.register(ComplaintResolution)
 admin.site.register(ComplaintVehicle)
 admin.site.register(ComplaintPhoto)
 admin.site.register(ComplaintMaterial)
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'admin_number', 'get_full_name', 'get_email')
+    search_fields = ('admin_number', 'user__username', 'user__first_name', 'user__email')
+    ordering = ('admin_number',)
+
+    @admin.display(description='الاسم')
+    def get_full_name(self, obj):
+        return obj.user.get_full_name() or '—'
+
+    @admin.display(description='البريد الإلكتروني')
+    def get_email(self, obj):
+        return obj.user.email or '—'

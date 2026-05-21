@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
+from .models import UserProfile
+
 
 class StaffRegistrationForm(forms.Form):
     full_name = forms.CharField(
@@ -100,4 +102,5 @@ class StaffRegistrationForm(forms.Form):
         user.first_name = full_name
         user.set_password(password)
         user.save()
+        UserProfile.objects.create(user=user, admin_number=admin_number)
         return user

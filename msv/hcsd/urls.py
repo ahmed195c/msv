@@ -97,6 +97,8 @@ urlpatterns = [
     path('printer/<int:permit_id>/', views.printer, name='printer_permit'),
     path('pirmet/<int:id>/', views.pest_control_permit_detail, name='pirmet_detail'),
     path('register/', views.register, name='register'),
+    path('users/', views.user_list, name='user_list'),
+    path('users/<int:user_id>/', views.user_detail, name='user_detail'),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path(

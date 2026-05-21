@@ -1262,6 +1262,27 @@ class FieldWorkSupervisorArea(models.Model):
 
 
 # ══════════════════════════════════════════
+#  User Profile
+# ══════════════════════════════════════════
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE,
+        related_name='profile', verbose_name='المستخدم',
+    )
+    admin_number = models.CharField(
+        max_length=150, blank=True, verbose_name='الرقم الإداري',
+    )
+
+    class Meta:
+        verbose_name = 'ملف المستخدم'
+        verbose_name_plural = 'ملفات المستخدمين'
+
+    def __str__(self):
+        return f"{self.user.get_full_name() or self.user.username} ({self.admin_number})"
+
+
+# ══════════════════════════════════════════
 #  Container Transfer Requests
 # ══════════════════════════════════════════
 
