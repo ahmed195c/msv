@@ -157,6 +157,12 @@ def weed_detail(request, pk):
         current_session = next((s for s in all_sessions if s.ended_at is None), None)
         work_sessions   = [s for s in all_sessions if s.ended_at is not None]
 
+        for s in work_sessions:
+            _p = list(s.photos.all())
+            s.photos_start  = [p for p in _p if p.phase == 'before']
+            s.photos_during = [p for p in _p if p.phase == 'during']
+            s.photos_end    = [p for p in _p if p.phase == 'after']
+
         if all_sessions:
             first_start = all_sessions[0].started_at
             closed = [s for s in all_sessions if s.ended_at is not None]
@@ -366,19 +372,14 @@ def weed_report_submit(request, pk):
                 session=session, vehicle_type=vtype, count=count,
             )
 
-    # Save photos (during + after) linked to this session
-    for photo_file in request.FILES.getlist('during_photos'):
-        if _is_valid_photo(photo_file):
-            WeedRemovalPhoto.objects.create(
-                request=obj, session=session, phase='during',
-                file=photo_file, uploaded_by=request.user,
-            )
-    for photo_file in request.FILES.getlist('after_photos'):
-        if _is_valid_photo(photo_file):
-            WeedRemovalPhoto.objects.create(
-                request=obj, session=session, phase='after',
-                file=photo_file, uploaded_by=request.user,
-            )
+    # Save photos (start / during / end) linked to this session
+    for phase, field in (('before', 'start_photos'), ('during', 'during_photos'), ('after', 'end_photos')):
+        for photo_file in request.FILES.getlist(field):
+            if _is_valid_photo(photo_file):
+                WeedRemovalPhoto.objects.create(
+                    request=obj, session=session, phase=phase,
+                    file=photo_file, uploaded_by=request.user,
+                )
 
     action = (request.POST.get('action') or '').strip()
     now = timezone.now()

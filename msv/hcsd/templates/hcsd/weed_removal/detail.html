@@ -411,15 +411,38 @@
       {% endfor %}
     </div>
 
-    <!-- Photos during this session -->
-    <div class="f-row" style="padding-top:14px;border-top:1px solid var(--line);">
-      <label class="f-label">صور العمل اليوم</label>
-      <label class="upload-zone">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        <span style="font-size:12px;color:var(--ink-3);display:block;" id="lbl-during">اضغط لاختيار صور</span>
-        <input type="file" name="during_photos" accept="image/*" multiple style="display:none;"
-               onchange="updateFileLabel(this,'lbl-during')">
-      </label>
+    <!-- Photos: 3 sections -->
+    <div style="padding-top:14px;border-top:1px solid var(--line);">
+      <div class="f-grid-2" style="grid-template-columns:1fr 1fr 1fr;gap:10px;">
+
+        <div><label class="f-label">📷 صور البداية</label>
+          <label class="upload-zone">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span style="font-size:11px;color:var(--ink-3);display:block;" id="lbl-start">اختر صور</span>
+            <input type="file" name="start_photos" accept="image/*" multiple style="display:none;"
+                   onchange="updateFileLabel(this,'lbl-start')">
+          </label>
+        </div>
+
+        <div><label class="f-label">📷 صور أثناء العمل</label>
+          <label class="upload-zone">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span style="font-size:11px;color:var(--ink-3);display:block;" id="lbl-during">اختر صور</span>
+            <input type="file" name="during_photos" accept="image/*" multiple style="display:none;"
+                   onchange="updateFileLabel(this,'lbl-during')">
+          </label>
+        </div>
+
+        <div><label class="f-label">📷 صور النهاية</label>
+          <label class="upload-zone">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span style="font-size:11px;color:var(--ink-3);display:block;" id="lbl-end">اختر صور</span>
+            <input type="file" name="end_photos" accept="image/*" multiple style="display:none;"
+                   onchange="updateFileLabel(this,'lbl-end')">
+          </label>
+        </div>
+
+      </div>
     </div>
 
     <!-- Notes -->
@@ -441,31 +464,6 @@
     </div>
   </form>
 </div>
-{% endif %}
-
-<!-- ══ Add photos after completion (supervisor / admin) ══ -->
-{% if obj.status == 'work_done' or obj.status == 'closed' %}
-{% if is_supervisor or can_manage %}
-<div class="action-card" style="border-color:#d1fae5;">
-  <div class="action-header" style="background:#ecfdf5;">
-    <div class="action-num" style="background:#d1fae5;color:#065f46;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-    </div>
-    <span class="action-title" style="color:#065f46;">رفع صور النتيجة النهائية بعد الإزالة</span>
-  </div>
-  <form method="post" action="{% url 'weed_add_photos' obj.pk %}" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input type="hidden" name="phase" value="after">
-    <label class="upload-zone">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-      <span style="font-size:12px;color:var(--ink-3);display:block;" id="lbl-extra-after">اضغط لاختيار صور</span>
-      <input type="file" name="photos" accept="image/*" multiple style="display:none;"
-             onchange="updateFileLabel(this,'lbl-extra-after')">
-    </label>
-    <button type="submit" class="btn-green" style="margin-top:12px;">رفع الصور</button>
-  </form>
-</div>
-{% endif %}
 {% endif %}
 
 <!-- ══ STEP 6: Close (admin) ══ -->
@@ -607,13 +605,13 @@
         </div>
         {% endif %}
 
-        {% if s.photos.all %}
+        {% if s.photos_start or s.photos_during or s.photos_end %}
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
-          <div class="meta-label" style="margin-bottom:8px;">الصور ({{ s.photos.count }})</div>
-          <div class="photo-grid">
-            {% for p in s.photos.all %}
-            <div class="photo-thumb">
-              <img src="{{ p.file.url }}" alt="{{ p.get_phase_display }}">
+          {% if s.photos_start %}
+          <div class="meta-label" style="margin-bottom:6px;">صور البداية ({{ s.photos_start|length }})</div>
+          <div class="photo-grid" style="margin-bottom:12px;">
+            {% for p in s.photos_start %}
+            <div class="photo-thumb"><img src="{{ p.file.url }}" alt="بداية">
               {% if can_manage or p.uploaded_by_id == request.user.id %}
               <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
                 <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
@@ -621,6 +619,33 @@
             </div>
             {% endfor %}
           </div>
+          {% endif %}
+          {% if s.photos_during %}
+          <div class="meta-label" style="margin-bottom:6px;">صور أثناء العمل ({{ s.photos_during|length }})</div>
+          <div class="photo-grid" style="margin-bottom:12px;">
+            {% for p in s.photos_during %}
+            <div class="photo-thumb"><img src="{{ p.file.url }}" alt="أثناء">
+              {% if can_manage or p.uploaded_by_id == request.user.id %}
+              <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
+                <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
+              </form>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% if s.photos_end %}
+          <div class="meta-label" style="margin-bottom:6px;">صور النهاية ({{ s.photos_end|length }})</div>
+          <div class="photo-grid">
+            {% for p in s.photos_end %}
+            <div class="photo-thumb"><img src="{{ p.file.url }}" alt="نهاية">
+              {% if can_manage or p.uploaded_by_id == request.user.id %}
+              <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
+                <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
+              </form>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
         </div>
         {% endif %}
 
