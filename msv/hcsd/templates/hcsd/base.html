@@ -77,9 +77,17 @@ body.app-shell {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: #0f172a;
-  border-bottom: 1px solid rgba(255,255,255,.07);
-  box-shadow: 0 1px 24px rgba(0,0,0,.35);
+  background: linear-gradient(135deg, #1a3250 0%, #1e3d63 100%);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 2px 16px rgba(0,0,0,.28);
+}
+.app-chrome::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(99,163,255,.55) 30%, rgba(99,163,255,.55) 70%, transparent);
+  pointer-events: none;
 }
 
 .navbar {
@@ -105,17 +113,17 @@ body.app-shell {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid rgba(255,255,255,.25);
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255,255,255,.22);
   border-radius: var(--radius-sm);
-  background: rgba(255,255,255,.12);
+  background: rgba(255,255,255,.1);
   color: #fff;
   cursor: pointer;
   padding: 0;
 }
 .nav-toggle svg { width: 18px; height: 18px; }
-.nav-toggle:hover { background: rgba(255,255,255,.22); }
+.nav-toggle:hover { background: rgba(255,255,255,.18); }
 
 /* Brand */
 .nav-brand {
@@ -129,7 +137,7 @@ body.app-shell {
   flex-shrink: 0;
   margin-left: 20px;
   padding-left: 20px;
-  border-left: 1px solid rgba(255,255,255,.2);
+  border-left: 1px solid rgba(255,255,255,.15);
   white-space: nowrap;
 }
 .nav-brand:hover { color: #fff; opacity: .88; }
@@ -139,7 +147,7 @@ body.app-shell {
   width: auto;
   object-fit: contain;
   filter: brightness(0) invert(1);
-  opacity: .95;
+  opacity: .9;
 }
 
 /* Nav Links */
@@ -155,14 +163,15 @@ body.app-shell {
   position: relative;
   display: inline-flex;
   align-items: center;
-  padding: 0 14px;
+  padding: 0 13px;
   height: 100%;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255,255,255,.72);
+  color: rgba(255,255,255,.65);
   text-decoration: none;
-  transition: color .15s;
+  transition: color .15s, background .15s;
   white-space: nowrap;
+  border-radius: 0;
 }
 .nav-links a::after {
   content: '';
@@ -170,86 +179,117 @@ body.app-shell {
   bottom: 0;
   right: 10px;
   left: 10px;
-  height: 2.5px;
-  background: #fff;
+  height: 2px;
+  background: #63a3ff;
   border-radius: 2px 2px 0 0;
   opacity: 0;
   transform: scaleX(0);
   transition: opacity .2s, transform .2s;
 }
-.nav-links a:hover { color: #fff; background: rgba(255,255,255,.08); }
-.nav-links a.is-active { color: #fff; font-weight: 700; }
+.nav-links a:hover { color: #fff; background: rgba(255,255,255,.07); }
+.nav-links a.is-active { color: #fff; font-weight: 600; }
 .nav-links a.is-active::after { opacity: 1; transform: scaleX(1); }
 
 /* Nav Auth */
 .nav-auth {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
-  border-right: 1px solid rgba(255,255,255,.2);
+  border-right: 1px solid rgba(255,255,255,.13);
   padding-right: 16px;
   margin-right: 0;
 }
 
-.nav-user {
-  font-size: 12.5px;
+/* User badge */
+.nav-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.09);
+  border: 1px solid rgba(255,255,255,.12);
+  cursor: default;
+}
+.nav-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a90d9, #2c6fad);
+  color: #fff;
+  font-size: 11.5px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.nav-username {
+  font-size: 13px;
   font-weight: 500;
-  color: rgba(255,255,255,.8);
-  white-space: nowrap;
-  max-width: 150px;
+  color: rgba(255,255,255,.88);
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nav-auth-form { margin: 0; }
 
 .nav-switch {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 12px;
-  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14);
-  color: rgba(255,255,255,.7); border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.13);
+  color: rgba(255,255,255,.65); border-radius: 7px;
   font-size: 12.5px; font-weight: 500; text-decoration: none;
-  transition: background .15s, color .15s, border-color .15s; white-space: nowrap;
+  transition: background .15s, color .15s; white-space: nowrap;
 }
-.nav-switch:hover { background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.25); }
+.nav-switch:hover { background: rgba(255,255,255,.13); color: #fff; }
+
+.nav-new-account {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px;
+  background: rgba(99,163,255,.22);
+  border: 1px solid rgba(99,163,255,.4);
+  color: #a8d0ff;
+  border-radius: 7px;
+  font-size: 12.5px; font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.nav-new-account:hover {
+  background: rgba(99,163,255,.35);
+  border-color: rgba(99,163,255,.65);
+  color: #fff;
+}
 
 .nav-logout {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; border-radius: 6px;
-  font-size: 12px; font-weight: 500;
-  color: rgba(255,255,255,.45); background: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  color: rgba(255,255,255,.4);
+  background: none;
   border: 1px solid transparent;
   cursor: pointer; font-family: var(--sans);
   transition: color .15s, border-color .15s, background .15s;
+  flex-shrink: 0;
 }
-.nav-logout:hover { color: #f87171; border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.07); }
+.nav-logout:hover { color: #f87171; border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.08); }
+.nav-logout svg { width: 14px; height: 14px; }
 
 .nav-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255,255,255,.25);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: rgba(255,255,255,.85);
-  text-decoration: none;
-  background: rgba(255,255,255,.1);
-  cursor: pointer;
-  font-family: var(--sans);
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 7px;
+  border: 1px solid rgba(255,255,255,.22);
+  font-size: 12.5px; font-weight: 600;
+  color: rgba(255,255,255,.82); text-decoration: none;
+  background: rgba(255,255,255,.08);
+  cursor: pointer; font-family: var(--sans);
   transition: color .15s, border-color .15s, background .15s;
 }
-.nav-ghost:hover {
-  color: #fff;
-  border-color: rgba(255,255,255,.4);
-  background: rgba(255,255,255,.18);
-}
-a.nav-ghost:hover {
-  color: #fff;
-  border-color: rgba(255,255,255,.4);
-  background: rgba(255,255,255,.18);
+.nav-ghost:hover, a.nav-ghost:hover {
+  color: #fff; border-color: rgba(255,255,255,.38); background: rgba(255,255,255,.15);
 }
 
 /* ══════════════════════════════════════════
@@ -550,7 +590,8 @@ body.is-navigating .app-main {
 
   .nav-auth-form { margin-right: auto; }
 
-  .nav-user { font-size: 12px; width: 100%; max-width: 100%; }
+  .nav-user-badge { width: 100%; }
+  .nav-username { max-width: 100%; }
 
   .nav-links {
     width: 100%;
@@ -636,15 +677,20 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
             الرئيسية
           </a>
           {% if user.is_authenticated %}
-            <span class="nav-user">{{ user.get_full_name|default:user.username }}</span>
             {% if user.is_superuser or nav_is_admin %}
-            <a class="nav-ghost" href="{% url 'register' %}">إنشاء حساب</a>
+            <a class="nav-new-account" href="{% url 'register' %}">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              إنشاء حساب
+            </a>
             {% endif %}
+            <div class="nav-user-badge">
+              <span class="nav-avatar">{{ user.get_full_name|default:user.username|slice:":1" }}</span>
+              <span class="nav-username">{{ user.get_full_name|default:user.username }}</span>
+            </div>
             <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
               {% csrf_token %}
-              <button type="submit" class="nav-logout">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                خروج
+              <button type="submit" class="nav-logout" title="خروج">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               </button>
             </form>
           {% else %}
