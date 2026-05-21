@@ -1515,16 +1515,18 @@ class WeedRemovalWorkSession(models.Model):
         ('postponed', 'مؤجل'),
         ('completed', 'مكتمل'),
     ]
-    task       = models.ForeignKey(
+    task          = models.ForeignKey(
         WeedRemovalSupervisorTask, on_delete=models.CASCADE,
         related_name='work_sessions', verbose_name='المهمة',
     )
-    started_at = models.DateTimeField(verbose_name='وقت البدء')
-    ended_at   = models.DateTimeField(null=True, blank=True, verbose_name='وقت الانتهاء')
-    end_type   = models.CharField(
+    started_at    = models.DateTimeField(verbose_name='وقت البدء')
+    ended_at      = models.DateTimeField(null=True, blank=True, verbose_name='وقت الانتهاء')
+    end_type      = models.CharField(
         max_length=10, choices=END_TYPE_CHOICES,
         null=True, blank=True, verbose_name='نوع الإنهاء',
     )
+    workers_count = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='عدد العمال')
+    notes         = models.TextField(blank=True, verbose_name='ملاحظات التقرير')
 
     class Meta:
         ordering            = ['started_at']
@@ -1533,6 +1535,33 @@ class WeedRemovalWorkSession(models.Model):
 
     def __str__(self):
         return f"جلسة {self.started_at:%Y-%m-%d} — {self.task}"
+
+
+class WeedRemovalSessionVehicle(models.Model):
+    VEHICLE_TYPE_CHOICES = [
+        ('pickup',  'بيك آب'),
+        ('bobcat',  'بوبكات'),
+        ('tractor', 'تراكتور'),
+        ('truck',   'شاحنة'),
+        ('loader',  'لودر'),
+        ('other',   'أخرى'),
+    ]
+    session      = models.ForeignKey(
+        WeedRemovalWorkSession, on_delete=models.CASCADE,
+        related_name='vehicles', verbose_name='الجلسة',
+    )
+    vehicle_type = models.CharField(
+        max_length=20, choices=VEHICLE_TYPE_CHOICES, verbose_name='نوع المركبة',
+    )
+    count        = models.PositiveSmallIntegerField(default=1, verbose_name='العدد')
+    notes        = models.CharField(max_length=200, blank=True, verbose_name='ملاحظات')
+
+    class Meta:
+        verbose_name        = 'مركبة جلسة إزالة حشائش'
+        verbose_name_plural = 'مركبات جلسات إزالة الحشائش'
+
+    def __str__(self):
+        return f"{self.get_vehicle_type_display()} × {self.count}"
 
 
 class WeedRemovalVehicle(models.Model):
