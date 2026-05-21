@@ -406,6 +406,34 @@ def weed_report_submit(request, pk):
     return redirect('weed_detail', pk=pk)
 
 
+# ── Add photos (after completion) ─────────────────────────────────────────────
+
+@login_required
+@require_POST
+def weed_add_photos(request, pk):
+    obj  = get_object_or_404(WeedRemovalRequest, pk=pk)
+    task = getattr(obj, 'supervisor_task', None)
+
+    if not _can_manage(request.user) and (not task or task.supervisor_id != request.user.id):
+        return redirect('weed_detail', pk=pk)
+
+    phase = request.POST.get('phase', 'after')
+    if phase not in ('before', 'during', 'after'):
+        phase = 'after'
+
+    last_session = task.work_sessions.order_by('-started_at').first() if task else None
+
+    for photo_file in request.FILES.getlist('photos'):
+        if _is_valid_photo(photo_file):
+            WeedRemovalPhoto.objects.create(
+                request=obj, phase=phase,
+                session=last_session,
+                file=photo_file, uploaded_by=request.user,
+            )
+
+    return redirect('weed_detail', pk=pk)
+
+
 # ── Reject ────────────────────────────────────────────────────────────────────
 
 @login_required
