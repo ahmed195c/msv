@@ -638,7 +638,7 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
           {% if user.is_authenticated %}
             <span class="nav-user">{{ user.get_full_name|default:user.username }}</span>
             {% if user.is_superuser or nav_is_admin %}
-            <a class="nav-ghost" href="{% url 'user_list' %}">الحسابات</a>
+            <a class="nav-ghost" href="{% url 'register' %}">إنشاء حساب</a>
             {% endif %}
             <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
               {% csrf_token %}
@@ -649,7 +649,6 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
             </form>
           {% else %}
             <a class="nav-ghost" href="{% url 'login' %}">تسجيل الدخول</a>
-            <a class="nav-ghost" href="{% url 'register' %}">إنشاء حساب</a>
           {% endif %}
         </div>
       </div>

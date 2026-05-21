@@ -35,7 +35,7 @@ from .pest_control import (
     pest_control_permit_view,
 )
 from .pest_control_word import pest_control_permit_word
-from .misc import register, user_list, user_detail, vehicle_permit_print, waste_disposal_permit_print, printer
+from .misc import register, vehicle_permit_print, waste_disposal_permit_print, printer
 from .engineer_addition import engineer_addition_create, engineer_addition_detail
 from .field_work import field_work_list, field_work_create, field_work_detail, field_work_report, field_work_report_print, field_work_excel_import, field_work_excel_review, field_work_supervisors, field_work_excel_report, field_work_monthly_excel, field_work_materials_excel
 from .weed_removal import (
@@ -71,7 +71,7 @@ __all__ = [
     'waste_permit', 'waste_permit_detail', 'waste_disposal_request_detail',
     'pest_control_permit', 'pest_control_permit_detail',
     'pest_control_permit_print', 'pest_control_permit_view', 'pest_control_permit_word',
-    'register', 'user_list', 'user_detail', 'vehicle_permit_print', 'waste_disposal_permit_print', 'printer',
+    'register', 'vehicle_permit_print', 'waste_disposal_permit_print', 'printer',
     'engineer_addition_create', 'engineer_addition_detail',
     'field_work_list', 'field_work_create', 'field_work_detail', 'field_work_report',
     'field_work_report_print', 'field_work_excel_import', 'field_work_excel_review', 'field_work_supervisors',

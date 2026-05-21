@@ -17,7 +17,7 @@ from ..models import (
     Enginer, EnginerStatusLog, InspectorReview, PesticideTransportPermit,
     PirmetChangeLog, PirmetClearance, PirmetDocument, PublicHealthExamRequest,
     PublicHealthExamRequestDocument, RequirementInsuranceRequest,
-    UserProfile, WasteDisposalRequest, WasteDisposalRequestDocument,
+    WasteDisposalRequest, WasteDisposalRequestDocument,
 )
 from ..forms import StaffRegistrationForm
 from .common import (
@@ -63,83 +63,6 @@ def register(request):
         form = StaffRegistrationForm()
 
     return render(request, 'hcsd/register.html', {'form': form})
-
-
-@login_required
-def user_list(request):
-    if not _can_admin(request.user):
-        from django.http import HttpResponseForbidden
-        return HttpResponseForbidden('ليس لديك صلاحية لعرض المستخدمين.')
-
-    q = (request.GET.get('q') or '').strip()
-    users_qs = User.objects.select_related('profile').prefetch_related('groups').order_by('username')
-
-    if q:
-        users_qs = users_qs.filter(
-            Q(username__icontains=q) |
-            Q(first_name__icontains=q) |
-            Q(email__icontains=q) |
-            Q(profile__admin_number__icontains=q)
-        )
-
-    users_with_data = []
-    for user in users_qs:
-        profile = getattr(user, 'profile', None)
-        users_with_data.append({
-            'user': user,
-            'admin_number': (profile.admin_number if profile else '') or user.username,
-            'groups': ', '.join(g.name for g in user.groups.all()) or '—',
-        })
-
-    return render(request, 'hcsd/user_list.html', {
-        'users': users_with_data,
-        'query': q,
-        'can_register': _can_admin(request.user),
-    })
-
-
-@login_required
-def user_detail(request, user_id):
-    if not _can_admin(request.user):
-        from django.http import HttpResponseForbidden
-        return HttpResponseForbidden('ليس لديك صلاحية.')
-
-    target_user = get_object_or_404(User, id=user_id)
-    profile, _ = UserProfile.objects.get_or_create(
-        user=target_user,
-        defaults={'admin_number': target_user.username},
-    )
-
-    message = None
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'update_admin_number':
-            new_number = (request.POST.get('admin_number') or '').strip()
-            if new_number:
-                profile.admin_number = new_number
-                profile.save(update_fields=['admin_number'])
-                message = 'تم تحديث الرقم الإداري.'
-        elif action == 'update_name':
-            new_name = (request.POST.get('full_name') or '').strip()
-            if new_name:
-                target_user.first_name = new_name
-                target_user.save(update_fields=['first_name'])
-                message = 'تم تحديث الاسم.'
-        elif action == 'update_email':
-            new_email = (request.POST.get('email') or '').strip().lower()
-            if new_email and not User.objects.filter(email__iexact=new_email).exclude(id=target_user.id).exists():
-                target_user.email = new_email
-                target_user.save(update_fields=['email'])
-                message = 'تم تحديث البريد الإلكتروني.'
-            elif new_email:
-                message = 'هذا البريد الإلكتروني مستخدم بالفعل.'
-
-    return render(request, 'hcsd/user_detail.html', {
-        'target_user': target_user,
-        'profile': profile,
-        'message': message,
-        'groups': target_user.groups.all(),
-    })
 
 
 @login_required
