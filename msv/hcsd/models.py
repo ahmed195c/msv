@@ -1413,6 +1413,7 @@ class WeedRemovalRequest(models.Model):
         ('inspection_done',     'اكتمل التفتيش'),
         ('supervisor_assigned', 'بانتظار المراقب'),
         ('work_in_progress',    'العمل جارٍ'),
+        ('work_paused',         'العمل متوقف مؤقتاً'),
         ('work_done',           'تم إنهاء العمل'),
         ('closed',              'مغلق'),
         ('rejected',            'مرفوض'),
@@ -1507,6 +1508,31 @@ class WeedRemovalSupervisorTask(models.Model):
 
     def __str__(self):
         return f"مراقب — {self.request}"
+
+
+class WeedRemovalWorkSession(models.Model):
+    END_TYPE_CHOICES = [
+        ('postponed', 'مؤجل'),
+        ('completed', 'مكتمل'),
+    ]
+    task       = models.ForeignKey(
+        WeedRemovalSupervisorTask, on_delete=models.CASCADE,
+        related_name='work_sessions', verbose_name='المهمة',
+    )
+    started_at = models.DateTimeField(verbose_name='وقت البدء')
+    ended_at   = models.DateTimeField(null=True, blank=True, verbose_name='وقت الانتهاء')
+    end_type   = models.CharField(
+        max_length=10, choices=END_TYPE_CHOICES,
+        null=True, blank=True, verbose_name='نوع الإنهاء',
+    )
+
+    class Meta:
+        ordering            = ['started_at']
+        verbose_name        = 'جلسة عمل إزالة حشائش'
+        verbose_name_plural = 'جلسات عمل إزالة الحشائش'
+
+    def __str__(self):
+        return f"جلسة {self.started_at:%Y-%m-%d} — {self.task}"
 
 
 class WeedRemovalVehicle(models.Model):

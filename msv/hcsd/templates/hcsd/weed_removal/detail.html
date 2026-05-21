@@ -97,6 +97,7 @@
   {% elif obj.status == 'inspection_done' %}<span class="status-badge" style="background:#f0fdf4;color:#15803d;">اكتمل التفتيش</span>
   {% elif obj.status == 'supervisor_assigned' %}<span class="status-badge" style="background:#faf5ff;color:#7c3aed;">بانتظار المراقب</span>
   {% elif obj.status == 'work_in_progress' %}<span class="status-badge" style="background:#fff7ed;color:#c2410c;">العمل جارٍ</span>
+  {% elif obj.status == 'work_paused' %}<span class="status-badge" style="background:#fefce8;color:#854d0e;">العمل متوقف مؤقتاً</span>
   {% elif obj.status == 'work_done' %}<span class="status-badge" style="background:#ecfdf5;color:#065f46;">تم إنهاء العمل</span>
   {% elif obj.status == 'closed' %}<span class="status-badge" style="background:#f1f5f9;color:#475569;">مغلق</span>
   {% elif obj.status == 'rejected' %}<span class="status-badge" style="background:#fef2f2;color:#dc2626;">مرفوض</span>{% endif %}
@@ -113,8 +114,8 @@
     {% if step_key == 'new' and s != 'new' and s != 'rejected' %}done
     {% elif step_key == 'inspector_assigned' and s in 'inspection_done,supervisor_assigned,work_in_progress,work_done,closed' %}done
     {% elif step_key == 'inspection_done' and s in 'supervisor_assigned,work_in_progress,work_done,closed' %}done
-    {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_done,closed' %}done
-    {% elif step_key == 'work_in_progress' and s in 'work_done,closed' %}done
+    {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_paused,work_done,closed' %}done
+    {% elif step_key == 'work_in_progress' and s in 'work_paused,work_done,closed' %}done
     {% elif step_key == 'work_done' and s == 'closed' %}done
     {% elif step_key == s %}active
     {% elif s == 'rejected' and step_key == 'inspector_assigned' %}rejected-step
@@ -123,8 +124,8 @@
       {% if step_key == 'new' and s != 'new' and s != 'rejected' %}✓
       {% elif step_key == 'inspector_assigned' and s in 'inspection_done,supervisor_assigned,work_in_progress,work_done,closed' %}✓
       {% elif step_key == 'inspection_done' and s in 'supervisor_assigned,work_in_progress,work_done,closed' %}✓
-      {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_done,closed' %}✓
-      {% elif step_key == 'work_in_progress' and s in 'work_done,closed' %}✓
+      {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_paused,work_done,closed' %}✓
+      {% elif step_key == 'work_in_progress' and s in 'work_paused,work_done,closed' %}✓
       {% elif step_key == 'work_done' and s == 'closed' %}✓
       {% elif s == 'rejected' and step_key == 'inspector_assigned' %}✕
       {% else %}{{ forloop.counter }}{% endif %}
@@ -304,30 +305,45 @@
 </div>
 {% endif %}
 
-<!-- ══ STEP 4: Supervisor — workers + vehicles ══ -->
+<!-- ══ STEP 4: Supervisor — workers + start first session ══ -->
 {% if obj.status == 'supervisor_assigned' and is_supervisor %}
 <div class="action-card" style="border-color:#bbf7d0;">
   <div class="action-header" style="background:#f0fdf4;">
     <div class="action-num" style="background:#bbf7d0;color:#14532d;">④</div>
-    <span class="action-title" style="color:#14532d;">تسجيل العمال والمركبات — بدء العمل</span>
+    <span class="action-title" style="color:#14532d;">تسجيل العمال — بدء العمل</span>
   </div>
-  <form method="post" action="{% url 'weed_supervisor_start' obj.pk %}">
+  <form method="post" action="{% url 'weed_work_start' obj.pk %}">
     {% csrf_token %}
     <div class="f-row">
       <label class="f-label">عدد العمال</label>
       <input type="number" name="workers_count" min="1" max="999" class="f-input" style="width:160px;" value="{{ supervisor_task.workers_count|default:'' }}" placeholder="مثال: 4">
     </div>
-    <button type="submit" class="btn-primary">بدء العمل</button>
+    <button type="submit" class="btn-primary">▶ بدء العمل</button>
   </form>
 </div>
 {% endif %}
 
-<!-- ══ STEP 5: Supervisor — upload photos + done ══ -->
+<!-- ══ STEP 4b: Resume from work_paused ══ -->
+{% if obj.status == 'work_paused' and is_supervisor %}
+<div class="action-card" style="border-color:#fde68a;">
+  <div class="action-header" style="background:#fefce8;">
+    <div class="action-num" style="background:#fde68a;color:#92400e;">④</div>
+    <span class="action-title" style="color:#78350f;">العمل متوقف — استئناف الجلسة</span>
+  </div>
+  <p style="font-size:13px;color:var(--ink-3);margin:0 0 14px;">تم تأجيل العمل في جلسة سابقة. اضغط لاستئناف العمل وتسجيل جلسة جديدة.</p>
+  <form method="post" action="{% url 'weed_work_start' obj.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="btn-primary" style="background:#d97706;">▶ استئناف العمل</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- ══ STEP 5: Supervisor — in-progress actions ══ -->
 {% if obj.status == 'work_in_progress' and is_supervisor %}
 <div class="action-card" style="border-color:#bae6fd;">
   <div class="action-header" style="background:#f0f9ff;">
     <div class="action-num" style="background:#bae6fd;color:#0c4a6e;">⑤</div>
-    <span class="action-title" style="color:#0c4a6e;">صور العمل ورفع التقرير النهائي</span>
+    <span class="action-title" style="color:#0c4a6e;">العمل جارٍ — رفع الصور أو إنهاء الجلسة</span>
   </div>
 
   <!-- Upload during photos -->
@@ -360,20 +376,37 @@
     <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">رفع صور بعد العمل</button>
   </form>
 
-  <!-- Final report -->
-  <form method="post" action="{% url 'weed_supervisor_done' obj.pk %}" style="padding-top:16px;border-top:1px solid var(--line);">
-    {% csrf_token %}
-    <div class="f-row">
-      <label class="f-label">ملاحظات التقرير النهائي</label>
-      <textarea name="report_notes" rows="4" class="f-textarea" placeholder="وصف العمل المنجز، ملاحظات الإزالة…"></textarea>
+  <!-- Session end actions -->
+  <div style="padding-top:16px;border-top:1px solid var(--line);">
+    <div class="meta-label" style="margin-bottom:12px;">إنهاء الجلسة الحالية</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+
+      <!-- Postpone -->
+      <form method="post" action="{% url 'weed_work_postpone' obj.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-primary" style="background:#d97706;border-color:#d97706;"
+                onclick="return confirm('هل تريد تأجيل العمل إلى موعد آخر؟ سيتم تسجيل وقت التوقف الحالي.')">
+          ⏸ تأجيل العمل لموعد آخر
+        </button>
+      </form>
+
+      <!-- Final report + finish -->
+      <form method="post" action="{% url 'weed_supervisor_done' obj.pk %}" style="flex:1;min-width:220px;">
+        {% csrf_token %}
+        <div class="f-row">
+          <label class="f-label">ملاحظات التقرير النهائي</label>
+          <textarea name="report_notes" rows="3" class="f-textarea" placeholder="وصف العمل المنجز، ملاحظات الإزالة…">{{ supervisor_task.report_notes }}</textarea>
+        </div>
+        <button type="submit" class="btn-green">✓ إتمام العمل ورفع التقرير</button>
+      </form>
+
     </div>
-    <button type="submit" class="btn-green">✓ إتمام العمل ورفع التقرير</button>
-  </form>
+  </div>
 </div>
 {% endif %}
 
 <!-- ══ STEP 6: Add vehicles (supervisor, any active stage) ══ -->
-{% if supervisor_task and is_supervisor and obj.status in 'supervisor_assigned,work_in_progress' %}
+{% if supervisor_task and is_supervisor and obj.status in 'supervisor_assigned,work_in_progress,work_paused' %}
 <div class="action-card" style="border-color:var(--line-2);">
   <div class="c-card-title" style="margin-bottom:16px;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4m0-10v10"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
@@ -512,6 +545,61 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+  {% endif %}
+
+  {% if work_sessions %}
+  <div style="padding-top:14px;border-top:1px solid var(--line);margin-top:14px;">
+    <div class="meta-label" style="margin-bottom:8px;">جلسات العمل</div>
+    <table class="v-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>التاريخ</th>
+          <th>بدء</th>
+          <th>انتهاء</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in work_sessions %}
+        <tr>
+          <td style="font-family:monospace;color:var(--ink-4);">{{ forloop.counter }}</td>
+          <td>{{ s.started_at|date:"d/m/Y" }}</td>
+          <td dir="ltr" style="font-family:monospace;">{{ s.started_at|date:"H:i" }}</td>
+          <td dir="ltr" style="font-family:monospace;">
+            {% if s.ended_at %}{{ s.ended_at|date:"H:i" }}{% else %}<span style="color:#d97706;font-weight:600;">جارٍ الآن</span>{% endif %}
+          </td>
+          <td>
+            {% if s.end_type == 'postponed' %}<span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:10px;font-size:11.5px;font-weight:600;">مؤجل</span>
+            {% elif s.end_type == 'completed' %}<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:10px;font-size:11.5px;font-weight:600;">مكتمل</span>
+            {% else %}<span style="background:#fff7ed;color:#c2410c;padding:2px 8px;border-radius:10px;font-size:11.5px;font-weight:600;">جارٍ</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if session_summary %}
+    <div class="meta-grid" style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--line-2);">
+      <div>
+        <div class="meta-label">بدء العمل الأول</div>
+        <div class="meta-value" style="font-size:13px;">{{ session_summary.first_start|date:"d/m/Y H:i" }}</div>
+      </div>
+      <div>
+        <div class="meta-label">إجمالي أيام المهمة</div>
+        <div class="meta-value" style="font-family:monospace;font-size:22px;font-weight:800;">{{ session_summary.total_days }}</div>
+      </div>
+      <div>
+        <div class="meta-label">أيام العمل الفعلي</div>
+        <div class="meta-value" style="font-family:monospace;font-size:22px;font-weight:800;color:#15803d;">{{ session_summary.work_days }}</div>
+      </div>
+      <div>
+        <div class="meta-label">أيام التوقف</div>
+        <div class="meta-value" style="font-family:monospace;font-size:22px;font-weight:800;color:#d97706;">{{ session_summary.idle_days }}</div>
+      </div>
+    </div>
+    {% endif %}
   </div>
   {% endif %}
 

@@ -25,6 +25,7 @@ from django.views.decorators.http import require_POST
 from ..models import (
     WeedRemovalRequest, WeedRemovalInspection,
     WeedRemovalSupervisorTask, WeedRemovalVehicle, WeedRemovalPhoto,
+    WeedRemovalWorkSession,
 )
 from .common import _can_admin, _can_data_entry
 from .complaints import _get_lang, _fix_rtl_pdf_text, _arabic_digits_to_western
@@ -146,11 +147,33 @@ def weed_detail(request, pk):
 
     vehicles = supervisor_task.vehicles.all() if supervisor_task else []
 
+    work_sessions = []
+    session_summary = None
+    if supervisor_task:
+        work_sessions = list(supervisor_task.work_sessions.order_by('started_at'))
+        if work_sessions:
+            first_start = work_sessions[0].started_at
+            completed = [s for s in work_sessions if s.ended_at is not None]
+            if completed:
+                last_end = completed[-1].ended_at
+                total_days = (last_end.date() - first_start.date()).days + 1
+                work_dates = {s.started_at.date() for s in work_sessions}
+                work_days = len(work_dates)
+                session_summary = {
+                    'first_start': first_start,
+                    'last_end': last_end,
+                    'total_days': total_days,
+                    'work_days': work_days,
+                    'idle_days': total_days - work_days,
+                }
+
     return render(request, 'hcsd/weed_removal/detail.html', {
         'obj': obj,
         'inspection': inspection,
         'supervisor_task': supervisor_task,
         'vehicles': vehicles,
+        'work_sessions': work_sessions,
+        'session_summary': session_summary,
         'staff_users': staff_users,
         'is_inspector': is_inspector,
         'is_supervisor': is_supervisor,
@@ -253,28 +276,57 @@ def weed_assign_supervisor(request, pk):
     return redirect('weed_detail', pk=pk)
 
 
-# ── Supervisor: save workers + start work ─────────────────────────────────────
+# ── Supervisor: start a work session ─────────────────────────────────────────
 
 @login_required
 @require_POST
-def weed_supervisor_start(request, pk):
+def weed_work_start(request, pk):
     obj  = get_object_or_404(WeedRemovalRequest, pk=pk)
     task = get_object_or_404(WeedRemovalSupervisorTask, request=obj)
 
     if task.supervisor_id != request.user.id and not _can_manage(request.user):
         return redirect('weed_detail', pk=pk)
 
-    workers_raw = (request.POST.get('workers_count') or '').strip()
-    try:
-        task.workers_count = int(workers_raw) if workers_raw else None
-    except ValueError:
-        task.workers_count = None
-    task.save(update_fields=['workers_count'])
+    if obj.status not in ('supervisor_assigned', 'work_paused'):
+        return redirect('weed_detail', pk=pk)
 
+    # First session: save workers_count from form
     if obj.status == 'supervisor_assigned':
-        obj.status = 'work_in_progress'
-        obj.save(update_fields=['status', 'updated_at'])
+        workers_raw = (request.POST.get('workers_count') or '').strip()
+        try:
+            task.workers_count = int(workers_raw) if workers_raw else None
+        except ValueError:
+            task.workers_count = None
+        task.save(update_fields=['workers_count'])
 
+    WeedRemovalWorkSession.objects.create(task=task, started_at=timezone.now())
+    obj.status = 'work_in_progress'
+    obj.save(update_fields=['status', 'updated_at'])
+    return redirect('weed_detail', pk=pk)
+
+
+# ── Supervisor: postpone current work session ─────────────────────────────────
+
+@login_required
+@require_POST
+def weed_work_postpone(request, pk):
+    obj  = get_object_or_404(WeedRemovalRequest, pk=pk)
+    task = get_object_or_404(WeedRemovalSupervisorTask, request=obj)
+
+    if task.supervisor_id != request.user.id and not _can_manage(request.user):
+        return redirect('weed_detail', pk=pk)
+
+    if obj.status != 'work_in_progress':
+        return redirect('weed_detail', pk=pk)
+
+    open_session = task.work_sessions.filter(ended_at__isnull=True).last()
+    if open_session:
+        open_session.ended_at = timezone.now()
+        open_session.end_type = 'postponed'
+        open_session.save(update_fields=['ended_at', 'end_type'])
+
+    obj.status = 'work_paused'
+    obj.save(update_fields=['status', 'updated_at'])
     return redirect('weed_detail', pk=pk)
 
 
@@ -352,6 +404,16 @@ def weed_supervisor_done(request, pk):
 
     if task.supervisor_id != request.user.id and not _can_manage(request.user):
         return redirect('weed_detail', pk=pk)
+
+    if obj.status != 'work_in_progress':
+        return redirect('weed_detail', pk=pk)
+
+    # Close the open session as completed
+    open_session = task.work_sessions.filter(ended_at__isnull=True).last()
+    if open_session:
+        open_session.ended_at = timezone.now()
+        open_session.end_type = 'completed'
+        open_session.save(update_fields=['ended_at', 'end_type'])
 
     report_notes = (request.POST.get('report_notes') or '').strip()
     task.report_notes = report_notes
