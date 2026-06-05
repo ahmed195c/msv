@@ -47,6 +47,36 @@ _FW_CLOSED_STATUSES = frozenset({
 _FW_TRULY_CLOSED = _FW_CLOSED_STATUSES - {'completed'}
 
 
+def _infer_status_from_excel(excel_status: str) -> str:
+    """Map raw Excel status text to a system status code."""
+    s = excel_status.upper().strip()
+    if not s:
+        return 'new'
+    if any(k in s for k in ('COMPLET', 'DONE', 'FINISHED', 'ACCOMPLISHED', 'SERVICE HAS BEEN')):
+        return 'completed'
+    if any(k in s for k in ('NO ANSWER', 'NOT ANSWER', 'NO RESPONSE', 'NOT RESPOND', 'NOT REPLYING')):
+        return 'closed_no_answer'
+    if any(k in s for k in ('REFUSED', 'DECLINED', 'REJECTED', 'REFUSED SERVICE')):
+        return 'closed_customer_refused'
+    if any(k in s for k in ('PHONE OFF', 'MOBILE OFF', 'SWITCHED OFF')):
+        return 'closed_mobile_off'
+    if any(k in s for k in ('WRONG PHONE', 'WRONG NUMBER', 'INVALID PHONE')):
+        return 'wrong_phone'
+    if any(k in s for k in ('POSTPONED', 'RESCHEDULED', 'DELAYED')):
+        return 'postponed_client'
+    if any(k in s for k in ('PRIVATE COMPANY', 'PRIVATE BUILDING', 'PRIVATE')):
+        return 'closed_private_building'
+    if any(k in s for k in ('OTHER MUNICIPAL', 'ANOTHER MUNICIPAL', 'OTHER AUTHORITY')):
+        return 'closed_other_municipal'
+    if any(k in s for k in ('CLOSED', 'CLOSE')):
+        return 'closed_observation'
+    if any(k in s for k in ('NOT AVAILABLE', 'UNAVAILABLE')):
+        return 'closed_not_available'
+    if any(k in s for k in ('NOT ATTENDING', 'NOT ATTENDING')):
+        return 'closed_not_attending'
+    return 'new'
+
+
 # ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
@@ -1768,6 +1798,7 @@ def field_work_excel_review(request):
             order_number = (request.POST.get(f'row_{i}_order_number') or '').strip()
             if mode == 'new_only' and order_number in existing:
                 continue
+            _ex_status = (request.POST.get(f'row_{i}_excel_status') or '').strip()
             to_create.append(FieldWorkOrder(
                 order_number    = order_number,
                 request_date    = _to_date((request.POST.get(f'row_{i}_request_date') or '').strip()),
@@ -1778,7 +1809,8 @@ def field_work_excel_review(request):
                 pest_types      = (request.POST.get(f'row_{i}_pest_types') or '').strip(),
                 supervisor_name = (request.POST.get(f'row_{i}_supervisor_name') or '').strip(),
                 worker_name     = (request.POST.get(f'row_{i}_worker_name') or '').strip(),
-                excel_status    = (request.POST.get(f'row_{i}_excel_status') or '').strip(),
+                excel_status    = _ex_status,
+                status          = _infer_status_from_excel(_ex_status),
                 street_number   = rows[i].get('street_number', ''),
                 close_date      = _to_date(rows[i].get('close_date', '')),
                 excel_status_note = rows[i].get('excel_status_note', ''),
