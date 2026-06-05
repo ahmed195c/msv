@@ -3,18 +3,54 @@
 {% block title %}أمر عمل #{{ order.pk }}{% endblock %}
 {% block content %}
 <style>
-.fw-page{max-width:800px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);}
+.fw-page{max-width:800px;margin:0 auto;padding:24px 16px;}
+.fw-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;}
 .fw-header-left h1{font-size:20px;font-weight:700;margin-bottom:4px;}
 .fw-header-left .fw-id{font-family:var(--mono);font-size:13px;color:var(--ink-4);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;border:none;transition:.15s;font-family:inherit;}
+.btn-outline{background:#fff;color:var(--ink-2);border:1.5px solid var(--border);}
+.btn-outline:hover{background:var(--surface-2);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#14487a;}
+.btn-success{background:#1a7a3a;color:#fff;}
+.btn-success:hover{background:#145c2a;}
+.btn-danger{background:#c94a4a;color:#fff;}
+.btn-danger:hover{background:#a83a3a;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-word{background:#2b579a;color:#fff;}
+.btn-word:hover{background:#1e3f72;}
+.btn-excel{background:#1d6f42;color:#fff;}
+.btn-excel:hover{background:#155233;}
+
 .card{background:#fff;border-radius:12px;border:1.5px solid var(--border);margin-bottom:20px;overflow:hidden;}
 .card-header{padding:14px 18px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
 .card-header h2{font-size:15px;font-weight:700;color:var(--ink-1);}
 .card-body{padding:18px;}
+
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .info-row{display:flex;flex-direction:column;gap:3px;}
 .info-row.full{grid-column:1/-1;}
 .info-label{font-size:12px;font-weight:600;color:var(--ink-4);text-transform:uppercase;letter-spacing:.4px;}
 .info-value{font-size:14px;color:var(--ink-1);font-weight:500;}
+
+.badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+.s-pending    {background:#fff8e0;color:#7a5500;}
+.s-in-progress{background:#e8f0f8;color:#1a3a6a;}
+.s-completed  {background:#e8f5ee;color:#1a5c35;}
+.s-incomplete {background:#fdeaea;color:#8a1a1a;}
+.s-cancelled  {background:#f0f0f0;color:#6a6a6a;}
+.s-private    {background:#f5f3ff;color:#6d28d9;}
+.s-declined   {background:#fff1f2;color:#be123c;}
+.s-phone      {background:#fff7ed;color:#c2410c;}
+.s-postponed  {background:#fef9c3;color:#854d0e;}
+.s-gov        {background:#f0f9ff;color:#0369a1;}
+.s-other-mun  {background:#f1f5f9;color:#475569;}
+.s-closed     {background:#fef2f2;color:#991b1b;}
+.s-assigned   {background:#e0e7ff;color:#3730a3;}
+.s-received   {background:#dcfce7;color:#166534;}
+
 /* ── Unified action cards ── */
 .action-card{border-color:var(--border);}
 .action-card-header{background:var(--surface-2);}
@@ -23,12 +59,20 @@
 .action-toggle-btn:hover{background:#dbeafe;border-color:#93c5fd;}
 
 .form-group{margin-bottom:16px;}
-.form-label{display:block;margin-bottom:6px;}
-.form-control{font-size:14px;padding:9px 12px;border-radius:8px;}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px;}
+.form-control{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink-1);transition:.15s;}
+.form-control:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,92,154,.12);}
+textarea.form-control{resize:vertical;min-height:80px;}
 select.form-control{cursor:pointer;}
+
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+
+.alert{padding:12px 16px;border-radius:8px;font-size:14px;margin-bottom:16px;}
+.alert-error{background:var(--danger-bg);border:1.5px solid #f5c0c0;color:var(--danger);}
 .alert-error ul{padding-right:18px;margin-top:6px;}
+.alert-success{background:var(--success-bg);border:1.5px solid #b0d8c0;color:var(--success);}
+
 /* Photos */
 .photos-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:2px solid var(--border);padding-bottom:0;}
 .photo-tab{padding:8px 16px;font-size:13px;font-weight:600;color:var(--ink-3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s;font-family:inherit;}
@@ -859,7 +903,7 @@ select.form-control{cursor:pointer;}
       {% if order.no_answer_screenshot %}
       <div style="grid-column:1/-1;">
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;"><span class="t-ar">صورة الإثبات</span><span class="t-en">Proof Image</span></div>
-        <img src="{{ order.no_answer_screenshot.url }}" alt="صورة الإثبات" loading="lazy"
+        <img src="{{ order.no_answer_screenshot.url }}" alt="صورة الإثبات"
              style="max-width:260px;border-radius:8px;border:1.5px solid #e2e8f0;">
       </div>
       {% endif %}
@@ -868,14 +912,14 @@ select.form-control{cursor:pointer;}
         {% if order.client_signature %}
         <div style="text-align:center;">
           <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;"><span class="t-ar">توقيع العميل</span><span class="t-en">Client Signature</span></div>
-          <img src="{{ order.client_signature }}" alt="توقيع العميل" loading="lazy"
+          <img src="{{ order.client_signature }}" alt="توقيع العميل"
                style="max-width:100%;height:90px;object-fit:contain;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;padding:4px;">
         </div>
         {% endif %}
         {% if order.supervisor_signature %}
         <div style="text-align:center;">
           <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;"><span class="t-ar">توقيع المراقب</span><span class="t-en">Supervisor Signature</span></div>
-          <img src="{{ order.supervisor_signature }}" alt="توقيع المراقب" loading="lazy"
+          <img src="{{ order.supervisor_signature }}" alt="توقيع المراقب"
                style="max-width:100%;height:90px;object-fit:contain;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;padding:4px;">
         </div>
         {% endif %}
@@ -1016,7 +1060,7 @@ select.form-control{cursor:pointer;}
       <div class="photo-grid">
         {% for photo in photos_all %}
         <div class="photo-item">
-          <img src="{{ photo.file.url }}" alt="صورة" loading="lazy">
+          <img src="{{ photo.file.url }}" alt="صورة">
           {% if can_edit %}
           <form method="post" style="display:contents;">
             {% csrf_token %}
