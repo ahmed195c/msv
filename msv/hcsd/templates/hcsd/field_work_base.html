@@ -28,7 +28,7 @@
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { font-family: 'IBM Plex Sans Arabic', sans-serif; color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; }
-body { margin: 0; direction: rtl; text-align: right; min-height: 100vh; display: flex; flex-direction: column; background: var(--surface); }
+body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: var(--surface); }
 
 /* ── Navbar ── */
 .app-chrome {
@@ -242,28 +242,30 @@ html[data-lang="ar"] .t-en { display: none !important; }
 (function(){
   var html = document.documentElement;
   var saved = localStorage.getItem('fw_lang') || 'ar';
-  html.setAttribute('data-lang', saved);
+
+  function applyLang(lang) {
+    html.setAttribute('data-lang', lang);
+    html.setAttribute('dir', lang === 'en' ? 'ltr' : 'rtl');
+    html.setAttribute('lang', lang);
+    document.querySelectorAll('[data-ar-ph]').forEach(function(el){
+      el.placeholder = lang === 'ar' ? el.getAttribute('data-ar-ph') : el.getAttribute('data-en-ph');
+    });
+    document.querySelectorAll('[data-ar-txt]').forEach(function(el){
+      el.textContent = lang === 'ar' ? el.getAttribute('data-ar-txt') : el.getAttribute('data-en-txt');
+    });
+  }
+
+  applyLang(saved);
+
   var btn = document.getElementById('langToggle');
   if (btn) {
     btn.addEventListener('click', function(){
       var cur = html.getAttribute('data-lang') || 'ar';
       var next = cur === 'ar' ? 'en' : 'ar';
-      html.setAttribute('data-lang', next);
       localStorage.setItem('fw_lang', next);
-      // swap input placeholders
-      document.querySelectorAll('[data-ar-ph]').forEach(function(el){
-        el.placeholder = next === 'ar' ? el.getAttribute('data-ar-ph') : el.getAttribute('data-en-ph');
-      });
-      // swap JS-generated text nodes
-      document.querySelectorAll('[data-ar-txt]').forEach(function(el){
-        el.textContent = next === 'ar' ? el.getAttribute('data-ar-txt') : el.getAttribute('data-en-txt');
-      });
+      applyLang(next);
     });
   }
-  // apply placeholders on load
-  document.querySelectorAll('[data-ar-ph]').forEach(function(el){
-    el.placeholder = saved === 'ar' ? el.getAttribute('data-ar-ph') : el.getAttribute('data-en-ph');
-  });
 })();
 </script>
 </body>

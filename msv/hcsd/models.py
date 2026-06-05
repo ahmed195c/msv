@@ -1037,7 +1037,9 @@ class ComplaintPhoto(models.Model):
 
 class FieldWorkOrder(models.Model):
     STATUS_CHOICES = [
-        ('new',               'جديد'),
+        ('new',                  'جديد'),
+        ('supervisor_assigned',  'تم تعيين مراقب'),
+        ('order_received',       'تم استلام الطلب'),
         ('private_company',   'شركة خاصة'),
         ('cust_declined',     'العميل رفض الخدمة'),
         ('wrong_phone',       'رقم الهاتف خاطئ'),
@@ -1187,6 +1189,38 @@ class FieldWorkOrder(models.Model):
             return f"#{self.order_number} — {self.customer_name or self.area or ''}"
         return f"#{self.id} — {self.work_type} — {self.site_name or 'بدون موقع'}"
 
+    STATUS_LABELS_EN = {
+        'new':                        'New',
+        'supervisor_assigned':         'Supervisor Assigned',
+        'order_received':              'Order Received',
+        'private_company':            'Private Company',
+        'cust_declined':              'Customer Declined',
+        'wrong_phone':                'Wrong Phone',
+        'phone_off':                  'Phone Off',
+        'no_answer':                  'No Answer',
+        'completed':                  'Completed',
+        'postponed_client':           'Postponed by Client',
+        'gov_dept':                   'Government Dept.',
+        'other_municipal':            'Other Municipality',
+        'closed_private_building':    'Closed — Private Building',
+        'closed_no_answer':           'Closed — No Answer',
+        'closed_other_municipal':     'Closed — Other Municipality',
+        'closed_observation':         'Closed — Observation',
+        'closed_low_infestation':     'Closed — Low Infestation',
+        'closed_moderate_infestation':'Closed — Moderate Infestation',
+        'closed_high_infestation':    'Closed — High Infestation',
+        'closed_out_of_service':      'Closed — Out of Service',
+        'closed_customer_refused':    'Closed — Customer Refused',
+        'closed_mobile_off':          'Closed — Mobile Off',
+        'closed_not_attending':       'Closed — Not Attending',
+        'closed_not_available':       'Closed — Not Available',
+        'closed_scheduled_client':    'Closed — Scheduled by Client',
+    }
+
+    @property
+    def status_en(self):
+        return self.STATUS_LABELS_EN.get(self.status, self.status)
+
     def photos_by_phase(self, phase):
         return self.photos.filter(phase=phase)
 
@@ -1219,6 +1253,36 @@ class FieldWorkPhoto(models.Model):
 
     def __str__(self):
         return f"{self.get_phase_display()} — {self.work_order}"
+
+
+class FieldWorkOrderLog(models.Model):
+    ACTION_CHOICES = [
+        ('created',          'إنشاء الأمر'),
+        ('assigned',         'تعيين مراقب'),
+        ('reassigned',       'إعادة تعيين مراقب'),
+        ('unassigned',       'إلغاء تعيين مراقب'),
+        ('received',         'استلام الأمر'),
+        ('status_changed',   'تغيير الحالة'),
+        ('postponed',        'تأجيل الموعد'),
+        ('closed',           'إغلاق الأمر'),
+        ('completed',        'إتمام الخدمة'),
+    ]
+
+    order      = models.ForeignKey(FieldWorkOrder, on_delete=models.CASCADE, related_name='logs', verbose_name='الأمر')
+    action     = models.CharField(max_length=20, choices=ACTION_CHOICES, verbose_name='الإجراء')
+    actor      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='fw_logs', verbose_name='بواسطة')
+    timestamp  = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='التوقيت')
+    from_value = models.CharField(max_length=200, blank=True, verbose_name='من')
+    to_value   = models.CharField(max_length=200, blank=True, verbose_name='إلى')
+    note       = models.CharField(max_length=300, blank=True, verbose_name='ملاحظة')
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'سجل تغيير'
+        verbose_name_plural = 'سجل تغييرات الأوامر'
+
+    def __str__(self):
+        return f"{self.get_action_display()} — {self.order_id}"
 
 
 class FieldWorkSupervisorProfile(models.Model):

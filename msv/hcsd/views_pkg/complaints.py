@@ -165,19 +165,21 @@ def complaints_dashboard(request):
     redir = _redirect_if_fw_supervisor(request.user)
     if redir:
         return redir
+    from django.core.paginator import Paginator
     from django.db.models import Q, Count
     lang = _get_lang(request)
     status_filter = (request.GET.get('status') or 'all').strip()
     search = (request.GET.get('q') or '').strip()
+    page_number = request.GET.get('page') or 1
 
-    all_complaints = Complaint.objects.select_related('created_by').all()
+    base_qs = Complaint.objects.select_related('created_by').all()
 
     status_counts = {s: 0 for s, _ in Complaint.STATUS_CHOICES}
-    for row in all_complaints.values('status').annotate(n=Count('id')):
+    for row in base_qs.values('status').annotate(n=Count('id')):
         status_counts[row['status']] = row['n']
     total_count = sum(status_counts.values())
 
-    complaints = all_complaints
+    complaints = base_qs
     if status_filter != 'all':
         complaints = complaints.filter(status=status_filter)
     if search:
@@ -186,9 +188,14 @@ def complaints_dashboard(request):
             | Q(complainant_name__icontains=search)
             | Q(area__icontains=search)
         )
+    complaints = complaints.order_by('-created_at')
+
+    paginator = Paginator(complaints, 25)
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'hcsd/complaints/dashboard.html', {
-        'complaints': complaints,
+        'complaints': page_obj,
+        'page_obj': page_obj,
         'status_filter': status_filter,
         'status_choices': Complaint.STATUS_CHOICES,
         'status_counts': status_counts,
@@ -281,15 +288,36 @@ def complaint_submit(request):
 def complaint_detail(request, pk):
     lang = _get_lang(request)
     complaint = get_object_or_404(
-        Complaint.objects.select_related('created_by')
-        .prefetch_related('photos'),
+        Complaint.objects
+        .select_related(
+            'created_by',
+            'inspection__inspector',
+            'inspection__assigned_by',
+            'resolution__supervisor',
+            'resolution__assigned_by',
+        )
+        .prefetch_related('photos', 'resolution__vehicles', 'resolution__materials'),
         pk=pk,
     )
     inspection = getattr(complaint, 'inspection', None)
     resolution = getattr(complaint, 'resolution', None)
     vehicles = list(resolution.vehicles.all()) if resolution else []
     materials = list(resolution.materials.all()) if resolution else []
-    staff_users = User.objects.filter(is_active=True).order_by('first_name', 'username')
+
+    # Only fetch staff users when the complaint actually needs assignment
+    can_manage = _can_manage(request.user)
+    needs_assignment = can_manage and complaint.status in ('new', 'inspection_done')
+    staff_users = (
+        User.objects.filter(is_active=True).order_by('first_name', 'username')
+        if needs_assignment else []
+    )
+
+    # Filter photos in Python from the prefetch cache — avoids 3 extra DB queries
+    all_photos = list(complaint.photos.all())
+    inspection_photos = [p for p in all_photos if p.phase == 'inspection']
+    during_photos     = [p for p in all_photos if p.phase == 'during_work']
+    after_photos      = [p for p in all_photos if p.phase == 'after_work']
+
     pest_label_map = dict(Complaint.PEST_CHOICES)
     complaint_pest_labels = [
         pest_label_map.get(p, p)
@@ -306,12 +334,12 @@ def complaint_detail(request, pk):
         'status_choices': Complaint.STATUS_CHOICES,
         'staff_users': staff_users,
         'lang': lang,
-        'can_manage': _can_manage(request.user),
+        'can_manage': can_manage,
         'is_inspector': inspection and inspection.inspector_id == request.user.id,
         'is_supervisor': resolution and resolution.supervisor_id == request.user.id,
-        'inspection_photos': complaint.photos.filter(phase='inspection'),
-        'during_photos': complaint.photos.filter(phase='during_work'),
-        'after_photos': complaint.photos.filter(phase='after_work'),
+        'inspection_photos': inspection_photos,
+        'during_photos': during_photos,
+        'after_photos': after_photos,
         'complaint_pest_labels': complaint_pest_labels,
         'closing_status_choices': ComplaintResolution.CLOSING_STATUS_CHOICES,
     })

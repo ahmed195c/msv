@@ -9,7 +9,7 @@
   --mono:'JetBrains Mono',monospace;
 }
 *{box-sizing:border-box;}
-body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);direction:rtl;}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);}
 .fw-page{max-width:1100px;margin:0 auto;padding:24px 16px;}
 .fw-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
 .fw-title{font-size:22px;font-weight:700;color:var(--ink-1);}
@@ -47,6 +47,8 @@ td{padding:10px 12px;vertical-align:middle;}
 .s-postponed      {background:#fef9c3;color:#854d0e;}
 .s-gov            {background:#f0f9ff;color:#0369a1;}
 .s-other-mun      {background:#f1f5f9;color:#475569;}
+.s-assigned       {background:#eff6ff;color:#1d4ed8;}
+.s-received       {background:#dcfce7;color:#166534;}
 
 /* Source badge */
 .src-excel {background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700;}
@@ -103,7 +105,6 @@ td{padding:10px 12px;vertical-align:middle;}
         🧪 <span class="t-ar">تقرير المواد</span><span class="t-en">Materials Report</span>
       </button>
       {% endif %}
-      <a href="{% url 'permit_types' %}" class="btn btn-outline">← <span class="t-ar">الرئيسية</span><span class="t-en">Home</span></a>
     </div>
   </div>
 
@@ -201,8 +202,43 @@ td{padding:10px 12px;vertical-align:middle;}
   </div>
   {% endif %}
 
+  <!-- Quick filters -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+    <a href="{% url 'field_work_list' %}?quick=new{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
+       class="btn {% if quick_filter == 'new' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'new' %}#fff{% else %}#1a5c9a{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">الجديدة</span><span class="t-en">New</span>
+    </a>
+    <a href="{% url 'field_work_list' %}?quick=received{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
+       class="btn {% if quick_filter == 'received' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'received' %}#fff{% else %}#166534{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">المسلَّمة</span><span class="t-en">Received</span>
+    </a>
+    <a href="{% url 'field_work_list' %}?quick=completed{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
+       class="btn {% if quick_filter == 'completed' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'completed' %}#fff{% else %}#166534{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">المنتهية</span><span class="t-en">Completed</span>
+    </a>
+    <a href="{% url 'field_work_list' %}?quick=closed{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
+       class="btn {% if quick_filter == 'closed' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'closed' %}#fff{% else %}#5a6a7a{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">المغلقة</span><span class="t-en">Closed</span>
+    </a>
+    <a href="{% url 'field_work_list' %}?quick=postponed{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
+       class="btn {% if quick_filter == 'postponed' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'postponed' %}#fff{% else %}#854d0e{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">المؤجلة</span><span class="t-en">Postponed</span>
+    </a>
+    {% if quick_filter %}
+    <a href="{% url 'field_work_list' %}{% if search %}?q={{ search }}{% endif %}" class="btn btn-outline" style="font-size:13px;padding:7px 14px;color:var(--ink-3);">
+      ✕ <span class="t-ar">كل الطلبات</span><span class="t-en">All Orders</span>
+    </a>
+    {% endif %}
+  </div>
+
   <!-- Filters -->
   <form method="get">
+    {% if quick_filter %}<input type="hidden" name="quick" value="{{ quick_filter }}">{% endif %}
     <div class="fw-filters">
 
       <div class="fw-filter-group fw-search">
@@ -235,7 +271,7 @@ td{padding:10px 12px;vertical-align:middle;}
         <span class="t-ar">بحث</span><span class="t-en">Search</span>
       </button>
       {% if search or status_filter != 'all' or source_filter != 'all' %}
-      <a href="{% url 'field_work_list' %}" class="btn btn-outline" style="align-self:flex-end;">
+      <a href="{% url 'field_work_list' %}{% if quick_filter %}?quick={{ quick_filter }}{% endif %}" class="btn btn-outline" style="align-self:flex-end;">
         <span class="t-ar">مسح</span><span class="t-en">Clear</span>
       </a>
       {% endif %}
@@ -296,6 +332,8 @@ td{padding:10px 12px;vertical-align:middle;}
           <td>
             <span class="badge
               {% if order.status == 'completed' %}s-completed
+              {% elif order.status == 'supervisor_assigned' %}s-assigned
+              {% elif order.status == 'order_received' %}s-received
               {% elif order.status == 'private_company' %}s-private
               {% elif order.status == 'cust_declined' %}s-declined
               {% elif order.status == 'wrong_phone' or order.status == 'phone_off' or order.status == 'no_answer' %}s-phone
@@ -303,7 +341,8 @@ td{padding:10px 12px;vertical-align:middle;}
               {% elif order.status == 'gov_dept' %}s-gov
               {% elif order.status == 'other_municipal' %}s-other-mun
               {% else %}s-pending{% endif %}">
-              {{ order.get_status_display }}
+              <span class="t-ar">{{ order.get_status_display }}</span>
+              <span class="t-en">{{ order.status_en }}</span>
             </span>
             {% if order.excel_status %}
             <div style="font-size:10px;color:var(--ink-3);margin-top:2px;" title="{{ order.excel_status }}">
@@ -335,13 +374,18 @@ td{padding:10px 12px;vertical-align:middle;}
         <span class="fw-card-num">{% if order.order_number %}{{ order.order_number }}{% else %}#{{ order.pk }}{% endif %}</span>
         <span class="badge
           {% if order.status == 'completed' %}s-completed
+          {% elif order.status == 'supervisor_assigned' %}s-assigned
+          {% elif order.status == 'order_received' %}s-received
           {% elif order.status == 'private_company' %}s-private
           {% elif order.status == 'cust_declined' %}s-declined
           {% elif order.status == 'wrong_phone' or order.status == 'phone_off' or order.status == 'no_answer' %}s-phone
           {% elif order.status == 'postponed_client' %}s-postponed
           {% elif order.status == 'gov_dept' %}s-gov
           {% elif order.status == 'other_municipal' %}s-other-mun
-          {% else %}s-pending{% endif %}">{{ order.get_status_display }}</span>
+          {% else %}s-pending{% endif %}">
+          <span class="t-ar">{{ order.get_status_display }}</span>
+          <span class="t-en">{{ order.status_en }}</span>
+        </span>
       </div>
       <div class="fw-card-body">
         <div class="fw-card-field">
@@ -373,17 +417,17 @@ td{padding:10px 12px;vertical-align:middle;}
   {% if page_obj.paginator.num_pages > 1 %}
   <div class="fw-pag">
     {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&source={{ source_filter }}&month={{ month_filter }}&q={{ search }}">‹ <span class="t-ar">السابق</span><span class="t-en">Prev</span></a>
+      <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&source={{ source_filter }}&q={{ search }}{% if quick_filter %}&quick={{ quick_filter }}{% endif %}">‹ <span class="t-ar">السابق</span><span class="t-en">Prev</span></a>
     {% endif %}
     {% for num in page_obj.paginator.page_range %}
       {% if page_obj.number == num %}
         <span class="current">{{ num }}</span>
       {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-        <a href="?page={{ num }}&status={{ status_filter }}&source={{ source_filter }}&month={{ month_filter }}&q={{ search }}">{{ num }}</a>
+        <a href="?page={{ num }}&status={{ status_filter }}&source={{ source_filter }}&q={{ search }}{% if quick_filter %}&quick={{ quick_filter }}{% endif %}">{{ num }}</a>
       {% endif %}
     {% endfor %}
     {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&source={{ source_filter }}&month={{ month_filter }}&q={{ search }}"><span class="t-ar">التالي</span><span class="t-en">Next</span> ›</a>
+      <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&source={{ source_filter }}&q={{ search }}{% if quick_filter %}&quick={{ quick_filter }}{% endif %}"><span class="t-ar">التالي</span><span class="t-en">Next</span> ›</a>
     {% endif %}
   </div>
   {% endif %}

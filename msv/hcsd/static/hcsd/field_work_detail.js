@@ -535,7 +535,9 @@ function serializeEntries() {
       });
       prev.style.display = 'flex';
       var n = files.length;
-      status.textContent = n === 1 ? ('تم اختيار: ' + files[0].name) : ('تم اختيار ' + n + ' صور');
+      status.textContent = n === 1
+        ? T('تم اختيار: ', 'Selected: ') + files[0].name
+        : T('تم اختيار ', 'Selected ') + n + T(' صور', ' photos');
       status.style.display = 'block';
     }
   }
@@ -550,19 +552,26 @@ function serializeEntries() {
   if (!btn) return;
   btn.addEventListener('click', function(){
     var status = document.getElementById('loc-status');
+    if (!status) return;
+    if (!navigator.geolocation) {
+      status.style.display = 'inline';
+      status.style.color = '#b91c1c';
+      status.textContent = T('المتصفح لا يدعم خدمة الموقع.','This browser does not support geolocation.');
+      return;
+    }
     status.style.display = 'inline';
-    status.textContent = 'جاري تحديد الموقع…';
+    status.textContent = T('جاري تحديد الموقع…','Getting location…');
     btn.disabled = true;
     navigator.geolocation.getCurrentPosition(
       function(pos){
         document.getElementById('loc-lat').value = pos.coords.latitude;
         document.getElementById('loc-lng').value = pos.coords.longitude;
-        status.textContent = 'تم تحديد الموقع — جاري الحفظ…';
+        status.textContent = T('تم تحديد الموقع — جاري الحفظ…','Location found — saving…');
         document.getElementById('location-form').submit();
       },
       function(){
         status.style.color = '#b91c1c';
-        status.textContent = 'تعذّر تحديد الموقع. تأكد من منح صلاحية الموقع.';
+        status.textContent = T('تعذّر تحديد الموقع. تأكد من منح صلاحية الموقع.','Could not get location. Please allow location access.');
         btn.disabled = false;
       },
       {enableHighAccuracy: true, timeout: 10000}

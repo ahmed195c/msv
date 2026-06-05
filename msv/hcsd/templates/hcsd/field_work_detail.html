@@ -13,7 +13,7 @@
   --mono:'JetBrains Mono',monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);direction:rtl;}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);}
 .fw-page{max-width:800px;margin:0 auto;padding:24px 16px;}
 .fw-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;}
 .fw-header-left h1{font-size:20px;font-weight:700;margin-bottom:4px;}
@@ -57,10 +57,19 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
 .s-gov        {background:#f0f9ff;color:#0369a1;}
 .s-other-mun  {background:#f1f5f9;color:#475569;}
 .s-closed     {background:#fef2f2;color:#991b1b;}
+.s-assigned   {background:#e0e7ff;color:#3730a3;}
+.s-received   {background:#dcfce7;color:#166534;}
+
+/* ── Unified action cards ── */
+.action-card{border-color:var(--border);}
+.action-card-header{background:var(--surface-2);}
+.action-card-title{font-size:15px;font-weight:700;color:var(--ink-1);display:flex;align-items:center;}
+.action-toggle-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--accent-light);color:var(--accent);border:1.5px solid #bfdbfe;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.action-toggle-btn:hover{background:#dbeafe;border-color:#93c5fd;}
 
 .form-group{margin-bottom:16px;}
 .form-label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px;}
-.form-control{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;direction:rtl;background:#fff;color:var(--ink-1);transition:.15s;}
+.form-control{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink-1);transition:.15s;}
 .form-control:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,92,154,.12);}
 textarea.form-control{resize:vertical;min-height:80px;}
 select.form-control{cursor:pointer;}
@@ -110,6 +119,14 @@ select.form-control{cursor:pointer;}
   .info-grid,.form-row{grid-template-columns:1fr;}
   .photo-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
   .sig-grid{grid-template-columns:1fr !important;}
+  .fw-header > div:last-child{width:100%;}
+  .fw-header > div:last-child > *{flex:1;justify-content:center;}
+  .card-header{align-items:flex-start;}
+}
+@media(max-width:480px){
+  .pst-row{flex-wrap:wrap;}
+  .pst-row .pst-qty{width:calc(50% - 22px) !important;}
+  .pst-row .pst-unit{width:calc(50% - 22px) !important;}
 }
 </style>
 
@@ -262,12 +279,14 @@ select.form-control{cursor:pointer;}
     label.textContent = open ? (en ? 'Close' : 'إغلاق') : (en ? 'Edit' : 'تعديل');
   }
   function toggleReportForm() {
-    var body  = document.getElementById('report-form-body');
+    var body = document.getElementById('report-form-body');
     if (!body) return;
-    var open  = body.style.display === 'none';
+    var open = body.style.display === 'none' || body.style.display === '';
     body.style.display = open ? 'block' : 'none';
-    var btn   = document.getElementById('report-btn-label');
-    if (btn) btn.innerHTML = open ? '<span class="t-ar">إغلاق</span><span class="t-en">Close</span>' : '<span class="t-ar">تعديل التقرير</span><span class="t-en">Edit Report</span>';
+    var btn = document.getElementById('report-btn-label');
+    if (btn) btn.innerHTML = open
+      ? '<span class="t-ar">إغلاق</span><span class="t-en">Collapse</span>'
+      : '<span class="t-ar">تعديل التقرير</span><span class="t-en">Edit Report</span>';
   }
   </script>
   {% endif %}
@@ -278,6 +297,8 @@ select.form-control{cursor:pointer;}
       <h2><span class="t-ar">معلومات الأمر</span><span class="t-en">Order Information</span></h2>
       <span class="badge
         {% if order.status == 'completed' %}s-completed
+        {% elif order.status == 'supervisor_assigned' %}s-assigned
+        {% elif order.status == 'order_received' %}s-received
         {% elif order.status == 'private_company' %}s-private
         {% elif order.status == 'cust_declined' %}s-declined
         {% elif order.status == 'wrong_phone' or order.status == 'phone_off' or order.status == 'no_answer' %}s-phone
@@ -286,7 +307,8 @@ select.form-control{cursor:pointer;}
         {% elif order.status == 'other_municipal' %}s-other-mun
         {% elif is_closed %}s-closed
         {% else %}s-cancelled{% endif %}">
-        {{ order.get_status_display }}
+        <span class="t-ar">{{ order.get_status_display }}</span>
+        <span class="t-en">{{ order.status_en }}</span>
       </span>
     </div>
     <div class="card-body">
@@ -416,8 +438,8 @@ select.form-control{cursor:pointer;}
         <div class="info-row">
           <span class="info-label"><span class="t-ar">اكتملت العملية</span><span class="t-en">Completed</span></span>
           <span class="info-value">
-            {% if order.work_completed is True %}✅ نعم
-            {% elif order.work_completed is False %}❌ لا
+            {% if order.work_completed is True %}✅ <span class="t-ar">نعم</span><span class="t-en">Yes</span>
+            {% elif order.work_completed is False %}❌ <span class="t-ar">لا</span><span class="t-en">No</span>
             {% else %}—{% endif %}
           </span>
         </div>
@@ -553,27 +575,29 @@ select.form-control{cursor:pointer;}
 
   {% if can_assign and not is_closed and not order.received_by %}
   <!-- Assign Supervisor -->
-  <div class="card" style="border-color:#e9d5ff;">
-    <div class="card-header" style="background:#faf5ff;">
-      <h2 style="color:#6d28d9;">
+  <div class="card action-card">
+    <div class="card-header action-card-header">
+      <h2 class="action-card-title">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:6px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span class="t-ar">تعيين المراقب</span><span class="t-en">Assign Supervisor</span>
       </h2>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
         {% if order.assigned_supervisor %}
-        <span style="font-size:12px;color:#6d28d9;font-weight:600;">
-          معيَّن: {{ order.assigned_supervisor.get_full_name|default:order.assigned_supervisor.username }}
+        <span style="font-size:12px;color:var(--ink-2);font-weight:600;">
+          <span class="t-ar">معيَّن:</span><span class="t-en">Assigned:</span>
+          {{ order.assigned_supervisor.get_full_name|default:order.assigned_supervisor.username }}
           {% if order.assigned_at %}— {{ order.assigned_at|date:"d/m/Y" }}{% endif %}
         </span>
         {% endif %}
         {% if order.received_by %}
-        <span style="font-size:12px;color:#0369a1;font-weight:600;">
-          استلم: {{ order.received_by.get_full_name|default:order.received_by.username }}
+        <span style="font-size:12px;color:var(--ink-2);font-weight:600;">
+          <span class="t-ar">استلم:</span><span class="t-en">Received by:</span>
+          {{ order.received_by.get_full_name|default:order.received_by.username }}
           {% if order.received_at %}— {{ order.received_at|date:"d/m/Y" }}{% endif %}
         </span>
         {% endif %}
         {% if not order.assigned_supervisor and not order.received_by %}
-        <span style="font-size:12px;color:#9ca3af;">لم يُعيَّن مراقب بعد</span>
+        <span style="font-size:12px;color:var(--ink-4);"><span class="t-ar">لم يُعيَّن مراقب بعد</span><span class="t-en">No supervisor assigned yet</span></span>
         {% endif %}
       </div>
     </div>
@@ -584,7 +608,7 @@ select.form-control{cursor:pointer;}
         <div class="form-group" style="margin:0;flex:1;min-width:200px;">
           <label class="form-label"><span class="t-ar">اختر المراقب</span><span class="t-en">Select Supervisor</span></label>
           <select name="supervisor_id" class="form-control">
-            <option value="">— إلغاء التعيين —</option>
+            <option value="">— <span class="t-ar">إلغاء التعيين</span><span class="t-en">Unassign</span> —</option>
             {% for u in fw_supervisor_users %}
             <option value="{{ u.pk }}" {% if order.assigned_supervisor_id == u.pk %}selected{% endif %}>
               {{ u.get_full_name|default:u.username }}
@@ -600,23 +624,23 @@ select.form-control{cursor:pointer;}
 
   {% if can_submit_report and not is_closed %}
   <!-- Postpone card -->
-  <div class="card" style="border-color:#fed7aa;">
-    <div class="card-header" style="background:#fff7ed;">
-      <h2 style="color:#c2410c;">
+  <div class="card action-card">
+    <div class="card-header action-card-header">
+      <h2 class="action-card-title">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         <span class="t-ar">تأجيل الموعد</span><span class="t-en">Postpone Appointment</span>
       </h2>
-      <button type="button" onclick="var b=document.getElementById('postpone-body');b.style.display=b.style.display==='none'?'block':'none';"
-        style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#fff7ed;color:#c2410c;border:1.5px solid #fed7aa;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;">
+      <button type="button" onclick="var b=document.getElementById('postpone-body');b.style.display=b.style.display==='none'?'block':'none';" class="action-toggle-btn">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        تأجيل
+        <span class="t-ar">تأجيل</span><span class="t-en">Postpone</span>
       </button>
     </div>
     <div id="postpone-body" style="display:none;">
       <div class="card-body">
         {% if order.postponed_until %}
-        <div style="margin-bottom:12px;padding:8px 12px;background:#fff7ed;border-radius:7px;font-size:13px;color:#92400e;">
-          آخر تأجيل: <strong>{{ order.postponed_until|date:"d/m/Y" }}</strong>
+        <div style="margin-bottom:12px;padding:8px 12px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:7px;font-size:13px;color:var(--ink-2);">
+          <span class="t-ar">آخر تأجيل:</span><span class="t-en">Last postponed:</span>
+          <strong>{{ order.postponed_until|date:"d/m/Y" }}</strong>
         </div>
         {% endif %}
         <form method="post" novalidate>
@@ -630,7 +654,7 @@ select.form-control{cursor:pointer;}
           </div>
           <input type="hidden" name="postpone_notes" value="Rescheduled by customer request">
           <div class="form-actions">
-            <button type="submit" class="btn" style="background:#ea580c;color:#fff;border-color:#ea580c;">
+            <button type="submit" class="btn btn-primary">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               <span class="t-ar">تأكيد التأجيل</span><span class="t-en">Confirm Postponement</span>
             </button>
@@ -643,16 +667,15 @@ select.form-control{cursor:pointer;}
 
   {% if can_close %}
   <!-- Close Request -->
-  <div class="card" style="border-color:#fca5a5;">
-    <div class="card-header" style="background:#fef2f2;">
-      <h2 style="color:#991b1b;">
+  <div class="card action-card">
+    <div class="card-header action-card-header">
+      <h2 class="action-card-title">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:6px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
         <span class="t-ar">إغلاق الطلب</span><span class="t-en">Close Request</span>
       </h2>
-      <button type="button" onclick="toggleCloseForm()" id="btn-toggle-close"
-        style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;">
+      <button type="button" onclick="toggleCloseForm()" id="btn-toggle-close" class="action-toggle-btn">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-        <span id="close-btn-label">إغلاق</span>
+        <span id="close-btn-label"><span class="t-ar">إغلاق</span><span class="t-en">Close</span></span>
       </button>
     </div>
     <div id="close-form-body" style="display:none;">
@@ -681,8 +704,8 @@ select.form-control{cursor:pointer;}
                 <div class="img-drop-icon">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
                 </div>
-                <div class="img-drop-title">اسحب الصورة هنا أو <span>اضغط للاختيار</span></div>
-                <div class="img-drop-hint">JPG أو PNG</div>
+                <div class="img-drop-title"><span class="t-ar">اسحب الصورة هنا أو <span style="color:var(--accent);text-decoration:underline;">اضغط للاختيار</span></span><span class="t-en">Drag image here or <span style="color:var(--accent);text-decoration:underline;">click to select</span></span></div>
+                <div class="img-drop-hint">JPG / PNG</div>
               </div>
               <input type="file" name="closure_proof" accept=".jpg,.jpeg,.png" required id="inp-closure">
               <div class="img-preview-list" id="prev-closure" style="display:none;"></div>
@@ -708,8 +731,9 @@ select.form-control{cursor:pointer;}
     var label = document.getElementById('close-btn-label');
     var open  = body.style.display === 'none';
     body.style.display = open ? 'block' : 'none';
-    var en = (document.documentElement.getAttribute('data-lang') || 'ar') === 'en';
-    label.textContent = open ? (en ? 'Collapse' : 'طي') : (en ? 'Close' : 'إغلاق');
+    label.innerHTML = open
+      ? '<span class="t-ar">طي</span><span class="t-en">Collapse</span>'
+      : '<span class="t-ar">إغلاق</span><span class="t-en">Close</span>';
   }
   </script>
   {% endif %}{# can_close #}
@@ -717,29 +741,30 @@ select.form-control{cursor:pointer;}
   {% if can_submit_report and not is_closed or can_submit_report and can_admin %}
 
   <!-- Location Card -->
-  <div class="card" style="border-color:#d1fae5;">
-    <div class="card-header" style="background:#f0fdf4;">
-      <h2 style="color:#166534;">
+  <div class="card action-card">
+    <div class="card-header action-card-header">
+      <h2 class="action-card-title">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:6px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         <span class="t-ar">حفظ الموقع</span><span class="t-en">Save Location</span>
       </h2>
       {% if order.gps_lat %}
-      <span style="font-size:11.5px;color:#166534;font-weight:500;">
-        تم الحفظ {{ order.location_saved_at|date:"d/m/Y H:i" }}
+      <span style="font-size:11.5px;color:var(--ink-3);font-weight:500;">
+        <span class="t-ar">تم الحفظ</span><span class="t-en">Saved</span>
+        {{ order.location_saved_at|date:"d/m/Y H:i" }}
         {% if order.location_saved_by %} — {{ order.location_saved_by.get_full_name|default:order.location_saved_by.username }}{% endif %}
       </span>
       {% endif %}
     </div>
     <div class="card-body">
       {% if order.gps_lat %}
-      <div style="margin-bottom:14px;padding:10px 14px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;font-size:13px;color:#166534;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div style="margin-bottom:14px;padding:10px 14px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--ink-2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <span>
           <strong><span class="t-ar">الإحداثيات:</span><span class="t-en">Coordinates:</span></strong>
           <span style="font-family:var(--mono);">{{ order.gps_lat|floatformat:6 }}, {{ order.gps_lng|floatformat:6 }}</span>
         </span>
         <a href="https://www.google.com/maps?q={{ order.gps_lat }},{{ order.gps_lng }}"
            target="_blank" rel="noopener"
-           style="font-size:12px;color:#166534;font-weight:700;text-decoration:underline;">
+           style="font-size:12px;color:var(--accent);font-weight:700;text-decoration:underline;">
           <span class="t-ar">عرض على الخريطة</span><span class="t-en">View on Map</span> ↗
         </a>
       </div>
@@ -751,12 +776,27 @@ select.form-control{cursor:pointer;}
         <input type="hidden" name="lng" id="loc-lng">
         <button type="button" id="btn-get-location" class="btn btn-success" style="gap:8px;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span id="loc-btn-label">{% if order.gps_lat %}تحديث الموقع{% else %}حفظ الموقع الحالي{% endif %}</span>
+          <span id="loc-btn-label">{% if order.gps_lat %}<span class="t-ar">تحديث الموقع</span><span class="t-en">Update Location</span>{% else %}<span class="t-ar">حفظ الموقع الحالي</span><span class="t-en">Save Current Location</span>{% endif %}</span>
         </button>
         <span id="loc-status" style="font-size:13px;color:var(--ink-3);margin-right:10px;display:none;"></span>
       </form>
     </div>
   </div>
+
+  <script>
+  if (typeof toggleReportForm === 'undefined') {
+    function toggleReportForm() {
+      var body = document.getElementById('report-form-body');
+      if (!body) return;
+      var open = body.style.display === 'none' || body.style.display === '';
+      body.style.display = open ? 'block' : 'none';
+      var btn = document.getElementById('report-btn-label');
+      if (btn) btn.innerHTML = open
+        ? '<span class="t-ar">إغلاق</span><span class="t-en">Collapse</span>'
+        : '<span class="t-ar">تعديل التقرير</span><span class="t-en">Edit Report</span>';
+    }
+  }
+  </script>
 
   <!-- Supervisor Report -->
   <div class="card" style="border-color:#bfdbfe;">
@@ -767,15 +807,20 @@ select.form-control{cursor:pointer;}
       </h2>
       {% if order.report_submitted_at %}
       <span style="font-size:11.5px;color:#1d4ed8;font-weight:500;">
-        آخر تحديث: {{ order.report_submitted_at|date:"d/m/Y H:i" }}
+        <span class="t-ar">آخر تحديث:</span><span class="t-en">Last updated:</span>
+        {{ order.report_submitted_at|date:"d/m/Y H:i" }}
         {% if order.report_submitted_by %} — {{ order.report_submitted_by.get_full_name|default:order.report_submitted_by.username }}{% endif %}
       </span>
       {% endif %}
-      <button type="button" onclick="toggleReportForm()" id="btn-toggle-report"
-        style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        <span id="report-btn-label"><span class="t-ar">تعديل التقرير</span><span class="t-en">Edit Report</span></span>
-      </button>
+      {% if can_submit_report or can_admin %}
+        {% if order.report_submitted_at %}
+        <button type="button" onclick="toggleReportForm()" id="btn-toggle-report"
+          style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span id="report-btn-label"><span class="t-ar">تعديل التقرير</span><span class="t-en">Edit Report</span></span>
+        </button>
+        {% endif %}
+      {% endif %}
     </div>
 
     {% if order.report_submitted_at %}
@@ -893,7 +938,8 @@ select.form-control{cursor:pointer;}
     {% endif %}
 
     {% if not is_closed or can_admin and is_closed %}
-    <div id="report-form-body" style="display:none;">
+    <div id="report-form-body" style="display:{% if not order.report_submitted_at %}block{% else %}none{% endif %};">
+
     {% if is_closed and can_admin %}
     <div style="padding:8px 18px;background:#fef9c3;border-bottom:1.5px solid #fde047;font-size:12px;font-weight:700;color:#92400e;">
       Admin Edit — this order is closed. Saving will update the report data.
@@ -960,7 +1006,7 @@ select.form-control{cursor:pointer;}
               <canvas id="client-sig-canvas" width="320" height="130"
                 style="display:block;width:100%;height:130px;border-radius:8px;touch-action:none;"></canvas>
               <button type="button" onclick="clearSig('client')"
-                style="position:absolute;top:6px;left:6px;padding:3px 10px;font-size:11px;background:#fff;border:1px solid #e2e8f0;border-radius:5px;cursor:pointer;color:#64748b;">مسح</button>
+                style="position:absolute;top:6px;left:6px;padding:3px 10px;font-size:11px;background:#fff;border:1px solid #e2e8f0;border-radius:5px;cursor:pointer;color:#64748b;"><span class="t-ar">مسح</span><span class="t-en">Clear</span></button>
             </div>
           </div>
 
@@ -977,7 +1023,7 @@ select.form-control{cursor:pointer;}
               <canvas id="supervisor-sig-canvas" width="320" height="130"
                 style="display:block;width:100%;height:130px;border-radius:8px;touch-action:none;"></canvas>
               <button type="button" onclick="clearSig('supervisor')"
-                style="position:absolute;top:6px;left:6px;padding:3px 10px;font-size:11px;background:#fff;border:1px solid #e2e8f0;border-radius:5px;cursor:pointer;color:#64748b;">مسح</button>
+                style="position:absolute;top:6px;left:6px;padding:3px 10px;font-size:11px;background:#fff;border:1px solid #e2e8f0;border-radius:5px;cursor:pointer;color:#64748b;"><span class="t-ar">مسح</span><span class="t-en">Clear</span></button>
             </div>
           </div>
 
@@ -998,6 +1044,7 @@ select.form-control{cursor:pointer;}
             <input type="file" name="report_photos" multiple accept=".jpg,.jpeg,.png" id="inp-report-photos">
             <div class="img-drop-status" id="status-report-photos"></div>
           </div>
+          <div class="img-preview-list" id="prev-report-photos" style="display:none;"></div>
         </div>
 
         <div class="form-actions">
@@ -1040,6 +1087,60 @@ select.form-control{cursor:pointer;}
   {% endif %}
 
 </section>
+
+{% if order_logs %}
+<section class="fw-section" style="margin-top:24px;">
+  <h2 class="fw-section-title"><span class="t-ar">سجل التغييرات</span><span class="t-en">Change Log</span></h2>
+  <div class="fw-log-timeline">
+    {% for log in order_logs %}
+    <div class="fw-log-item">
+      <div class="fw-log-dot
+        {% if log.action == 'completed' %}fw-log-dot--green
+        {% elif log.action == 'closed' %}fw-log-dot--red
+        {% elif log.action == 'postponed' %}fw-log-dot--orange
+        {% elif log.action in 'assigned,reassigned' %}fw-log-dot--blue
+        {% else %}fw-log-dot--gray{% endif %}">
+      </div>
+      <div class="fw-log-body">
+        <div class="fw-log-action">{{ log.get_action_display }}</div>
+        <div class="fw-log-meta">
+          {% if log.actor %}{{ log.actor.get_full_name|default:log.actor.username }}{% else %}—{% endif %}
+          &nbsp;·&nbsp;
+          {{ log.timestamp|date:"d/m/Y H:i" }}
+        </div>
+        {% if log.from_value or log.to_value %}
+        <div class="fw-log-change">
+          {% if log.from_value %}<span class="fw-log-from">{{ log.from_value }}</span>{% endif %}
+          {% if log.from_value and log.to_value %}<span class="fw-log-arrow">←</span>{% endif %}
+          {% if log.to_value %}<span class="fw-log-to">{{ log.to_value }}</span>{% endif %}
+        </div>
+        {% endif %}
+        {% if log.note %}<div class="fw-log-note">{{ log.note }}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+<style>
+.fw-log-timeline { display:flex; flex-direction:column; gap:0; }
+.fw-log-item { display:flex; gap:14px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--line,#e5e7eb); }
+.fw-log-item:last-child { border-bottom:none; }
+.fw-log-dot { width:10px; height:10px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+.fw-log-dot--green  { background:#16a34a; }
+.fw-log-dot--red    { background:#dc2626; }
+.fw-log-dot--orange { background:#ea580c; }
+.fw-log-dot--blue   { background:#2563eb; }
+.fw-log-dot--gray   { background:#94a3b8; }
+.fw-log-body { flex:1; min-width:0; }
+.fw-log-action { font-size:13px; font-weight:600; color:#1e293b; }
+.fw-log-meta { font-size:11px; color:#94a3b8; margin-top:2px; }
+.fw-log-change { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
+.fw-log-from { font-size:12px; background:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:4px; }
+.fw-log-to   { font-size:12px; background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:4px; }
+.fw-log-arrow { font-size:12px; color:#94a3b8; }
+.fw-log-note { font-size:12px; color:#64748b; margin-top:3px; font-style:italic; }
+</style>
+{% endif %}
 
 <script>window.FW_CONFIG={pk:{{ order.pk }},hasBuildingType:{{ order.building_type|yesno:'true,false' }}};</script>
 <script src="{% static 'hcsd/field_work_detail.js' %}"></script>

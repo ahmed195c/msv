@@ -16,21 +16,35 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from ..models import FieldWorkOrder, FieldWorkPhoto, FieldWorkSupervisorArea, FieldWorkSupervisorProfile
+from ..models import FieldWorkOrder, FieldWorkOrderLog, FieldWorkPhoto, FieldWorkSupervisorArea, FieldWorkSupervisorProfile
 from .common import _can_admin, _can_data_entry, _can_fw_supervise, _fw_supervisor_users_qs
 
 logger = logging.getLogger(__name__)
 
+_STATUS_LABELS = dict(FieldWorkOrder.STATUS_CHOICES)
+
+
+def _fw_log(order, action, actor, from_value='', to_value='', note=''):
+    FieldWorkOrderLog.objects.create(
+        order=order, action=action, actor=actor,
+        from_value=from_value, to_value=to_value, note=note,
+    )
+
+
 ALLOWED_PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
 
 _FW_CLOSED_STATUSES = frozenset({
-    'completed', 'other_municipal',
+    'completed',
+    'private_company', 'cust_declined', 'wrong_phone', 'phone_off', 'no_answer',
+    'other_municipal',
     'closed_private_building', 'closed_no_answer', 'closed_other_municipal',
     'closed_observation', 'closed_low_infestation', 'closed_moderate_infestation',
     'closed_high_infestation', 'closed_out_of_service', 'closed_customer_refused',
     'closed_mobile_off', 'closed_not_attending', 'closed_not_available',
     'closed_scheduled_client',
 })
+# Closed without completion (refused, no answer, etc.) — excludes 'completed'
+_FW_TRULY_CLOSED = _FW_CLOSED_STATUSES - {'completed'}
 
 
 # ---------------------------------------------------------------------------
@@ -40,14 +54,17 @@ _FW_CLOSED_STATUSES = frozenset({
 @login_required
 def field_work_list(request):
     from django.core.paginator import Paginator
-    from django.db.models import Q
+    from django.db.models import Q, Case, When, IntegerField
 
-    can_admin     = _can_admin(request.user)
+    can_admin      = _can_admin(request.user)
     can_data_entry = _can_data_entry(request.user)
 
     status_filter = (request.GET.get('status') or 'all').strip()
     source_filter = (request.GET.get('source') or 'all').strip()
     search        = (request.GET.get('q')      or '').strip()
+    quick_filter  = (request.GET.get('quick')  or '').strip()
+
+    _CLOSED_STATUSES = [s for s, _ in FieldWorkOrder.STATUS_CHOICES if s.startswith('closed_')]
 
     orders = FieldWorkOrder.objects.only(
         'id', 'order_number', 'customer_name', 'site_name',
@@ -58,19 +75,32 @@ def field_work_list(request):
 
     # Supervisors see only their area orders + directly assigned/received
     if _can_fw_supervise(request.user) and not _can_admin(request.user) and not _can_data_entry(request.user):
-        from django.db.models import Q as _Q
         my_areas = list(
             FieldWorkSupervisorArea.objects.filter(supervisor=request.user)
             .values_list('area', flat=True)
         )
         orders = orders.filter(
-            _Q(area__in=my_areas)
-            | _Q(assigned_supervisor=request.user)
-            | _Q(received_by=request.user)
+            Q(area__in=my_areas)
+            | Q(assigned_supervisor=request.user)
+            | Q(received_by=request.user)
         ).distinct()
 
-    if status_filter != 'all':
+    # Quick filter overrides the status dropdown
+    if quick_filter == 'new':
+        orders = orders.filter(status__in=['new', 'supervisor_assigned'])
+    elif quick_filter == 'received':
+        orders = orders.filter(status='order_received')
+    elif quick_filter == 'completed':
+        orders = orders.filter(status='completed')
+    elif quick_filter == 'closed':
+        orders = orders.filter(status__in=_FW_TRULY_CLOSED)
+    elif quick_filter == 'postponed':
+        orders = orders.filter(status='postponed_client')
+    elif status_filter == 'closed':
+        orders = orders.filter(status__in=_FW_TRULY_CLOSED)
+    elif status_filter != 'all':
         orders = orders.filter(status=status_filter)
+
     if source_filter != 'all':
         orders = orders.filter(source=source_filter)
     if search:
@@ -84,11 +114,23 @@ def field_work_list(request):
             | Q(site_name__icontains=search)
         )
 
+    # Default ordering: new first → received → completed/closed, then newest within each group
+    orders = orders.annotate(
+        _priority=Case(
+            When(status__in=['new', 'supervisor_assigned'], then=0),
+            When(status='order_received', then=1),
+            When(status='completed', then=2),
+            default=3,
+            output_field=IntegerField(),
+        )
+    ).order_by('_priority', '-created_at', '-pk')
+
     paginator = Paginator(orders, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    status_options = [('all', 'كل الحالات')] + list(FieldWorkOrder.STATUS_CHOICES)
+    _active_choices = [(v, l) for v, l in FieldWorkOrder.STATUS_CHOICES if v not in _FW_TRULY_CLOSED]
+    status_options = [('all', 'كل الحالات — All')] + _active_choices + [('closed', 'مغلق — Closed')]
 
     return render(request, 'hcsd/field_work_list.html', {
         'page_obj':       page_obj,
@@ -97,6 +139,7 @@ def field_work_list(request):
         'status_filter':  status_filter,
         'source_filter':  source_filter,
         'search':         search,
+        'quick_filter':   quick_filter,
         'status_options': status_options,
         'total_count':    paginator.count,
     })
@@ -114,24 +157,60 @@ def field_work_create(request):
     errors = []
 
     if request.method == 'POST':
-        site_name = (request.POST.get('site_name') or '').strip()
-        work_type = (request.POST.get('work_type') or '').strip()
-        location = (request.POST.get('location') or '').strip()
-        description = (request.POST.get('description') or '').strip()
-        work_date = (request.POST.get('work_date') or '').strip() or None
-        notes = (request.POST.get('notes') or '').strip()
+        import datetime as _dt_cls
+        get = lambda k: (request.POST.get(k) or '').strip()
 
-        if not work_type:
-            errors.append('يرجى إدخال نوع العمل.')
+        order_number      = get('order_number')
+        customer_name     = get('customer_name')
+        mobile            = get('mobile')
+        area              = get('area')
+        street_number     = get('street_number')
+        house_number      = get('house_number')
+        pest_types        = get('pest_types')
+        supervisor_name   = get('supervisor_name')
+        worker_name       = get('worker_name')
+        request_date_raw  = get('request_date')
+        work_date_raw     = get('work_date')
+        close_date_raw    = get('close_date')
+        excel_status      = get('excel_status')
+        excel_status_note = get('excel_status_note')
+        month_sheet       = get('month_sheet')
+        site_name         = get('site_name')
+        location          = get('location')
+        notes             = get('notes')
+
+        if not customer_name and not order_number:
+            errors.append('يرجى إدخال اسم المتعامل أو رقم الطلب على الأقل.')
+
+        def _parse_date(s):
+            if not s:
+                return None
+            try:
+                return _dt_cls.date.fromisoformat(s)
+            except ValueError:
+                return None
 
         if not errors:
             order = FieldWorkOrder.objects.create(
+                order_number=order_number,
+                customer_name=customer_name,
+                mobile=mobile,
+                area=area,
+                street_number=street_number,
+                house_number=house_number,
+                pest_types=pest_types,
+                supervisor_name=supervisor_name,
+                worker_name=worker_name,
+                request_date=_parse_date(request_date_raw),
+                work_date=_parse_date(work_date_raw),
+                close_date=_parse_date(close_date_raw),
+                excel_status=excel_status,
+                excel_status_note=excel_status_note,
+                month_sheet=month_sheet,
                 site_name=site_name,
-                work_type=work_type,
                 location=location,
-                description=description,
-                work_date=work_date,
                 notes=notes,
+                source='manual',
                 created_by=request.user,
             )
             return redirect('field_work_detail', pk=order.pk)
@@ -152,7 +231,8 @@ def field_work_detail(request, pk):
         FieldWorkOrder.objects.select_related(
             'created_by', 'assigned_supervisor', 'received_by',
             'report_submitted_by', 'report_submitted_by__fw_supervisor_profile',
-        ).prefetch_related('photos'), pk=pk
+            'location_saved_by',
+        ).prefetch_related('photos', 'logs__actor'), pk=pk
     )
     can_admin = _can_admin(request.user)
     can_data_entry = _can_data_entry(request.user)
@@ -183,25 +263,43 @@ def field_work_detail(request, pk):
         if action == 'receive_order' and is_fw_supervisor and order.status != 'completed':
             order.received_by = request.user
             order.received_at = timezone.now()
-            order.save(update_fields=['received_by', 'received_at'])
+            save_fields = ['received_by', 'received_at']
+            if order.status not in ('completed',):
+                order.status = 'order_received'
+                save_fields.append('status')
+            order.save(update_fields=save_fields)
+            _fw_log(order, 'received', request.user)
             success = 'تم استلام متابعة الأمر.'
 
         # ── Assign supervisor ────────────────────────────────────────────────
         elif action == 'assign_supervisor' and can_assign:
             sup_id = (request.POST.get('supervisor_id') or '').strip()
+            old_sup = order.assigned_supervisor
+            old_label = old_sup.get_full_name() or old_sup.username if old_sup else ''
             if sup_id == '':
                 order.assigned_supervisor = None
                 order.assigned_at = None
-                order.save(update_fields=['assigned_supervisor', 'assigned_at'])
+                save_fields = ['assigned_supervisor', 'assigned_at']
+                if order.status in ('supervisor_assigned', 'pending'):
+                    order.status = 'new'
+                    save_fields.append('status')
+                order.save(update_fields=save_fields)
+                _fw_log(order, 'unassigned', request.user, from_value=old_label)
                 success = 'تم إلغاء تعيين المراقب.'
             else:
                 try:
-                    from django.contrib.auth.models import User as _User
                     sup_user = _fw_supervisor_users_qs().get(pk=int(sup_id))
+                    log_action = 'reassigned' if old_sup else 'assigned'
                     order.assigned_supervisor = sup_user
                     order.assigned_at = timezone.now()
-                    order.save(update_fields=['assigned_supervisor', 'assigned_at'])
-                    success = f'تم تعيين {sup_user.get_full_name() or sup_user.username} مراقباً للأمر.'
+                    save_fields = ['assigned_supervisor', 'assigned_at']
+                    if order.status in ('new', 'pending'):
+                        order.status = 'supervisor_assigned'
+                        save_fields.append('status')
+                    order.save(update_fields=save_fields)
+                    new_label = sup_user.get_full_name() or sup_user.username
+                    _fw_log(order, log_action, request.user, from_value=old_label, to_value=new_label)
+                    success = f'تم تعيين {new_label} مراقباً للأمر.'
                 except (ValueError, Exception):
                     errors.append('المراقب المختار غير صالح.')
 
@@ -273,10 +371,14 @@ def field_work_detail(request, pk):
             if new_status not in valid_statuses:
                 errors.append('حالة غير صحيحة.')
             else:
+                old_status = order.status
                 order.status = new_status
                 if new_status in ('completed', 'incomplete'):
                     order.work_completed = (new_status == 'completed')
                 order.save(update_fields=['status', 'work_completed'])
+                _fw_log(order, 'status_changed', request.user,
+                        from_value=_STATUS_LABELS.get(old_status, old_status),
+                        to_value=_STATUS_LABELS.get(new_status, new_status))
                 success = 'تم تحديث الحالة.'
 
         # ── Upload photos ────────────────────────────────────────────────────
@@ -386,6 +488,7 @@ def field_work_detail(request, pk):
                     file=photo, uploaded_by=request.user,
                 )
             photos_all = order.photos.order_by('uploaded_at')
+            _fw_log(order, 'completed', request.user)
             success = 'تم حفظ تقرير المراقب — الحالة: تم إنجاز الخدمة.'
 
         elif action == 'postpone_order' and can_submit_report:
@@ -405,6 +508,9 @@ def field_work_detail(request, pk):
                 if postpone_notes:
                     order.supervisor_notes = postpone_notes
                 order.save(update_fields=['status', 'postponed_until', 'supervisor_notes'])
+                _fw_log(order, 'postponed', request.user,
+                        to_value=postponed_until.strftime('%d/%m/%Y'),
+                        note=postpone_notes)
                 success = f'تم تأجيل الموعد إلى {postponed_until.strftime("%d/%m/%Y")}.'
 
         # ── Close request ───────────────────────────────────────────────────
@@ -438,6 +544,8 @@ def field_work_detail(request, pk):
                         'status', 'close_date', 'no_answer_screenshot',
                         'report_submitted_by', 'report_submitted_at',
                     ])
+                    _fw_log(order, 'closed', request.user,
+                            to_value=_STATUS_LABELS.get(close_reason, close_reason))
                     success = 'تم إغلاق الطلب بنجاح.'
 
         # ── Reopen closed order ──────────────────────────────────────────────
@@ -445,13 +553,16 @@ def field_work_detail(request, pk):
             if order.status not in _FW_CLOSED_STATUSES:
                 errors.append('الطلب ليس مغلقاً.')
             else:
-                order.status             = 'pending'
+                old_status_label = _STATUS_LABELS.get(order.status, order.status)
+                order.status             = 'new'
                 order.close_date         = None
                 order.report_submitted_at = None
                 order.report_submitted_by = None
                 order.save(update_fields=[
                     'status', 'close_date', 'report_submitted_at', 'report_submitted_by',
                 ])
+                _fw_log(order, 'status_changed', request.user,
+                        from_value=old_status_label, to_value='إعادة فتح')
                 success = 'تم إعادة فتح الطلب — الحالة: قيد الانتظار.'
 
         # ── Delete photo ─────────────────────────────────────────────────────
@@ -492,6 +603,7 @@ def field_work_detail(request, pk):
         'success': success,
         'building_type_choices': _BUILDING_TYPE_CHOICES,
         'today_date': _date.today().isoformat(),
+        'order_logs': order.logs.all(),
     })
 
 
@@ -1705,11 +1817,11 @@ def field_work_supervisors(request):
         .annotate(
             active_count=Count(
                 'field_work_assigned',
-                filter=~Q(field_work_assigned__status='completed'),
+                filter=~Q(field_work_assigned__status__in=_FW_CLOSED_STATUSES),
                 distinct=True,
             ) + Count(
                 'field_work_received',
-                filter=~Q(field_work_received__status='completed'),
+                filter=~Q(field_work_received__status__in=_FW_CLOSED_STATUSES),
                 distinct=True,
             ),
         )
@@ -1795,6 +1907,28 @@ def field_work_supervisors(request):
             except (ValueError, Exception):
                 error = 'تعذّر الحذف.'
 
+        elif action == 'bulk_reassign' and _can_admin(request.user):
+            from django.utils import timezone as _tz
+            order_ids_raw = request.POST.getlist('order_ids')
+            new_sup_id    = (request.POST.get('new_supervisor_id') or '').strip()
+            try:
+                order_ids = [int(i) for i in order_ids_raw if i.strip()]
+                new_sup   = _fw_supervisor_users_qs().get(pk=int(new_sup_id))
+                if order_ids:
+                    FieldWorkOrder.objects.filter(pk__in=order_ids).update(
+                        assigned_supervisor=new_sup,
+                        assigned_at=_tz.now(),
+                        received_by=None,
+                        received_at=None,
+                        status='supervisor_assigned',
+                    )
+                    name = new_sup.get_full_name() or new_sup.username
+                    success = f'تم إعادة تعيين {len(order_ids)} أمر للمراقب {name}.'
+                else:
+                    error = 'لم يتم تحديد أي أوامر.'
+            except (ValueError, Exception):
+                error = 'حدث خطأ أثناء إعادة التعيين.'
+
         if not error:
             return redirect('field_work_supervisors')
 
@@ -1804,11 +1938,153 @@ def field_work_supervisors(request):
     except (ValueError, TypeError):
         sel_sup_id = None
 
+    # Build active-orders map for the drawer panel
+    from collections import defaultdict
+    _status_labels = dict(FieldWorkOrder.STATUS_CHOICES)
+
+    _active = list(
+        FieldWorkOrder.objects.filter(~Q(status__in=_FW_CLOSED_STATUSES))
+        .values('id', 'order_number', 'customer_name', 'site_name',
+                'area', 'status', 'assigned_supervisor_id', 'received_by_id')
+    )
+    _sup_orders = defaultdict(list)
+    _seen = set()
+    for o in _active:
+        entry = {
+            'id':     o['id'],
+            'num':    o['order_number'] or str(o['id']),
+            'name':   o['customer_name'] or o['site_name'] or '—',
+            'area':   o['area'] or '—',
+            'status': _status_labels.get(o['status'], o['status']),
+        }
+        for sid in {o['assigned_supervisor_id'], o['received_by_id']}:
+            if sid and (sid, o['id']) not in _seen:
+                _seen.add((sid, o['id']))
+                _sup_orders[sid].append(entry)
+
     return render(request, 'hcsd/field_work_supervisors.html', {
-        'supervisors': supervisors,
-        'existing_areas': existing_areas,
-        'fw_supervisor_users': _fw_supervisor_users_qs(),
-        'error': error,
-        'success': success,
-        'sel_sup_id': sel_sup_id,
+        'supervisors':          supervisors,
+        'existing_areas':       existing_areas,
+        'fw_supervisor_users':  _fw_supervisor_users_qs(),
+        'error':                error,
+        'success':              success,
+        'sel_sup_id':           sel_sup_id,
+        'sup_orders_json':      dict(_sup_orders),
+    })
+
+
+# ---------------------------------------------------------------------------
+# Supervisor order history
+# ---------------------------------------------------------------------------
+
+@login_required
+def field_work_supervisor_orders(request, pk):
+    from django.core.paginator import Paginator
+    from django.db.models import Q, Count
+    from django.contrib.auth.models import User
+
+    is_admin      = _can_admin(request.user)
+    is_data_entry = _can_data_entry(request.user)
+    is_self       = request.user.pk == pk
+
+    if not (is_admin or is_data_entry or is_self):
+        return redirect('field_work_list')
+
+    supervisor = get_object_or_404(
+        User.objects.prefetch_related('fw_supervisor_profile'), pk=pk
+    )
+
+    status_filter = (request.GET.get('status') or 'all').strip()
+    search_q      = (request.GET.get('q')       or '').strip()
+    reassigned    = request.GET.get('reassigned')
+
+    # POST: bulk reassign active orders to another supervisor
+    if request.method == 'POST' and (is_admin or is_data_entry):
+        from django.utils import timezone as _tz
+        order_ids_raw = request.POST.getlist('order_ids')
+        new_sup_id    = (request.POST.get('new_supervisor_id') or '').strip()
+        sf  = (request.POST.get('status_filter') or 'all').strip()
+        q   = (request.POST.get('q') or '').strip()
+        try:
+            order_ids = [int(i) for i in order_ids_raw if i.strip()]
+            new_sup   = _fw_supervisor_users_qs().get(pk=int(new_sup_id))
+            updated   = (
+                FieldWorkOrder.objects
+                .filter(pk__in=order_ids)
+                .exclude(status__in=_FW_CLOSED_STATUSES)
+                .update(
+                    assigned_supervisor=new_sup,
+                    assigned_at=_tz.now(),
+                    received_by=None,
+                    received_at=None,
+                    status='supervisor_assigned',
+                )
+            )
+        except Exception:
+            updated = 0
+        from urllib.parse import urlencode
+        params = urlencode({k: v for k, v in {
+            'status': sf, 'q': q, 'reassigned': updated,
+        }.items() if v})
+        return redirect(
+            reverse('field_work_supervisor_orders', kwargs={'pk': pk}) + f'?{params}'
+        )
+
+    qs = (
+        FieldWorkOrder.objects
+        .filter(Q(assigned_supervisor_id=pk) | Q(received_by_id=pk))
+        .only(
+            'id', 'order_number', 'customer_name', 'site_name',
+            'area', 'mobile', 'status', 'request_date', 'work_date',
+            'assigned_at', 'received_at', 'created_at', 'source',
+        )
+        .order_by('-created_at', '-pk')
+    )
+
+    if status_filter == 'closed':
+        qs = qs.filter(status__in=_FW_TRULY_CLOSED)
+    elif status_filter != 'all':
+        qs = qs.filter(status=status_filter)
+    if search_q:
+        from django.db.models import Q as _Q
+        qs = qs.filter(
+            _Q(order_number__icontains=search_q)
+            | _Q(mobile__icontains=search_q)
+            | _Q(area__icontains=search_q)
+        )
+
+    counts = (
+        FieldWorkOrder.objects
+        .filter(Q(assigned_supervisor_id=pk) | Q(received_by_id=pk))
+        .values('status').annotate(n=Count('id'))
+    )
+    status_counts = {c['status']: c['n'] for c in counts}
+    total        = sum(status_counts.values())
+    active_count = sum(v for s, v in status_counts.items() if s not in _FW_CLOSED_STATUSES)
+    closed_count = total - active_count
+
+    paginator = Paginator(qs, 30)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    try:
+        profile = supervisor.fw_supervisor_profile
+    except Exception:
+        profile = None
+
+    return render(request, 'hcsd/field_work_supervisor_orders.html', {
+        'supervisor':        supervisor,
+        'profile':           profile,
+        'page_obj':          page_obj,
+        'status_filter':          status_filter,
+        'active_status_choices':  [(v, l) for v, l in FieldWorkOrder.STATUS_CHOICES if v not in _FW_TRULY_CLOSED],
+        'status_labels_ar':       dict(FieldWorkOrder.STATUS_CHOICES),
+        'status_labels_en':  FieldWorkOrder.STATUS_LABELS_EN,
+        'closed_statuses':   list(_FW_CLOSED_STATUSES),
+        'fw_supervisors':    _fw_supervisor_users_qs().prefetch_related('fw_supervisor_profile'),
+        'total':             total,
+        'active_count':      active_count,
+        'closed_count':      closed_count,
+        'can_admin':         is_admin or is_data_entry,
+        'reassigned':  reassigned,
+        'search_q':    search_q,
     })
