@@ -2,66 +2,14 @@
 {% block title %}أوامر العمل الميداني{% endblock %}
 {% block content %}
 <style>
-:root {
-  --ink-1:#1a2a3a;--ink-2:#3a4a5a;--ink-3:#5a6a7a;--ink-4:#8a9aaa;
-  --surface-1:#f4f6f8;--surface-2:#e8ecf0;--border:#d0d8e0;
-  --accent:#1a5c9a;--accent-light:#e8f0f8;
-  --mono:'JetBrains Mono',monospace;
-}
-*{box-sizing:border-box;}
-body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);}
-.fw-page{max-width:1100px;margin:0 auto;padding:24px 16px;}
-.fw-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
-.fw-title{font-size:22px;font-weight:700;color:var(--ink-1);}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;border:none;transition:.15s;font-family:inherit;}
-.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#14487a;}
-.btn-outline{background:#fff;color:var(--ink-2);border:1.5px solid var(--border);}.btn-outline:hover{background:var(--surface-2);}
-
-/* Filters bar */
+.fw-title{font-size:22px;}
 .fw-filters{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
 .fw-filter-group{display:flex;flex-direction:column;gap:4px;}
 .fw-filter-label{font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.04em;}
 .fw-filter-select{padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;color:var(--ink-1);background:#fff;}
 .fw-search{flex:1;min-width:200px;}
 .fw-search input{width:100%;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;}
-
-/* Table */
-.fw-table-wrap{background:#fff;border-radius:12px;border:1.5px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;}
-table{width:100%;border-collapse:collapse;font-size:13px;}
-thead tr{background:var(--surface-2);border-bottom:1.5px solid var(--border);}
-th{padding:10px 12px;text-align:right;font-weight:600;color:var(--ink-3);white-space:nowrap;}
-tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
-tbody tr:hover{background:var(--surface-1);}
-td{padding:10px 12px;vertical-align:middle;}
-
-/* Status badges */
-.badge{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;}
-.s-pending        {background:#fff8e0;color:#7a5500;}
-.s-completed      {background:#e8f5ee;color:#1a5c35;}
-.s-cancelled      {background:#f0f0f0;color:#6a6a6a;}
-.s-incomplete     {background:#fdeaea;color:#8a1a1a;}
-.s-progress       {background:#e8f0f8;color:#1a3a6a;}
-.s-private        {background:#f5f3ff;color:#6d28d9;}
-.s-declined       {background:#fff1f2;color:#be123c;}
-.s-phone          {background:#fff7ed;color:#c2410c;}
-.s-postponed      {background:#fef9c3;color:#854d0e;}
-.s-gov            {background:#f0f9ff;color:#0369a1;}
-.s-other-mun      {background:#f1f5f9;color:#475569;}
-.s-assigned       {background:#eff6ff;color:#1d4ed8;}
-.s-received       {background:#dcfce7;color:#166534;}
-
-/* Source badge */
-.src-excel {background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700;}
-.src-manual{background:#f0fdf4;color:#15803d;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700;}
-
-/* Pagination */
-.fw-pag{display:flex;gap:4px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
-.fw-pag a,.fw-pag span{padding:5px 11px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;border:1.5px solid var(--border);background:#fff;color:var(--ink-2);}
-.fw-pag .current{background:var(--accent);color:#fff;border-color:var(--accent);}
-
 .fw-count{font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:10px;}
-
-/* Mobile cards */
 .fw-cards{display:none;flex-direction:column;gap:10px;}
 .fw-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:14px 14px 10px;text-decoration:none;color:inherit;display:block;transition:box-shadow .15s;}
 .fw-card:active{box-shadow:0 2px 8px rgba(0,0,0,.1);}
@@ -72,7 +20,6 @@ td{padding:10px 12px;vertical-align:middle;}
 .fw-card-label{font-size:10px;font-weight:700;color:var(--ink-4);letter-spacing:.04em;}
 .fw-card-value{font-size:13px;color:var(--ink-1);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .fw-card-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:8px;}
-
 @media(max-width:700px){
   .fw-table-wrap{display:none;}
   .fw-cards{display:flex;}
