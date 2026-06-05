@@ -344,11 +344,6 @@ td{padding:10px 12px;vertical-align:middle;}
               <span class="t-ar">{{ order.get_status_display }}</span>
               <span class="t-en">{{ order.status_en }}</span>
             </span>
-            {% if order.excel_status %}
-            <div style="font-size:10px;color:var(--ink-3);margin-top:2px;" title="{{ order.excel_status }}">
-              {{ order.excel_status|truncatechars:30 }}
-            </div>
-            {% endif %}
           </td>
           <td>
             {% if order.source == 'excel' %}
