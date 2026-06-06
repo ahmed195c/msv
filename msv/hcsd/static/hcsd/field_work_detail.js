@@ -96,40 +96,50 @@ function addPesticideRow(container, data) {
   data = data || {};
   var row = document.createElement('div');
   row.className = 'pst-row';
-  row.style.cssText = 'display:flex;gap:6px;margin-bottom:8px;align-items:flex-start;position:relative;';
+  row.style.cssText = 'background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:8px;';
 
+  // Row 1: name (full width)
   var nWrap = document.createElement('div');
-  nWrap.style.cssText = 'flex:1;position:relative;';
+  nWrap.style.cssText = 'position:relative;margin-bottom:8px;';
   var nInp = document.createElement('input');
   nInp.type='text'; nInp.autocomplete='off';
   nInp.setAttribute('data-ar-ph','اسم المبيد…'); nInp.setAttribute('data-en-ph','Pesticide name…');
   nInp.placeholder=T('اسم المبيد…','Pesticide name…');
-  nInp.className='form-control pst-name'; nInp.style.cssText='font-size:12.5px;';
+  nInp.className='form-control pst-name';
+  nInp.style.cssText='width:100%;font-size:14px;';
   nInp.value = data.name || '';
   var nUl = makeDrop();
   nWrap.appendChild(nInp); nWrap.appendChild(nUl);
+
+  // Row 2: qty + unit + remove
+  var bottom = document.createElement('div');
+  bottom.style.cssText = 'display:flex;gap:8px;align-items:center;';
 
   var qInp = document.createElement('input');
   qInp.type='number'; qInp.min='0'; qInp.step='0.1';
   qInp.setAttribute('data-ar-ph','الكمية'); qInp.setAttribute('data-en-ph','Qty');
   qInp.placeholder=T('الكمية','Qty');
-  qInp.className='form-control pst-qty'; qInp.style.cssText='width:85px;font-size:12.5px;';
+  qInp.className='form-control pst-qty';
+  qInp.style.cssText='flex:1;font-size:14px;';
   qInp.value = data.qty || '';
 
   var uSel = document.createElement('select');
-  uSel.className='form-control pst-unit'; uSel.style.cssText='width:72px;font-size:12.5px;';
-  ['ML','GRM'].forEach(function(u){
+  uSel.className='form-control pst-unit';
+  uSel.style.cssText='width:90px;font-size:14px;';
+  ['ML','GRM','KG','L'].forEach(function(u){
     var o=document.createElement('option'); o.value=u; o.textContent=u;
     if((data.unit||'ML')===u) o.selected=true;
     uSel.appendChild(o);
   });
 
   var rm = document.createElement('button');
-  rm.type='button'; rm.textContent='×';
-  rm.style.cssText='width:32px;height:36px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;cursor:pointer;font-size:16px;flex-shrink:0;';
+  rm.type='button';
+  rm.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  rm.style.cssText='width:36px;height:36px;background:#fee2e2;color:#991b1b;border:none;border-radius:8px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;';
   rm.addEventListener('click', function(){ row.remove(); });
 
-  row.appendChild(nWrap); row.appendChild(qInp); row.appendChild(uSel); row.appendChild(rm);
+  bottom.appendChild(qInp); bottom.appendChild(uSel); bottom.appendChild(rm);
+  row.appendChild(nWrap); row.appendChild(bottom);
   container.appendChild(row);
 
   initCombo(nInp, nUl, PESTICIDES, function(p){ return p.n; }, function(p){ uSel.value = p.u; });
