@@ -123,45 +123,45 @@ body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; back
 .nav-panel { display: flex; align-items: center; gap: 0; flex: 1; height: 100%; }
 
 @media (max-width: 768px) {
+  /* Row 1: logo (flex:1) + hamburger */
   .navbar {
     height: auto; min-height: var(--nav-h);
     padding: 10px 16px; flex-wrap: wrap; align-items: center; gap: 0;
   }
-  /* Row 1: brand (fills space) + nav-end (always visible, at end) */
-  .nav-brand { flex: 1; margin-inline-start: 0; }
-  .nav-end   { flex-shrink: 0; gap: 6px; }
+  .nav-brand  { flex: 1; margin-inline-start: 0; }
   .nav-toggle { display: inline-flex; }
   .nav-divider { display: none; }
-  .nav-username { display: none; }
   .nav-brand-label { display: none; }
 
-  /* Row 2: nav-panel (full width, collapsible) */
+  /* Row 2: nav-panel as full-width column (hidden until open) */
   .nav-panel {
-    display: none;
-    width: 100%; flex: none;
-    flex-direction: column; align-items: stretch;
-    height: auto; gap: 0;
-    padding: 10px 0 4px;
+    display: none; width: 100%; flex: none;
+    flex-direction: column; align-items: stretch; gap: 6px;
+    padding: 12px 0 6px;
     border-top: 1px solid rgba(255,255,255,.1);
     margin-top: 8px;
   }
   .navbar.is-open .nav-panel { display: flex; }
 
-  .nav-links {
-    display: flex; flex-direction: column; gap: 4px;
-    height: auto; width: 100%;
-  }
+  /* Nav links as column */
+  .nav-links { display: flex; flex-direction: column; gap: 4px; width: 100%; height: auto; }
   .nav-link {
-    height: auto; padding: 10px 14px;
-    border-radius: 6px;
+    height: auto; padding: 11px 14px; border-radius: 6px;
     border: 1px solid rgba(255,255,255,.1);
     background: rgba(255,255,255,.05);
+    justify-content: flex-start;
   }
   .nav-link::after { display: none; }
-  .nav-link.active {
-    background: rgba(37,99,235,.2);
-    border-color: rgba(37,99,235,.4); color: #fff;
+  .nav-link.active { background: rgba(37,99,235,.2); border-color: rgba(37,99,235,.4); color: #fff; }
+
+  /* Nav-end as row inside the column panel */
+  .nav-end {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    width: 100%; align-items: center;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,.08);
   }
+  .nav-username { display: none; }
 
   .app-main { padding: 16px 12px; }
 }
@@ -196,40 +196,39 @@ html[data-lang="ar"] .t-en { display: none !important; }
 
     <div class="nav-divider"></div>
 
-    <!-- Nav links (desktop: inline, mobile: collapsible) -->
+    <!-- Hamburger (mobile only, always visible) -->
+    <button class="nav-toggle" id="navToggle" aria-label="القائمة">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <!-- Nav panel: links + actions (desktop: row, mobile: collapsible column) -->
     <div class="nav-panel" id="navPanel">
       <div class="nav-links">
         <a class="nav-link {% if request.resolver_match.url_name == 'field_work_list' %}active{% endif %}"
            href="{% url 'field_work_list' %}"><span class="t-ar">أوامر العمل</span><span class="t-en">Work Orders</span></a>
       </div>
-    </div>
-
-    <!-- Always-visible end actions -->
-    <div class="nav-end">
-      <button id="langToggle" class="nav-lang" title="Toggle Language / تغيير اللغة">
-        <span class="t-ar">EN</span><span class="t-en">ع</span>
-      </button>
-      <a href="{% url 'portal_landing' %}" class="nav-switch">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-        <span class="t-ar">الرئيسية</span><span class="t-en">Home</span>
-      </a>
-      {% if request.user.is_authenticated %}
-      <div class="nav-user-chip">
-        <div class="nav-avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</div>
-        <span class="nav-username">{{ request.user.get_full_name|default:request.user.username }}</span>
-      </div>
-      <form method="post" action="{% url 'logout' %}" style="display:contents;">
-        {% csrf_token %}
-        <button type="submit" class="nav-logout" title="تسجيل الخروج">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          <span class="t-ar">خروج</span><span class="t-en">Logout</span>
+      <div class="nav-end">
+        <button id="langToggle" class="nav-lang" title="Toggle Language / تغيير اللغة">
+          <span class="t-ar">EN</span><span class="t-en">ع</span>
         </button>
-      </form>
-      {% endif %}
-      <!-- Hamburger (mobile only) -->
-      <button class="nav-toggle" id="navToggle" aria-label="القائمة">
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
+        <a href="{% url 'portal_landing' %}" class="nav-switch">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          <span class="t-ar">الرئيسية</span><span class="t-en">Home</span>
+        </a>
+        {% if request.user.is_authenticated %}
+        <div class="nav-user-chip">
+          <div class="nav-avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</div>
+          <span class="nav-username">{{ request.user.get_full_name|default:request.user.username }}</span>
+        </div>
+        <form method="post" action="{% url 'logout' %}" style="display:contents;">
+          {% csrf_token %}
+          <button type="submit" class="nav-logout" title="تسجيل الخروج">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span class="t-ar">خروج</span><span class="t-en">Logout</span>
+          </button>
+        </form>
+        {% endif %}
+      </div>
     </div>
   </nav>
 </div>
