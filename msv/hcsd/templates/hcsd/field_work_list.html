@@ -58,6 +58,12 @@ td{padding:10px 12px;vertical-align:middle;}
 
 .fw-count{font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:10px;}
 
+/* Days badge */
+.days-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;font-family:var(--mono);}
+.days-fresh {background:#dcfce7;color:#15803d;}
+.days-mid   {background:#fef9c3;color:#854d0e;}
+.days-old   {background:#fee2e2;color:#b91c1c;}
+
 /* Bulk action bar */
 .fw-bulk-bar{
   position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
@@ -309,6 +315,7 @@ tr.row-selected{background:#eff6ff !important;}
       <thead>
         <tr>
           {% if can_assign %}<th class="chk-col"><input type="checkbox" class="fw-chk" id="chk-all" title="تحديد الكل"></th>{% endif %}
+          <th style="width:36px;text-align:center;color:var(--ink-4);">#</th>
           <th><span class="t-ar">رقم الطلب</span><span class="t-en">Order #</span></th>
           <th><span class="t-ar">اسم المتعامل</span><span class="t-en">Customer</span></th>
           <th><span class="t-ar">المنطقة</span><span class="t-en">Area</span></th>
@@ -317,6 +324,7 @@ tr.row-selected{background:#eff6ff !important;}
           <th><span class="t-ar">تاريخ الإغلاق</span><span class="t-en">Close Date</span></th>
           <th><span class="t-ar">المشرف</span><span class="t-en">Supervisor</span></th>
           <th><span class="t-ar">الحالة</span><span class="t-en">Status</span></th>
+          <th><span class="t-ar">الأيام</span><span class="t-en">Days</span></th>
           <th><span class="t-ar">المصدر</span><span class="t-en">Source</span></th>
           <th></th>
         </tr>
@@ -325,6 +333,7 @@ tr.row-selected{background:#eff6ff !important;}
         {% for order in page_obj %}
         <tr class="order-row" data-id="{{ order.pk }}">
           {% if can_assign %}<td class="chk-col"><input type="checkbox" class="fw-chk row-chk" name="order_ids" value="{{ order.pk }}"></td>{% endif %}
+          <td style="text-align:center;font-size:11px;color:var(--ink-4);font-weight:600;width:36px;">{{ page_start|add:forloop.counter0 }}</td>
           <td style="font-family:var(--mono);font-weight:700;">
             {% if order.order_number %}{{ order.order_number }}{% else %}#{{ order.pk }}{% endif %}
           </td>
@@ -382,6 +391,13 @@ tr.row-selected{background:#eff6ff !important;}
               {{ order.excel_status|truncatechars:28 }}
             </div>
             {% endif %}
+          </td>
+          <td style="text-align:center;">
+            {% if order.days_old %}
+              {% with d=order.days_old.days %}
+              <span class="days-badge {% if d <= 7 %}days-fresh{% elif d <= 14 %}days-mid{% else %}days-old{% endif %}">{{ d }}</span>
+              {% endwith %}
+            {% else %}—{% endif %}
           </td>
           <td>
             {% if order.source == 'excel' %}

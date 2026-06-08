@@ -84,7 +84,8 @@ def _infer_status_from_excel(excel_status: str) -> str:
 @login_required
 def field_work_list(request):
     from django.core.paginator import Paginator
-    from django.db.models import Q, Case, When, IntegerField
+    from django.db.models import Q, Case, When, IntegerField, ExpressionWrapper, DurationField, F
+    from django.db.models.functions import Now
 
     can_admin      = _can_admin(request.user)
     can_data_entry = _can_data_entry(request.user)
@@ -183,6 +184,8 @@ def field_work_list(request):
             default=3,
             output_field=IntegerField(),
         )
+    ).annotate(
+        days_old=ExpressionWrapper(Now() - F('created_at'), output_field=DurationField())
     ).order_by('_priority', '-created_at', '-pk')
 
     paginator = Paginator(orders, 50)
@@ -197,6 +200,7 @@ def field_work_list(request):
 
     return render(request, 'hcsd/field_work_list.html', {
         'page_obj':        page_obj,
+        'page_start':      page_obj.start_index,
         'can_admin':       can_admin,
         'can_data_entry':  can_data_entry,
         'can_assign':      can_assign,
