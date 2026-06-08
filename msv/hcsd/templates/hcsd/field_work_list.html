@@ -307,9 +307,6 @@ tr.row-selected{background:#eff6ff !important;}
   <div class="fw-count">{{ total_count }} <span class="t-ar">نتيجة — صفحة</span><span class="t-en">results — Page</span> {{ page_obj.number }} <span class="t-ar">من</span><span class="t-en">of</span> {{ page_obj.paginator.num_pages }}</div>
 
   {% if page_obj.object_list %}
-  <form method="post" id="bulk-form">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="bulk_assign">
   <div class="fw-table-wrap">
     <table>
       <thead>
@@ -414,7 +411,6 @@ tr.row-selected{background:#eff6ff !important;}
       </tbody>
     </table>
   </div>
-  </form>
 
   <!-- Mobile cards -->
   <div class="fw-cards">
@@ -498,16 +494,20 @@ tr.row-selected{background:#eff6ff !important;}
 </section>
 
 {% if can_assign %}
+<!-- Hidden form for bulk assign (not wrapping the table) -->
+<form method="post" id="bulk-form" style="display:none;">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="bulk_assign">
+</form>
+
 <!-- Bulk assign floating bar -->
 <div class="fw-bulk-bar" id="bulkBar">
   <span class="fw-bulk-count"><span id="bulkCount">0</span> <span class="t-ar">محدد</span><span class="t-en">selected</span></span>
   <div class="fw-bulk-sep"></div>
   <select class="fw-bulk-select" id="bulkSupSelect">
-    <option value=""><span class="t-ar">اختر مراقباً…</span></option>
+    <option value="">اختر مراقباً…</option>
     {% for sup in fw_supervisors %}
-    <option value="{{ sup.pk }}">
-      {% with p=sup.fw_supervisor_profile %}{{ p.name_ar|default:sup.get_full_name|default:sup.username }}{% endwith %}
-    </option>
+    <option value="{{ sup.pk }}">{% with p=sup.fw_supervisor_profile %}{{ p.name_ar|default:sup.get_full_name|default:sup.username }}{% endwith %}</option>
     {% endfor %}
   </select>
   <button class="fw-bulk-btn" id="bulkAssignBtn" type="button"><span class="t-ar">تعيين</span><span class="t-en">Assign</span></button>
@@ -518,26 +518,25 @@ tr.row-selected{background:#eff6ff !important;}
 <script>
 (function(){
   {% if can_assign %}
-  var chkAll   = document.getElementById('chk-all');
-  var bulkBar  = document.getElementById('bulkBar');
-  var bulkCount = document.getElementById('bulkCount');
-  var bulkSup  = document.getElementById('bulkSupSelect');
-  var bulkBtn  = document.getElementById('bulkAssignBtn');
+  var chkAll     = document.getElementById('chk-all');
+  var bulkBar    = document.getElementById('bulkBar');
+  var bulkCount  = document.getElementById('bulkCount');
+  var bulkSup    = document.getElementById('bulkSupSelect');
+  var bulkBtn    = document.getElementById('bulkAssignBtn');
   var bulkCancel = document.getElementById('bulkCancelBtn');
-  var form     = document.getElementById('bulk-form');
+  var form       = document.getElementById('bulk-form');
 
   function getChecked(){ return document.querySelectorAll('.row-chk:checked'); }
 
   function updateBar(){
     var checked = getChecked();
     bulkCount.textContent = checked.length;
-    if(checked.length > 0){ bulkBar.classList.add('visible'); }
-    else { bulkBar.classList.remove('visible'); }
+    bulkBar.classList.toggle('visible', checked.length > 0);
     document.querySelectorAll('.order-row').forEach(function(tr){
       var chk = tr.querySelector('.row-chk');
-      if(chk){ tr.classList.toggle('row-selected', chk.checked); }
+      if(chk) tr.classList.toggle('row-selected', chk.checked);
     });
-    if(chkAll){ chkAll.indeterminate = checked.length > 0 && checked.length < document.querySelectorAll('.row-chk').length; }
+    if(chkAll) chkAll.indeterminate = checked.length > 0 && checked.length < document.querySelectorAll('.row-chk').length;
   }
 
   if(chkAll){
@@ -550,17 +549,21 @@ tr.row-selected{background:#eff6ff !important;}
   document.querySelectorAll('.row-chk').forEach(function(c){
     c.addEventListener('change', function(){
       var all = document.querySelectorAll('.row-chk');
-      var checked = getChecked();
-      if(chkAll){ chkAll.checked = checked.length === all.length; }
+      if(chkAll) chkAll.checked = getChecked().length === all.length;
       updateBar();
     });
   });
 
   bulkBtn.addEventListener('click', function(){
     if(!bulkSup.value){ bulkSup.focus(); return; }
-    var hidden = form.querySelector('input[name="supervisor_id"]');
-    if(!hidden){ hidden = document.createElement('input'); hidden.type='hidden'; hidden.name='supervisor_id'; form.appendChild(hidden); }
-    hidden.value = bulkSup.value;
+    // Remove old dynamic inputs
+    form.querySelectorAll('input[name="order_ids"], input[name="supervisor_id"]').forEach(function(el){ el.remove(); });
+    // Add supervisor
+    var sup = document.createElement('input'); sup.type='hidden'; sup.name='supervisor_id'; sup.value=bulkSup.value; form.appendChild(sup);
+    // Add each checked order
+    getChecked().forEach(function(chk){
+      var inp = document.createElement('input'); inp.type='hidden'; inp.name='order_ids'; inp.value=chk.value; form.appendChild(inp);
+    });
     form.submit();
   });
 
