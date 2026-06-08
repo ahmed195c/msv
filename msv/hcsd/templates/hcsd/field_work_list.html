@@ -328,7 +328,7 @@ tr.row-selected{background:#eff6ff !important;}
       </thead>
       <tbody>
         {% for order in page_obj %}
-        <tr class="order-row" data-id="{{ order.pk }}">
+        <tr class="order-row" data-id="{{ order.pk }}" data-url="{% url 'field_work_detail' order.pk %}" style="cursor:pointer;">
           {% if can_assign %}<td class="chk-col"><input type="checkbox" class="fw-chk row-chk" name="order_ids" value="{{ order.pk }}"></td>{% endif %}
           <td style="text-align:center;font-size:11px;color:var(--ink-4);font-weight:600;width:36px;">{{ page_start|add:forloop.counter0 }}</td>
           <td style="font-family:var(--mono);font-weight:700;">
@@ -554,6 +554,25 @@ tr.row-selected{background:#eff6ff !important;}
     });
   });
 
+  // Single click on row → toggle checkbox; double click → open order
+  document.querySelectorAll('.order-row').forEach(function(tr){
+    tr.addEventListener('click', function(e){
+      if(e.target.closest('a,button,input')) return;
+      var chk = tr.querySelector('.row-chk');
+      if(chk){
+        chk.checked = !chk.checked;
+        var all = document.querySelectorAll('.row-chk');
+        if(chkAll) chkAll.checked = getChecked().length === all.length;
+        updateBar();
+      }
+    });
+    tr.addEventListener('dblclick', function(e){
+      if(e.target.closest('a,button,input')) return;
+      var url = tr.dataset.url;
+      if(url) window.location.href = url;
+    });
+  });
+
   bulkBtn.addEventListener('click', function(){
     if(!bulkSup.value){ bulkSup.focus(); return; }
     // Remove old dynamic inputs
@@ -572,6 +591,15 @@ tr.row-selected{background:#eff6ff !important;}
     if(chkAll){ chkAll.checked = false; chkAll.indeterminate = false; }
     bulkBar.classList.remove('visible');
     document.querySelectorAll('.order-row').forEach(function(tr){ tr.classList.remove('row-selected'); });
+  });
+  {% else %}
+  // No checkboxes — dblclick still opens order
+  document.querySelectorAll('.order-row').forEach(function(tr){
+    tr.addEventListener('dblclick', function(e){
+      if(e.target.closest('a,button,input')) return;
+      var url = tr.dataset.url;
+      if(url) window.location.href = url;
+    });
   });
   {% endif %}
 })();
