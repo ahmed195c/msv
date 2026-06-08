@@ -1088,7 +1088,7 @@ select.form-control{cursor:pointer;}
         {% else %}fw-log-dot--gray{% endif %}">
       </div>
       <div class="fw-log-body">
-        <div class="fw-log-action">{{ log.get_action_display }}</div>
+        <div class="fw-log-action"><span class="t-ar">{{ log.get_action_display }}</span><span class="t-en">{{ log.action_en }}</span></div>
         <div class="fw-log-meta">
           {% if log.actor %}{{ log.actor.get_full_name|default:log.actor.username }}{% else %}—{% endif %}
           &nbsp;·&nbsp;

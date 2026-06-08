@@ -1267,6 +1267,21 @@ class FieldWorkOrderLog(models.Model):
         ('closed',           'إغلاق الأمر'),
         ('completed',        'إتمام الخدمة'),
     ]
+    _ACTION_EN = {
+        'created':        'Order Created',
+        'assigned':       'Supervisor Assigned',
+        'reassigned':     'Supervisor Reassigned',
+        'unassigned':     'Supervisor Unassigned',
+        'received':       'Order Received',
+        'status_changed': 'Status Changed',
+        'postponed':      'Appointment Postponed',
+        'closed':         'Order Closed',
+        'completed':      'Service Completed',
+    }
+
+    @property
+    def action_en(self):
+        return self._ACTION_EN.get(self.action, self.action)
 
     order      = models.ForeignKey(FieldWorkOrder, on_delete=models.CASCADE, related_name='logs', verbose_name='الأمر')
     action     = models.CharField(max_length=20, choices=ACTION_CHOICES, verbose_name='الإجراء')
