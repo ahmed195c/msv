@@ -119,7 +119,7 @@ def field_work_list(request):
     if quick_filter == 'new':
         orders = orders.filter(status__in=['new', 'supervisor_assigned'])
     elif quick_filter == 'received':
-        orders = orders.filter(status='order_received')
+        orders = orders.filter(status__in=['supervisor_assigned', 'order_received'])
     elif quick_filter == 'completed':
         orders = orders.filter(status='completed')
     elif quick_filter == 'closed':
