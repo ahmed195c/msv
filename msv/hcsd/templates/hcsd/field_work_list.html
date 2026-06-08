@@ -206,7 +206,7 @@ td{padding:10px 12px;vertical-align:middle;}
     <a href="{% url 'field_work_list' %}?quick=received{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
        class="btn {% if quick_filter == 'received' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
       <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'received' %}#fff{% else %}#166534{% endif %};margin-left:5px;"></span>
-      <span class="t-ar">عند المراقبين</span><span class="t-en">With Supervisors</span>
+      <span class="t-ar">طلبات مسلَّمة</span><span class="t-en">Assigned Orders</span>
     </a>
     <a href="{% url 'field_work_list' %}?quick=completed{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
        class="btn {% if quick_filter == 'completed' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
