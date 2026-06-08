@@ -173,6 +173,8 @@ def field_work_list(request):
             | Q(supervisor_name__icontains=search)
             | Q(work_type__icontains=search)
             | Q(site_name__icontains=search)
+            | Q(assigned_supervisor__fw_supervisor_profile__admin_number__icontains=search)
+            | Q(assigned_supervisor__fw_supervisor_profile__name_ar__icontains=search)
         )
 
     # Default ordering: new first → received → completed/closed, then newest within each group
