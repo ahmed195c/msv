@@ -174,6 +174,46 @@ input[type=checkbox]:disabled{cursor:default;opacity:.35;}
     </div>
   </form>
 
+  <!-- Quick filters -->
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+    {% with base="?"|add:"&q="|add:search_q %}
+    <a href="?q={{ search_q }}"
+       class="btn {% if not quick_filter %}btn-primary{% endif %}" style="font-size:13px;padding:7px 14px;">
+      <span class="t-ar">الكل</span><span class="t-en">All</span>
+    </a>
+    <a href="?quick=today&q={{ search_q }}"
+       class="btn {% if quick_filter == 'today' %}btn-primary{% endif %}" style="font-size:13px;padding:7px 14px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'today' %}#fff{% else %}#2563eb{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">اليوم</span><span class="t-en">Today</span>
+    </a>
+    <a href="?quick=new&q={{ search_q }}"
+       class="btn {% if quick_filter == 'new' %}btn-primary{% endif %}" style="font-size:13px;padding:7px 14px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'new' %}#fff{% else %}#2563eb{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">الجديدة</span><span class="t-en">New</span>
+    </a>
+    <a href="?quick=received&q={{ search_q }}"
+       class="btn {% if quick_filter == 'received' %}btn-primary{% endif %}" style="font-size:13px;padding:7px 14px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'received' %}#fff{% else %}#166534{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">مسلَّمة</span><span class="t-en">Assigned</span>
+    </a>
+    <a href="?quick=completed&q={{ search_q }}"
+       class="btn {% if quick_filter == 'completed' %}btn-primary{% endif %}" style="font-size:13px;padding:7px 14px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'completed' %}#fff{% else %}#15803d{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">المنتهية</span><span class="t-en">Completed</span>
+    </a>
+    <a href="?quick=closed&q={{ search_q }}"
+       class="btn {% if quick_filter == 'closed' %}btn-primary{% endif %}" style="font-size:13px;padding:7px 14px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'closed' %}#fff{% else %}#b91c1c{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">المغلقة</span><span class="t-en">Closed</span>
+    </a>
+    <a href="?quick=postponed&q={{ search_q }}"
+       class="btn {% if quick_filter == 'postponed' %}btn-primary{% endif %}" style="font-size:13px;padding:7px 14px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'postponed' %}#fff{% else %}#854d0e{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">المؤجلة</span><span class="t-en">Postponed</span>
+    </a>
+    {% endwith %}
+  </div>
+
   <div style="font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:10px;">
     {{ page_obj.paginator.count }} <span class="t-ar">طلب</span><span class="t-en">order(s)</span>
   </div>

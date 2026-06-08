@@ -2070,6 +2070,7 @@ def field_work_supervisor_orders(request, pk):
 
     status_filter = (request.GET.get('status') or 'all').strip()
     search_q      = (request.GET.get('q')       or '').strip()
+    quick_filter  = (request.GET.get('quick')   or '').strip()
     reassigned    = request.GET.get('reassigned')
 
     # POST: bulk reassign active orders to another supervisor
@@ -2115,7 +2116,20 @@ def field_work_supervisor_orders(request, pk):
         .order_by('-created_at', '-pk')
     )
 
-    if status_filter == 'closed':
+    if quick_filter == 'today':
+        today = timezone.localdate()
+        qs = qs.filter(Q(request_date=today) | Q(request_date__isnull=True, created_at__date=today))
+    elif quick_filter == 'new':
+        qs = qs.filter(status__in=['new', 'supervisor_assigned'])
+    elif quick_filter == 'received':
+        qs = qs.filter(status__in=['supervisor_assigned', 'order_received'])
+    elif quick_filter == 'completed':
+        qs = qs.filter(status='completed')
+    elif quick_filter == 'closed':
+        qs = qs.filter(status__in=_FW_TRULY_CLOSED)
+    elif quick_filter == 'postponed':
+        qs = qs.filter(status='postponed_client')
+    elif status_filter == 'closed':
         qs = qs.filter(status__in=_FW_TRULY_CLOSED)
     elif status_filter != 'all':
         qs = qs.filter(status=status_filter)
@@ -2161,4 +2175,5 @@ def field_work_supervisor_orders(request, pk):
         'can_admin':         is_admin or is_data_entry,
         'reassigned':  reassigned,
         'search_q':    search_q,
+        'quick_filter': quick_filter,
     })
