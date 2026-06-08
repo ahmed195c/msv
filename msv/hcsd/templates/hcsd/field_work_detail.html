@@ -1097,7 +1097,7 @@ select.form-control{cursor:pointer;}
         {% if log.from_value or log.to_value %}
         <div class="fw-log-change">
           {% if log.from_value %}<span class="fw-log-from">{{ log.from_value }}</span>{% endif %}
-          {% if log.from_value and log.to_value %}<span class="fw-log-arrow">←</span>{% endif %}
+          {% if log.from_value and log.to_value %}<span class="fw-log-arrow t-ar">←</span><span class="fw-log-arrow t-en">→</span>{% endif %}
           {% if log.to_value %}<span class="fw-log-to">{{ log.to_value }}</span>{% endif %}
         </div>
         {% endif %}
