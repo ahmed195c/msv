@@ -231,6 +231,11 @@ tr.row-selected{background:#eff6ff !important;}
 
   <!-- Quick filters -->
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+    <a href="{% url 'field_work_list' %}?quick=today{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
+       class="btn {% if quick_filter == 'today' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'today' %}#fff{% else %}#2563eb{% endif %};margin-left:5px;"></span>
+      <span class="t-ar">اليوم</span><span class="t-en">Today</span>
+    </a>
     <a href="{% url 'field_work_list' %}?quick=new{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
        class="btn {% if quick_filter == 'new' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
       <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'new' %}#fff{% else %}#1a5c9a{% endif %};margin-left:5px;"></span>

@@ -147,7 +147,10 @@ def field_work_list(request):
         ).distinct()
 
     # Quick filter overrides the status dropdown
-    if quick_filter == 'new':
+    if quick_filter == 'today':
+        _today = timezone.localdate()
+        orders = orders.filter(Q(request_date=_today) | Q(request_date__isnull=True, created_at__date=_today))
+    elif quick_filter == 'new':
         orders = orders.filter(status__in=['new', 'supervisor_assigned'])
     elif quick_filter == 'received':
         orders = orders.filter(status__in=['supervisor_assigned', 'order_received'])
