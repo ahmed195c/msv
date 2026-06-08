@@ -89,6 +89,36 @@ def field_work_list(request):
     can_admin      = _can_admin(request.user)
     can_data_entry = _can_data_entry(request.user)
 
+    # ── Bulk assign POST ─────────────────────────────────────────────────────
+    if request.method == 'POST' and request.POST.get('action') == 'bulk_assign':
+        if not (can_admin or can_data_entry):
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden()
+        sup_id   = (request.POST.get('supervisor_id') or '').strip()
+        order_ids = request.POST.getlist('order_ids')
+        try:
+            sup_user  = _fw_supervisor_users_qs().select_related('fw_supervisor_profile').get(pk=int(sup_id))
+            sup_label = sup_user.get_full_name() or sup_user.username
+            bulk_orders = FieldWorkOrder.objects.filter(pk__in=[int(i) for i in order_ids if i.isdigit()])
+            for order in bulk_orders:
+                old_sup   = order.assigned_supervisor
+                old_label = (old_sup.get_full_name() or old_sup.username) if old_sup else ''
+                log_action = 'reassigned' if old_sup else 'assigned'
+                order.assigned_supervisor = sup_user
+                order.assigned_at = timezone.now()
+                fields = ['assigned_supervisor', 'assigned_at']
+                if order.status in ('new', 'pending'):
+                    order.status = 'supervisor_assigned'
+                    fields.append('status')
+                order.save(update_fields=fields)
+                _fw_log(order, log_action, request.user, from_value=old_label, to_value=sup_label)
+        except (ValueError, Exception):
+            pass
+        from django.shortcuts import redirect
+        return redirect(request.get_full_path().replace('?' , '?').split('?')[0] +
+                        ('?' + request.META.get('QUERY_STRING', '') if request.META.get('QUERY_STRING') else ''))
+    # ────────────────────────────────────────────────────────────────────────
+
     status_filter = (request.GET.get('status') or 'all').strip()
     source_filter = (request.GET.get('source') or 'all').strip()
     search        = (request.GET.get('q')      or '').strip()
@@ -162,16 +192,21 @@ def field_work_list(request):
     _active_choices = [(v, l) for v, l in FieldWorkOrder.STATUS_CHOICES if v not in _FW_TRULY_CLOSED]
     status_options = [('all', 'كل الحالات — All')] + _active_choices + [('closed', 'مغلق — Closed')]
 
+    can_assign = can_admin or can_data_entry
+    fw_supervisors = _fw_supervisor_users_qs().prefetch_related('fw_supervisor_profile') if can_assign else []
+
     return render(request, 'hcsd/field_work_list.html', {
-        'page_obj':       page_obj,
-        'can_admin':      can_admin,
-        'can_data_entry': can_data_entry,
-        'status_filter':  status_filter,
-        'source_filter':  source_filter,
-        'search':         search,
-        'quick_filter':   quick_filter,
-        'status_options': status_options,
-        'total_count':    paginator.count,
+        'page_obj':        page_obj,
+        'can_admin':       can_admin,
+        'can_data_entry':  can_data_entry,
+        'can_assign':      can_assign,
+        'fw_supervisors':  fw_supervisors,
+        'status_filter':   status_filter,
+        'source_filter':   source_filter,
+        'search':          search,
+        'quick_filter':    quick_filter,
+        'status_options':  status_options,
+        'total_count':     paginator.count,
     })
 
 

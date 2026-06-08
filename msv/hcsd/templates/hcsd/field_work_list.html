@@ -50,11 +50,36 @@ td{padding:10px 12px;vertical-align:middle;}
 .src-manual{background:#f0fdf4;color:#15803d;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700;}
 
 /* Pagination */
-.fw-pag{display:flex;gap:4px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
-.fw-pag a,.fw-pag span{padding:5px 11px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;border:1.5px solid var(--border);background:#fff;color:var(--ink-2);}
+.fw-pag{display:flex;gap:4px;justify-content:center;margin-top:16px;flex-wrap:wrap;align-items:center;}
+.fw-pag a,.fw-pag span{padding:6px 13px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;border:1.5px solid var(--border);background:#fff;color:var(--ink-2);transition:.15s;}
+.fw-pag a:hover{background:var(--surface-2);}
 .fw-pag .current{background:var(--accent);color:#fff;border-color:var(--accent);}
+.fw-pag .pag-info{font-size:12px;color:var(--ink-4);padding:0 8px;}
 
 .fw-count{font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:10px;}
+
+/* Bulk action bar */
+.fw-bulk-bar{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:#0f172a;color:#fff;border-radius:12px;
+  display:none;align-items:center;gap:10px;
+  padding:10px 16px;box-shadow:0 8px 32px rgba(0,0,0,.35);
+  z-index:200;white-space:nowrap;
+}
+.fw-bulk-bar.visible{display:flex;}
+.fw-bulk-count{font-size:13px;font-weight:700;color:rgba(255,255,255,.8);}
+.fw-bulk-sep{width:1px;height:20px;background:rgba(255,255,255,.15);}
+.fw-bulk-select{padding:5px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-family:inherit;min-width:160px;}
+.fw-bulk-select option{color:#000;background:#fff;}
+.fw-bulk-btn{padding:6px 14px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
+.fw-bulk-btn:hover{background:var(--accent-dk);}
+.fw-bulk-cancel{padding:6px 10px;border-radius:7px;background:transparent;color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15);font-size:12px;cursor:pointer;font-family:inherit;}
+.fw-bulk-cancel:hover{color:#fff;border-color:rgba(255,255,255,.4);}
+
+/* Checkbox col */
+.chk-col{width:36px;text-align:center;}
+input[type=checkbox].fw-chk{width:15px;height:15px;cursor:pointer;accent-color:var(--accent);}
+tr.row-selected{background:#eff6ff !important;}
 
 /* Mobile cards */
 .fw-cards{display:none;flex-direction:column;gap:10px;}
@@ -276,10 +301,14 @@ td{padding:10px 12px;vertical-align:middle;}
   <div class="fw-count">{{ total_count }} <span class="t-ar">نتيجة — صفحة</span><span class="t-en">results — Page</span> {{ page_obj.number }} <span class="t-ar">من</span><span class="t-en">of</span> {{ page_obj.paginator.num_pages }}</div>
 
   {% if page_obj.object_list %}
+  <form method="post" id="bulk-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="bulk_assign">
   <div class="fw-table-wrap">
     <table>
       <thead>
         <tr>
+          {% if can_assign %}<th class="chk-col"><input type="checkbox" class="fw-chk" id="chk-all" title="تحديد الكل"></th>{% endif %}
           <th><span class="t-ar">رقم الطلب</span><span class="t-en">Order #</span></th>
           <th><span class="t-ar">اسم المتعامل</span><span class="t-en">Customer</span></th>
           <th><span class="t-ar">المنطقة</span><span class="t-en">Area</span></th>
@@ -294,7 +323,8 @@ td{padding:10px 12px;vertical-align:middle;}
       </thead>
       <tbody>
         {% for order in page_obj %}
-        <tr>
+        <tr class="order-row" data-id="{{ order.pk }}">
+          {% if can_assign %}<td class="chk-col"><input type="checkbox" class="fw-chk row-chk" name="order_ids" value="{{ order.pk }}"></td>{% endif %}
           <td style="font-family:var(--mono);font-weight:700;">
             {% if order.order_number %}{{ order.order_number }}{% else %}#{{ order.pk }}{% endif %}
           </td>
@@ -368,6 +398,7 @@ td{padding:10px 12px;vertical-align:middle;}
       </tbody>
     </table>
   </div>
+  </form>
 
   <!-- Mobile cards -->
   <div class="fw-cards">
@@ -426,6 +457,7 @@ td{padding:10px 12px;vertical-align:middle;}
   {% if page_obj.paginator.num_pages > 1 %}
   <div class="fw-pag">
     {% if page_obj.has_previous %}
+      <a href="?page=1&status={{ status_filter }}&source={{ source_filter }}&q={{ search }}{% if quick_filter %}&quick={{ quick_filter }}{% endif %}">«</a>
       <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&source={{ source_filter }}&q={{ search }}{% if quick_filter %}&quick={{ quick_filter }}{% endif %}">‹ <span class="t-ar">السابق</span><span class="t-en">Prev</span></a>
     {% endif %}
     {% for num in page_obj.paginator.page_range %}
@@ -435,8 +467,10 @@ td{padding:10px 12px;vertical-align:middle;}
         <a href="?page={{ num }}&status={{ status_filter }}&source={{ source_filter }}&q={{ search }}{% if quick_filter %}&quick={{ quick_filter }}{% endif %}">{{ num }}</a>
       {% endif %}
     {% endfor %}
+    <span class="pag-info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_next %}
       <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&source={{ source_filter }}&q={{ search }}{% if quick_filter %}&quick={{ quick_filter }}{% endif %}"><span class="t-ar">التالي</span><span class="t-en">Next</span> ›</a>
+      <a href="?page={{ page_obj.paginator.num_pages }}&status={{ status_filter }}&source={{ source_filter }}&q={{ search }}{% if quick_filter %}&quick={{ quick_filter }}{% endif %}">»</a>
     {% endif %}
   </div>
   {% endif %}
@@ -446,4 +480,81 @@ td{padding:10px 12px;vertical-align:middle;}
   {% endif %}
 
 </section>
+
+{% if can_assign %}
+<!-- Bulk assign floating bar -->
+<div class="fw-bulk-bar" id="bulkBar">
+  <span class="fw-bulk-count"><span id="bulkCount">0</span> <span class="t-ar">محدد</span><span class="t-en">selected</span></span>
+  <div class="fw-bulk-sep"></div>
+  <select class="fw-bulk-select" id="bulkSupSelect">
+    <option value=""><span class="t-ar">اختر مراقباً…</span></option>
+    {% for sup in fw_supervisors %}
+    <option value="{{ sup.pk }}">
+      {% with p=sup.fw_supervisor_profile %}{{ p.name_ar|default:sup.get_full_name|default:sup.username }}{% endwith %}
+    </option>
+    {% endfor %}
+  </select>
+  <button class="fw-bulk-btn" id="bulkAssignBtn" type="button"><span class="t-ar">تعيين</span><span class="t-en">Assign</span></button>
+  <button class="fw-bulk-cancel" id="bulkCancelBtn" type="button"><span class="t-ar">إلغاء</span><span class="t-en">Cancel</span></button>
+</div>
+{% endif %}
+
+<script>
+(function(){
+  {% if can_assign %}
+  var chkAll   = document.getElementById('chk-all');
+  var bulkBar  = document.getElementById('bulkBar');
+  var bulkCount = document.getElementById('bulkCount');
+  var bulkSup  = document.getElementById('bulkSupSelect');
+  var bulkBtn  = document.getElementById('bulkAssignBtn');
+  var bulkCancel = document.getElementById('bulkCancelBtn');
+  var form     = document.getElementById('bulk-form');
+
+  function getChecked(){ return document.querySelectorAll('.row-chk:checked'); }
+
+  function updateBar(){
+    var checked = getChecked();
+    bulkCount.textContent = checked.length;
+    if(checked.length > 0){ bulkBar.classList.add('visible'); }
+    else { bulkBar.classList.remove('visible'); }
+    document.querySelectorAll('.order-row').forEach(function(tr){
+      var chk = tr.querySelector('.row-chk');
+      if(chk){ tr.classList.toggle('row-selected', chk.checked); }
+    });
+    if(chkAll){ chkAll.indeterminate = checked.length > 0 && checked.length < document.querySelectorAll('.row-chk').length; }
+  }
+
+  if(chkAll){
+    chkAll.addEventListener('change', function(){
+      document.querySelectorAll('.row-chk').forEach(function(c){ c.checked = chkAll.checked; });
+      updateBar();
+    });
+  }
+
+  document.querySelectorAll('.row-chk').forEach(function(c){
+    c.addEventListener('change', function(){
+      var all = document.querySelectorAll('.row-chk');
+      var checked = getChecked();
+      if(chkAll){ chkAll.checked = checked.length === all.length; }
+      updateBar();
+    });
+  });
+
+  bulkBtn.addEventListener('click', function(){
+    if(!bulkSup.value){ bulkSup.focus(); return; }
+    var hidden = form.querySelector('input[name="supervisor_id"]');
+    if(!hidden){ hidden = document.createElement('input'); hidden.type='hidden'; hidden.name='supervisor_id'; form.appendChild(hidden); }
+    hidden.value = bulkSup.value;
+    form.submit();
+  });
+
+  bulkCancel.addEventListener('click', function(){
+    document.querySelectorAll('.row-chk').forEach(function(c){ c.checked = false; });
+    if(chkAll){ chkAll.checked = false; chkAll.indeterminate = false; }
+    bulkBar.classList.remove('visible');
+    document.querySelectorAll('.order-row').forEach(function(tr){ tr.classList.remove('row-selected'); });
+  });
+  {% endif %}
+})();
+</script>
 {% endblock %}
