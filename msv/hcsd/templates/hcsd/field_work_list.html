@@ -320,9 +320,13 @@ td{padding:10px 12px;vertical-align:middle;}
           <td style="white-space:nowrap;">
             {{ order.close_date|date:"d/m/Y"|default:"—" }}
           </td>
-          <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ order.supervisor_name }}">
-            {{ order.supervisor_name|default:"—" }}
+          {% with sup=order.assigned_supervisor %}
+          <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+              title="{% if sup %}{% with p=sup.fw_supervisor_profile %}{{ p.name_ar|default:sup.get_full_name }}{% endwith %}{% else %}{{ order.supervisor_name }}{% endif %}">
+            {% if sup %}{% with p=sup.fw_supervisor_profile %}{{ p.name_ar|default:sup.get_full_name|default:"—" }}{% endwith %}
+            {% else %}{{ order.supervisor_name|default:"—" }}{% endif %}
           </td>
+          {% endwith %}
           <td>
             <span class="badge
               {% if order.status == 'completed' %}s-completed
@@ -396,7 +400,7 @@ td{padding:10px 12px;vertical-align:middle;}
         </div>
         <div class="fw-card-field">
           <span class="fw-card-label"><span class="t-ar">المشرف</span><span class="t-en">Supervisor</span></span>
-          <span class="fw-card-value">{{ order.supervisor_name|default:"—" }}</span>
+          <span class="fw-card-value">{% with sup=order.assigned_supervisor %}{% if sup %}{% with p=sup.fw_supervisor_profile %}{{ p.name_ar|default:sup.get_full_name|default:"—" }}{% endwith %}{% else %}{{ order.supervisor_name|default:"—" }}{% endif %}{% endwith %}</span>
         </div>
       </div>
       <div class="fw-card-footer">

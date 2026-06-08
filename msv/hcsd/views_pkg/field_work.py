@@ -100,8 +100,8 @@ def field_work_list(request):
         'id', 'order_number', 'customer_name', 'site_name',
         'area', 'location', 'pest_types', 'request_date', 'work_date',
         'close_date', 'supervisor_name', 'status', 'excel_status', 'source',
-        'created_at',
-    )
+        'created_at', 'assigned_supervisor',
+    ).select_related('assigned_supervisor', 'assigned_supervisor__fw_supervisor_profile')
 
     # Supervisors see only their area orders + directly assigned/received
     if _can_fw_supervise(request.user) and not _can_admin(request.user) and not _can_data_entry(request.user):
