@@ -186,11 +186,6 @@ input[type=checkbox]:disabled{cursor:default;opacity:.35;}
       <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'today' %}#fff{% else %}#2563eb{% endif %};margin-left:5px;"></span>
       <span class="t-ar">اليوم</span><span class="t-en">Today</span>
     </a>
-    <a href="?quick=new&q={{ search_q }}"
-       class="btn {% if quick_filter == 'new' %}btn-primary{% endif %}" style="font-size:13px;padding:7px 14px;">
-      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'new' %}#fff{% else %}#2563eb{% endif %};margin-left:5px;"></span>
-      <span class="t-ar">الجديدة</span><span class="t-en">New</span>
-    </a>
     <a href="?quick=received&q={{ search_q }}"
        class="btn {% if quick_filter == 'received' %}btn-primary{% endif %}" style="font-size:13px;padding:7px 14px;">
       <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'received' %}#fff{% else %}#166534{% endif %};margin-left:5px;"></span>
