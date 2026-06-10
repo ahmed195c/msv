@@ -556,6 +556,62 @@ function serializeEntries() {
   initDrop('drop-report-photos', 'inp-report-photos',  'prev-report-photos',  'status-report-photos');
 })();
 
+// ── Init: photo upload progress ───────────────────────────────────────────────
+(function(){
+  var form = document.querySelector('form[data-role="supervisor-form"]');
+  var photoInput = document.getElementById('inp-report-photos');
+  var overlay = document.getElementById('upload-progress-overlay');
+  var bar = document.getElementById('upload-progress-bar');
+  var pct = document.getElementById('upload-progress-text');
+  if (!form || !photoInput || !overlay || !bar || !pct) return;
+
+  form.addEventListener('submit', function(e){
+    if (!photoInput.files || photoInput.files.length === 0) return; // no photos — normal submit
+
+    e.preventDefault();
+
+    // Other submit listeners registered earlier already serialised their hidden
+    // inputs (spray JSON, findings, sig-data) synchronously before this handler
+    // ran. FormData picks up the current values from those hidden inputs.
+    var data = new FormData(form);
+
+    overlay.style.display = 'flex';
+    bar.style.width = '0%';
+    pct.textContent = '0%';
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', form.action || window.location.href, true);
+
+    xhr.upload.addEventListener('progress', function(ev){
+      if (!ev.lengthComputable) return;
+      var p = Math.round((ev.loaded / ev.total) * 100);
+      bar.style.width = p + '%';
+      pct.textContent = p + '%';
+    });
+
+    xhr.addEventListener('load', function(){
+      bar.style.width = '100%';
+      pct.textContent = '100%';
+      // Small delay so user sees 100% before page reload
+      setTimeout(function(){
+        // Server redirects on success — follow the final URL
+        window.location.href = xhr.responseURL || window.location.href;
+      }, 300);
+    });
+
+    xhr.addEventListener('error', function(){
+      overlay.style.display = 'none';
+      alert(T('حدث خطأ أثناء الرفع. يرجى المحاولة مرة أخرى.', 'Upload failed. Please try again.'));
+    });
+
+    xhr.addEventListener('abort', function(){
+      overlay.style.display = 'none';
+    });
+
+    xhr.send(data);
+  });
+})();
+
 // ── Init: GPS location ────────────────────────────────────────────────────────
 (function(){
   var btn = document.getElementById('btn-get-location');
