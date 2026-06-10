@@ -190,13 +190,16 @@ def field_work_list(request):
             default=3,
             output_field=IntegerField(),
         )
-    ).annotate(
-        days_old=ExpressionWrapper(Now() - F('created_at'), output_field=DurationField())
     ).order_by('_priority', '-created_at', '-pk')
 
     paginator = Paginator(orders, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # Compute days_old in Python (avoids slow DB annotation on full queryset)
+    _today = timezone.localdate()
+    for _order in page_obj.object_list:
+        _order.days_old_int = (_today - _order.created_at.date()).days
 
     _active_choices = [(v, l) for v, l in FieldWorkOrder.STATUS_CHOICES if v not in _FW_TRULY_CLOSED]
     status_options = [('all', 'كل الحالات — All')] + _active_choices + [('closed', 'مغلق — Closed')]

@@ -1217,6 +1217,13 @@ class FieldWorkOrder(models.Model):
         'closed_scheduled_client':    'Closed — Scheduled by Client',
     }
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['status', 'created_at'], name='fw_status_created_idx'),
+            models.Index(fields=['request_date'], name='fw_request_date_idx'),
+            models.Index(fields=['assigned_supervisor', 'status'], name='fw_sup_status_idx'),
+        ]
+
     @property
     def status_en(self):
         return self.STATUS_LABELS_EN.get(self.status, self.status)

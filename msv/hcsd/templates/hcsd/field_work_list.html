@@ -396,8 +396,8 @@ tr.row-selected{background:#eff6ff !important;}
             {% endif %}
           </td>
           <td style="text-align:center;">
-            {% if order.days_old %}
-              {% with d=order.days_old.days %}
+            {% if order.days_old_int is not None %}
+              {% with d=order.days_old_int %}
               <span class="days-badge {% if d <= 7 %}days-fresh{% elif d <= 14 %}days-mid{% else %}days-old{% endif %}">{{ d }}</span>
               {% endwith %}
             {% else %}—{% endif %}
