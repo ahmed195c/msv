@@ -139,4 +139,11 @@ urlpatterns = [
     path('field-work/<int:pk>/report/', views.field_work_report, name='field_work_report'),
     path('field-work/<int:pk>/print/', views.field_work_report_print, name='field_work_report_print'),
     path('field-work/<int:pk>/excel/', views.field_work_excel_report, name='field_work_excel_report'),
+    path('field-work/account/change-password/', auth_views.PasswordChangeView.as_view(
+        template_name='hcsd/fw_change_password.html',
+        success_url='/field-work/account/change-password/done/',
+    ), name='fw_change_password'),
+    path('field-work/account/change-password/done/', auth_views.PasswordChangeDoneView.as_view(
+        template_name='hcsd/fw_change_password_done.html',
+    ), name='fw_change_password_done'),
 ]
