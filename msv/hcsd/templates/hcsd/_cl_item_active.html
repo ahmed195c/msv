@@ -37,7 +37,7 @@
         {% elif c.status == 'violation_payment_link_pending' %}بانتظار رابط دفع المخالفة
         {% elif c.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
         {% elif c.status == 'issued' %}تم إصدار التصريح
-        {% elif c.status == 'inspection_pending' %}جاهز للاستلام
+        {% elif c.status == 'inspection_pending' %}{% if c.inspection_receiver_name %}تم استلام الطلب — {{ c.inspection_receiver_name }}{% else %}جاهز للاستلام{% endif %}
         {% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}{% if c.permit_type == 'pesticide_transport' %}بانتظار رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
         {% elif c.status == 'inspection_completed' %}تم التفتيش
         {% elif c.status == 'head_approved' %}تم الاعتماد النهائي
