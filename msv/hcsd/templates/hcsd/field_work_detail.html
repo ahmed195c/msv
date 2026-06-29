@@ -724,6 +724,59 @@ select.form-control{cursor:pointer;}
   </script>
   {% endif %}{# can_close #}
 
+  {% if can_admin and can_close %}
+  <!-- Admin Quick Close (private company / other municipality) -->
+  <div class="card action-card">
+    <div class="card-header action-card-header">
+      <h2 class="action-card-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:6px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span class="t-ar">إغلاق إداري (بدون صورة)</span><span class="t-en">Admin Quick Close</span>
+      </h2>
+      <button type="button" onclick="toggleQuickCloseForm()" id="btn-toggle-quick-close" class="action-toggle-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span id="quick-close-btn-label"><span class="t-ar">إغلاق</span><span class="t-en">Close</span></span>
+      </button>
+    </div>
+    <div id="quick-close-form-body" style="display:none;">
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="admin_quick_close">
+
+          <div class="form-group">
+            <label class="form-label"><span class="t-ar">سبب الإغلاق</span><span class="t-en">Close Reason</span> <span style="color:#e11d48;">*</span></label>
+            <select name="quick_close_reason" class="form-control" required>
+              <option value="">— اختر السبب / Select Reason —</option>
+              <option value="private_company">Private Company — خاصة لشركات</option>
+              <option value="other_municipal">Outside Sharjah Municipality — خارج نطاق بلدية الشارقة</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-danger"
+              onclick="return confirm('هل أنت متأكد من إغلاق هذا الطلب إدارياً؟ لا يمكن التراجع.');">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-left:4px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <span class="t-ar">تأكيد الإغلاق</span><span class="t-en">Confirm Close</span>
+            </button>
+            <button type="button" onclick="toggleQuickCloseForm()" class="btn btn-outline"><span class="t-ar">إلغاء</span><span class="t-en">Cancel</span></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>
+  function toggleQuickCloseForm() {
+    var body  = document.getElementById('quick-close-form-body');
+    var label = document.getElementById('quick-close-btn-label');
+    var open  = body.style.display === 'none';
+    body.style.display = open ? 'block' : 'none';
+    label.innerHTML = open
+      ? '<span class="t-ar">طي</span><span class="t-en">Collapse</span>'
+      : '<span class="t-ar">إغلاق</span><span class="t-en">Close</span>';
+  }
+  </script>
+  {% endif %}{# admin quick close #}
+
   {% if can_submit_report and not is_closed or can_submit_report and can_admin %}
 
   <!-- Location Card -->

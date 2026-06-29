@@ -629,6 +629,26 @@ def field_work_detail(request, pk):
                             to_value=_STATUS_LABELS.get(close_reason, close_reason))
                     success = 'تم إغلاق الطلب بنجاح.'
 
+        # ── Admin quick close (private company / other municipality) ─────────
+        elif action == 'admin_quick_close' and can_admin:
+            quick_close_reason = (request.POST.get('quick_close_reason') or '').strip()
+            valid_quick_close_reasons = {'private_company', 'other_municipal'}
+            if order.status in _FW_CLOSED_STATUSES:
+                errors.append('الطلب مغلق بالفعل.')
+            elif quick_close_reason not in valid_quick_close_reasons:
+                errors.append('يرجى اختيار سبب الإغلاق.')
+            else:
+                order.status = quick_close_reason
+                order.close_date = timezone.now().date()
+                order.report_submitted_by = request.user
+                order.report_submitted_at = timezone.now()
+                order.save(update_fields=[
+                    'status', 'close_date', 'report_submitted_by', 'report_submitted_at',
+                ])
+                _fw_log(order, 'closed', request.user,
+                        to_value=_STATUS_LABELS.get(quick_close_reason, quick_close_reason))
+                success = 'تم إغلاق الطلب بنجاح.'
+
         # ── Reopen closed order ──────────────────────────────────────────────
         elif action == 'reopen_order' and can_admin:
             if order.status not in _FW_CLOSED_STATUSES:
