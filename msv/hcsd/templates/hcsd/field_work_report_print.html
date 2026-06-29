@@ -15,49 +15,72 @@
       font-size: 12px;
     }
 
+    /* Border/letterhead is pinned to the viewport so it repaints identically
+       on every physical page when printing, instead of stretching once over
+       the full (multi-page) height of .page. Always rendered — .page's opaque
+       background hides it on screen; print makes .page transparent to reveal it.
+       (Toggling this via display:none/block in @media print breaks rendering
+       in headless/print-to-pdf engines, so it must stay always-on.) */
+    .page-border {
+      position: fixed;
+      top: 0; left: 50%;
+      width: 210mm;
+      height: 297mm;
+      transform: translateX(-50%);
+      background-image: url("{% static 'hcsd/border.jpeg' %}");
+      background-repeat: no-repeat;
+      background-size: 110% 100%;
+      background-position: center top;
+      z-index: -1;
+    }
+
     .page {
       width: 210mm;
       min-height: 297mm;
       margin: 0 auto;
       padding: 8mm 12mm 6mm;
       background: #fff;
-      background-image: url("{% static 'hcsd/border.jpeg' %}");
-      background-repeat: no-repeat;
-      background-size: 110% 100%;
-      background-position: center top;
       display: flex;
       flex-direction: column;
+      position: relative;
+      z-index: 1;
     }
 
     /* ── Header ── */
     .doc-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 52px;
-      margin-bottom: 10px;
+      margin-top: 56px;
+      margin-bottom: 4px;
       padding: 0 4px;
+      text-align: right;
+      direction: rtl;
     }
-    .header-logo img { width: 80px; height: auto; }
-    .header-center { text-align: center; flex: 1; }
-    .header-center .dept-en {
-      font-size: 10px; color: #555; font-style: italic;
+    .doc-header .dept-ar {
+      font-size: 13px; font-weight: 800; color: #1a3a1a; line-height: 1.5;
     }
-    .header-center .dept-ar {
-      font-size: 13px; font-weight: 700; color: #1a3a1a; direction: rtl;
-    }
-    .header-center .mun-name {
-      font-size: 12px; font-weight: 600; color: #2d5a2d;
+    .doc-header .dept-en {
+      font-size: 10.5px; color: #555; font-weight: 600; margin-top: 2px;
+      direction: ltr; text-align: left;
     }
 
-    /* ── Title ── */
-    .report-title {
+    /* ── Title bar ── */
+    .title-bar {
+      background: #2d5a2d;
+      color: #fff;
       text-align: center;
-      font-size: 16px;
-      font-weight: 700;
-      text-decoration: underline;
-      margin: 10px 0 14px;
-      letter-spacing: .3px;
+      padding: 8px 12px;
+      margin: 12px 0 14px;
+      border-radius: 3px;
+    }
+    .title-bar .title-en { font-size: 15px; font-weight: 700; letter-spacing: .3px; }
+    .title-bar .title-ar { font-size: 13px; font-weight: 700; margin-top: 3px; direction: rtl; }
+
+    .meta-strip {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #555;
+      margin-bottom: 10px;
+      padding: 0 2px;
     }
 
     /* ── Section headings ── */
@@ -66,6 +89,8 @@
       font-weight: 700;
       color: #1a3a1a;
       margin: 12px 0 4px;
+      border-bottom: 1.5px solid #2d5a2d;
+      padding-bottom: 3px;
     }
 
     /* ── Tables ── */
@@ -168,7 +193,6 @@
       font-size: 9px;
       color: #555;
     }
-    .doc-footer img { height: 28px; }
 
     /* ── Print controls ── */
     .no-print {
@@ -192,13 +216,15 @@
     @media print {
       .no-print { display: none !important; }
       body { background: #fff; }
-      .page { margin: 0; box-shadow: none; }
+      .page { margin: 0; box-shadow: none; background: transparent; }
       @page { margin: 0; size: A4; }
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
   </style>
 </head>
 <body>
+
+<div class="page-border"></div>
 
 <div class="no-print">
   <button class="print-btn" onclick="window.print()">🖨 Print Report</button>
@@ -209,14 +235,23 @@
 
   <!-- Header -->
   <div class="doc-header">
-
-    <div style="width:80px;"></div>
+    <div class="dept-ar">إدارة الرقابة والسلامة الصحية</div>
+    <div class="dept-ar">قسم الرقابة الميدانية</div>
+    <div class="dept-en">Department of Inspection &amp; Public Health Control</div>
   </div>
 
   <!-- Title -->
- 
+  <div class="title-bar">
+    <div class="title-en">Pest Control Service Report</div>
+    <div class="title-ar">تقرير خدمة مكافحة الآفات</div>
+  </div>
+  <div class="meta-strip">
+    <span>Report Ref: #{{ order.order_number|default:order.pk }}</span>
+    <span>Printed: {% now "d/m/Y H:i" %}</span>
+  </div>
+
   <!-- General Information -->
-  <div class="section-heading" style="margin-top:50px;">General Information</div>
+  <div class="section-heading">General Information</div>
   <table>
     <colgroup>
       <col style="width:90px;"><col><col style="width:100px;"><col>
@@ -398,7 +433,10 @@
   {% endif %}
 
   <!-- Footer -->
-
+  <div class="doc-footer">
+    <span>Sharjah Municipality — Department of Inspection &amp; Public Health Control</span>
+    <span>Report #{{ order.order_number|default:order.pk }} — Generated {% now "d/m/Y H:i" %}</span>
+  </div>
 
 </div>
 </body>
