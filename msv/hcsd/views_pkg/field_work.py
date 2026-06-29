@@ -1669,18 +1669,32 @@ def field_work_report(request, pk):
     doc.add_paragraph()
 
     # ── Photos ──────────────────────────────────────────────────────────────
+    # Photos are re-encoded to a capped resolution/quality before embedding —
+    # original phone-camera photos can be several MB each, which made the
+    # generated .docx huge and slow to build/download for orders with many photos.
+    from PIL import Image, ImageOps
+    _PHOTO_MAX_DIM = 1000
+    _PHOTO_JPEG_QUALITY = 70
+
     all_photos = list(order.photos.order_by('uploaded_at'))
     if all_photos:
         add_section_title('صور العمل')
         for photo in all_photos:
             try:
                 photo_path = photo.file.path
-                if os.path.exists(photo_path):
-                    doc.add_picture(photo_path, width=Inches(4.5))
-                    if photo.caption:
-                        cap = doc.add_paragraph(photo.caption)
-                        set_rtl(cap)
-                    doc.add_paragraph()
+                if not os.path.exists(photo_path):
+                    continue
+                with Image.open(photo_path) as img:
+                    img = ImageOps.exif_transpose(img).convert('RGB')
+                    img.thumbnail((_PHOTO_MAX_DIM, _PHOTO_MAX_DIM), Image.LANCZOS)
+                    photo_buf = io.BytesIO()
+                    img.save(photo_buf, format='JPEG', quality=_PHOTO_JPEG_QUALITY, optimize=True)
+                    photo_buf.seek(0)
+                doc.add_picture(photo_buf, width=Inches(4.5))
+                if photo.caption:
+                    cap = doc.add_paragraph(photo.caption)
+                    set_rtl(cap)
+                doc.add_paragraph()
             except Exception:
                 logger.exception('Failed to add photo %s to Word report', photo.pk)
 
