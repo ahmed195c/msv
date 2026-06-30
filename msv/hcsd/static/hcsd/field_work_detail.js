@@ -580,7 +580,7 @@ function serializeEntries() {
     pct.textContent = '0%';
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', form.action || window.location.href, true);
+    xhr.open('POST', form.getAttribute('action') || window.location.href, true);
 
     xhr.upload.addEventListener('progress', function(ev){
       if (!ev.lengthComputable) return;
