@@ -641,7 +641,7 @@ renderWasteResults(ALL_COMPANIES);
       <button onclick="document.getElementById('monthly-report-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;line-height:1;">✕</button>
     </div>
 
-    <form id="monthly-report-form" action="{% url 'permits_monthly_report_excel' %}" method="get" target="_blank">
+    <form id="monthly-report-form" action="{% url 'permits_monthly_report_excel' %}" method="get">
       <div style="display:flex;flex-direction:column;gap:14px;">
 
         <button type="button" id="btn-current-month" onclick="setCurrentMonth()"
@@ -686,7 +686,7 @@ document.getElementById('monthly-report-modal').addEventListener('click', functi
   if (e.target === this) this.style.display = 'none';
 });
 document.getElementById('monthly-report-form').addEventListener('submit', function(){
-  setTimeout(function(){ document.getElementById('monthly-report-modal').style.display = 'none'; }, 300);
+  document.getElementById('monthly-report-modal').style.display = 'none';
 });
 </script>
 
