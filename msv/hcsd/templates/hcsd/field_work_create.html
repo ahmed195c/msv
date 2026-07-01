@@ -191,25 +191,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
         </select>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">
-          <span class="t-ar">الحالة</span><span class="t-en">Status</span>
-        </label>
-        <select name="status" class="form-control">
-          {% for val, label in status_choices %}
-          <option value="{{ val }}" {% if post.status == val or not post.status and val == 'new' %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="form-group col-span-2">
-        <label class="form-label">
-          <span class="t-ar">ملاحظات</span><span class="t-en">Notes</span>
-        </label>
-        <textarea name="notes" class="form-control" rows="3"
-                  data-ar-ph="أي ملاحظات إضافية..." data-en-ph="Any additional notes..."
-                  placeholder="أي ملاحظات إضافية...">{{ post.notes|default:'' }}</textarea>
-      </div>
 
     </div>
   </div>
