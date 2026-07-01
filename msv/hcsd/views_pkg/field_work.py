@@ -715,7 +715,12 @@ def field_work_detail(request, pk):
         # ── Admin quick close (private company / other municipality) ─────────
         elif action == 'admin_quick_close' and can_admin:
             quick_close_reason = (request.POST.get('quick_close_reason') or '').strip()
-            valid_quick_close_reasons = {'private_company', 'other_municipal'}
+            valid_quick_close_reasons = {
+                'private_company', 'other_municipal',
+                'closed_out_of_service', 'closed_customer_refused',
+                'closed_not_available', 'closed_not_attending',
+                'closed_private_building', 'closed_other_municipal',
+            }
             if order.status in _FW_CLOSED_STATUSES:
                 errors.append('الطلب مغلق بالفعل.')
             elif quick_close_reason not in valid_quick_close_reasons:

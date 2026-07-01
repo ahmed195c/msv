@@ -746,6 +746,12 @@ select.form-control{cursor:pointer;}
             <label class="form-label"><span class="t-ar">سبب الإغلاق</span><span class="t-en">Close Reason</span> <span style="color:#e11d48;">*</span></label>
             <select name="quick_close_reason" class="form-control" required>
               <option value="">— اختر السبب / Select Reason —</option>
+              <option value="closed_out_of_service">Customer Out of Service Area — خارج نطاق الخدمة</option>
+              <option value="closed_customer_refused">Customer Refused — العميل رفض الخدمة</option>
+              <option value="closed_not_available">Customer Not Available — العميل غير متاح</option>
+              <option value="closed_not_attending">Customer Did Not Answer — العميل لم يجب على الهاتف</option>
+              <option value="closed_private_building">Private Building (Internal Pest Control Co.) — الطلب داخل بناية — تابع لشركة نظافة خاصة</option>
+              <option value="closed_other_municipal">Belongs to Another Municipality — الطلب تابع لبلدية أخرى</option>
               <option value="private_company">Private Company — خاصة لشركات</option>
               <option value="other_municipal">Outside Sharjah Municipality — خارج نطاق بلدية الشارقة</option>
             </select>
