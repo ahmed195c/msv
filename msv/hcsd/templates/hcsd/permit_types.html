@@ -637,16 +637,16 @@ renderWasteResults(ALL_COMPANIES);
 <div id="monthly-report-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:14px;padding:28px 28px 24px;max-width:420px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.18);direction:rtl;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <h3 style="font-size:17px;font-weight:700;color:#166534;margin:0;">📊 التقرير الشهري للتصاريح</h3>
+      <h3 style="font-size:17px;font-weight:700;color:#166534;margin:0;">التقرير الشهري للتصاريح</h3>
       <button onclick="document.getElementById('monthly-report-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;line-height:1;">✕</button>
     </div>
 
-    <form id="monthly-report-form" action="{% url 'permits_monthly_report_excel' %}" method="get">
+    <form id="monthly-report-form" action="{% url 'permits_monthly_report_excel' %}" method="get" target="_blank">
       <div style="display:flex;flex-direction:column;gap:14px;">
 
         <button type="button" id="btn-current-month" onclick="setCurrentMonth()"
           style="padding:10px 16px;background:#166534;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
-          📅 الشهر الحالي
+          الشهر الحالي
         </button>
 
         <div style="display:flex;align-items:center;gap:8px;color:#94a3b8;font-size:12px;font-weight:600;">
@@ -668,7 +668,7 @@ renderWasteResults(ALL_COMPANIES);
 
         <button type="submit"
           style="padding:11px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;">
-          ⬇ تحميل Excel
+          تحميل Excel
         </button>
       </div>
     </form>
@@ -684,6 +684,9 @@ function setCurrentMonth() {
 }
 document.getElementById('monthly-report-modal').addEventListener('click', function(e){
   if (e.target === this) this.style.display = 'none';
+});
+document.getElementById('monthly-report-form').addEventListener('submit', function(){
+  setTimeout(function(){ document.getElementById('monthly-report-modal').style.display = 'none'; }, 300);
 });
 </script>
 
