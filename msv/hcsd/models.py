@@ -1120,6 +1120,15 @@ class FieldWorkOrder(models.Model):
     source = models.CharField(
         max_length=10, choices=SOURCE_CHOICES, default='manual', db_index=True, verbose_name='المصدر',
     )
+    COMPLAINT_SOURCE_CHOICES = [
+        ('electronic',      'طلبات إلكترونية'),
+        ('correspondence',  'تراسل'),
+        ('office',          'طلبات مكتب'),
+    ]
+    complaint_source = models.CharField(
+        max_length=20, choices=COMPLAINT_SOURCE_CHOICES, blank=True, default='',
+        verbose_name='مصدر الشكوى',
+    )
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='field_work_orders_created', verbose_name='أنشئ بواسطة',

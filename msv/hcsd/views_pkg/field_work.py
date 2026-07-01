@@ -330,21 +330,23 @@ def field_work_create(request):
         area              = get('area')
         street_number     = get('street_number')
         house_number      = get('house_number')
-        pest_types        = get('pest_types')
-        supervisor_name   = get('supervisor_name')
-        worker_name       = get('worker_name')
-        request_date_raw  = get('request_date')
-        work_date_raw     = get('work_date')
-        close_date_raw    = get('close_date')
-        excel_status      = get('excel_status')
-        excel_status_note = get('excel_status_note')
-        month_sheet       = get('month_sheet')
         site_name         = get('site_name')
         location          = get('location')
+        pest_types        = get('pest_types')
+        complaint_source  = get('complaint_source')
+        status            = get('status')
         notes             = get('notes')
+        request_date_raw  = get('request_date')
+
+        _valid_sources = {c for c, _ in FieldWorkOrder.COMPLAINT_SOURCE_CHOICES}
+        _valid_statuses = {c for c, _ in FieldWorkOrder.STATUS_CHOICES}
 
         if not customer_name and not order_number:
             errors.append('يرجى إدخال اسم المتعامل أو رقم الطلب على الأقل.')
+        if complaint_source and complaint_source not in _valid_sources:
+            complaint_source = ''
+        if status not in _valid_statuses:
+            status = 'new'
 
         def _parse_date(s):
             if not s:
@@ -362,26 +364,23 @@ def field_work_create(request):
                 area=area,
                 street_number=street_number,
                 house_number=house_number,
-                pest_types=pest_types,
-                supervisor_name=supervisor_name,
-                worker_name=worker_name,
-                request_date=_parse_date(request_date_raw),
-                work_date=_parse_date(work_date_raw),
-                close_date=_parse_date(close_date_raw),
-                excel_status=excel_status,
-                excel_status_note=excel_status_note,
-                month_sheet=month_sheet,
                 site_name=site_name,
                 location=location,
+                pest_types=pest_types,
+                complaint_source=complaint_source,
+                status=status,
                 notes=notes,
+                request_date=_parse_date(request_date_raw),
                 source='manual',
                 created_by=request.user,
             )
             return redirect('field_work_detail', pk=order.pk)
 
     return render(request, 'hcsd/field_work_create.html', {
-        'errors': errors,
-        'post': request.POST,
+        'errors':             errors,
+        'post':               request.POST,
+        'status_choices':     FieldWorkOrder.STATUS_CHOICES,
+        'complaint_sources':  FieldWorkOrder.COMPLAINT_SOURCE_CHOICES,
     })
 
 
