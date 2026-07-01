@@ -641,7 +641,7 @@ renderWasteResults(ALL_COMPANIES);
       <button onclick="document.getElementById('monthly-report-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;line-height:1;">✕</button>
     </div>
 
-    <form id="monthly-report-form" action="{% url 'permits_monthly_report_excel' %}" method="get">
+    <form id="monthly-report-form" action="{% url 'permits_monthly_report_excel' %}" method="get" data-skip-loader="true">
       <div style="display:flex;flex-direction:column;gap:14px;">
 
         <button type="button" id="btn-current-month" onclick="setCurrentMonth()"
@@ -685,18 +685,8 @@ function setCurrentMonth() {
 document.getElementById('monthly-report-modal').addEventListener('click', function(e){
   if (e.target === this) this.style.display = 'none';
 });
-document.getElementById('monthly-report-form').addEventListener('submit', function(e){
-  e.preventDefault();
+document.getElementById('monthly-report-form').addEventListener('submit', function(){
   document.getElementById('monthly-report-modal').style.display = 'none';
-  var params = new URLSearchParams({
-    date_from: document.getElementById('rpt-from').value,
-    date_to:   document.getElementById('rpt-to').value
-  });
-  var iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.src = this.getAttribute('action') + '?' + params.toString();
-  document.body.appendChild(iframe);
-  setTimeout(function(){ document.body.removeChild(iframe); }, 10000);
 });
 </script>
 
