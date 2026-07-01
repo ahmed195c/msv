@@ -1106,3 +1106,141 @@ def inspector_report_excel(request):
     )
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+
+@login_required
+def permits_monthly_report_excel(request):
+    """Monthly Excel report: issued permits within a date range, grouped by type."""
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    from collections import Counter
+
+    today = timezone.localdate()
+
+    raw_from = (request.GET.get('date_from') or '').strip()
+    raw_to   = (request.GET.get('date_to')   or '').strip()
+    try:
+        date_from = datetime.date.fromisoformat(raw_from)
+    except ValueError:
+        date_from = today.replace(day=1)
+    try:
+        date_to = datetime.date.fromisoformat(raw_to)
+    except ValueError:
+        date_to = today
+
+    PERMIT_TYPE_LABELS = {
+        'pest_control':        'تصريح مزاولة النشاط',
+        'pesticide_transport': 'تصريح المركبة',
+        'waste_disposal':      'تصريح التخلص من النفايات',
+        'engineer_addition':   'إضافة مهندس',
+    }
+
+    permits = list(
+        PirmetClearance.objects
+        .filter(status='issued', issue_date__gte=date_from, issue_date__lte=date_to)
+        .select_related('company', 'approvedBy', 'head_approved_by')
+        .order_by('permit_type', 'issue_date', 'id')
+    )
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'التقرير الشهري'
+    ws.sheet_view.rightToLeft = True
+
+    def _side():
+        return Side(style='thin', color='999999')
+
+    thin_border = Border(left=_side(), right=_side(), top=_side(), bottom=_side())
+    header_fill = PatternFill('solid', fgColor='1a5276')
+    subhdr_fill = PatternFill('solid', fgColor='2e86c1')
+    total_fill  = PatternFill('solid', fgColor='d4e8c2')
+    alt_fill    = PatternFill('solid', fgColor='f0f7ff')
+
+    def _cell(r, col, value, bold=False, fill=None, align='center', fcolor='000000', size=11):
+        c = ws.cell(row=r, column=col, value=value)
+        c.font = Font(name='Arial', bold=bold, color=fcolor, size=size)
+        c.alignment = Alignment(horizontal=align, vertical='center', wrap_text=True)
+        c.border = thin_border
+        if fill:
+            c.fill = fill
+        return c
+
+    # Title
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=7)
+    t = ws.cell(row=1, column=1,
+                value=f'التقرير الشهري للتصاريح المنجزة  —  {date_from.strftime("%d/%m/%Y")} إلى {date_to.strftime("%d/%m/%Y")}')
+    t.font = Font(name='Arial', bold=True, size=14, color='FFFFFF')
+    t.fill = header_fill
+    t.alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[1].height = 32
+
+    # Summary
+    type_counts = Counter(p.permit_type for p in permits)
+    ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=7)
+    parts = [f'{PERMIT_TYPE_LABELS.get(pt, pt)}: {cnt}' for pt, cnt in type_counts.items()]
+    parts.append(f'الإجمالي: {len(permits)}')
+    s = ws.cell(row=2, column=1, value='   |   '.join(parts))
+    s.font = Font(name='Arial', bold=True, size=11, color='1a5276')
+    s.fill = PatternFill('solid', fgColor='d6eaf8')
+    s.alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[2].height = 22
+
+    # Column headers
+    HEADERS    = ['#', 'اسم الشركة', 'نوع التصريح', 'رقم التصريح', 'تاريخ الإصدار', 'اعتمده', 'الاعتماد النهائي']
+    COL_WIDTHS = [5,   30,           22,             14,             14,               20,       20]
+    for col, (hdr, w) in enumerate(zip(HEADERS, COL_WIDTHS), start=1):
+        _cell(3, col, hdr, bold=True, fill=subhdr_fill, fcolor='FFFFFF')
+        ws.column_dimensions[get_column_letter(col)].width = w
+    ws.row_dimensions[3].height = 20
+
+    # Data rows
+    current_type = None
+    row = 4
+    counter = 0
+    for p in permits:
+        if p.permit_type != current_type:
+            current_type = p.permit_type
+            ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=7)
+            label = PERMIT_TYPE_LABELS.get(p.permit_type, p.permit_type)
+            sep = ws.cell(row=row, column=1, value=f'{label}  ({type_counts[p.permit_type]} تصريح)')
+            sep.font = Font(name='Arial', bold=True, size=11, color='1a5276')
+            sep.fill = PatternFill('solid', fgColor='eaf4fb')
+            sep.alignment = Alignment(horizontal='right', vertical='center')
+            sep.border = thin_border
+            ws.row_dimensions[row].height = 18
+            row += 1
+            counter = 0
+
+        counter += 1
+        fill = alt_fill if counter % 2 == 0 else None
+        approved = p.approvedBy.get_full_name() or p.approvedBy.username if p.approvedBy else '—'
+        head_app = p.head_approved_by.get_full_name() or p.head_approved_by.username if p.head_approved_by else '—'
+
+        _cell(row, 1, counter, fill=fill)
+        _cell(row, 2, p.company.name if p.company else '—', align='right', fill=fill)
+        _cell(row, 3, PERMIT_TYPE_LABELS.get(p.permit_type, p.permit_type), fill=fill)
+        _cell(row, 4, p.permit_no or '—', fill=fill)
+        _cell(row, 5, p.issue_date.strftime('%d/%m/%Y') if p.issue_date else '—', fill=fill)
+        _cell(row, 6, approved, fill=fill)
+        _cell(row, 7, head_app, fill=fill)
+        ws.row_dimensions[row].height = 17
+        row += 1
+
+    # Total row
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+    _cell(row, 1, f'الإجمالي: {len(permits)} تصريح منجز', bold=True, fill=total_fill, align='right')
+    ws.merge_cells(start_row=row, start_column=5, end_row=row, end_column=7)
+    _cell(row, 5, f'{date_from.strftime("%d/%m/%Y")} — {date_to.strftime("%d/%m/%Y")}', bold=True, fill=total_fill)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f'permits_monthly_{date_from.strftime("%Y-%m")}.xlsx'
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response

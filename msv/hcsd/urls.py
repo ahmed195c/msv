@@ -75,6 +75,7 @@ urlpatterns = [
     path('clearances/', views.clearance_list, name='clearance_list'),
     path('permits/', views.permit_types, name='permit_types'),
     path('permits/report/excel/', views.permits_report_excel, name='permits_report_excel'),
+    path('permits/report/monthly/', views.permits_monthly_report_excel, name='permits_monthly_report_excel'),
     path('permits/report/inspectors/', views.inspector_report_excel, name='inspector_report_excel'),
     path('permits/pest-control/', views.pest_control_permit, name='pest_control_permit'),
     path('permits/vehicle/', views.vehicle_permit, name='vehicle_permit'),

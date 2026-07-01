@@ -25,7 +25,7 @@ from .engineers import (
     engineer_certificate_request_list,
     engineer_certificate_request_detail,
 )
-from .clearance import clearance_list, permit_types, permits_report_excel, inspector_report_excel
+from .clearance import clearance_list, permit_types, permits_report_excel, permits_monthly_report_excel, inspector_report_excel
 from .vehicle import vehicle_permit, vehicle_permit_detail
 from .waste import waste_permit, waste_permit_detail, waste_disposal_request_detail
 from .pest_control import (
@@ -65,7 +65,7 @@ __all__ = [
     'enginer_list', 'enginer_add', 'enginer_detail',
     'public_health_exam_request_list', 'public_health_exam_request_detail',
     'engineer_certificate_request_list', 'engineer_certificate_request_detail',
-    'clearance_list', 'permit_types', 'permits_report_excel', 'inspector_report_excel',
+    'clearance_list', 'permit_types', 'permits_report_excel', 'permits_monthly_report_excel', 'inspector_report_excel',
     'vehicle_permit', 'vehicle_permit_detail',
     'waste_permit', 'waste_permit_detail', 'waste_disposal_request_detail',
     'pest_control_permit', 'pest_control_permit_detail',

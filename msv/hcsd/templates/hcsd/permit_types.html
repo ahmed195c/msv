@@ -141,6 +141,10 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         تقرير المفتشين
       </a>
+      <button class="pt-btn pt-btn--primary" onclick="document.getElementById('monthly-report-modal').style.display='flex'" style="background:#166534;border-color:#166534;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        التقرير الشهري
+      </button>
     </div>
   </div>
 
@@ -628,5 +632,59 @@ renderWasteResults(ALL_COMPANIES);
 })();
 </script>
 {% endif %}
+
+<!-- Monthly Report Modal -->
+<div id="monthly-report-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:28px 28px 24px;max-width:420px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.18);direction:rtl;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h3 style="font-size:17px;font-weight:700;color:#166534;margin:0;">📊 التقرير الشهري للتصاريح</h3>
+      <button onclick="document.getElementById('monthly-report-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;line-height:1;">✕</button>
+    </div>
+
+    <form id="monthly-report-form" action="{% url 'permits_monthly_report_excel' %}" method="get">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <button type="button" id="btn-current-month" onclick="setCurrentMonth()"
+          style="padding:10px 16px;background:#166534;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
+          📅 الشهر الحالي
+        </button>
+
+        <div style="display:flex;align-items:center;gap:8px;color:#94a3b8;font-size:12px;font-weight:600;">
+          <div style="flex:1;height:1px;background:#e2e8f0;"></div>أو حدد تاريخاً<div style="flex:1;height:1px;background:#e2e8f0;"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">من تاريخ</label>
+            <input type="date" name="date_from" id="rpt-from"
+              style="width:100%;padding:8px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:inherit;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">إلى تاريخ</label>
+            <input type="date" name="date_to" id="rpt-to"
+              style="width:100%;padding:8px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:inherit;">
+          </div>
+        </div>
+
+        <button type="submit"
+          style="padding:11px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;">
+          ⬇ تحميل Excel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function setCurrentMonth() {
+  var now = new Date();
+  var y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
+  var lastDay = new Date(y, now.getMonth()+1, 0).getDate();
+  document.getElementById('rpt-from').value = y+'-'+m+'-01';
+  document.getElementById('rpt-to').value   = y+'-'+m+'-'+String(lastDay).padStart(2,'0');
+}
+document.getElementById('monthly-report-modal').addEventListener('click', function(e){
+  if (e.target === this) this.style.display = 'none';
+});
+</script>
 
 {% endblock %}
