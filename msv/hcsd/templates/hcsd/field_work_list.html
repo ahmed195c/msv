@@ -58,6 +58,13 @@ td{padding:10px 12px;vertical-align:middle;text-align:start;}
 
 .fw-count{font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:10px;}
 
+/* Sortable column headers */
+.sort-col{display:inline-flex;align-items:center;gap:4px;text-decoration:none;color:var(--ink-3);font-weight:600;white-space:nowrap;}
+.sort-col:hover{color:var(--accent);}
+.sort-col .sort-icon{font-size:11px;opacity:.5;}
+.sort-col.sort-active{color:var(--accent);}
+.sort-col.sort-active .sort-icon{opacity:1;}
+
 /* Days badge */
 .days-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;font-family:var(--mono);}
 .days-fresh {background:#dcfce7;color:#15803d;}
@@ -315,12 +322,12 @@ tr.row-selected{background:#eff6ff !important;}
           {% if can_assign %}<th class="chk-col"><input type="checkbox" class="fw-chk" id="chk-all" title="تحديد الكل"></th>{% endif %}
           <th style="width:36px;text-align:center;color:var(--ink-4);">#</th>
           <th><span class="t-ar">رقم الطلب</span><span class="t-en">Order #</span></th>
-          <th><span class="t-ar">اسم المتعامل</span><span class="t-en">Customer</span></th>
-          <th><span class="t-ar">المنطقة</span><span class="t-en">Area</span></th>
+          <th><a href="{{ sort_urls.customer }}" class="sort-col{% if current_sort == 'customer' %} sort-active{% endif %}"><span class="t-ar">اسم المتعامل</span><span class="t-en">Customer</span> <span class="sort-icon">⇅</span></a></th>
+          <th><a href="{{ sort_urls.area }}" class="sort-col{% if current_sort == 'area' %} sort-active{% endif %}"><span class="t-ar">المنطقة</span><span class="t-en">Area</span> <span class="sort-icon">⇅</span></a></th>
           <th><span class="t-ar">نوع الحشرات</span><span class="t-en">Pest Types</span></th>
           <th><span class="t-ar">تاريخ الطلب</span><span class="t-en">Request Date</span></th>
           <th><span class="t-ar">تاريخ الإغلاق</span><span class="t-en">Close Date</span></th>
-          <th><span class="t-ar">المشرف</span><span class="t-en">Supervisor</span></th>
+          <th><a href="{{ sort_urls.supervisor }}" class="sort-col{% if current_sort == 'supervisor' %} sort-active{% endif %}"><span class="t-ar">المشرف</span><span class="t-en">Supervisor</span> <span class="sort-icon">⇅</span></a></th>
           <th><span class="t-ar">الحالة</span><span class="t-en">Status</span></th>
           <th><span class="t-ar">الأيام</span><span class="t-en">Days</span></th>
           <th><span class="t-ar">المصدر</span><span class="t-en">Source</span></th>

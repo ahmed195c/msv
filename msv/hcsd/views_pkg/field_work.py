@@ -84,7 +84,7 @@ def _infer_status_from_excel(excel_status: str) -> str:
 @login_required
 def field_work_list(request):
     from django.core.paginator import Paginator
-    from django.db.models import Q, Case, When, IntegerField, ExpressionWrapper, DurationField, F
+    from django.db.models import Q, Case, When, IntegerField, ExpressionWrapper, DurationField, F, Count
     from django.db.models.functions import Now
 
     can_admin      = _can_admin(request.user)
@@ -184,16 +184,51 @@ def field_work_list(request):
             | Q(assigned_supervisor__fw_supervisor_profile__name_en__icontains=search)
         )
 
-    # Default ordering: new first → received → completed/closed, then newest within each group
-    orders = orders.annotate(
-        _priority=Case(
-            When(status__in=['new', 'supervisor_assigned'], then=0),
-            When(status='order_received', then=1),
-            When(status='completed', then=2),
-            default=3,
-            output_field=IntegerField(),
+    sort = (request.GET.get('sort') or '').strip()
+
+    if sort == 'area':
+        orders = orders.order_by('area', '-created_at', '-pk')
+    elif sort == 'customer':
+        from django.db.models import Subquery, OuterRef
+        cust_freq = (
+            FieldWorkOrder.objects.filter(customer_name=OuterRef('customer_name'))
+            .values('customer_name')
+            .annotate(_n=Count('id'))
+            .values('_n')
         )
-    ).order_by('_priority', '-created_at', '-pk')
+        orders = orders.annotate(_cust_freq=Subquery(cust_freq, output_field=IntegerField()))
+        orders = orders.order_by('-_cust_freq', 'customer_name', '-created_at', '-pk')
+    elif sort == 'supervisor':
+        from django.db.models import Subquery, OuterRef
+        sup_freq = (
+            FieldWorkOrder.objects.filter(supervisor_name=OuterRef('supervisor_name'))
+            .values('supervisor_name')
+            .annotate(_n=Count('id'))
+            .values('_n')
+        )
+        orders = orders.annotate(_sup_freq=Subquery(sup_freq, output_field=IntegerField()))
+        orders = orders.order_by('-_sup_freq', 'supervisor_name', '-created_at', '-pk')
+    else:
+        # Default ordering: new first → received → completed/closed, then newest within each group
+        orders = orders.annotate(
+            _priority=Case(
+                When(status__in=['new', 'supervisor_assigned'], then=0),
+                When(status='order_received', then=1),
+                When(status='completed', then=2),
+                default=3,
+                output_field=IntegerField(),
+            )
+        ).order_by('_priority', '-created_at', '-pk')
+
+    # Build sort URLs preserving existing filters
+    _qs = request.GET.copy()
+    _qs.pop('page', None)
+    _sort_urls = {}
+    for _s in ('area', 'customer', 'supervisor'):
+        _qs['sort'] = _s
+        _sort_urls[_s] = '?' + _qs.urlencode()
+    _qs.pop('sort', None)
+    _sort_urls['default'] = ('?' + _qs.urlencode()) if _qs else '?'
 
     paginator = Paginator(orders, 50)
     page_number = request.GET.get('page')
@@ -223,6 +258,8 @@ def field_work_list(request):
         'quick_filter':    quick_filter,
         'status_options':  status_options,
         'total_count':     paginator.count,
+        'current_sort':    sort,
+        'sort_urls':       _sort_urls,
     })
 
 
