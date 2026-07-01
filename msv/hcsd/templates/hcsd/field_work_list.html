@@ -322,12 +322,12 @@ tr.row-selected{background:#eff6ff !important;}
           {% if can_assign %}<th class="chk-col"><input type="checkbox" class="fw-chk" id="chk-all" title="تحديد الكل"></th>{% endif %}
           <th style="width:36px;text-align:center;color:var(--ink-4);">#</th>
           <th><span class="t-ar">رقم الطلب</span><span class="t-en">Order #</span></th>
-          <th><a href="{{ sort_urls.customer }}" class="sort-col{% if current_sort == 'customer' %} sort-active{% endif %}"><span class="t-ar">اسم المتعامل</span><span class="t-en">Customer</span> <span class="sort-icon">⇅</span></a></th>
-          <th><a href="{{ sort_urls.area }}" class="sort-col{% if current_sort == 'area' %} sort-active{% endif %}"><span class="t-ar">المنطقة</span><span class="t-en">Area</span> <span class="sort-icon">⇅</span></a></th>
+          <th><a href="{{ sort_urls.customer }}" class="sort-col{% if current_sort == 'customer' %} sort-active{% endif %}"><span class="t-ar">اسم المتعامل</span><span class="t-en">Customer</span> <span class="sort-icon">{% if current_sort == 'customer' %}{% if sort_dir == 'desc' %}↓{% else %}↑{% endif %}{% else %}⇅{% endif %}</span></a></th>
+          <th><a href="{{ sort_urls.area }}" class="sort-col{% if current_sort == 'area' %} sort-active{% endif %}"><span class="t-ar">المنطقة</span><span class="t-en">Area</span> <span class="sort-icon">{% if current_sort == 'area' %}{% if sort_dir == 'desc' %}↓{% else %}↑{% endif %}{% else %}⇅{% endif %}</span></a></th>
           <th><span class="t-ar">نوع الحشرات</span><span class="t-en">Pest Types</span></th>
           <th><span class="t-ar">تاريخ الطلب</span><span class="t-en">Request Date</span></th>
           <th><span class="t-ar">تاريخ الإغلاق</span><span class="t-en">Close Date</span></th>
-          <th><a href="{{ sort_urls.supervisor }}" class="sort-col{% if current_sort == 'supervisor' %} sort-active{% endif %}"><span class="t-ar">المشرف</span><span class="t-en">Supervisor</span> <span class="sort-icon">⇅</span></a></th>
+          <th><a href="{{ sort_urls.supervisor }}" class="sort-col{% if current_sort == 'supervisor' %} sort-active{% endif %}"><span class="t-ar">المشرف</span><span class="t-en">Supervisor</span> <span class="sort-icon">{% if current_sort == 'supervisor' %}{% if sort_dir == 'desc' %}↓{% else %}↑{% endif %}{% else %}⇅{% endif %}</span></a></th>
           <th><span class="t-ar">الحالة</span><span class="t-en">Status</span></th>
           <th><span class="t-ar">الأيام</span><span class="t-en">Days</span></th>
           <th><span class="t-ar">المصدر</span><span class="t-en">Source</span></th>

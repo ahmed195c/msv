@@ -185,9 +185,13 @@ def field_work_list(request):
         )
 
     sort = (request.GET.get('sort') or '').strip()
+    sort_dir = (request.GET.get('sort_dir') or 'desc').strip()
+    if sort_dir not in ('asc', 'desc'):
+        sort_dir = 'desc'
+    _desc = sort_dir == 'desc'
 
     if sort == 'area':
-        orders = orders.order_by('area', '-created_at', '-pk')
+        orders = orders.order_by('area' if _desc else '-area', '-created_at', '-pk')
     elif sort == 'customer':
         from django.db.models import Subquery, OuterRef
         cust_freq = (
@@ -197,7 +201,8 @@ def field_work_list(request):
             .values('_n')
         )
         orders = orders.annotate(_cust_freq=Subquery(cust_freq, output_field=IntegerField()))
-        orders = orders.order_by('-_cust_freq', 'customer_name', '-created_at', '-pk')
+        _freq_order = '-_cust_freq' if _desc else '_cust_freq'
+        orders = orders.order_by(_freq_order, 'customer_name', '-created_at', '-pk')
     elif sort == 'supervisor':
         from django.db.models import Subquery, OuterRef
         sup_freq = (
@@ -207,7 +212,8 @@ def field_work_list(request):
             .values('_n')
         )
         orders = orders.annotate(_sup_freq=Subquery(sup_freq, output_field=IntegerField()))
-        orders = orders.order_by('-_sup_freq', 'supervisor_name', '-created_at', '-pk')
+        _freq_order = '-_sup_freq' if _desc else '_sup_freq'
+        orders = orders.order_by(_freq_order, 'supervisor_name', '-created_at', '-pk')
     else:
         # Default ordering: new first → received → completed/closed, then newest within each group
         orders = orders.annotate(
@@ -220,14 +226,16 @@ def field_work_list(request):
             )
         ).order_by('_priority', '-created_at', '-pk')
 
-    # Build sort URLs preserving existing filters
+    # Build sort URLs: clicking active column toggles direction; clicking new column resets to desc
     _qs = request.GET.copy()
     _qs.pop('page', None)
     _sort_urls = {}
     for _s in ('area', 'customer', 'supervisor'):
         _qs['sort'] = _s
+        _qs['sort_dir'] = 'asc' if (_s == sort and _desc) else 'desc'
         _sort_urls[_s] = '?' + _qs.urlencode()
     _qs.pop('sort', None)
+    _qs.pop('sort_dir', None)
     _sort_urls['default'] = ('?' + _qs.urlencode()) if _qs else '?'
 
     paginator = Paginator(orders, 50)
@@ -259,6 +267,7 @@ def field_work_list(request):
         'status_options':  status_options,
         'total_count':     paginator.count,
         'current_sort':    sort,
+        'sort_dir':        sort_dir,
         'sort_urls':       _sort_urls,
     })
 
