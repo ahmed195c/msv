@@ -301,10 +301,28 @@ tr.row-selected{background:#eff6ff !important;}
         </select>
       </div>
 
+      <div class="fw-filter-group">
+        <label class="fw-filter-label"><span class="t-ar">نوع التاريخ</span><span class="t-en">Date Type</span></label>
+        <select name="date_type" class="fw-filter-select">
+          <option value="request" {% if date_type == 'request' %}selected{% endif %}>تاريخ الطلب</option>
+          <option value="close"   {% if date_type == 'close'   %}selected{% endif %}>تاريخ الإغلاق</option>
+        </select>
+      </div>
+
+      <div class="fw-filter-group">
+        <label class="fw-filter-label"><span class="t-ar">من تاريخ</span><span class="t-en">From</span></label>
+        <input type="date" name="date_from" value="{{ date_from_req }}" class="fw-filter-select" style="padding:6px 8px;">
+      </div>
+
+      <div class="fw-filter-group">
+        <label class="fw-filter-label"><span class="t-ar">إلى تاريخ</span><span class="t-en">To</span></label>
+        <input type="date" name="date_to" value="{{ date_to_req }}" class="fw-filter-select" style="padding:6px 8px;">
+      </div>
+
       <button type="submit" class="btn btn-primary" style="align-self:flex-end;">
         <span class="t-ar">بحث</span><span class="t-en">Search</span>
       </button>
-      {% if search or status_filter != 'all' or source_filter != 'all' %}
+      {% if search or status_filter != 'all' or source_filter != 'all' or date_from_req or date_to_req %}
       <a href="{% url 'field_work_list' %}{% if quick_filter %}?quick={{ quick_filter }}{% endif %}" class="btn btn-outline" style="align-self:flex-end;">
         <span class="t-ar">مسح</span><span class="t-en">Clear</span>
       </a>

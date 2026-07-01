@@ -120,10 +120,25 @@ def field_work_list(request):
                         ('?' + request.META.get('QUERY_STRING', '') if request.META.get('QUERY_STRING') else ''))
     # ────────────────────────────────────────────────────────────────────────
 
-    status_filter = (request.GET.get('status') or 'all').strip()
-    source_filter = (request.GET.get('source') or 'all').strip()
-    search        = (request.GET.get('q')      or '').strip()
-    quick_filter  = (request.GET.get('quick')  or '').strip()
+    status_filter   = (request.GET.get('status')      or 'all').strip()
+    source_filter   = (request.GET.get('source')      or 'all').strip()
+    search          = (request.GET.get('q')            or '').strip()
+    quick_filter    = (request.GET.get('quick')        or '').strip()
+    date_from_req   = (request.GET.get('date_from')   or '').strip()
+    date_to_req     = (request.GET.get('date_to')     or '').strip()
+    date_type       = (request.GET.get('date_type')   or 'request').strip()  # 'request' or 'close'
+
+    import datetime as _datetime_mod
+    _date_from = None
+    _date_to   = None
+    try:
+        _date_from = _datetime_mod.date.fromisoformat(date_from_req)
+    except ValueError:
+        pass
+    try:
+        _date_to = _datetime_mod.date.fromisoformat(date_to_req)
+    except ValueError:
+        pass
 
     _CLOSED_STATUSES = [s for s, _ in FieldWorkOrder.STATUS_CHOICES if s.startswith('closed_')]
 
@@ -183,6 +198,25 @@ def field_work_list(request):
             | Q(assigned_supervisor__fw_supervisor_profile__name_ar__icontains=search)
             | Q(assigned_supervisor__fw_supervisor_profile__name_en__icontains=search)
         )
+
+    # Date range filter
+    if _date_from or _date_to:
+        if date_type == 'close':
+            if _date_from:
+                orders = orders.filter(close_date__gte=_date_from)
+            if _date_to:
+                orders = orders.filter(close_date__lte=_date_to)
+        else:
+            if _date_from:
+                orders = orders.filter(
+                    Q(request_date__gte=_date_from) |
+                    Q(request_date__isnull=True, created_at__date__gte=_date_from)
+                )
+            if _date_to:
+                orders = orders.filter(
+                    Q(request_date__lte=_date_to) |
+                    Q(request_date__isnull=True, created_at__date__lte=_date_to)
+                )
 
     sort = (request.GET.get('sort') or '').strip()
     sort_dir = (request.GET.get('sort_dir') or 'desc').strip()
@@ -269,6 +303,9 @@ def field_work_list(request):
         'current_sort':    sort,
         'sort_dir':        sort_dir,
         'sort_urls':       _sort_urls,
+        'date_from_req':   date_from_req,
+        'date_to_req':     date_to_req,
+        'date_type':       date_type,
     })
 
 
