@@ -1136,12 +1136,35 @@ def permits_monthly_report_excel(request):
         'engineer_addition':   'إضافة مهندس',
     }
 
+    from ..models import InspectorReview, PirmetChangeLog
+
     permits = list(
         PirmetClearance.objects
         .filter(status='issued', issue_date__gte=date_from, issue_date__lte=date_to)
         .select_related('company', 'approvedBy', 'head_approved_by')
         .order_by('permit_type', 'issue_date', 'id')
     )
+
+    permit_ids = [p.id for p in permits]
+
+    # Inspector: OneToOne InspectorReview → inspector_user
+    inspector_map = {
+        r.pirmet_id: r.inspector_user
+        for r in InspectorReview.objects
+            .filter(pirmet_id__in=permit_ids)
+            .select_related('inspector_user')
+    }
+
+    # Creator: first PirmetChangeLog with change_type='created'
+    creator_map = {}
+    for log in (PirmetChangeLog.objects
+                .filter(pirmet_id__in=permit_ids, change_type='created')
+                .select_related('changed_by')
+                .order_by('created_at')):
+        if log.pirmet_id not in creator_map:
+            creator_map[log.pirmet_id] = log.changed_by
+
+    NCOLS = 10
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -1167,7 +1190,7 @@ def permits_monthly_report_excel(request):
         return c
 
     # Title
-    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=7)
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=NCOLS)
     t = ws.cell(row=1, column=1,
                 value=f'التقرير الشهري للتصاريح المنجزة  —  {date_from.strftime("%d/%m/%Y")} إلى {date_to.strftime("%d/%m/%Y")}')
     t.font = Font(name='Arial', bold=True, size=14, color='FFFFFF')
@@ -1177,7 +1200,7 @@ def permits_monthly_report_excel(request):
 
     # Summary
     type_counts = Counter(p.permit_type for p in permits)
-    ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=7)
+    ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=NCOLS)
     parts = [f'{PERMIT_TYPE_LABELS.get(pt, pt)}: {cnt}' for pt, cnt in type_counts.items()]
     parts.append(f'الإجمالي: {len(permits)}')
     s = ws.cell(row=2, column=1, value='   |   '.join(parts))
@@ -1187,8 +1210,8 @@ def permits_monthly_report_excel(request):
     ws.row_dimensions[2].height = 22
 
     # Column headers
-    HEADERS    = ['#', 'اسم الشركة', 'نوع التصريح', 'رقم التصريح', 'تاريخ الإصدار', 'اعتمده', 'الاعتماد النهائي']
-    COL_WIDTHS = [5,   30,           22,             14,             14,               20,       20]
+    HEADERS    = ['#', 'اسم الشركة', 'نوع التصريح', 'رقم التصريح', 'تاريخ الإصدار', 'تاريخ الانتهاء', 'منشئ الطلب', 'اسم المفتش', 'اعتمده', 'الاعتماد النهائي']
+    COL_WIDTHS = [5,   30,           22,             14,             14,               14,               20,            20,            20,       20]
     for col, (hdr, w) in enumerate(zip(HEADERS, COL_WIDTHS), start=1):
         _cell(3, col, hdr, bold=True, fill=subhdr_fill, fcolor='FFFFFF')
         ws.column_dimensions[get_column_letter(col)].width = w
@@ -1201,7 +1224,7 @@ def permits_monthly_report_excel(request):
     for p in permits:
         if p.permit_type != current_type:
             current_type = p.permit_type
-            ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=7)
+            ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=NCOLS)
             label = PERMIT_TYPE_LABELS.get(p.permit_type, p.permit_type)
             sep = ws.cell(row=row, column=1, value=f'{label}  ({type_counts[p.permit_type]} تصريح)')
             sep.font = Font(name='Arial', bold=True, size=11, color='1a5276')
@@ -1214,24 +1237,32 @@ def permits_monthly_report_excel(request):
 
         counter += 1
         fill = alt_fill if counter % 2 == 0 else None
-        approved = p.approvedBy.get_full_name() or p.approvedBy.username if p.approvedBy else '—'
-        head_app = p.head_approved_by.get_full_name() or p.head_approved_by.username if p.head_approved_by else '—'
 
-        _cell(row, 1, counter, fill=fill)
-        _cell(row, 2, p.company.name if p.company else '—', align='right', fill=fill)
-        _cell(row, 3, PERMIT_TYPE_LABELS.get(p.permit_type, p.permit_type), fill=fill)
-        _cell(row, 4, p.permit_no or '—', fill=fill)
-        _cell(row, 5, p.issue_date.strftime('%d/%m/%Y') if p.issue_date else '—', fill=fill)
-        _cell(row, 6, approved, fill=fill)
-        _cell(row, 7, head_app, fill=fill)
+        approved  = p.approvedBy.get_full_name() or p.approvedBy.username if p.approvedBy else '—'
+        head_app  = p.head_approved_by.get_full_name() or p.head_approved_by.username if p.head_approved_by else '—'
+        inspector = inspector_map.get(p.id)
+        insp_name = inspector.get_full_name() or inspector.username if inspector else '—'
+        creator   = creator_map.get(p.id)
+        cre_name  = creator.get_full_name() or creator.username if creator else '—'
+
+        _cell(row, 1,  counter, fill=fill)
+        _cell(row, 2,  p.company.name if p.company else '—', align='right', fill=fill)
+        _cell(row, 3,  PERMIT_TYPE_LABELS.get(p.permit_type, p.permit_type), fill=fill)
+        _cell(row, 4,  p.permit_no or '—', fill=fill)
+        _cell(row, 5,  p.issue_date.strftime('%d/%m/%Y') if p.issue_date else '—', fill=fill)
+        _cell(row, 6,  p.dateOfExpiry.strftime('%d/%m/%Y') if p.dateOfExpiry else '—', fill=fill)
+        _cell(row, 7,  cre_name, fill=fill)
+        _cell(row, 8,  insp_name, fill=fill)
+        _cell(row, 9,  approved, fill=fill)
+        _cell(row, 10, head_app, fill=fill)
         ws.row_dimensions[row].height = 17
         row += 1
 
     # Total row
-    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
     _cell(row, 1, f'الإجمالي: {len(permits)} تصريح منجز', bold=True, fill=total_fill, align='right')
-    ws.merge_cells(start_row=row, start_column=5, end_row=row, end_column=7)
-    _cell(row, 5, f'{date_from.strftime("%d/%m/%Y")} — {date_to.strftime("%d/%m/%Y")}', bold=True, fill=total_fill)
+    ws.merge_cells(start_row=row, start_column=7, end_row=row, end_column=NCOLS)
+    _cell(row, 7, f'{date_from.strftime("%d/%m/%Y")} — {date_to.strftime("%d/%m/%Y")}', bold=True, fill=total_fill)
 
     output = io.BytesIO()
     wb.save(output)
