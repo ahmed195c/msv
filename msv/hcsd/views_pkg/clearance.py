@@ -1164,7 +1164,7 @@ def permits_monthly_report_excel(request):
         if log.pirmet_id not in creator_map:
             creator_map[log.pirmet_id] = log.changed_by
 
-    NCOLS = 10
+    NCOLS = 8
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -1210,8 +1210,8 @@ def permits_monthly_report_excel(request):
     ws.row_dimensions[2].height = 22
 
     # Column headers
-    HEADERS    = ['#', 'اسم الشركة', 'نوع التصريح', 'رقم التصريح', 'تاريخ الإصدار', 'تاريخ الانتهاء', 'منشئ الطلب', 'اسم المفتش', 'اعتمده', 'الاعتماد النهائي']
-    COL_WIDTHS = [5,   30,           22,             14,             14,               14,               20,            20,            20,       20]
+    HEADERS    = ['#', 'اسم الشركة', 'نوع التصريح', 'رقم التصريح', 'تاريخ الإصدار', 'تاريخ الانتهاء', 'منشئ الطلب', 'اسم المفتش']
+    COL_WIDTHS = [5,   30,           22,             14,             14,               14,               20,            20]
     for col, (hdr, w) in enumerate(zip(HEADERS, COL_WIDTHS), start=1):
         _cell(3, col, hdr, bold=True, fill=subhdr_fill, fcolor='FFFFFF')
         ws.column_dimensions[get_column_letter(col)].width = w
@@ -1238,23 +1238,19 @@ def permits_monthly_report_excel(request):
         counter += 1
         fill = alt_fill if counter % 2 == 0 else None
 
-        approved  = p.approvedBy.get_full_name() or p.approvedBy.username if p.approvedBy else '—'
-        head_app  = p.head_approved_by.get_full_name() or p.head_approved_by.username if p.head_approved_by else '—'
         inspector = inspector_map.get(p.id)
         insp_name = inspector.get_full_name() or inspector.username if inspector else '—'
         creator   = creator_map.get(p.id)
         cre_name  = creator.get_full_name() or creator.username if creator else '—'
 
-        _cell(row, 1,  counter, fill=fill)
-        _cell(row, 2,  p.company.name if p.company else '—', align='right', fill=fill)
-        _cell(row, 3,  PERMIT_TYPE_LABELS.get(p.permit_type, p.permit_type), fill=fill)
-        _cell(row, 4,  p.permit_no or '—', fill=fill)
-        _cell(row, 5,  p.issue_date.strftime('%d/%m/%Y') if p.issue_date else '—', fill=fill)
-        _cell(row, 6,  p.dateOfExpiry.strftime('%d/%m/%Y') if p.dateOfExpiry else '—', fill=fill)
-        _cell(row, 7,  cre_name, fill=fill)
-        _cell(row, 8,  insp_name, fill=fill)
-        _cell(row, 9,  approved, fill=fill)
-        _cell(row, 10, head_app, fill=fill)
+        _cell(row, 1, counter, fill=fill)
+        _cell(row, 2, p.company.name if p.company else '—', align='right', fill=fill)
+        _cell(row, 3, PERMIT_TYPE_LABELS.get(p.permit_type, p.permit_type), fill=fill)
+        _cell(row, 4, p.permit_no or '—', fill=fill)
+        _cell(row, 5, p.issue_date.strftime('%d/%m/%Y') if p.issue_date else '—', fill=fill)
+        _cell(row, 6, p.dateOfExpiry.strftime('%d/%m/%Y') if p.dateOfExpiry else '—', fill=fill)
+        _cell(row, 7, cre_name, fill=fill)
+        _cell(row, 8, insp_name, fill=fill)
         ws.row_dimensions[row].height = 17
         row += 1
 
