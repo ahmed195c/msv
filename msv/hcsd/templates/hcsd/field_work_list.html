@@ -1,5 +1,5 @@
 {% extends "hcsd/field_work_base.html" %}
-{% block title %}أوامر العمل الميداني{% endblock %}
+{% block title %}متابعة الشكاوى{% endblock %}
 {% block content %}
 <style>
 *{box-sizing:border-box;}
@@ -120,7 +120,7 @@ tr.row-selected{background:#eff6ff !important;}
 <section class="fw-page">
 
   <div class="fw-header">
-    <h1 class="fw-title"><span class="t-ar">أوامر العمل الميداني</span><span class="t-en">Field Work Orders</span></h1>
+    <h1 class="fw-title"><span class="t-ar">متابعة الشكاوى</span><span class="t-en">Complaint Tracking</span></h1>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       {% if can_admin or can_data_entry %}
       <a href="{% url 'field_work_create' %}" class="btn btn-primary">+ <span class="t-ar">إنشاء أمر جديد</span><span class="t-en">New Order</span></a>
@@ -251,7 +251,7 @@ tr.row-selected{background:#eff6ff !important;}
     <a href="{% url 'field_work_list' %}?quick=completed{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
        class="btn {% if quick_filter == 'completed' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
       <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'completed' %}#fff{% else %}#166534{% endif %};margin-left:5px;"></span>
-      <span class="t-ar">المنتهية</span><span class="t-en">Completed</span>
+      <span class="t-ar">منجزة</span><span class="t-en">Completed</span>
     </a>
     <a href="{% url 'field_work_list' %}?quick=closed{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
        class="btn {% if quick_filter == 'closed' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
