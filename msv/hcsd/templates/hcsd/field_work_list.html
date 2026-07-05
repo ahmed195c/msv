@@ -348,7 +348,7 @@ tr.row-selected{background:#eff6ff !important;}
           <th><a href="{{ sort_urls.supervisor }}" class="sort-col{% if current_sort == 'supervisor' %} sort-active{% endif %}"><span class="t-ar">المشرف</span><span class="t-en">Supervisor</span> <span class="sort-icon">{% if current_sort == 'supervisor' %}{% if sort_dir == 'desc' %}↓{% else %}↑{% endif %}{% else %}⇅{% endif %}</span></a></th>
           <th><span class="t-ar">الحالة</span><span class="t-en">Status</span></th>
           <th><span class="t-ar">الأيام</span><span class="t-en">Days</span></th>
-          <th><span class="t-ar">المصدر</span><span class="t-en">Source</span></th>
+          <th><span class="t-ar">مصدر الشكوى</span><span class="t-en">Complaint Source</span></th>
           <th></th>
         </tr>
       </thead>
@@ -423,10 +423,12 @@ tr.row-selected{background:#eff6ff !important;}
             {% else %}—{% endif %}
           </td>
           <td>
-            {% if order.source == 'excel' %}
+            {% if order.complaint_source %}
+              <span class="src-manual">{{ order.get_complaint_source_display }}</span>
+            {% elif order.source == 'excel' %}
               <span class="src-excel">Excel</span>
             {% else %}
-              <span class="src-manual"><span class="t-ar">يدوي</span><span class="t-en">Manual</span></span>
+              —
             {% endif %}
           </td>
           <td>
@@ -485,7 +487,7 @@ tr.row-selected{background:#eff6ff !important;}
       </div>
       <div class="fw-card-footer">
         <span class="fw-card-label">{{ order.pest_types|default:"—"|truncatechars:30 }}</span>
-        {% if order.source == 'excel' %}<span class="src-excel">Excel</span>{% else %}<span class="src-manual"><span class="t-ar">يدوي</span><span class="t-en">Manual</span></span>{% endif %}
+        {% if order.complaint_source %}<span class="src-manual">{{ order.get_complaint_source_display }}</span>{% elif order.source == 'excel' %}<span class="src-excel">Excel</span>{% endif %}
       </div>
     </a>
     {% endfor %}

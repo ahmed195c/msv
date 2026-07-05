@@ -1124,6 +1124,7 @@ class FieldWorkOrder(models.Model):
         ('electronic',      'طلبات إلكترونية'),
         ('correspondence',  'تراسل'),
         ('office',          'طلبات مكتب'),
+        ('hotline',         'خط ساخن'),
     ]
     complaint_source = models.CharField(
         max_length=20, choices=COMPLAINT_SOURCE_CHOICES, blank=True, default='',

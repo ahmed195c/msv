@@ -184,10 +184,10 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
           <span class="t-ar">مصدر الشكوى</span><span class="t-en">Complaint Source</span>
         </label>
         <select name="complaint_source" class="form-control">
-          <option value="">— اختر المصدر —</option>
-          {% for val, label in complaint_sources %}
-          <option value="{{ val }}" {% if post.complaint_source == val %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
+          <option value="" data-ar-txt="— اختر المصدر —" data-en-txt="— Select Source —">— اختر المصدر —</option>
+          <option value="electronic" {% if post.complaint_source == 'electronic' %}selected{% endif %} data-ar-txt="طلبات إلكترونية" data-en-txt="Electronic Requests">طلبات إلكترونية</option>
+          <option value="correspondence" {% if post.complaint_source == 'correspondence' %}selected{% endif %} data-ar-txt="تراسل" data-en-txt="Correspondence">تراسل</option>
+          <option value="office" {% if post.complaint_source == 'office' %}selected{% endif %} data-ar-txt="طلبات مكتب" data-en-txt="Office Requests">طلبات مكتب</option>
         </select>
       </div>
 

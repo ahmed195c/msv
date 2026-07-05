@@ -1124,8 +1124,9 @@ def field_work_excel_report(request, pk):
           'Mobile',         order.mobile or '')
     _pair('Area',           order.area or order.location or '',
           'Street / House', f"{order.street_number or ''} / {order.house_number or ''}".strip(' /'))
-    _pair('Work Type',      order.work_type or '',
-          'Building Type',  order.building_type or '')
+    _pair('Complaint Source', order.get_complaint_source_display() or '—',
+          'Building Type',     order.building_type or '')
+    _pair('Work Type',      order.work_type or '', '', '')
     _pair('Workers',        order.workers_count if order.workers_count is not None else '',
           'Vehicles',       order.vehicles_count if order.vehicles_count is not None else '')
     if order.description:
@@ -1276,14 +1277,14 @@ _MONTHLY_HEADERS = [
     'رقم الطلب', 'تاريخ الطلب', 'تاريخ الإغلاق', 'اسم المتعامل',
     'حالة الطلب', 'سبب الإغلاق', 'تاريخ التأجيل',
     'الموبايل', 'رقم الشارع', 'رقم المنزل',
-    'المنطقة', 'نوع الحشرات', 'المراقب المسؤول',
+    'المنطقة', 'نوع الحشرات', 'المراقب المسؤول', 'مصدر الشكوى',
 ]
 
 _MONTHLY_COL_WIDTHS = [
     12, 12, 12, 25,
     16, 34, 14,
     14, 10, 10,
-    22, 32, 25,
+    22, 32, 25, 16,
 ]
 
 # Maps status → short category label for col 6
@@ -1455,6 +1456,7 @@ def field_work_monthly_excel(request):
                 order.area or order.location or '',                   # 11
                 pest_col,                                             # 12 نوع الحشرات
                 sup_name,                                             # 13
+                order.get_complaint_source_display() or '',           # 14 مصدر الشكوى
             ]
 
             for col_idx, val in enumerate(row_vals, start=1):
@@ -1491,7 +1493,7 @@ _MAT_HEADERS = [
     'رقم الطلب', 'تاريخ الطلب', 'تاريخ التنفيذ', 'تاريخ الإغلاق',
     'اسم المتعامل', 'حالة الطلب', 'الموبايل',
     'رقم الشارع', 'رقم المنزل', 'المنطقة', 'نوع المبنى',
-    'المراقب', 'نوع الحشرات',
+    'المراقب', 'نوع الحشرات', 'مصدر الشكوى',
     'اسم المادة', 'المادة الفعالة', 'الكمية', 'الوحدة',
     'مكان التطبيق', 'الآفات المستهدفة', 'فئة الآفة',
 ]
@@ -1500,7 +1502,7 @@ _MAT_COL_WIDTHS = [
     12, 12, 12, 12,
     28, 22, 14,
     10, 10, 22, 20,
-    25, 28,
+    25, 28, 16,
     22, 22, 10, 8,
     22, 30, 18,
 ]
@@ -1612,6 +1614,7 @@ def field_work_materials_excel(request):
             order.building_type or '',                               # 11
             sup_name,                                                # 12
             order.pest_types or '',                                  # 13
+            order.get_complaint_source_display() or '',              # 14 مصدر الشكوى
         ]
 
         # Build material rows from spray_entries
@@ -1627,13 +1630,13 @@ def field_work_materials_excel(request):
                 if not name:
                     continue
                 mat_rows.append([
-                    name,                                            # 14 اسم المادة
-                    _ACTIVE_INGREDIENTS.get(name, ''),               # 15 المادة الفعالة
-                    p.get('qty', ''),                                # 16 الكمية
-                    p.get('unit', ''),                               # 17 الوحدة
-                    loc,                                             # 18 مكان التطبيق
-                    pests_str,                                       # 19 الآفات المستهدفة
-                    pest_cat,                                        # 20 فئة الآفة
+                    name,                                            # 15 اسم المادة
+                    _ACTIVE_INGREDIENTS.get(name, ''),               # 16 المادة الفعالة
+                    p.get('qty', ''),                                # 17 الكمية
+                    p.get('unit', ''),                               # 18 الوحدة
+                    loc,                                             # 19 مكان التطبيق
+                    pests_str,                                       # 20 الآفات المستهدفة
+                    pest_cat,                                        # 21 فئة الآفة
                 ])
 
         if not mat_rows:
@@ -1647,7 +1650,7 @@ def field_work_materials_excel(request):
                 c = ws.cell(row=r, column=col_idx, value=val)
                 c.border    = _border
                 c.font      = FONT_DATA
-                c.alignment = ALIGN_CTR if col_idx in (2, 3, 4, 7, 8, 9, 16, 17) else ALIGN_LFT
+                c.alignment = ALIGN_CTR if col_idx in (2, 3, 4, 7, 8, 9, 17, 18) else ALIGN_LFT
 
     if r == 1:
         ws.cell(row=2, column=1, value=f'No orders between {date_from} and {date_to}.')
@@ -1987,8 +1990,9 @@ def field_work_excel_review(request):
                 close_date      = _to_date(rows[i].get('close_date', '')),
                 excel_status_note = rows[i].get('excel_status_note', ''),
                 month_sheet     = rows[i].get('month_sheet', ''),
-                source          = 'excel',
-                created_by      = request.user,
+                source            = 'excel',
+                complaint_source  = 'hotline',
+                created_by        = request.user,
             ))
         FieldWorkOrder.objects.bulk_create(to_create, batch_size=500)
         created = len(to_create)
