@@ -90,6 +90,18 @@ def field_work_list(request):
     can_admin      = _can_admin(request.user)
     can_data_entry = _can_data_entry(request.user)
 
+    # ── Bulk delete POST ─────────────────────────────────────────────────────
+    if request.method == 'POST' and request.POST.get('action') == 'bulk_delete':
+        if not can_admin:
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden()
+        order_ids = [int(i) for i in request.POST.getlist('order_ids') if i.isdigit()]
+        if order_ids:
+            FieldWorkOrder.objects.filter(pk__in=order_ids).delete()
+        from django.shortcuts import redirect
+        qs = request.META.get('QUERY_STRING', '')
+        return redirect(request.path + ('?' + qs if qs else ''))
+
     # ── Bulk assign POST ─────────────────────────────────────────────────────
     if request.method == 'POST' and request.POST.get('action') == 'bulk_assign':
         if not (can_admin or can_data_entry):

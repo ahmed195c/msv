@@ -523,10 +523,18 @@ tr.row-selected{background:#eff6ff !important;}
 
 {% if can_assign %}
 <!-- Hidden form for bulk assign (not wrapping the table) -->
-<form method="post" id="bulk-form" style="display:none;">
+<form method="post" id="bulk-form" style="display:none;" data-skip-loader="true">
   {% csrf_token %}
   <input type="hidden" name="action" value="bulk_assign">
 </form>
+
+<!-- Hidden form for bulk delete -->
+{% if can_admin %}
+<form method="post" id="bulk-delete-form" style="display:none;" data-skip-loader="true">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="bulk_delete">
+</form>
+{% endif %}
 
 <!-- Bulk assign floating bar -->
 <div class="fw-bulk-bar" id="bulkBar">
@@ -539,6 +547,10 @@ tr.row-selected{background:#eff6ff !important;}
     {% endfor %}
   </select>
   <button class="fw-bulk-btn" id="bulkAssignBtn" type="button"><span class="t-ar">تعيين</span><span class="t-en">Assign</span></button>
+  {% if can_admin %}
+  <div class="fw-bulk-sep"></div>
+  <button class="fw-bulk-btn" id="bulkDeleteBtn" type="button" style="background:#dc2626;" title="حذف المحدد"><span class="t-ar">حذف</span><span class="t-en">Delete</span></button>
+  {% endif %}
   <button class="fw-bulk-cancel" id="bulkCancelBtn" type="button"><span class="t-ar">إلغاء</span><span class="t-en">Cancel</span></button>
 </div>
 {% endif %}
@@ -620,6 +632,24 @@ tr.row-selected{background:#eff6ff !important;}
     bulkBar.classList.remove('visible');
     document.querySelectorAll('.order-row').forEach(function(tr){ tr.classList.remove('row-selected'); });
   });
+
+  var bulkDelBtn  = document.getElementById('bulkDeleteBtn');
+  var bulkDelForm = document.getElementById('bulk-delete-form');
+  if(bulkDelBtn && bulkDelForm){
+    bulkDelBtn.addEventListener('click', function(){
+      var checked = getChecked();
+      if(!checked.length) return;
+      var msg = (document.documentElement.getAttribute('data-lang') === 'en')
+        ? 'Delete ' + checked.length + ' order(s)? This cannot be undone.'
+        : 'حذف ' + checked.length + ' طلب/طلبات؟ لا يمكن التراجع عن هذا الإجراء.';
+      if(!confirm(msg)) return;
+      bulkDelForm.querySelectorAll('input[name="order_ids"]').forEach(function(el){ el.remove(); });
+      checked.forEach(function(chk){
+        var inp = document.createElement('input'); inp.type='hidden'; inp.name='order_ids'; inp.value=chk.value; bulkDelForm.appendChild(inp);
+      });
+      bulkDelForm.submit();
+    });
+  }
   {% else %}
   // No checkboxes — dblclick still opens order
   document.querySelectorAll('.order-row').forEach(function(tr){
