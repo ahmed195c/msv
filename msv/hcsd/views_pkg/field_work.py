@@ -179,7 +179,11 @@ def field_work_list(request):
         _today = timezone.localdate()
         orders = orders.filter(Q(request_date=_today) | Q(request_date__isnull=True, created_at__date=_today))
     elif quick_filter == 'new':
-        orders = orders.filter(status='new')
+        _today = timezone.localdate()
+        orders = orders.filter(
+            Q(status='new') |
+            Q(status='postponed_client', postponed_until__lte=_today)
+        )
     elif quick_filter == 'received':
         orders = orders.filter(status__in=['supervisor_assigned', 'order_received'])
     elif quick_filter == 'completed':
@@ -262,16 +266,18 @@ def field_work_list(request):
         _freq_order = '-_sup_freq' if _desc else '_sup_freq'
         orders = orders.order_by(_freq_order, 'supervisor_name', '-created_at', '-pk')
     else:
-        # Default ordering: new first → received → completed/closed, then newest within each group
+        # Default ordering: due-postponed first → new → received → completed/closed
+        _today_ord = timezone.localdate()
         orders = orders.annotate(
             _priority=Case(
-                When(status__in=['new', 'supervisor_assigned'], then=0),
-                When(status='order_received', then=1),
-                When(status='completed', then=2),
-                default=3,
+                When(status='postponed_client', postponed_until__lte=_today_ord, then=0),
+                When(status__in=['new', 'supervisor_assigned'], then=1),
+                When(status='order_received', then=2),
+                When(status='completed', then=3),
+                default=4,
                 output_field=IntegerField(),
             )
-        ).order_by('_priority', '-created_at', '-pk')
+        ).order_by('_priority', 'postponed_until', '-created_at', '-pk')
 
     # Build sort URLs: clicking active column toggles direction; clicking new column resets to desc
     _qs = request.GET.copy()
@@ -289,10 +295,15 @@ def field_work_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Compute days_old in Python (avoids slow DB annotation on full queryset)
+    # Compute days_old and due-postponed flag in Python
     _today = timezone.localdate()
     for _order in page_obj.object_list:
         _order.days_old_int = (_today - _order.created_at.date()).days
+        _order.is_due_postponed = (
+            _order.status == 'postponed_client' and
+            bool(_order.postponed_until) and
+            _order.postponed_until <= _today
+        )
 
     _active_choices = [(v, l) for v, l in FieldWorkOrder.STATUS_CHOICES if v not in _FW_TRULY_CLOSED]
     status_options = [('all', 'كل الحالات — All')] + _active_choices + [('closed', 'مغلق — Closed')]
@@ -311,6 +322,7 @@ def field_work_list(request):
         'source_filter':   source_filter,
         'search':          search,
         'quick_filter':    quick_filter,
+        'today':           _today,
         'status_options':  status_options,
         'total_count':     paginator.count,
         'current_sort':    sort,
