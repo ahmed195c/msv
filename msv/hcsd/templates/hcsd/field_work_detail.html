@@ -169,6 +169,17 @@ select.form-control{cursor:pointer;}
           {% csrf_token %}
           <input type="hidden" name="action" value="update_details">
 
+          <div class="form-group" style="max-width:280px;margin-bottom:16px;">
+            <label class="form-label"><span class="t-ar">مصدر الشكوى</span><span class="t-en">Complaint Source</span></label>
+            <select name="complaint_source" class="form-control">
+              <option value="">— <span class="t-ar">غير محدد</span><span class="t-en">Not Set</span> —</option>
+              <option value="electronic" {% if order.complaint_source == 'electronic' %}selected{% endif %}>طلبات إلكترونية</option>
+              <option value="correspondence" {% if order.complaint_source == 'correspondence' %}selected{% endif %}>تراسل</option>
+              <option value="office" {% if order.complaint_source == 'office' %}selected{% endif %}>طلبات مكتب</option>
+              <option value="hotline" {% if order.complaint_source == 'hotline' %}selected{% endif %}>خط ساخن</option>
+            </select>
+          </div>
+
           {% if order.source == 'excel' %}
           <!-- Excel order fields -->
           <div class="form-row">
@@ -297,6 +308,13 @@ select.form-control{cursor:pointer;}
       </span>
     </div>
     <div class="card-body">
+
+      {% if order.complaint_source %}
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1.5px solid var(--border);">
+        <span class="info-label"><span class="t-ar">مصدر الشكوى</span><span class="t-en">Complaint Source</span></span>
+        <span class="info-value" style="margin-top:4px;display:block;">{{ order.get_complaint_source_display }}</span>
+      </div>
+      {% endif %}
 
       {% if order.source == 'excel' %}
       <!-- ── Excel import fields ── -->

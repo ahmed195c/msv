@@ -497,6 +497,10 @@ def field_work_detail(request, pk):
 
         # ── Update work details ──────────────────────────────────────────────
         elif action == 'update_details' and can_edit:
+            complaint_source_upd = (request.POST.get('complaint_source') or '').strip()
+            _valid_src = {c for c, _ in FieldWorkOrder.COMPLAINT_SOURCE_CHOICES}
+            if complaint_source_upd not in _valid_src:
+                complaint_source_upd = ''
             site_name   = (request.POST.get('site_name') or '').strip()
             work_type   = (request.POST.get('work_type') or '').strip()
             location    = (request.POST.get('location') or '').strip()
@@ -524,6 +528,7 @@ def field_work_detail(request, pk):
                     errors.append('عدد العمال يجب أن يكون رقماً صحيحاً.')
 
             if not errors:
+                order.complaint_source = complaint_source_upd
                 order.site_name = site_name
                 order.work_type = work_type
                 order.location = location
@@ -545,6 +550,7 @@ def field_work_detail(request, pk):
                     except ValueError:
                         pass
                 order.save(update_fields=[
+                    'complaint_source',
                     'site_name', 'work_type', 'location', 'description',
                     'work_date', 'notes', 'workers_count', 'equipment_used',
                     'customer_name', 'mobile', 'area', 'street_number',
