@@ -120,9 +120,10 @@ def field_work_list(request):
                 order.assigned_supervisor = sup_user
                 order.assigned_at = timezone.now()
                 fields = ['assigned_supervisor', 'assigned_at']
-                if order.status in ('new', 'pending'):
+                if order.status in ('new', 'pending', 'postponed_client'):
                     order.status = 'supervisor_assigned'
-                    fields.append('status')
+                    order.postponed_until = None
+                    fields += ['status', 'postponed_until']
                 order.save(update_fields=fields)
                 _fw_log(order, log_action, request.user, from_value=old_label, to_value=sup_label)
         except (ValueError, Exception):
@@ -468,9 +469,10 @@ def field_work_detail(request, pk):
                     order.assigned_supervisor = sup_user
                     order.assigned_at = timezone.now()
                     save_fields = ['assigned_supervisor', 'assigned_at']
-                    if order.status in ('new', 'pending'):
+                    if order.status in ('new', 'pending', 'postponed_client'):
                         order.status = 'supervisor_assigned'
-                        save_fields.append('status')
+                        order.postponed_until = None
+                        save_fields += ['status', 'postponed_until']
                     order.save(update_fields=save_fields)
                     new_label = sup_user.get_full_name() or sup_user.username
                     _fw_log(order, log_action, request.user, from_value=old_label, to_value=new_label)
@@ -678,11 +680,16 @@ def field_work_detail(request, pk):
                 postponed_until = None
                 errors.append('يرجى تحديد تاريخ التأجيل.')
             if not errors:
-                order.status         = 'postponed_client'
-                order.postponed_until = postponed_until
+                order.status              = 'postponed_client'
+                order.postponed_until     = postponed_until
+                order.assigned_supervisor = None
+                order.assigned_at         = None
                 if postpone_notes:
                     order.supervisor_notes = postpone_notes
-                order.save(update_fields=['status', 'postponed_until', 'supervisor_notes'])
+                order.save(update_fields=[
+                    'status', 'postponed_until', 'supervisor_notes',
+                    'assigned_supervisor', 'assigned_at',
+                ])
                 _fw_log(order, 'postponed', request.user,
                         to_value=postponed_until.strftime('%d/%m/%Y'),
                         note=postpone_notes)
