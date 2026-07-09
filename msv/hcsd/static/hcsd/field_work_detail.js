@@ -56,11 +56,19 @@ function applyT(el,ar,en){el.setAttribute('data-ar-txt',ar);el.setAttribute('dat
 var _dropStyle = 'display:none;position:absolute;z-index:300;width:100%;max-height:200px;overflow-y:auto;background:#fff;border:1.5px solid #cbd5e1;border-top:none;border-radius:0 0 8px 8px;margin:0;padding:0;list-style:none;box-shadow:0 4px 16px rgba(0,0,0,.12);';
 var _liStyle   = 'padding:9px 14px;cursor:pointer;font-size:12.5px;border-bottom:1px solid #f1f5f9;color:#0f172a;';
 
-function initCombo(inp, ul, items, getLabel, onSelect) {
+function _fuzzyMatch(label, q) {
+  if (!q) return true;
+  var l = label.toLowerCase();
+  var words = q.trim().toLowerCase().split(/\s+/);
+  return words.every(function(w){ return l.indexOf(w) !== -1; });
+}
+
+function initCombo(inp, ul, items, getLabel, onSelect, showAllOnFocus) {
   var idx = -1;
   function render(q) {
-    var ql = q.trim().toLowerCase();
-    var hits = ql ? items.filter(function(it){ return getLabel(it).toLowerCase().indexOf(ql) !== -1; }) : [];
+    var hits = showAllOnFocus && !q.trim()
+      ? items
+      : items.filter(function(it){ return _fuzzyMatch(getLabel(it), q); });
     if (!hits.length) { ul.style.display = 'none'; return; }
     ul.innerHTML = ''; idx = -1;
     hits.forEach(function(it, i) {
@@ -80,7 +88,7 @@ function initCombo(inp, ul, items, getLabel, onSelect) {
     if (el) { el.style.background='#eff6ff'; el.scrollIntoView({block:'nearest'}); }
   }
   inp.addEventListener('input', function(){ render(inp.value); });
-  inp.addEventListener('focus', function(){ if(inp.value) render(inp.value); });
+  inp.addEventListener('focus', function(){ render(inp.value); });
   inp.addEventListener('blur',  function(){ setTimeout(function(){ ul.style.display='none'; },150); });
   inp.addEventListener('keydown', function(e) {
     var lis = ul.querySelectorAll('li');
@@ -144,7 +152,7 @@ function addPesticideRow(container, data) {
   row.appendChild(nWrap); row.appendChild(bottom);
   container.appendChild(row);
 
-  initCombo(nInp, nUl, PESTICIDES, function(p){ return p.n; }, function(p){ uSel.value = p.u; });
+  initCombo(nInp, nUl, PESTICIDES, function(p){ return p.n; }, function(p){ uSel.value = p.u; }, true);
 
   // Search-only: clear if typed value doesn't match any pesticide
   nInp.addEventListener('blur', function(){
@@ -437,18 +445,28 @@ function serializeEntries() {
   var form = document.querySelector('form[data-role="supervisor-form"]');
   if (form) {
     form.addEventListener('submit', function(e){
-      // Validate: each pesticide with a name must have a qty
-      var missing = false;
+      // Validate pesticide rows
+      var badName = false, missingQty = false;
       document.querySelectorAll('.pst-row').forEach(function(row){
-        var nm  = (row.querySelector('.pst-name') || {value:''}).value.trim();
+        var nEl = row.querySelector('.pst-name');
+        var nm  = nEl ? nEl.value.trim() : '';
         var qEl = row.querySelector('.pst-qty');
         var qty = qEl ? qEl.value.trim() : '';
-        if (nm && !qty) {
-          missing = true;
-          if (qEl) { qEl.style.borderColor = '#dc2626'; qEl.focus(); }
+        if (nm && !_PESTICIDE_NAMES[nm]) {
+          badName = true;
+          if (nEl) { nEl.value=''; nEl.style.borderColor='#dc2626'; }
+        }
+        if (nm && _PESTICIDE_NAMES[nm] && !qty) {
+          missingQty = true;
+          if (qEl) { qEl.style.borderColor='#dc2626'; qEl.focus(); }
         }
       });
-      if (missing) {
+      if (badName) {
+        e.preventDefault();
+        alert(T('يرجى اختيار اسم المبيد من القائمة فقط.', 'Please select a pesticide name from the list only.'));
+        return;
+      }
+      if (missingQty) {
         e.preventDefault();
         alert(T('يرجى إدخال الكمية لكل مبيد مختار.', 'Please enter the quantity for each selected pesticide.'));
         return;
