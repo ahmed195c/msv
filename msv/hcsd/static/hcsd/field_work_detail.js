@@ -25,8 +25,10 @@ var PESTICIDES = [
   {n:"VERTOX PASTA BAIT",u:"GRM"},{n:"STELLIOX D50",u:"GRM"},{n:"TALON WB",u:"GRM"},
   {n:"SUREFIRE BROMA BLOCKS RODENTICIDE",u:"GRM"},{n:"NOCURAT PARAFFINATO",u:"GRM"},
   {n:"BuyBlocker Snake Deter",u:"GRM"},{n:"BOOM",u:"ML"},{n:"CYPFORCE 40 EC",u:"ML"},
-  {n:"D-TETRASUPER EC",u:"ML"},{n:"TEMEPHOS 55EC",u:"ML"}
+  {n:"D-TETRASUPER EC",u:"ML"},{n:"TEMEPHOS 55EC",u:"ML"},
+  {n:"Petrol",u:"L"},{n:"Diesel",u:"L"}
 ];
+var _PESTICIDE_NAMES = (function(){ var s={}; PESTICIDES.forEach(function(p){s[p.n]=true;}); return s; })();
 
 var ACTIONS_LIST = [
   'Applied Gel Bait','Residual Spraying','ULV Fogging','Drain Treatment',
@@ -143,6 +145,26 @@ function addPesticideRow(container, data) {
   container.appendChild(row);
 
   initCombo(nInp, nUl, PESTICIDES, function(p){ return p.n; }, function(p){ uSel.value = p.u; });
+
+  // Search-only: clear if typed value doesn't match any pesticide
+  nInp.addEventListener('blur', function(){
+    setTimeout(function(){
+      var v = nInp.value.trim();
+      if (v && !_PESTICIDE_NAMES[v]) {
+        nInp.value = '';
+        nInp.style.borderColor = '#fca5a5';
+        setTimeout(function(){ nInp.style.borderColor = ''; }, 900);
+      }
+    }, 200);
+  });
+
+  // Highlight qty when name filled but qty empty
+  nInp.addEventListener('change', function(){
+    if (nInp.value.trim()) qInp.style.borderColor = qInp.value.trim() ? '' : '#fca5a5';
+  });
+  qInp.addEventListener('input', function(){
+    if (qInp.value.trim()) qInp.style.borderColor = '';
+  });
 }
 
 // ── Spray entry card ──────────────────────────────────────────────────────────
@@ -414,7 +436,23 @@ function serializeEntries() {
 
   var form = document.querySelector('form[data-role="supervisor-form"]');
   if (form) {
-    form.addEventListener('submit', function(){
+    form.addEventListener('submit', function(e){
+      // Validate: each pesticide with a name must have a qty
+      var missing = false;
+      document.querySelectorAll('.pst-row').forEach(function(row){
+        var nm  = (row.querySelector('.pst-name') || {value:''}).value.trim();
+        var qEl = row.querySelector('.pst-qty');
+        var qty = qEl ? qEl.value.trim() : '';
+        if (nm && !qty) {
+          missing = true;
+          if (qEl) { qEl.style.borderColor = '#dc2626'; qEl.focus(); }
+        }
+      });
+      if (missing) {
+        e.preventDefault();
+        alert(T('يرجى إدخال الكمية لكل مبيد مختار.', 'Please enter the quantity for each selected pesticide.'));
+        return;
+      }
       document.getElementById('spray-entries-json').value = JSON.stringify(serializeEntries());
       try { sessionStorage.removeItem(DRAFT_KEY); } catch(e) {}
     });

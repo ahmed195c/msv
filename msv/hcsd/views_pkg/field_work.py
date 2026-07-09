@@ -875,6 +875,8 @@ _ACTIVE_INGREDIENTS = {
     "CYPFORCE 40 EC": "Cypermethrin 25% / Tetramethrin 5% / Piperonyl Butoxide 10%",
     "D-TETRASUPER EC": "D-Tetramethrin 10%",
     "TEMEPHOS 55EC": "Temephos 50%",
+    "Petrol": "Petroleum Distillates",
+    "Diesel": "Diesel Fuel",
 }
 
 _DANGEROUS_PESTS = frozenset(['Bees', 'Scorpion', 'Snake', 'Poisonous Spider', 'Wasp And Bee', 'Other Harmful Pest'])
