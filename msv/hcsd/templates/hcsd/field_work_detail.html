@@ -423,47 +423,57 @@ select.form-control{cursor:pointer;}
       <!-- ── Manual order fields ── -->
       <div class="info-grid">
         <div class="info-row">
+          <span class="info-label"><span class="t-ar">رقم الطلب</span><span class="t-en">Order No.</span></span>
+          <span class="info-value" style="font-family:var(--mono);font-weight:700;">{{ order.order_number|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><span class="t-ar">تاريخ الطلب</span><span class="t-en">Request Date</span></span>
+          <span class="info-value">{{ order.request_date|date:"d/m/Y"|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><span class="t-ar">اسم المتعامل</span><span class="t-en">Customer Name</span></span>
+          <span class="info-value">{{ order.customer_name|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><span class="t-ar">الموبايل</span><span class="t-en">Mobile</span></span>
+          <span class="info-value" style="font-family:var(--mono);">{{ order.mobile|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><span class="t-ar">المنطقة</span><span class="t-en">Area</span></span>
+          <span class="info-value">{{ order.area|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><span class="t-ar">رقم الشارع</span><span class="t-en">Street No.</span></span>
+          <span class="info-value">{{ order.street_number|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><span class="t-ar">رقم المنزل</span><span class="t-en">House No.</span></span>
+          <span class="info-value">{{ order.house_number|default:"—" }}</span>
+        </div>
+        <div class="info-row">
           <span class="info-label"><span class="t-ar">اسم الموقع</span><span class="t-en">Site Name</span></span>
           <span class="info-value">{{ order.site_name|default:"—" }}</span>
         </div>
-        <div class="info-row">
-          <span class="info-label"><span class="t-ar">تاريخ التنفيذ</span><span class="t-en">Work Date</span></span>
-          <span class="info-value">{{ order.work_date|date:"d/m/Y"|default:"—" }}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label"><span class="t-ar">العنوان</span><span class="t-en">Address</span></span>
+        <div class="info-row full">
+          <span class="info-label"><span class="t-ar">العنوان التفصيلي</span><span class="t-en">Detailed Address</span></span>
           <span class="info-value">{{ order.location|default:"—" }}</span>
+        </div>
+        <div class="info-row full">
+          <span class="info-label"><span class="t-ar">نوع الحشرات</span><span class="t-en">Pest Types</span></span>
+          <span class="info-value">{{ order.pest_types|default:"—" }}</span>
         </div>
         <div class="info-row">
           <span class="info-label"><span class="t-ar">تاريخ الإنشاء</span><span class="t-en">Created</span></span>
           <span class="info-value">{{ order.created_at|date:"d/m/Y" }}</span>
         </div>
         <div class="info-row">
-          <span class="info-label"><span class="t-ar">اكتملت العملية</span><span class="t-en">Completed</span></span>
-          <span class="info-value">
-            {% if order.work_completed is True %}✅ <span class="t-ar">نعم</span><span class="t-en">Yes</span>
-            {% elif order.work_completed is False %}❌ <span class="t-ar">لا</span><span class="t-en">No</span>
-            {% else %}—{% endif %}
-          </span>
+          <span class="info-label"><span class="t-ar">تاريخ الإغلاق</span><span class="t-en">Close Date</span></span>
+          <span class="info-value">{{ order.close_date|date:"d/m/Y"|default:"—" }}</span>
         </div>
-        {% if order.equipment_used %}
-        <div class="info-row full">
-          <span class="info-label"><span class="t-ar">المعدات المستخدمة</span><span class="t-en">Equipment Used</span></span>
-          <span class="info-value">{{ order.equipment_used }}</span>
-        </div>
-        {% endif %}
-        {% if order.description %}
-        <div class="info-row full">
-          <span class="info-label"><span class="t-ar">وصف العمل</span><span class="t-en">Work Description</span></span>
-          <span class="info-value">{{ order.description }}</span>
-        </div>
-        {% endif %}
-        {% if order.notes %}
         <div class="info-row full">
           <span class="info-label"><span class="t-ar">ملاحظات</span><span class="t-en">Notes</span></span>
-          <span class="info-value">{{ order.notes }}</span>
+          <span class="info-value">{{ order.notes|default:"—" }}</span>
         </div>
-        {% endif %}
       </div>
       {% endif %}
 
