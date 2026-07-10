@@ -352,7 +352,7 @@ select.form-control{cursor:pointer;}
           <span class="info-value">{{ order.close_date|date:"d/m/Y"|default:"—" }}</span>
         </div>
         <div class="info-row">
-          <span class="info-label"><span class="t-ar">حالة الطلب (Excel)</span><span class="t-en">Status (Excel)</span></span>
+          <span class="info-label"><span class="t-ar">حالة الطلب</span><span class="t-en">Status</span></span>
           <span class="info-value">{{ order.excel_status|default:"—" }}</span>
         </div>
         {% if order.status == 'completed' and order.assigned_supervisor %}
