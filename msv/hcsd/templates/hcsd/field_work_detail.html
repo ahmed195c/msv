@@ -123,7 +123,7 @@ select.form-control{cursor:pointer;}
     <div class="fw-header-left">
       <div class="fw-id">
         <span class="t-ar">أمر عمل ميداني</span><span class="t-en">Field Work Order</span> #{{ order.pk }}
-        {% if order.source == 'excel' %}<span style="background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;margin-right:6px;">Excel</span>{% endif %}
+        {% if order.complaint_source %}<span style="background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;margin-right:6px;">{{ order.get_complaint_source_display }}</span>{% endif %}
       </div>
       <h1>{% if order.order_number %}<span class="t-ar">طلب رقم</span><span class="t-en">Order No.</span> {{ order.order_number }}{% elif order.work_type %}{{ order.work_type }}{% else %}<span class="t-ar">أمر عمل ميداني</span><span class="t-en">Field Work Order</span>{% endif %}</h1>
     </div>
