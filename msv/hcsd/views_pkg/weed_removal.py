@@ -50,10 +50,12 @@ def _is_valid_photo(file):
 
 @login_required
 def weed_list(request):
+    from django.core.paginator import Paginator
     from django.db.models import Q, Count
     lang = _get_lang(request)
     status_filter = (request.GET.get('status') or 'all').strip()
     search        = (request.GET.get('q') or '').strip()
+    page_number   = request.GET.get('page') or 1
 
     qs = WeedRemovalRequest.objects.select_related('created_by').all()
 
@@ -68,19 +70,38 @@ def weed_list(request):
         qs = qs.filter(
             Q(complaint_number__icontains=search)
             | Q(complainant_name__icontains=search)
+            | Q(complainant_mobile__icontains=search)
             | Q(area__icontains=search)
         )
 
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'hcsd/weed_removal/list.html', {
-        'requests': qs,
+        'requests': page_obj,
+        'page_obj': page_obj,
         'status_filter': status_filter,
         'status_choices': WeedRemovalRequest.STATUS_CHOICES,
         'status_counts': status_counts,
         'total_count': total_count,
         'search': search,
         'can_manage': _can_manage(request.user),
+        'can_delete': _can_admin(request.user),
         'lang': lang,
     })
+
+
+@login_required
+@require_POST
+def weed_delete(request, pk):
+    obj = get_object_or_404(WeedRemovalRequest, pk=pk)
+    if not _can_admin(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+
+    logger.info('WeedRemovalRequest %s deleted by %s', obj.complaint_number, request.user)
+    obj.delete()
+    return redirect('weed_list')
 
 
 # ── Create ────────────────────────────────────────────────────────────────────

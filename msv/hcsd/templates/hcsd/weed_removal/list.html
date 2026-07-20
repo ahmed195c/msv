@@ -35,12 +35,16 @@
 .b-insp-done{background:#f0fdf4;color:#15803d;}.b-insp-done::before{background:#22c55e;}
 .b-sup-assigned{background:#faf5ff;color:#7c3aed;}.b-sup-assigned::before{background:#a855f7;}
 .b-wip{background:#fff7ed;color:#c2410c;}.b-wip::before{background:#f97316;}
+.b-paused{background:#fefce8;color:#854d0e;}.b-paused::before{background:#eab308;}
 .b-done{background:#ecfdf5;color:#065f46;}.b-done::before{background:#10b981;}
 .b-closed{background:#f1f5f9;color:#475569;}.b-closed::before{background:#94a3b8;}
 .b-rejected{background:#fef2f2;color:#dc2626;}.b-rejected::before{background:#f87171;}
 
 .view-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:6px;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;background:var(--accent-bg);border:1.5px solid transparent;transition:all .15s;}
 .view-btn:hover{background:#dbeafe;border-color:#93c5fd;}
+.del-btn{background:none;border:none;color:#dc2626;font-weight:600;font-size:12px;cursor:pointer;padding:0;font-family:inherit;}
+.c-page-btn{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;background:#fff;color:var(--accent);border:1.5px solid var(--line);}
+.c-page-btn--disabled{color:var(--ink-3);pointer-events:none;background:var(--surface-2);}
 
 .btn-primary-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;font-family:inherit;box-shadow:0 2px 6px rgba(37,99,235,.22);transition:all .15s;}
 .btn-primary-sm:hover{background:var(--accent-dk);transform:translateY(-1px);}
@@ -104,12 +108,15 @@
 </form>
 
 {% if requests %}
-<div style="font-size:12px;color:var(--ink-3);font-weight:500;margin-bottom:8px;">{{ requests|length }} نتيجة{% if search %} — لـ "{{ search }}"{% endif %}</div>
-<div class="db-table-wrap">
+<div style="font-size:12px;color:var(--ink-3);font-weight:500;margin-bottom:8px;">{{ page_obj.paginator.count }} نتيجة{% if search %} — لـ "{{ search }}"{% endif %}</div>
+<div class="db-table-wrap" style="overflow-x:auto;">
   <table class="db-table">
     <thead>
       <tr>
         <th>رقم الشكوى</th>
+        <th>المتعامل</th>
+        <th>الموبايل</th>
+        <th>رقم المنزل</th>
         <th>الحالة</th>
         <th>تاريخ التقديم</th>
         <th>أضيف بواسطة</th>
@@ -123,26 +130,54 @@
           <div style="font-family:'JetBrains Mono',monospace;font-weight:700;">{{ r.complaint_number }}</div>
           {% if r.area %}<div style="font-size:11px;color:var(--ink-4);margin-top:2px;">{{ r.area }}</div>{% endif %}
         </td>
+        <td style="color:var(--ink-2);">{{ r.complainant_name|default:"—" }}</td>
+        <td style="color:var(--ink-2);font-family:'JetBrains Mono',monospace;">{{ r.complainant_mobile|default:"—" }}</td>
+        <td style="color:var(--ink-2);">{{ r.house_number|default:"—" }}</td>
         <td>
           {% if r.status == 'new' %}<span class="badge b-new">جديد</span>
           {% elif r.status == 'inspector_assigned' %}<span class="badge b-insp-assigned">بانتظار المفتش</span>
           {% elif r.status == 'inspection_done' %}<span class="badge b-insp-done">اكتمل التفتيش</span>
           {% elif r.status == 'supervisor_assigned' %}<span class="badge b-sup-assigned">بانتظار المراقب</span>
           {% elif r.status == 'work_in_progress' %}<span class="badge b-wip">العمل جارٍ</span>
+          {% elif r.status == 'work_paused' %}<span class="badge b-paused">العمل متوقف مؤقتاً</span>
           {% elif r.status == 'work_done' %}<span class="badge b-done">تم إنهاء العمل</span>
           {% elif r.status == 'closed' %}<span class="badge b-closed">مغلق</span>
           {% elif r.status == 'rejected' %}<span class="badge b-rejected">مرفوض</span>{% endif %}
         </td>
         <td style="color:var(--ink-2);white-space:nowrap;">{{ r.created_at|date:"d/m/Y" }}</td>
         <td style="color:var(--ink-2);">{{ r.created_by.get_full_name|default:r.created_by.username|default:"—" }}</td>
-        <td style="text-align:center;">
+        <td style="text-align:center;white-space:nowrap;">
           <a href="{% url 'weed_detail' r.pk %}" class="view-btn">عرض <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></a>
+          {% if can_delete %}
+          <form method="post" action="{% url 'weed_delete' r.pk %}" style="display:inline;"
+                onsubmit="return confirm('هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.');">
+            {% csrf_token %}
+            <button type="submit" class="del-btn" style="margin-right:8px;">حذف</button>
+          </form>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+{% if page_obj.has_other_pages %}
+<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:20px;">
+  {% if page_obj.has_previous %}
+    <a class="c-page-btn" href="?{% if search %}q={{ search }}&{% endif %}{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">السابق</a>
+  {% else %}
+    <span class="c-page-btn c-page-btn--disabled">السابق</span>
+  {% endif %}
+  <span style="font-size:13px;color:var(--ink-3);font-weight:500;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a class="c-page-btn" href="?{% if search %}q={{ search }}&{% endif %}{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}page={{ page_obj.next_page_number }}">التالي</a>
+  {% else %}
+    <span class="c-page-btn c-page-btn--disabled">التالي</span>
+  {% endif %}
+</div>
+{% endif %}
+
 {% else %}
 <div style="text-align:center;padding:72px 24px;color:var(--ink-3);">
   <div style="width:56px;height:56px;margin:0 auto 16px;background:var(--surface-2);border-radius:16px;display:flex;align-items:center;justify-content:center;">

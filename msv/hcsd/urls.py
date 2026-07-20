@@ -32,6 +32,7 @@ urlpatterns = [
     path('container-transfers/<int:pk>/submit-report/', views.container_submit_report, name='container_submit_report'),
     path('container-transfers/<int:pk>/close/', views.container_close, name='container_close'),
     path('container-transfers/<int:pk>/reject/', views.container_reject, name='container_reject'),
+    path('container-transfers/<int:pk>/delete/', views.container_delete, name='container_delete'),
     path('container-transfers/<int:pk>/photos/<int:photo_pk>/delete/', views.container_photo_delete, name='container_photo_delete'),
 
     # Weed Removal
@@ -49,6 +50,7 @@ urlpatterns = [
     path('weed-removal/<int:pk>/photos/add/', views.weed_add_photos, name='weed_add_photos'),
     path('weed-removal/<int:pk>/reject/', views.weed_reject, name='weed_reject'),
     path('weed-removal/<int:pk>/close/', views.weed_close, name='weed_close'),
+    path('weed-removal/<int:pk>/delete/', views.weed_delete, name='weed_delete'),
     path('weed-removal/<int:pk>/photos/<int:ppk>/delete/', views.weed_photo_delete, name='weed_photo_delete'),
 
     path('companies/', views.company_list, name='company_list'),

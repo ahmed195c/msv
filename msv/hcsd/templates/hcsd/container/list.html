@@ -2,9 +2,20 @@
 
 {% block title %}طلبات نقل الحاويات{% endblock %}
 
-
-
 {% block content %}
+<style>
+.c-badge { padding:3px 11px; border-radius:10px; font-size:11px; font-weight:700; }
+.badge-new        { background:#eff6ff; color:#1d4ed8; }
+.badge-inspector  { background:#fef3c7; color:#b45309; }
+.badge-done-insp  { background:#e0f2fe; color:#0369a1; }
+.badge-supervisor { background:#f3e8ff; color:#7e22ce; }
+.badge-inprogress { background:#fff7ed; color:#c2410c; }
+.badge-resolved   { background:#ecfdf5; color:#047857; }
+.badge-closed     { background:#f1f5f9; color:#475569; }
+.badge-rejected   { background:#fef2f2; color:#dc2626; }
+.c-page-btn { padding:6px 14px; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none; background:#fff; color:var(--accent); border:1.5px solid var(--line); }
+.c-page-btn--disabled { color:var(--ink-3); pointer-events:none; background:var(--surface-2); }
+</style>
 
 <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
   <div>
@@ -27,14 +38,24 @@
   {% endif %}
 </div>
 
+<!-- Search -->
+<form method="get" style="margin-bottom:14px;">
+  <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;max-width:420px;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" name="q" value="{{ search }}" placeholder="ابحث برقم الشكوى أو الاسم أو الموبايل أو المنطقة…"
+           style="border:none;outline:none;flex:1;font-size:13px;">
+  </div>
+  {% if status_filter != 'all' %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+</form>
+
 <!-- Status filter tabs -->
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
-  <a href="?" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid;
+  <a href="?{% if search %}q={{ search }}&{% endif %}" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid;
       {% if status_filter == 'all' %}background:var(--accent);color:#fff;border-color:var(--accent);{% else %}background:#fff;color:var(--ink-2);border-color:var(--line);{% endif %}">
     الكل
   </a>
   {% for key, label in status_choices %}
-  <a href="?status={{ key }}" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid;
+  <a href="?{% if search %}q={{ search }}&{% endif %}status={{ key }}" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid;
       {% if status_filter == key %}background:var(--accent);color:#fff;border-color:var(--accent);{% else %}background:#fff;color:var(--ink-2);border-color:var(--line);{% endif %}">
     {{ label }}
   </a>
@@ -42,14 +63,20 @@
 </div>
 
 {% if requests %}
-<div style="background:#fff;border-radius:12px;border:1.5px solid var(--line);overflow:hidden;box-shadow:var(--shadow-sm);">
+<div style="font-size:12px;color:var(--ink-3);margin-bottom:8px;">
+  {{ page_obj.paginator.count }} نتيجة{% if search %} — لـ "{{ search }}"{% endif %}
+</div>
+<div style="background:#fff;border-radius:12px;border:1.5px solid var(--line);overflow:hidden;box-shadow:var(--shadow-sm);overflow-x:auto;">
   <table style="width:100%;border-collapse:collapse;font-size:13px;">
     <thead>
       <tr style="background:var(--surface-2);border-bottom:1.5px solid var(--line);">
         <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">رقم الشكوى</th>
         <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">المتعامل</th>
+        <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">الموبايل</th>
         <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">المنطقة</th>
+        <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">رقم المنزل</th>
         <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">الحالة</th>
+        <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">أضيف بواسطة</th>
         <th style="padding:12px 16px;text-align:right;font-weight:600;color:var(--ink-2);">التاريخ</th>
         <th></th>
       </tr>
@@ -60,7 +87,9 @@
           onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
         <td style="padding:13px 16px;font-weight:600;font-family:monospace;">{{ r.complaint_number }}</td>
         <td style="padding:13px 16px;">{{ r.complainant_name|default:'—' }}</td>
+        <td style="padding:13px 16px;color:var(--ink-2);font-family:monospace;">{{ r.complainant_mobile|default:'—' }}</td>
         <td style="padding:13px 16px;color:var(--ink-2);">{{ r.area|default:'—' }}</td>
+        <td style="padding:13px 16px;color:var(--ink-2);">{{ r.house_number|default:'—' }}</td>
         <td style="padding:13px 16px;">
           {% if r.status == 'new' %}<span class="c-badge badge-new">جديد</span>
           {% elif r.status == 'assigned' %}<span class="c-badge badge-inspector">بانتظار المفتش</span>
@@ -69,22 +98,48 @@
           {% elif r.status == 'biaa_transferred' %}<span class="c-badge badge-inprogress">تم نقل الحاوية</span>
           {% elif r.status == 'report_submitted' %}<span class="c-badge badge-resolved">تم تقديم التقرير</span>
           {% elif r.status == 'closed' %}<span class="c-badge badge-closed">مغلق</span>
+          {% elif r.status == 'rejected' %}<span class="c-badge badge-rejected">مرفوض</span>
           {% endif %}
         </td>
+        <td style="padding:13px 16px;color:var(--ink-2);">{{ r.created_by.get_full_name|default:r.created_by.username|default:'—' }}</td>
         <td style="padding:13px 16px;color:var(--ink-2);">{{ r.created_at|date:"d/m/Y" }}</td>
-        <td style="padding:13px 16px;">
+        <td style="padding:13px 16px;white-space:nowrap;">
           <a href="{% url 'container_detail' r.pk %}" style="color:var(--accent);font-weight:600;font-size:12px;text-decoration:none;">عرض</a>
+          {% if can_delete %}
+          <form method="post" action="{% url 'container_delete' r.pk %}" style="display:inline;"
+                onsubmit="return confirm('هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.');">
+            {% csrf_token %}
+            <button type="submit" style="background:none;border:none;color:#dc2626;font-weight:600;font-size:12px;cursor:pointer;padding:0;margin-right:10px;">حذف</button>
+          </form>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+{% if page_obj.has_other_pages %}
+<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:20px;">
+  {% if page_obj.has_previous %}
+    <a class="c-page-btn" href="?{% if search %}q={{ search }}&{% endif %}{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">السابق</a>
+  {% else %}
+    <span class="c-page-btn c-page-btn--disabled">السابق</span>
+  {% endif %}
+  <span style="font-size:13px;color:var(--ink-3);font-weight:500;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a class="c-page-btn" href="?{% if search %}q={{ search }}&{% endif %}{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}page={{ page_obj.next_page_number }}">التالي</a>
+  {% else %}
+    <span class="c-page-btn c-page-btn--disabled">التالي</span>
+  {% endif %}
+</div>
+{% endif %}
+
 {% else %}
 <div style="text-align:center;padding:64px 24px;color:var(--ink-3);">
   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4m0-10v10"/></svg>
   <p style="font-size:15px;font-weight:600;color:var(--ink-2);margin-bottom:6px;">لا توجد طلبات</p>
-  <p style="font-size:13px;">لم يتم تسجيل أي طلبات بعد.</p>
+  <p style="font-size:13px;">{% if search %}لا توجد نتائج مطابقة للبحث.{% else %}لم يتم تسجيل أي طلبات بعد.{% endif %}</p>
 </div>
 {% endif %}
 

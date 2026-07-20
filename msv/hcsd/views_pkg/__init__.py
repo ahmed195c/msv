@@ -43,7 +43,7 @@ from .weed_removal import (
     weed_assign_inspector, weed_inspector_done,
     weed_assign_supervisor,
     weed_work_start, weed_report_submit, weed_add_photos,
-    weed_reject, weed_close, weed_photo_delete,
+    weed_reject, weed_close, weed_photo_delete, weed_delete,
     weed_pdf_import, weed_pdf_review,
     weed_save_location,
 )
@@ -51,7 +51,7 @@ from .container_transfer import (
     container_list, container_create, container_pdf_import, container_pdf_review, container_detail,
     container_assign_inspector, container_save_location, container_contact_biaa,
     container_mark_transferred, container_submit_report, container_close,
-    container_photo_delete, container_reject,
+    container_photo_delete, container_reject, container_delete,
 )
 
 __all__ = [
@@ -78,12 +78,12 @@ __all__ = [
     'container_list', 'container_create', 'container_pdf_import', 'container_pdf_review', 'container_detail',
     'container_assign_inspector', 'container_save_location', 'container_contact_biaa',
     'container_mark_transferred', 'container_submit_report', 'container_close',
-    'container_photo_delete', 'container_reject',
+    'container_photo_delete', 'container_reject', 'container_delete',
     'weed_list', 'weed_create', 'weed_detail',
     'weed_assign_inspector', 'weed_inspector_done',
     'weed_assign_supervisor',
     'weed_work_start', 'weed_report_submit', 'weed_add_photos',
-    'weed_reject', 'weed_close', 'weed_photo_delete',
+    'weed_reject', 'weed_close', 'weed_photo_delete', 'weed_delete',
     'weed_pdf_import', 'weed_pdf_review', 'weed_save_location',
     'all_requests',
 ]

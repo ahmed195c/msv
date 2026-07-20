@@ -158,19 +158,51 @@ def container_create(request):
 
 @login_required
 def container_list(request):
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+
     lang = _get_lang(request)
     status_filter = (request.GET.get('status') or 'all').strip()
+    search = (request.GET.get('q') or '').strip()
+    page_number = request.GET.get('page') or 1
+
     requests_qs = ContainerTransferRequest.objects.select_related('created_by').all()
     if status_filter != 'all':
         requests_qs = requests_qs.filter(status=status_filter)
+    if search:
+        requests_qs = requests_qs.filter(
+            Q(complaint_number__icontains=search)
+            | Q(complainant_name__icontains=search)
+            | Q(complainant_mobile__icontains=search)
+            | Q(area__icontains=search)
+        )
+
+    paginator = Paginator(requests_qs, 25)
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'hcsd/container/list.html', {
-        'requests': requests_qs,
+        'requests': page_obj,
+        'page_obj': page_obj,
         'status_filter': status_filter,
+        'search': search,
         'status_choices': ContainerTransferRequest.STATUS_CHOICES,
         'can_manage': _can_manage(request.user),
+        'can_delete': _can_admin(request.user),
         'lang': lang,
     })
+
+
+@login_required
+@require_POST
+def container_delete(request, pk):
+    obj = get_object_or_404(ContainerTransferRequest, pk=pk)
+    if not _can_admin(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+
+    logger.info('ContainerTransferRequest %s deleted by %s', obj.complaint_number, request.user)
+    obj.delete()
+    return redirect('container_list')
 
 
 # ── PDF Import ────────────────────────────────────────────────────────────────
