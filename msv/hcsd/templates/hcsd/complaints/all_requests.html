@@ -123,17 +123,17 @@
             {% if item.status == 'new' %}
               <span style="padding:3px 9px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;">جديدة</span>
             {% elif item.status == 'assigned_inspector' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;">بانتظار التفتيش</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;">تم تعيين مفتش</span>
             {% elif item.status == 'inspection_done' %}
               <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">اكتمل التفتيش</span>
             {% elif item.status == 'assigned_supervisor' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;">بانتظار المعالجة</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;">تم تعيين مراقب</span>
             {% elif item.status == 'in_progress' %}
               <span style="padding:3px 9px;border-radius:10px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;">قيد المعالجة</span>
             {% elif item.status == 'resolved' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">تم الحل</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">تم الإنجاز</span>
             {% elif item.status == 'closed' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;">مغلقة</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;">مغلق</span>
             {% endif %}
           {% else %}
             {% if item.status == 'new' %}

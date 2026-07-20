@@ -85,8 +85,16 @@
 .btn-done { padding:10px 22px; background:#15803d; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; }
 
 /* ── Photo upload zone ── */
-.upload-zone { border:2px dashed var(--line-2); border-radius:8px; padding:18px; text-align:center; cursor:pointer; background:var(--surface); transition:border-color .15s; }
-.upload-zone:hover { border-color:var(--accent); }
+.upload-zone {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  border:2px dashed var(--line-2); border-radius:8px; padding:20px;
+  text-align:center; cursor:pointer; background:var(--surface); transition:border-color .15s, background .15s;
+}
+.upload-zone:hover { border-color:var(--accent); background:var(--accent-bg); }
+.upload-zone svg { display:block; flex-shrink:0; }
+.upload-zone.has-files { border-color:var(--accent); border-style:solid; background:var(--accent-bg); }
+.upload-zone__hint { font-size:12px; color:var(--ink-3); }
+.upload-zone__count { font-size:12px; color:var(--accent); font-weight:700; }
 
 @media (max-width:720px) {
   .f-grid-2 { grid-template-columns:1fr; }
@@ -111,12 +119,12 @@
   </div>
   <!-- Status badge -->
   {% if complaint.status == 'new' %}<span class="c-badge badge-new">{% if lang == 'en' %}New{% else %}جديدة{% endif %}</span>
-  {% elif complaint.status == 'assigned_inspector' %}<span class="c-badge badge-inspector">{% if lang == 'en' %}Awaiting Inspection{% else %}بانتظار التفتيش{% endif %}</span>
+  {% elif complaint.status == 'assigned_inspector' %}<span class="c-badge badge-inspector">{% if lang == 'en' %}Inspector Assigned{% else %}تم تعيين مفتش{% endif %}</span>
   {% elif complaint.status == 'inspection_done' %}<span class="c-badge badge-done-insp">{% if lang == 'en' %}Inspection Done{% else %}اكتمل التفتيش{% endif %}</span>
-  {% elif complaint.status == 'assigned_supervisor' %}<span class="c-badge badge-supervisor">{% if lang == 'en' %}Awaiting Resolution{% else %}بانتظار المعالجة{% endif %}</span>
+  {% elif complaint.status == 'assigned_supervisor' %}<span class="c-badge badge-supervisor">{% if lang == 'en' %}Supervisor Assigned{% else %}تم تعيين مراقب{% endif %}</span>
   {% elif complaint.status == 'in_progress' %}<span class="c-badge badge-inprogress">{% if lang == 'en' %}In Progress{% else %}قيد المعالجة{% endif %}</span>
-  {% elif complaint.status == 'resolved' %}<span class="c-badge badge-resolved">{% if lang == 'en' %}Resolved{% else %}تم الحل{% endif %}</span>
-  {% elif complaint.status == 'closed' %}<span class="c-badge badge-closed">{% if lang == 'en' %}Closed{% else %}مغلقة{% endif %}</span>{% endif %}
+  {% elif complaint.status == 'resolved' %}<span class="c-badge badge-resolved">{% if lang == 'en' %}Resolved{% else %}تم الإنجاز{% endif %}</span>
+  {% elif complaint.status == 'closed' %}<span class="c-badge badge-closed">{% if lang == 'en' %}Closed{% else %}مغلق{% endif %}</span>{% endif %}
 </div>
 
 <!-- ═══ Workflow Timeline ═══ -->
@@ -334,11 +342,10 @@
         {% csrf_token %}
         <input type="hidden" name="phase" value="inspection">
         <label class="f-label">{% if lang == 'en' %}Add Inspection Photos{% else %}إضافة صور التفتيش{% endif %}</label>
-        <label class="upload-zone" style="margin-bottom:10px;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          <div style="font-size:12px;color:var(--ink-3);">{% if lang == 'en' %}Click to select photos{% else %}اضغط لاختيار الصور{% endif %}</div>
-          <input type="file" name="photos" accept=".jpg,.jpeg,.png,.webp" multiple style="display:none;" onchange="showFileCount(this,'insp-count')">
-          <span id="insp-count" style="font-size:12px;color:var(--accent);font-weight:600;"></span>
+        <label class="upload-zone" id="insp-zone" style="margin-bottom:10px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div class="upload-zone__hint" id="insp-hint">{% if lang == 'en' %}Click to select photos{% else %}اضغط لاختيار الصور{% endif %}</div>
+          <input type="file" name="photos" accept=".jpg,.jpeg,.png,.webp" multiple style="display:none;" onchange="showFileCount(this,'insp-hint','insp-zone')">
         </label>
         <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">{% if lang == 'en' %}Upload{% else %}رفع الصور{% endif %}</button>
       </form>
@@ -572,11 +579,10 @@
         {% csrf_token %}
         <input type="hidden" name="phase" value="during_work">
         <label class="f-label">{% if lang == 'en' %}Add During-Work Photos{% else %}إضافة صور أثناء العمل{% endif %}</label>
-        <label class="upload-zone" style="margin-bottom:8px;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          <div style="font-size:11px;color:var(--ink-3);">{% if lang == 'en' %}Select photos{% else %}اختر الصور{% endif %}</div>
-          <input type="file" name="photos" accept=".jpg,.jpeg,.png,.webp" multiple style="display:none;" onchange="showFileCount(this,'during-count')">
-          <span id="during-count" style="font-size:12px;color:var(--accent);font-weight:600;"></span>
+        <label class="upload-zone" id="during-zone" style="margin-bottom:8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div class="upload-zone__hint" id="during-hint">{% if lang == 'en' %}Select photos{% else %}اختر الصور{% endif %}</div>
+          <input type="file" name="photos" accept=".jpg,.jpeg,.png,.webp" multiple style="display:none;" onchange="showFileCount(this,'during-hint','during-zone')">
         </label>
         <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">{% if lang == 'en' %}Upload{% else %}رفع{% endif %}</button>
       </form>
@@ -584,11 +590,10 @@
         {% csrf_token %}
         <input type="hidden" name="phase" value="after_work">
         <label class="f-label">{% if lang == 'en' %}Add After-Work Photos{% else %}إضافة صور بعد الانتهاء{% endif %}</label>
-        <label class="upload-zone" style="margin-bottom:8px;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          <div style="font-size:11px;color:var(--ink-3);">{% if lang == 'en' %}Select photos{% else %}اختر الصور{% endif %}</div>
-          <input type="file" name="photos" accept=".jpg,.jpeg,.png,.webp" multiple style="display:none;" onchange="showFileCount(this,'after-count')">
-          <span id="after-count" style="font-size:12px;color:var(--accent);font-weight:600;"></span>
+        <label class="upload-zone" id="after-zone" style="margin-bottom:8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div class="upload-zone__hint" id="after-hint">{% if lang == 'en' %}Select photos{% else %}اختر الصور{% endif %}</div>
+          <input type="file" name="photos" accept=".jpg,.jpeg,.png,.webp" multiple style="display:none;" onchange="showFileCount(this,'after-hint','after-zone')">
         </label>
         <button type="submit" class="btn-primary" style="font-size:12px;padding:7px 16px;">{% if lang == 'en' %}Upload{% else %}رفع{% endif %}</button>
       </form>
@@ -657,11 +662,15 @@ function togglePhotoEdit(panelId, gridId) {
   if (grid) grid.classList.toggle('photos-locked');
 }
 
-// Show selected file count
-function showFileCount(input, countId) {
-  var el = document.getElementById(countId);
+// Update the dropzone hint text and highlight it once files are chosen
+function showFileCount(input, hintId, zoneId) {
+  var hint = document.getElementById(hintId);
+  var zone = document.getElementById(zoneId);
   if (input.files && input.files.length > 0) {
-    el.textContent = input.files.length + ' {% if lang == 'en' %}file(s) selected{% else %}ملف محدد{% endif %}';
+    hint.textContent = input.files.length + ' {% if lang == 'en' %}photo(s) selected — ready to upload{% else %}صورة محددة — جاهزة للرفع{% endif %}';
+    if (zone) zone.classList.add('has-files');
+  } else {
+    if (zone) zone.classList.remove('has-files');
   }
 }
 </script>

@@ -819,12 +819,12 @@ class RequirementInsuranceRequest(models.Model):
 class Complaint(models.Model):
     STATUS_CHOICES = [
         ('new',                 'جديدة'),
-        ('assigned_inspector',  'بانتظار التفتيش'),
+        ('assigned_inspector',  'تم تعيين مفتش'),
         ('inspection_done',     'اكتمل التفتيش'),
-        ('assigned_supervisor', 'بانتظار المعالجة'),
+        ('assigned_supervisor', 'تم تعيين مراقب'),
         ('in_progress',         'قيد المعالجة'),
-        ('resolved',            'تم الحل'),
-        ('closed',              'مغلقة'),
+        ('resolved',            'تم الإنجاز'),
+        ('closed',              'مغلق'),
     ]
 
     PEST_CHOICES = [
