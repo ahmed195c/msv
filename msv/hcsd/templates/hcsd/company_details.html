@@ -315,7 +315,9 @@
   {# ── Status strip ── #}
   <div class="cd-status-strip">
     <span class="cd-status-strip__lbl">الحالة</span>
-    {% if company_blocked %}
+    {% if permit_suspended %}
+      <span class="sbadge sbadge-block">موقوفة — تصريح ملغى إدارياً</span>
+    {% elif company_blocked %}
       <span class="sbadge sbadge-block">موقوفة — مهلة نشطة</span>
     {% else %}
       <span class="sbadge sbadge-ok">نشطة</span>
@@ -327,6 +329,9 @@
   </div>
 
   {# ── Alerts ── #}
+  {% if permit_suspended %}
+  <div class="alert alert-warn">⚠ هذه الشركة موقوفة — آخر تصريح مكافحة آفات لها ملغى إدارياً (مغلق).</div>
+  {% endif %}
   {% if company_blocked %}
   <div class="alert alert-warn">⚠ هذه الشركة موقوفة بسبب مهلة نشطة — لا يمكن إنشاء أي تصاريح جديدة حتى يتم إغلاق المهلة.</div>
   {% endif %}

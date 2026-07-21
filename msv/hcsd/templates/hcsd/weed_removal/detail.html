@@ -207,15 +207,27 @@
     <div class="doc-table-divider"><span>الموقع الجغرافي</span></div>
     <div class="detail-col-grid">
       <div class="detail-item" style="border-bottom:none;">
-        <span class="label">الإحداثيات</span>
-        <span class="value" dir="ltr" style="font-family:monospace;">
-          {{ inspection.latitude }}, {{ inspection.longitude }}
+        <span class="label">الموقع</span>
+        <span class="value" style="display:flex;align-items:center;gap:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span style="color:#15803d;font-weight:600;">تم تحديد الموقع</span>
           <a href="https://maps.google.com/?q={{ inspection.latitude }},{{ inspection.longitude }}" target="_blank"
-             style="font-size:11px;color:#0369a1;border:1px solid #bae6fd;padding:1px 7px;border-radius:4px;margin-right:8px;text-decoration:none;">خرائط</a>
+             style="font-size:11px;color:#0369a1;border:1px solid #bae6fd;padding:2px 9px;border-radius:4px;text-decoration:none;">عرض على الخريطة</a>
         </span>
       </div>
       {% if inspection.location_notes %}
       <div class="detail-item" style="border-bottom:none;"><span class="label">ملاحظات الموقع</span><span class="value">{{ inspection.location_notes }}</span></div>
+      {% endif %}
+      {% if can_admin %}
+      <div class="detail-item" style="border-bottom:none;">
+        <form method="post" action="{% url 'weed_delete_location' obj.pk %}"
+              onsubmit="return confirm('حذف الموقع المحفوظ؟ سيحتاج المفتش لتحديده مرة أخرى.');">
+          {% csrf_token %}
+          <button type="submit" style="background:none;border:1px solid #fecaca;color:#dc2626;font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;">
+            حذف الموقع
+          </button>
+        </form>
+      </div>
       {% endif %}
     </div>
     {% endif %}
@@ -245,7 +257,8 @@
 {% endif %}
 
 <!-- ══ STEP 2a: Save location ══ -->
-{% if obj.status == 'inspector_assigned' and is_inspector %}
+{% if is_inspector and obj.status != 'closed' and obj.status != 'rejected' %}
+{% if obj.status == 'inspector_assigned' or not inspection.location_saved_at %}
 <div class="action-card" style="border-color:#bae6fd;">
   <div class="action-header" style="background:#f0f9ff;">
     <div class="action-num" style="background:#bae6fd;color:#075985;">②</div>
@@ -255,22 +268,35 @@
   <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;margin-bottom:14px;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
     <span style="font-size:13px;font-weight:600;color:#15803d;">تم حفظ الموقع</span>
-    <span style="font-size:12px;color:#166534;margin-right:auto;" dir="ltr">{{ inspection.latitude }}, {{ inspection.longitude }}</span>
+    <a href="https://maps.google.com/?q={{ inspection.latitude }},{{ inspection.longitude }}" target="_blank"
+       style="margin-right:auto;font-size:12px;color:#0369a1;text-decoration:none;">عرض على الخريطة ↗</a>
   </div>
   {% endif %}
-  <form method="post" action="{% url 'weed_save_location' obj.pk %}">
+  <form method="post" action="{% url 'weed_save_location' obj.pk %}" id="wr-loc-form">
     {% csrf_token %}
-    <div class="f-grid-2">
-      <div class="f-row"><label class="f-label">خط العرض (Latitude)</label>
-        <input type="text" name="latitude" class="f-input" dir="ltr" value="{{ inspection.latitude|default:'' }}" placeholder="25.3463"></div>
-      <div class="f-row"><label class="f-label">خط الطول (Longitude)</label>
-        <input type="text" name="longitude" class="f-input" dir="ltr" value="{{ inspection.longitude|default:'' }}" placeholder="55.4209"></div>
+    <input type="hidden" name="latitude"  id="wr-loc-lat-inp">
+    <input type="hidden" name="longitude" id="wr-loc-lng-inp">
+
+    <div style="margin-bottom:14px;padding:14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:9px;">
+      <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:10px;">تحديد الموقع عبر GPS</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button type="button" id="wr-loc-gps-btn" onclick="captureWeedLocation()"
+          style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:7px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          تحديد الموقع الحالي
+        </button>
+        <span id="wr-loc-status" style="font-size:13px;font-weight:600;"></span>
+      </div>
+      <div id="wr-loc-coords-wrap" style="display:none;margin-top:10px;padding:8px 12px;background:#fff;border:1.5px solid #bfdbfe;border-radius:7px;">
+        <a id="wr-loc-maps-link" href="#" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);">عرض على خرائط Google ↗</a>
+      </div>
     </div>
+
     <div class="f-row"><label class="f-label">ملاحظات الموقع</label>
       <textarea name="location_notes" rows="2" class="f-textarea" placeholder="وصف الموقع، أقرب معلم…">{{ inspection.location_notes }}</textarea>
     </div>
     <div style="display:flex;gap:10px;align-items:center;">
-      <button type="submit" class="btn-primary">حفظ الموقع</button>
+      <button type="submit" id="wr-loc-submit-btn" class="btn-primary" disabled>حفظ الموقع</button>
       {% if inspection.location_saved_at and inspection.latitude %}
       <a href="https://maps.google.com/?q={{ inspection.latitude }},{{ inspection.longitude }}" target="_blank"
          style="display:inline-flex;align-items:center;gap:5px;padding:9px 16px;background:#fff;color:#0369a1;border:1.5px solid #bae6fd;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
@@ -280,6 +306,7 @@
     </div>
   </form>
 </div>
+{% endif %}
 {% endif %}
 
 <!-- ══ STEP 2b: Inspector visit + before photos ══ -->
@@ -766,6 +793,48 @@ function updateFileLabel(input, lblId) {
   lbl.textContent = input.files && input.files.length > 0
     ? input.files.length + ' صورة محددة'
     : 'اضغط لاختيار صور';
+}
+
+function captureWeedLocation() {
+  var btn    = document.getElementById('wr-loc-gps-btn');
+  var status = document.getElementById('wr-loc-status');
+  var wrap   = document.getElementById('wr-loc-coords-wrap');
+  var link   = document.getElementById('wr-loc-maps-link');
+  var latInp = document.getElementById('wr-loc-lat-inp');
+  var lngInp = document.getElementById('wr-loc-lng-inp');
+  var submitBtn = document.getElementById('wr-loc-submit-btn');
+  if (!btn) return;
+
+  if (!navigator.geolocation) {
+    status.textContent = 'المتصفح لا يدعم تحديد الموقع.';
+    status.style.color = '#991b1b';
+    return;
+  }
+  btn.disabled = true;
+  status.textContent = 'جارٍ تحديد الموقع…';
+  status.style.color = '#374151';
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude.toFixed(6);
+      var lng = pos.coords.longitude.toFixed(6);
+      latInp.value = lat;
+      lngInp.value = lng;
+      link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+      wrap.style.display = 'block';
+      status.textContent = '✓ تم تحديد الموقع';
+      status.style.color = '#166534';
+      btn.textContent = '↺ تحديث الموقع';
+      btn.disabled = false;
+      submitBtn.disabled = false;
+    },
+    function() {
+      status.textContent = 'تعذّر الحصول على الموقع — تأكد من منح صلاحية الموقع.';
+      status.style.color = '#991b1b';
+      btn.disabled = false;
+    },
+    { enableHighAccuracy: true, timeout: 12000 }
+  );
 }
 </script>
 {% endblock %}

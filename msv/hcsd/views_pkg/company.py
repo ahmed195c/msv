@@ -632,6 +632,10 @@ def company_detail(request, id):
         company.requirement_insurance_requests.select_related('related_permit', 'created_by')
     )
     company_blocked = _company_has_active_extension(company)
+    latest_pest_control_permit = latest_permits.get('pest_control')
+    permit_suspended = bool(
+        latest_pest_control_permit and latest_pest_control_permit.status == 'cancelled_admin'
+    )
     # Engineer leave info for company's primary engineer
     engineer_active_leave = None
     if company.enginer_id:
@@ -679,6 +683,7 @@ def company_detail(request, id):
             'pending_permits_list': pending_permits_list,
             'extension_logs': extension_logs,
             'company_blocked': company_blocked,
+            'permit_suspended': permit_suspended,
             'engineer_active_leave': engineer_active_leave,
         },
     )

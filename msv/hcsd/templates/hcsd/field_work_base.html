@@ -28,8 +28,8 @@
   --nav-h:     58px;
 }
 *, *::before, *::after { box-sizing: border-box; }
-html { font-family: 'IBM Plex Sans Arabic', sans-serif; color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; }
-body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: var(--surface); }
+html { font-family: 'IBM Plex Sans Arabic', sans-serif; color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: var(--surface); overflow-x: hidden; max-width: 100vw; }
 
 /* ── Navbar ── */
 .app-chrome {
@@ -278,6 +278,18 @@ html[data-lang="ar"] .t-en { display: none !important; }
       applyLang(next);
     });
   }
+})();
+
+// Restore scroll position when returning to this page via back/forward
+(function(){
+  var key = 'scrollpos:' + location.pathname + location.search;
+  window.addEventListener('pageshow', function(){
+    var saved = sessionStorage.getItem(key);
+    if (saved) window.scrollTo(0, parseInt(saved, 10) || 0);
+  });
+  window.addEventListener('pagehide', function(){
+    sessionStorage.setItem(key, window.scrollY);
+  });
 })();
 </script>
 </body>
