@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}{% if lang == 'en' %}Complaints{% else %}الشكاوي{% endif %}{% endblock %} — {% if lang == 'en' %}Sharjah Municipality{% else %}بلدية الشارقة{% endif %}</title>
+  <title>{% block title %}{% if lang == 'en' %}Requests Tracking{% else %}متابعة الطلبات{% endif %}{% endblock %} — {% if lang == 'en' %}Sharjah Municipality{% else %}بلدية الشارقة{% endif %}</title>
   <link rel="icon" type="image/png" href="{% static 'hcsd/shjmun-logo-website.png' %}">
   <link rel="stylesheet" href="{% static 'hcsd/tailwind.css' %}?v=20260511">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -350,10 +350,10 @@ body.app-shell {
   <nav class="navbar">
 
     <!-- Brand -->
-    <a href="{% url 'complaints_dashboard' %}" class="nav-brand">
+    <a href="{% url 'all_requests' %}" class="nav-brand">
       <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="">
       <span class="nav-brand-label">
-        <span class="nav-brand-name">{% if lang == 'en' %}Complaints System{% else %}نظام الشكاوي{% endif %}</span>
+        <span class="nav-brand-name">{% if lang == 'en' %}Requests Tracking{% else %}نظام متابعة الطلبات{% endif %}</span>
         <span class="nav-brand-sub">{% if lang == 'en' %}Environment Dept.{% else %}قسم البيئة — بلدية الشارقة{% endif %}</span>
       </span>
     </a>
@@ -369,8 +369,6 @@ body.app-shell {
 
       <!-- Links -->
       <div class="nav-links">
-        <a class="nav-link {% if request.resolver_match.url_name in 'complaints_dashboard,complaint_submit,complaint_detail,complaint_pdf_import,complaint_pdf_review' %}active{% endif %}"
-           href="{% url 'complaints_dashboard' %}">الشكاوي</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'all_requests' %}active{% endif %}"
            href="{% url 'all_requests' %}">متابعة الطلبات</a>
         <a class="nav-link {% if 'container' in request.resolver_match.url_name %}active{% endif %}"
@@ -384,14 +382,14 @@ body.app-shell {
 
         <!-- Language -->
         <div class="lang-toggle">
-          <form method="post" action="{% url 'set_complaints_language' %}" style="display:contents;">
+          <form method="post" action="{% url 'set_app_language' %}" style="display:contents;">
             {% csrf_token %}
             <input type="hidden" name="lang" value="ar">
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <button type="submit" class="lang-toggle__btn {% if lang == 'ar' %}active{% endif %}">ع</button>
           </form>
           <span class="lang-toggle__sep"></span>
-          <form method="post" action="{% url 'set_complaints_language' %}" style="display:contents;">
+          <form method="post" action="{% url 'set_app_language' %}" style="display:contents;">
             {% csrf_token %}
             <input type="hidden" name="lang" value="en">
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -434,6 +432,18 @@ body.app-shell {
   var btn = document.getElementById('navToggle');
   var nav = btn && btn.closest('nav');
   if(btn && nav) btn.addEventListener('click', function(){ nav.classList.toggle('is-open'); });
+})();
+
+// Restore scroll position when returning to this page via back/forward
+(function(){
+  var key = 'scrollpos:' + location.pathname + location.search;
+  window.addEventListener('pageshow', function(){
+    var saved = sessionStorage.getItem(key);
+    if (saved) window.scrollTo(0, parseInt(saved, 10) || 0);
+  });
+  window.addEventListener('pagehide', function(){
+    sessionStorage.setItem(key, window.scrollY);
+  });
 })();
 </script>
 </body>

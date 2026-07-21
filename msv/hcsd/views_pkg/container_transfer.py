@@ -26,8 +26,7 @@ from ..models import (
     ContainerTransferInspection,
     ContainerTransferPhoto,
 )
-from .common import _can_admin, _can_data_entry
-from .complaints import _fix_rtl_pdf_text, _arabic_digits_to_western, _get_lang
+from .common import _can_admin, _can_data_entry, _fix_rtl_pdf_text, _arabic_digits_to_western, _get_lang
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +70,7 @@ def _extract_from_pdf(pdf_file):
     try:
         with pdfplumber.open(pdf_file) as pdf:
             raw = []
-            for page in pdf.pages:
+            for page in pdf.pages[:2]:
                 raw.extend((page.extract_text(x_tolerance=3, y_tolerance=3) or '').splitlines())
 
         full = _fix_rtl_pdf_text('\n'.join(raw))

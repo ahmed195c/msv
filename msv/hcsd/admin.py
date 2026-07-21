@@ -2,7 +2,6 @@ from django.contrib import admin
 
 from .models import (
     Company,
-    Complaint, ComplaintInspection, ComplaintResolution, ComplaintVehicle, ComplaintPhoto, ComplaintMaterial,
     Enginer,
     FieldWorkOrder, FieldWorkPhoto,
     InspectorReview,
@@ -32,7 +31,6 @@ admin.site.register(PirmetChangeLog)
 admin.site.register(PesticideTransportPermit)
 admin.site.register(WasteDisposalPermit)
 admin.site.register(RequirementInsuranceRequest)
-admin.site.register(Complaint)
 
 @admin.register(FieldWorkOrder)
 class FieldWorkOrderAdmin(admin.ModelAdmin):
@@ -42,11 +40,6 @@ class FieldWorkOrderAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
 
 admin.site.register(FieldWorkPhoto)
-admin.site.register(ComplaintInspection)
-admin.site.register(ComplaintResolution)
-admin.site.register(ComplaintVehicle)
-admin.site.register(ComplaintPhoto)
-admin.site.register(ComplaintMaterial)
 
 
 @admin.register(UserProfile)

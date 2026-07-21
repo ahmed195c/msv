@@ -27,8 +27,7 @@ from ..models import (
     WeedRemovalSupervisorTask, WeedRemovalVehicle, WeedRemovalPhoto,
     WeedRemovalWorkSession, WeedRemovalSessionVehicle,
 )
-from .common import _can_admin, _can_data_entry
-from .complaints import _get_lang, _fix_rtl_pdf_text, _arabic_digits_to_western
+from .common import _can_admin, _can_data_entry, _get_lang, _fix_rtl_pdf_text, _arabic_digits_to_western
 
 logger = logging.getLogger(__name__)
 
@@ -210,6 +209,7 @@ def weed_detail(request, pk):
         'is_inspector': is_inspector,
         'is_supervisor': is_supervisor,
         'can_manage': can_manage,
+        'can_admin': _can_admin(request.user),
         'photos_before': photos_before,
         'photos_during': photos_during,
         'photos_after': photos_after,
@@ -538,6 +538,24 @@ def weed_save_location(request, pk):
     return redirect('weed_detail', pk=pk)
 
 
+@login_required
+@require_POST
+def weed_delete_location(request, pk):
+    obj = get_object_or_404(WeedRemovalRequest, pk=pk)
+    if not _can_admin(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+
+    inspection = get_object_or_404(WeedRemovalInspection, request=obj)
+    inspection.latitude = None
+    inspection.longitude = None
+    inspection.location_notes = ''
+    inspection.location_saved_at = None
+    inspection.save(update_fields=['latitude', 'longitude', 'location_notes', 'location_saved_at'])
+    logger.info('Location cleared for weed request %s by %s', pk, request.user)
+    return redirect('weed_detail', pk=pk)
+
+
 # ── PDF Import ─────────────────────────────────────────────────────────────────
 
 def _is_valid_pdf(file):
@@ -565,7 +583,7 @@ def _extract_weed_from_pdf(pdf_file):
     try:
         with pdfplumber.open(pdf_file) as pdf:
             raw_lines = []
-            for page in pdf.pages:
+            for page in pdf.pages[:2]:
                 page_text = page.extract_text(x_tolerance=3, y_tolerance=3) or ''
                 raw_lines.extend(page_text.splitlines())
 

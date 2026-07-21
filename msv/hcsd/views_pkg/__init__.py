@@ -1,13 +1,7 @@
 from .portal import portal_landing
 from .dashboard import home
-from .complaints import (
-    complaints_dashboard, complaint_submit, complaint_detail,
-    set_complaints_language, complaint_assign_inspector, complaint_inspection_save,
-    complaint_assign_supervisor, complaint_resolution_save,
-    complaint_add_photos, complaint_photo_delete,
-    complaint_pdf_import, complaint_pdf_review,
-    all_requests,
-)
+from .common import set_app_language
+from .tracker import all_requests
 from .company import (
     company_list,
     extension_followup,
@@ -45,7 +39,7 @@ from .weed_removal import (
     weed_work_start, weed_report_submit, weed_add_photos,
     weed_reject, weed_close, weed_photo_delete, weed_delete,
     weed_pdf_import, weed_pdf_review,
-    weed_save_location,
+    weed_save_location, weed_delete_location,
 )
 from .container_transfer import (
     container_list, container_create, container_pdf_import, container_pdf_review, container_detail,
@@ -55,11 +49,7 @@ from .container_transfer import (
 )
 
 __all__ = [
-    'portal_landing', 'home', 'complaints_dashboard', 'complaint_submit', 'complaint_detail',
-    'set_complaints_language', 'complaint_assign_inspector', 'complaint_inspection_save',
-    'complaint_assign_supervisor', 'complaint_resolution_save',
-    'complaint_add_photos', 'complaint_photo_delete',
-    'complaint_pdf_import', 'complaint_pdf_review',
+    'portal_landing', 'home', 'set_app_language',
     'company_list', 'extension_followup', 'add_company', 'company_detail',
     'requirement_insurance_request_detail', 'requirement_insurance_create',
     'enginer_list', 'enginer_add', 'enginer_detail',
@@ -84,6 +74,6 @@ __all__ = [
     'weed_assign_supervisor',
     'weed_work_start', 'weed_report_submit', 'weed_add_photos',
     'weed_reject', 'weed_close', 'weed_photo_delete', 'weed_delete',
-    'weed_pdf_import', 'weed_pdf_review', 'weed_save_location',
+    'weed_pdf_import', 'weed_pdf_review', 'weed_save_location', 'weed_delete_location',
     'all_requests',
 ]

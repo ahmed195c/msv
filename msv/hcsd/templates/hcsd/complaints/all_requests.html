@@ -9,7 +9,7 @@
 <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
   <div>
     <h1 class="page-title">{% if lang == 'en' %}All Requests{% else %}متابعة الطلبات{% endif %}</h1>
-    <p class="page-subtitle">{% if lang == 'en' %}Complaints and container transfer requests{% else %}الشكاوي وطلبات نقل الحاويات في مكان واحد{% endif %}</p>
+    <p class="page-subtitle">{% if lang == 'en' %}Weed removal and container transfer requests{% else %}طلبات إزالة الحشائش ونقل الحاويات في مكان واحد{% endif %}</p>
   </div>
 </div>
 
@@ -29,7 +29,7 @@
       <label style="display:block;font-size:11px;font-weight:700;color:var(--ink-3);margin-bottom:5px;">{% if lang == 'en' %}Type{% else %}النوع{% endif %}</label>
       <select name="type" style="width:100%;padding:7px 10px;border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-family:inherit;color:var(--ink);background:#fff;">
         <option value="all" {% if type_filter == 'all' %}selected{% endif %}>{% if lang == 'en' %}All{% else %}الكل{% endif %}</option>
-        <option value="complaint" {% if type_filter == 'complaint' %}selected{% endif %}>{% if lang == 'en' %}Complaints{% else %}شكاوي{% endif %}</option>
+        <option value="weed" {% if type_filter == 'weed' %}selected{% endif %}>{% if lang == 'en' %}Weed Removal{% else %}إزالة حشائش{% endif %}</option>
         <option value="container" {% if type_filter == 'container' %}selected{% endif %}>{% if lang == 'en' %}Container Transfers{% else %}نقل الحاويات{% endif %}</option>
       </select>
     </div>
@@ -43,12 +43,12 @@
           {% for key, label in container_statuses %}
             <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
-        {% elif type_filter == 'complaint' %}
-          {% for key, label in complaint_statuses %}
+        {% elif type_filter == 'weed' %}
+          {% for key, label in weed_statuses %}
             <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         {% else %}
-          {% for key, label in complaint_statuses %}
+          {% for key, label in weed_statuses %}
             <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
           {% for key, label in container_statuses %}
@@ -95,10 +95,10 @@
 
         <!-- Type badge -->
         <td style="padding:12px 14px;">
-          {% if item.kind == 'complaint' %}
-            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              شكوى
+          {% if item.kind == 'weed' %}
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M7 12s1.5-2 5-2 5 2 5 2"/></svg>
+              حشائش
             </span>
           {% else %}
             <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;">
@@ -119,21 +119,25 @@
 
         <!-- Status -->
         <td style="padding:12px 14px;">
-          {% if item.kind == 'complaint' %}
+          {% if item.kind == 'weed' %}
             {% if item.status == 'new' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;">جديدة</span>
-            {% elif item.status == 'assigned_inspector' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;">تم تعيين مفتش</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;">جديد</span>
+            {% elif item.status == 'inspector_assigned' %}
+              <span style="padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;">بانتظار المفتش</span>
             {% elif item.status == 'inspection_done' %}
               <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">اكتمل التفتيش</span>
-            {% elif item.status == 'assigned_supervisor' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;">تم تعيين مراقب</span>
-            {% elif item.status == 'in_progress' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;">قيد المعالجة</span>
-            {% elif item.status == 'resolved' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">تم الإنجاز</span>
+            {% elif item.status == 'supervisor_assigned' %}
+              <span style="padding:3px 9px;border-radius:10px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;">بانتظار المراقب</span>
+            {% elif item.status == 'work_in_progress' %}
+              <span style="padding:3px 9px;border-radius:10px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;">العمل جارٍ</span>
+            {% elif item.status == 'work_paused' %}
+              <span style="padding:3px 9px;border-radius:10px;background:#fefce8;color:#854d0e;font-size:11px;font-weight:700;">العمل متوقف مؤقتاً</span>
+            {% elif item.status == 'work_done' %}
+              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">تم إنهاء العمل</span>
             {% elif item.status == 'closed' %}
               <span style="padding:3px 9px;border-radius:10px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;">مغلق</span>
+            {% elif item.status == 'rejected' %}
+              <span style="padding:3px 9px;border-radius:10px;background:#fef2f2;color:#dc2626;font-size:11px;font-weight:700;">مرفوض</span>
             {% endif %}
           {% else %}
             {% if item.status == 'new' %}

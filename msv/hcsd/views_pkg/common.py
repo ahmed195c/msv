@@ -1,12 +1,14 @@
 import calendar
 import datetime
 import os
+import re
 
 from django.contrib.auth.models import Group, User
 from django.utils import timezone
 from django.db.models import Q
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from ..models import (
     Company, CompanyChangeLog, EngineerCertificateRequest, EngineerLeave,
@@ -577,4 +579,52 @@ def _group_clearances_by_status(items, status_order, status_section_label_map):
             }
         )
     return grouped
+
+
+# ── Shared app language + PDF-text helpers ──────────────────────────────────
+# Used across the container-transfer and weed-removal modules.
+
+LANG_AR = 'ar'
+LANG_EN = 'en'
+
+
+def _get_lang(request):
+    lang = request.session.get('app_lang', LANG_AR)
+    return lang if lang in (LANG_AR, LANG_EN) else LANG_AR
+
+
+@require_POST
+def set_app_language(request):
+    lang = (request.POST.get('lang') or LANG_AR).strip()
+    if lang not in (LANG_AR, LANG_EN):
+        lang = LANG_AR
+    request.session['app_lang'] = lang
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'all_requests'
+    if next_url.startswith('/'):
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(next_url)
+    return redirect(next_url)
+
+
+def _arabic_digits_to_western(text):
+    return text.translate(str.maketrans('٠١٢٣٤٥٦٧٨٩', '0123456789'))
+
+
+def _fix_rtl_pdf_text(text):
+    """
+    Sharjah Municipality PDFs store Arabic in visual/presentation order:
+    characters within each word are reversed, and word order per line is reversed.
+    This function restores logical (reading) order.
+    Numbers and punctuation-only tokens are left as-is.
+    """
+    import unicodedata
+    text = unicodedata.normalize('NFKC', text)
+    text = _arabic_digits_to_western(text)
+    fixed_lines = []
+    for line in text.splitlines():
+        words = line.split(' ')
+        fixed_words = [w if re.match(r'^[0-9:./\-]+$', w) else w[::-1] for w in words]
+        fixed_words.reverse()
+        fixed_lines.append(' '.join(fixed_words))
+    return '\n'.join(fixed_lines)
 
