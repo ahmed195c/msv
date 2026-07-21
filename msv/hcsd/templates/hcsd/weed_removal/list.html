@@ -3,12 +3,6 @@
 
 {% block extra_css %}
 <style>
-.stat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px;}
-.stat-card{background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;}
-.stat-num{font-size:22px;font-weight:800;color:var(--ink);font-family:'JetBrains Mono',monospace;line-height:1;}
-.stat-label{font-size:11px;font-weight:600;color:var(--ink-3);}
-.stat-card--total .stat-num{color:var(--accent);}
-
 .db-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
 .db-search{display:flex;align-items:center;gap:8px;flex:1;min-width:200px;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:0 12px;height:40px;transition:border-color .18s,box-shadow .18s;}
 .db-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08);}
@@ -50,7 +44,6 @@
 .btn-primary-sm:hover{background:var(--accent-dk);transform:translateY(-1px);}
 
 @media(max-width:640px){
-  .stat-strip{grid-template-columns:repeat(2,1fr);}
   .db-toolbar{flex-direction:column;align-items:stretch;}
 }
 </style>
@@ -77,18 +70,6 @@
     </a>
   </div>
   {% endif %}
-</div>
-
-<!-- Stats -->
-<div class="stat-strip">
-  <div class="stat-card stat-card--total">
-    <div class="stat-num">{{ total_count }}</div>
-    <div class="stat-label">الإجمالي</div>
-  </div>
-  <div class="stat-card"><div class="stat-num" style="color:#1d4ed8;">{{ status_counts.new|default:0 }}</div><div class="stat-label">جديدة</div></div>
-  <div class="stat-card"><div class="stat-num" style="color:#f97316;">{{ status_counts.work_in_progress|default:0 }}</div><div class="stat-label">جارٍ</div></div>
-  <div class="stat-card"><div class="stat-num" style="color:#065f46;">{{ status_counts.work_done|default:0 }}</div><div class="stat-label">منتهية</div></div>
-  <div class="stat-card"><div class="stat-num" style="color:#475569;">{{ status_counts.closed|default:0 }}</div><div class="stat-label">مغلقة</div></div>
 </div>
 
 <!-- Toolbar -->
