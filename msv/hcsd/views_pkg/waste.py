@@ -403,6 +403,20 @@ def _company_log_for_disposal_request(company, action, req_id):
     return None
 
 
+def _permit_log_for_disposal_cancellation(permit, req_id):
+    """Best-effort lookup of who cancelled an older disposal request and
+    why, from the permit's change log — cancellation was never logged to
+    the company activity log, only here, with the reason embedded in the
+    free-text notes as 'waste_disposal_request_cancelled:<id>:<reason>'.
+    """
+    pattern = re.compile(rf'waste_disposal_request_cancelled:{req_id}(?!\d):(.*)')
+    for log in permit.changes.filter(change_type='status_change').order_by('created_at'):
+        m = pattern.search(log.notes or '')
+        if m:
+            return log, m.group(1)
+    return None, ''
+
+
 def _build_disposal_timeline(disposal_request):
     """Chronological lifecycle timeline for a waste disposal request, built
     from its own tracking fields (who did what, and when) — falling back to
@@ -469,11 +483,18 @@ def _build_disposal_timeline(disposal_request):
             'note': disposal_request.inspection_notes or '',
         })
 
-    if disposal_request.cancelled_at:
+    cancelled_by = disposal_request.cancelled_by
+    cancelled_at = disposal_request.cancelled_at
+    cancellation_reason = disposal_request.cancellation_reason or ''
+    if not cancelled_at:
+        log, reason = _permit_log_for_disposal_cancellation(disposal_request.permit, req_id)
+        if log:
+            cancelled_by, cancelled_at, cancellation_reason = log.changed_by, log.created_at, reason
+    if cancelled_at:
         events.append({
             'action': 'cancelled', 'label': 'إغلاق الطلب إدارياً',
-            'actor': disposal_request.cancelled_by, 'timestamp': disposal_request.cancelled_at,
-            'note': disposal_request.cancellation_reason or '',
+            'actor': cancelled_by, 'timestamp': cancelled_at,
+            'note': cancellation_reason,
         })
 
     events.sort(key=lambda e: e['timestamp'])
