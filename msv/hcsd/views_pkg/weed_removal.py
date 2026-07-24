@@ -161,9 +161,12 @@ def weed_detail(request, pk):
     is_inspector  = bool(inspection)  if can_manage else (inspection  and inspection.inspector_id       == request.user.id)
     is_supervisor = bool(supervisor_task) if can_manage else (supervisor_task and supervisor_task.supervisor_id == request.user.id)
 
-    photos_before = obj.photos.filter(phase='before')
-    photos_during = obj.photos.filter(phase='during')
-    photos_after  = obj.photos.filter(phase='after')
+    # Only the inspector's own visit photos (not tied to any supervisor work
+    # session) — session-scoped photos are shown inside each session's own
+    # report to avoid listing the same photos twice.
+    photos_before = obj.photos.filter(phase='before', session__isnull=True)
+    photos_during = obj.photos.filter(phase='during', session__isnull=True)
+    photos_after  = obj.photos.filter(phase='after', session__isnull=True)
 
     current_session = None
     work_sessions   = []

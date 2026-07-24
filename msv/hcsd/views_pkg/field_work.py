@@ -47,6 +47,62 @@ _FW_CLOSED_STATUSES = frozenset({
 _FW_TRULY_CLOSED = _FW_CLOSED_STATUSES - {'completed'}
 
 
+def _fw_build_timeline(order):
+    """Chronological lifecycle timeline for a field-work order.
+
+    Built primarily from the order's own snapshot fields (created/assigned/
+    received/location/report) so it is always populated — even for the ~99%
+    of orders that predate the granular FieldWorkOrderLog audit trail — then
+    topped up with log entries for history the snapshot fields can't hold
+    (past reassignments, postponements), which are only merged in for
+    actions not already represented above to avoid duplicate entries.
+    """
+    events = []
+
+    if order.created_at:
+        events.append({
+            'action': 'created', 'label': 'إنشاء الطلب', 'label_en': 'Order Created',
+            'actor': order.created_by, 'timestamp': order.created_at, 'note': '',
+        })
+    if order.assigned_at and order.assigned_supervisor:
+        events.append({
+            'action': 'assigned', 'label': 'تعيين مراقب', 'label_en': 'Supervisor Assigned',
+            'actor': order.assigned_supervisor, 'timestamp': order.assigned_at, 'note': '',
+        })
+    if order.received_at and order.received_by:
+        events.append({
+            'action': 'received', 'label': 'استلام المراقب للطلب', 'label_en': 'Received by Supervisor',
+            'actor': order.received_by, 'timestamp': order.received_at, 'note': '',
+        })
+    if order.location_saved_at and order.location_saved_by:
+        events.append({
+            'action': 'located', 'label': 'تحديد موقع الزيارة', 'label_en': 'Site Location Confirmed',
+            'actor': order.location_saved_by, 'timestamp': order.location_saved_at, 'note': '',
+        })
+    if order.report_submitted_at and order.report_submitted_by:
+        if order.status in _FW_TRULY_CLOSED:
+            label, label_en, action = 'إغلاق الطلب', 'Order Closed', 'closed'
+            note = order.get_status_display()
+        else:
+            label, label_en, action = 'فحص الموقع وتسليم التقرير', 'Site Inspected & Report Submitted', 'inspected'
+            note = ''
+        events.append({
+            'action': action, 'label': label, 'label_en': label_en,
+            'actor': order.report_submitted_by, 'timestamp': order.report_submitted_at, 'note': note,
+        })
+
+    for log in order.logs.all():
+        if log.action in ('reassigned', 'unassigned', 'postponed', 'status_changed'):
+            note = f"{log.from_value} ← {log.to_value}" if (log.from_value or log.to_value) else log.note
+            events.append({
+                'action': log.action, 'label': log.get_action_display(), 'label_en': log.action_en,
+                'actor': log.actor, 'timestamp': log.timestamp, 'note': note,
+            })
+
+    events.sort(key=lambda e: e['timestamp'])
+    return events
+
+
 def _infer_status_from_excel(excel_status: str) -> str:
     """Map raw Excel status text to a system status code."""
     s = excel_status.upper().strip()
@@ -828,7 +884,7 @@ def field_work_detail(request, pk):
         'success': success,
         'building_type_choices': _BUILDING_TYPE_CHOICES,
         'today_date': _date.today().isoformat(),
-        'order_logs': order.logs.all(),
+        'timeline': _fw_build_timeline(order),
     })
 
 

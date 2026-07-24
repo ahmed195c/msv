@@ -3,177 +3,258 @@
 
 {% block extra_css %}
 <style>
+.permit-page {
+  --pd-ink: #304357;
+  --pd-ink-2: #455c75;
+  --pd-ink-3: #6f8297;
+  --pd-paper: #ffffff;
+  --pd-surface: #f1f4f7;
+  --pd-surface-2: #e8eef4;
+  --pd-line: #d4dce5;
+  --pd-line-2: #bcc8d5;
+  --pd-accent: #304357;
+  --pd-accent-dark: #26384a;
+  padding: 8px 0 36px;
+  direction: rtl;
+}
+
+.permit-card {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: var(--pd-surface);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(48,67,87,0.10);
+  padding: 20px;
+  color: var(--pd-ink);
+}
+
+/* Action bar */
+.action-bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px; padding:12px 18px; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.07); }
+.back-link { display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:6px; font-size:13px; font-weight:700; text-decoration:none; border:1.5px solid var(--pd-line-2); background:var(--pd-surface); color:var(--pd-ink); transition:background .15s; flex-shrink:0; }
+.back-link:hover { background:var(--pd-surface-2); }
+.action-bar-title { font-size:14px; font-weight:800; color:var(--pd-ink); }
+.action-bar-sub { font-size:11px; color:var(--pd-ink-3); font-weight:600; margin-top:2px; }
+
+/* Status bar */
+.status-bar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:11px 18px; margin-bottom:14px; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.07); }
+.status-bar-label { font-size:11px; font-weight:700; color:var(--pd-ink-3); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+.status-badge { display:inline-flex; align-items:center; gap:7px; border-radius:6px; padding:5px 13px; font-size:13px; font-weight:700; line-height:1.4; border:1.5px solid var(--pd-accent); background:#edf2f7; color:var(--pd-accent); }
+.status-badge::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:currentColor; flex-shrink:0; }
+.status-badge--pending { border-color:#b07d10; background:#fef9ec; color:#7a5500; }
+.status-badge--active  { border-color:#1f6b3e; background:#edf7f2; color:#1a5233; }
+.status-badge--issued  { border-color:#155e2e; background:#d4f5e2; color:#0e3d1d; }
+.status-badge--warning { border-color:#9c3a12; background:#fdf0ea; color:#7a2c0d; }
+.status-badge--closed  { border-color:#5a5a5a; background:#f2f2f2; color:#3d3d3d; }
+
 /* Timeline */
-.wf-timeline{display:flex;align-items:flex-start;gap:0;margin-bottom:28px;overflow-x:auto;padding-bottom:4px;}
-.wf-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:70px;position:relative;}
-.wf-step:not(:last-child)::after{content:'';position:absolute;top:14px;width:100%;height:2px;background:var(--line);left:50%;z-index:0;}
-.wf-step.done::after{background:#16a34a;}
-.wf-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--line-2);background:#fff;z-index:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ink-3);}
-.wf-step.done .wf-dot{background:#16a34a;border-color:#16a34a;color:#fff;}
-.wf-step.active .wf-dot{background:#fff;border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg);}
-.wf-step.rejected-step .wf-dot{background:#fef2f2;border-color:#fca5a5;color:#dc2626;}
-.wf-label{font-size:9.5px;color:var(--ink-3);margin-top:6px;text-align:center;line-height:1.3;max-width:72px;}
-.wf-step.done .wf-label{color:#16a34a;font-weight:600;}
-.wf-step.active .wf-label{color:var(--accent);font-weight:600;}
-.wf-step.rejected-step .wf-label{color:#dc2626;font-weight:600;}
+.wf-timeline { display:flex; align-items:flex-start; gap:0; padding:18px 6px 10px; overflow-x:auto; background:#fff; border-radius:8px; margin-bottom:14px; box-shadow:0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.07); }
+.wf-step { display:flex; flex-direction:column; align-items:center; flex:1; min-width:72px; position:relative; }
+.wf-step:not(:last-child)::after { content:''; position:absolute; top:13px; width:100%; height:2px; background:var(--pd-line); left:50%; z-index:0; }
+.wf-step.done::after { background:#16a34a; }
+.wf-step.rejected-step::after { background:#dc2626; }
+.wf-dot { width:26px; height:26px; border-radius:50%; border:2px solid var(--pd-line-2); background:#fff; z-index:1; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:var(--pd-ink-3); flex-shrink:0; }
+.wf-step.done .wf-dot { background:#16a34a; border-color:#16a34a; color:#fff; }
+.wf-step.active .wf-dot { background:#fff; border-color:var(--pd-accent); color:var(--pd-accent); box-shadow:0 0 0 3px rgba(48,67,87,.12); }
+.wf-step.rejected-step .wf-dot { background:#dc2626; border-color:#dc2626; color:#fff; }
+.wf-label { font-size:10px; color:var(--pd-ink-3); margin-top:6px; text-align:center; line-height:1.3; max-width:68px; }
+.wf-step.done .wf-label { color:#16a34a; font-weight:600; }
+.wf-step.active .wf-label { color:var(--pd-accent); font-weight:700; }
+.wf-step.rejected-step .wf-label { color:#dc2626; font-weight:700; }
 
-/* Doc-band */
-.permit-section--doc{background:#fff;border-radius:12px;border:1.5px solid var(--line);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:16px;}
-.doc-band{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;background:linear-gradient(135deg,#1a3250 0%,#1e3d63 100%);flex-wrap:wrap;}
-.doc-band-ref{display:flex;flex-direction:column;gap:3px;}
-.doc-band-ref-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.05em;}
-.doc-band-ref-no{font-size:20px;font-weight:800;color:#fff;font-family:monospace;}
-.db-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;transition:background .15s;}
-.db-btn:hover{background:rgba(255,255,255,.22);}
-.doc-table{padding:0;}
-.detail-col-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
-.detail-item{padding:12px 20px;border-bottom:1px solid var(--line);border-left:1px solid var(--line);}
-.detail-item:first-child{border-left:none;}
-.detail-item .label{font-size:10.5px;font-weight:700;color:var(--ink-4);letter-spacing:.04em;display:block;margin-bottom:4px;}
-.detail-item .value{font-size:13.5px;font-weight:500;color:var(--ink);}
-.doc-table-divider{padding:8px 20px;background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
-.doc-table-divider span{font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.05em;}
+/* Section cards */
+.permit-section--doc { margin-top:12px; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(48,67,87,.08), 0 0 0 1px rgba(48,67,87,.07); }
+.doc-band { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:#fff; border-bottom:1.5px solid var(--pd-line); gap:12px; flex-wrap:wrap; }
+.doc-band-title { font-size:12px; font-weight:800; color:var(--pd-ink-2); letter-spacing:.03em; }
+.doc-band-ref { display:flex; flex-direction:column; align-items:flex-start; gap:1px; flex-shrink:0; }
+.doc-band-ref-label { font-size:10px; color:var(--pd-ink-3); font-weight:600; text-transform:uppercase; letter-spacing:.06em; }
+.doc-band-ref-no { font-size:20px; font-weight:800; color:var(--pd-accent); font-family:"JetBrains Mono","Courier New",monospace; line-height:1; }
+.db-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 14px; background:var(--pd-surface); color:var(--pd-ink); border:1.5px solid var(--pd-line-2); border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; transition:background .15s; }
+.db-btn:hover { background:var(--pd-surface-2); }
 
-/* Cards */
-.c-card{background:#fff;border-radius:12px;border:1.5px solid var(--line);padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:16px;}
-.c-card-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
-.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
-.meta-label{font-size:11px;color:var(--ink-3);font-weight:600;margin-bottom:3px;}
-.meta-value{font-size:14px;font-weight:500;color:var(--ink);}
-.action-card{border-radius:12px;padding:22px;border:1.5px solid;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:16px;background:#fff;}
-.action-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:18px;}
-.action-num{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
-.action-title{font-size:14px;font-weight:700;}
+/* Detail rows */
+.doc-table { background:#fff; }
+.detail-item { display:flex; align-items:flex-start; padding:10px 18px; border-bottom:1px solid #eef1f5; }
+.detail-item:last-child { border-bottom:none; }
+.detail-item:nth-child(even) { background:#fafbfc; }
+.detail-item .label { width:38%; flex-shrink:0; font-size:12.5px; color:var(--pd-ink-3); font-weight:600; line-height:1.5; padding-left:16px; }
+.detail-item .value { flex:1; font-size:13.5px; font-weight:700; color:var(--pd-ink); word-break:break-word; line-height:1.5; }
+.detail-item .value a { color:var(--pd-accent); text-decoration:underline; text-underline-offset:3px; }
+
+.doc-table-divider { padding:6px 18px; background:var(--pd-surface); border-top:1.5px solid var(--pd-line); border-bottom:1px solid var(--pd-line); }
+.doc-table-divider span { font-size:11px; font-weight:700; color:var(--pd-ink-3); text-transform:uppercase; letter-spacing:.06em; }
 
 /* Forms */
-.f-label{font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:5px;display:block;}
-.f-input,.f-textarea,.f-select{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:#fff;direction:rtl;transition:border-color .15s;box-sizing:border-box;}
-.f-input:focus,.f-textarea:focus,.f-select:focus{border-color:var(--accent);}
-.f-row{margin-bottom:14px;}
-.f-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.doc-form-body { padding:16px 18px 18px; background:#fff; }
+.f-label { font-size:12px; font-weight:700; color:var(--pd-ink-2); margin-bottom:6px; display:block; }
+.f-input,.f-textarea,.f-select { width:100%; padding:8px 10px; border:1.5px solid var(--pd-line-2); border-radius:6px; font-size:13px; font-family:inherit; outline:none; background:#fff; color:var(--pd-ink); direction:rtl; text-align:right; transition:border-color .15s; box-sizing:border-box; }
+.f-input:focus,.f-textarea:focus,.f-select:focus { border-color:var(--pd-accent); box-shadow:0 0 0 3px rgba(48,67,87,.08); }
+.f-row { margin-bottom:14px; }
+.f-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
 /* Buttons */
-.btn-primary{padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s;}
-.btn-primary:hover{background:var(--accent-dk);}
-.btn-green{padding:10px 22px;background:#15803d;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
-.btn-orange{padding:10px 22px;background:#d97706;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
-.btn-reject{padding:10px 20px;background:#fff;color:#dc2626;border:1.5px solid #fca5a5;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;}
-.btn-reject:hover{background:#fef2f2;border-color:#dc2626;}
-.btn-dark{padding:10px 22px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
-.status-badge{padding:4px 12px;border-radius:10px;font-size:12px;font-weight:700;}
+.btn-action { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 20px; border-radius:7px; font-size:13.5px; font-weight:800; font-family:inherit; cursor:pointer; border:none; background:var(--pd-accent); color:#fff; transition:background .15s; }
+.btn-action:hover { background:var(--pd-accent-dark); }
+.btn-action:disabled { opacity:.5; cursor:not-allowed; }
+.btn-action--green  { background:#1f6b3e; }
+.btn-action--green:hover { background:#155e2e; }
+.btn-action--orange { background:#9c5a12; }
+.btn-action--orange:hover { background:#7a4200; }
+.btn-action--outline { background:#fff; color:#8c2f2f; border:1.5px solid #d8a7a7; }
+.btn-action--outline:hover { background:#fff3f3; border-color:#8c2f2f; }
+.btn-action--ghost { background:#fff; color:var(--pd-ink-2); border:1.5px solid var(--pd-line-2); }
+.btn-action--ghost:hover { background:var(--pd-surface); }
 
 /* Photos */
-.photo-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
-.photo-thumb{position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;border:1.5px solid var(--line);flex-shrink:0;}
-.photo-thumb img{width:100%;height:100%;object-fit:cover;}
-.photo-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);border:none;border-radius:4px;color:#fff;font-size:11px;cursor:pointer;padding:2px 6px;line-height:1.4;}
-.upload-zone{border:2px dashed var(--line-2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;background:var(--surface);transition:border-color .15s;display:block;}
-.upload-zone:hover{border-color:var(--accent);}
+.photo-grid { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+.photo-thumb { position:relative; width:150px; height:150px; border-radius:6px; overflow:hidden; border:1.5px solid var(--pd-line); flex-shrink:0; }
+.photo-thumb img { width:100%; height:100%; object-fit:cover; cursor:zoom-in; }
+.photo-del { position:absolute; top:3px; right:3px; background:rgba(48,67,87,.65); border:none; border-radius:4px; color:#fff; font-size:11px; cursor:pointer; padding:2px 6px; line-height:1.4; }
+.upload-zone { border:2px dashed var(--pd-line-2); border-radius:6px; padding:14px; text-align:center; cursor:pointer; background:var(--pd-surface); transition:border-color .15s; display:block; }
+.upload-zone:hover { border-color:var(--pd-accent); }
 
 /* Vehicle rows */
-.veh-row{display:flex;align-items:center;gap:14px;padding:11px 16px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;background:#fff;transition:border-color .15s,background .15s;user-select:none;margin-bottom:8px;}
-.veh-row.active{border-color:var(--accent);background:#f0f7ff;}
-.veh-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
-.veh-name{font-size:14px;font-weight:700;flex:1;color:var(--ink);}
-.veh-count{padding:6px 10px;border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-family:inherit;background:#fff;min-width:70px;transition:opacity .15s;}
+.veh-row { display:flex; align-items:center; gap:14px; padding:10px 14px; border:1.5px solid var(--pd-line); border-radius:8px; cursor:pointer; background:#fff; transition:border-color .15s, background .15s; user-select:none; margin-bottom:8px; }
+.veh-row.active { border-color:var(--pd-accent); background:var(--pd-surface); }
+.veh-row input[type=checkbox] { width:18px; height:18px; accent-color:var(--pd-accent); cursor:pointer; flex-shrink:0; }
+.veh-name { font-size:13.5px; font-weight:700; flex:1; color:var(--pd-ink); }
+.veh-count { padding:6px 10px; border:1.5px solid var(--pd-line-2); border-radius:6px; font-size:13px; font-family:inherit; background:#fff; min-width:70px; transition:opacity .15s; }
 
 /* Tables */
-.v-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
-.v-table th{padding:8px 12px;background:var(--surface-2);border:1px solid var(--line);font-size:11px;font-weight:600;color:var(--ink-3);text-align:right;}
-.v-table td{padding:9px 12px;border:1px solid var(--line);color:var(--ink-2);}
+.v-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+.v-table th { padding:8px 12px; background:var(--pd-surface); border:1px solid var(--pd-line); font-size:11px; font-weight:700; color:var(--pd-ink-3); text-align:right; }
+.v-table td { padding:9px 12px; border:1px solid var(--pd-line); color:var(--pd-ink-2); }
 
 /* Session cards */
-.session-card{border:1.5px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px;}
-.session-card-hd{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap;}
-.session-num{width:28px;height:28px;border-radius:7px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#1d4ed8;flex-shrink:0;}
-.tag-postponed{background:#fef9c3;color:#92400e;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;}
-.tag-completed{background:#dcfce7;color:#15803d;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;}
+.session-card { border:1.5px solid var(--pd-line); border-radius:8px; overflow:hidden; margin-bottom:12px; }
+.session-card-hd { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--pd-surface); border-bottom:1px solid var(--pd-line); flex-wrap:wrap; }
+.session-num { width:26px; height:26px; border-radius:6px; background:#edf2f7; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:var(--pd-accent); flex-shrink:0; }
+.tag-postponed { background:#fef9ec; color:#7a5500; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:700; }
+.tag-completed { background:#d4f5e2; color:#0e3d1d; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:700; }
 
 /* Summary strip */
-.summary-strip{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;margin-top:16px;}
-.summary-cell{flex:1;padding:14px 16px;text-align:center;border-left:1px solid var(--line);}
-.summary-cell:last-child{border-left:none;}
-.sc-label{font-size:10.5px;font-weight:700;color:var(--ink-3);display:block;margin-bottom:6px;}
-.sc-val{font-size:24px;font-weight:800;font-family:monospace;color:var(--ink);}
+.summary-strip { display:flex; border:1.5px solid var(--pd-line); border-radius:8px; overflow:hidden; margin:16px 18px 18px; }
+.summary-cell { flex:1; padding:14px 16px; text-align:center; border-left:1px solid var(--pd-line); }
+.summary-cell:last-child { border-left:none; }
+.sc-label { font-size:10.5px; font-weight:700; color:var(--pd-ink-3); display:block; margin-bottom:6px; }
+.sc-val { font-size:24px; font-weight:800; font-family:"JetBrains Mono","Courier New",monospace; color:var(--pd-ink); }
+
+/* Meta grid (records) */
+.meta-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; padding:16px 18px; background:#fff; }
+.meta-label { font-size:11px; color:var(--pd-ink-3); font-weight:700; margin-bottom:3px; text-transform:uppercase; letter-spacing:.04em; }
+.meta-value { font-size:14px; font-weight:700; color:var(--pd-ink); }
+
+/* Result / rejection badges */
+.result-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 14px; border-radius:6px; font-size:13px; font-weight:700; }
+.result-badge--rejected { background:#fdf0ea; color:#7a2c0d; border:1.5px solid #9c3a12; }
+
+/* Sessions list container */
+.sessions-wrap { padding:18px; border-top:1px solid var(--pd-line); background:#fff; }
+.sessions-wrap-title { font-size:13px; font-weight:700; color:var(--pd-ink); margin-bottom:14px; }
+.sessions-wrap-count { font-size:11px; font-weight:600; color:var(--pd-ink-3); margin-right:6px; }
 
 /* Reject modal */
-.reject-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:20px;}
-.reject-modal.open{display:flex;}
-.reject-box{background:#fff;border-radius:14px;padding:28px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);}
-.reject-box textarea{width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;direction:rtl;resize:vertical;outline:none;transition:border-color .15s;box-sizing:border-box;}
-.reject-box textarea:focus{border-color:#dc2626;}
-.rbox-actions{display:flex;gap:10px;margin-top:14px;justify-content:flex-end;}
-.btn-cancel-m{padding:9px 18px;background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.reject-modal { display:none; position:fixed; inset:0; background:rgba(48,67,87,.45); z-index:200; align-items:center; justify-content:center; padding:20px; }
+.reject-modal.open { display:flex; }
+.reject-box { background:#fff; border-radius:10px; padding:26px; max-width:480px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+.reject-box textarea { width:100%; padding:10px 14px; border:1.5px solid var(--pd-line-2); border-radius:6px; font-size:14px; font-family:inherit; direction:rtl; resize:vertical; outline:none; transition:border-color .15s; box-sizing:border-box; }
+.reject-box textarea:focus { border-color:#8c2f2f; }
+.rbox-actions { display:flex; gap:10px; margin-top:14px; justify-content:flex-end; }
 
-@media(max-width:720px){.f-grid-2{grid-template-columns:1fr;}.meta-grid{grid-template-columns:1fr 1fr;}.summary-strip{flex-wrap:wrap;}.summary-cell{min-width:50%;border-bottom:1px solid var(--line);}}
+/* Photo lightbox */
+.photo-lightbox { display:none; position:fixed; inset:0; background:rgba(20,26,33,.88); z-index:300; align-items:center; justify-content:center; padding:30px; }
+.photo-lightbox.open { display:flex; }
+.photo-lightbox-stage { display:flex; align-items:center; gap:14px; max-width:100%; max-height:100%; }
+.photo-lightbox-stage img { max-width:min(78vw, 900px); max-height:calc(100vh - 60px); border-radius:8px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+.photo-lightbox-close { position:absolute; top:20px; left:20px; width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:#fff; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:1; }
+.photo-lightbox-close:hover { background:rgba(255,255,255,.22); }
+.photo-lightbox-nav { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:#fff; font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; flex-shrink:0; }
+.photo-lightbox-nav:hover { background:rgba(255,255,255,.22); }
+
+@media (max-width:720px) {
+  .permit-card { padding:12px; }
+  .action-bar { flex-direction:column; align-items:flex-start; }
+  .f-grid-2 { grid-template-columns:1fr; }
+  .detail-item { flex-direction:column; gap:3px; }
+  .detail-item .label { width:100%; padding-left:0; }
+  .meta-grid { grid-template-columns:1fr 1fr; }
+  .summary-strip { flex-wrap:wrap; }
+  .summary-cell { min-width:50%; border-bottom:1px solid var(--pd-line); }
+}
 </style>
 {% endblock %}
 
 {% block content %}
+<section class="permit-page" lang="ar" dir="rtl">
+<div class="permit-card">
 
-<!-- Header -->
-<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;">
-  <a href="{% url 'weed_list' %}"
-     style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;flex-shrink:0;"
-     onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='#fff';">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    رجوع
-  </a>
-  <div style="flex:1;">
-    <h1 class="page-title">طلب إزالة حشائش #{{ obj.complaint_number }}</h1>
-    <p class="page-subtitle">{{ obj.created_at|date:"d/m/Y — H:i" }}</p>
-  </div>
-  {% if obj.status == 'new' %}<span class="status-badge" style="background:#eff6ff;color:#1d4ed8;">جديد</span>
-  {% elif obj.status == 'inspector_assigned' %}<span class="status-badge" style="background:#f0f9ff;color:#0369a1;">بانتظار المفتش</span>
-  {% elif obj.status == 'inspection_done' %}<span class="status-badge" style="background:#f0fdf4;color:#15803d;">اكتمل التفتيش</span>
-  {% elif obj.status == 'supervisor_assigned' %}<span class="status-badge" style="background:#faf5ff;color:#7c3aed;">بانتظار المراقب</span>
-  {% elif obj.status == 'work_in_progress' %}<span class="status-badge" style="background:#fff7ed;color:#c2410c;">العمل جارٍ</span>
-  {% elif obj.status == 'work_paused' %}<span class="status-badge" style="background:#fefce8;color:#854d0e;">العمل متوقف مؤقتاً</span>
-  {% elif obj.status == 'work_done' %}<span class="status-badge" style="background:#ecfdf5;color:#065f46;">تم إنهاء العمل</span>
-  {% elif obj.status == 'closed' %}<span class="status-badge" style="background:#f1f5f9;color:#475569;">مغلق</span>
-  {% elif obj.status == 'rejected' %}<span class="status-badge" style="background:#fef2f2;color:#dc2626;">مرفوض</span>{% endif %}
-</div>
-
-<!-- Workflow timeline -->
-{% with s=obj.status %}
-<div class="wf-timeline">
-  {% for step_key, step_label in status_choices %}
-  {% if step_key != 'rejected' and step_key != 'work_paused' %}
-  <div class="wf-step
-    {% if step_key == 'new' and s != 'new' and s != 'rejected' %}done
-    {% elif step_key == 'inspector_assigned' and s in 'inspection_done,supervisor_assigned,work_in_progress,work_paused,work_done,closed' %}done
-    {% elif step_key == 'inspection_done' and s in 'supervisor_assigned,work_in_progress,work_paused,work_done,closed' %}done
-    {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_paused,work_done,closed' %}done
-    {% elif step_key == 'work_in_progress' and s in 'work_done,closed' %}done
-    {% elif step_key == 'work_done' and s == 'closed' %}done
-    {% elif step_key == s or step_key == 'work_in_progress' and s == 'work_paused' %}active
-    {% elif s == 'rejected' and step_key == 'inspector_assigned' %}rejected-step
-    {% endif %}">
-    <div class="wf-dot">
-      {% if step_key == 'new' and s != 'new' and s != 'rejected' %}✓
-      {% elif step_key == 'inspector_assigned' and s in 'inspection_done,supervisor_assigned,work_in_progress,work_paused,work_done,closed' %}✓
-      {% elif step_key == 'inspection_done' and s in 'supervisor_assigned,work_in_progress,work_paused,work_done,closed' %}✓
-      {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_paused,work_done,closed' %}✓
-      {% elif step_key == 'work_in_progress' and s in 'work_done,closed' %}✓
-      {% elif step_key == 'work_done' and s == 'closed' %}✓
-      {% elif s == 'rejected' and step_key == 'inspector_assigned' %}✕
-      {% else %}{{ forloop.counter }}{% endif %}
+  <!-- Action bar -->
+  <div class="action-bar">
+    <a href="{% url 'weed_list' %}" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      رجوع
+    </a>
+    <div>
+      <div class="action-bar-title">طلب إزالة حشائش #{{ obj.complaint_number }}</div>
+      <div class="action-bar-sub">{{ obj.created_at|date:"d/m/Y — H:i" }}</div>
     </div>
-    <div class="wf-label">{{ step_label }}</div>
   </div>
-  {% endif %}
-  {% endfor %}
-</div>
-{% endwith %}
 
-<!-- ══ Request info ══ -->
-<div class="permit-section--doc">
-  <div class="doc-band">
-    <div class="doc-band-ref">
-      <span class="doc-band-ref-label">رقم الشكوى</span>
-      <span class="doc-band-ref-no">#{{ obj.complaint_number }}</span>
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="status-bar-label">حالة الطلب</span>
+    {% if obj.status == 'new' %}<span class="status-badge status-badge--pending">جديد</span>
+    {% elif obj.status == 'inspector_assigned' %}<span class="status-badge status-badge--active">بانتظار المفتش</span>
+    {% elif obj.status == 'inspection_done' %}<span class="status-badge status-badge--active">اكتمل التفتيش</span>
+    {% elif obj.status == 'supervisor_assigned' %}<span class="status-badge status-badge--active">بانتظار المراقب</span>
+    {% elif obj.status == 'work_in_progress' %}<span class="status-badge status-badge--active">العمل جارٍ</span>
+    {% elif obj.status == 'work_paused' %}<span class="status-badge status-badge--pending">العمل متوقف مؤقتاً</span>
+    {% elif obj.status == 'work_done' %}<span class="status-badge status-badge--issued">تم إنهاء العمل</span>
+    {% elif obj.status == 'closed' %}<span class="status-badge status-badge--closed">مغلق</span>
+    {% elif obj.status == 'rejected' %}<span class="status-badge status-badge--warning">مرفوض</span>{% endif %}
+    <span style="margin-inline-start:auto;font-size:11px;color:var(--pd-ink-3);font-weight:600;">
+      رقم الشكوى: <strong style="color:var(--pd-ink);font-family:'JetBrains Mono','Courier New',monospace;">#{{ obj.complaint_number }}</strong>
+    </span>
+  </div>
+
+  <!-- Workflow timeline -->
+  {% with s=obj.status %}
+  <div class="wf-timeline">
+    {% for step_key, step_label in status_choices %}
+    {% if step_key != 'rejected' and step_key != 'work_paused' %}
+    <div class="wf-step
+      {% if step_key == 'new' and s != 'new' and s != 'rejected' %}done
+      {% elif step_key == 'inspector_assigned' and s in 'inspection_done,supervisor_assigned,work_in_progress,work_paused,work_done,closed' %}done
+      {% elif step_key == 'inspection_done' and s in 'supervisor_assigned,work_in_progress,work_paused,work_done,closed' %}done
+      {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_paused,work_done,closed' %}done
+      {% elif step_key == 'work_in_progress' and s in 'work_done,closed' %}done
+      {% elif step_key == 'work_done' and s == 'closed' %}done
+      {% elif step_key == s or step_key == 'work_in_progress' and s == 'work_paused' %}active
+      {% elif s == 'rejected' and step_key == 'inspector_assigned' %}rejected-step
+      {% endif %}">
+      <div class="wf-dot">
+        {% if step_key == 'new' and s != 'new' and s != 'rejected' %}✓
+        {% elif step_key == 'inspector_assigned' and s in 'inspection_done,supervisor_assigned,work_in_progress,work_paused,work_done,closed' %}✓
+        {% elif step_key == 'inspection_done' and s in 'supervisor_assigned,work_in_progress,work_paused,work_done,closed' %}✓
+        {% elif step_key == 'supervisor_assigned' and s in 'work_in_progress,work_paused,work_done,closed' %}✓
+        {% elif step_key == 'work_in_progress' and s in 'work_done,closed' %}✓
+        {% elif step_key == 'work_done' and s == 'closed' %}✓
+        {% elif s == 'rejected' and step_key == 'inspector_assigned' %}✕
+        {% else %}{{ forloop.counter }}{% endif %}
+      </div>
+      <div class="wf-label">{{ step_label }}</div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endwith %}
+
+  <!-- ══ Request info ══ -->
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <div class="doc-band-ref">
+        <span class="doc-band-ref-label">رقم الشكوى</span>
+        <span class="doc-band-ref-no">#{{ obj.complaint_number }}</span>
+      </div>
       {% if obj.pdf_file %}
       <a href="{{ obj.pdf_file.url }}" target="_blank" class="db-btn">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -181,581 +262,511 @@
       </a>
       {% endif %}
     </div>
-  </div>
-  <div class="doc-table">
-    <div class="detail-col-grid">
+    <div class="doc-table">
       <div class="detail-item"><span class="label">تاريخ التقديم</span><span class="value">{{ obj.created_at|date:"d/m/Y" }}</span></div>
       <div class="detail-item"><span class="label">آخر تحديث</span><span class="value">{{ obj.updated_at|date:"d/m/Y" }}</span></div>
       <div class="detail-item"><span class="label">أضيف بواسطة</span><span class="value">{{ obj.created_by.get_full_name|default:obj.created_by.username|default:"—" }}</span></div>
-    </div>
-    {% if obj.complainant_name or obj.area or obj.complainant_mobile or obj.house_number %}
-    <div class="doc-table-divider"><span>بيانات المتعامل</span></div>
-    <div class="detail-col-grid">
       {% if obj.complainant_name %}<div class="detail-item"><span class="label">اسم المتعامل</span><span class="value">{{ obj.complainant_name }}</span></div>{% endif %}
       {% if obj.complainant_mobile %}<div class="detail-item"><span class="label">الموبايل</span><span class="value" dir="ltr">{{ obj.complainant_mobile }}</span></div>{% endif %}
       {% if obj.area %}<div class="detail-item"><span class="label">المنطقة</span><span class="value">{{ obj.area }}</span></div>{% endif %}
       {% if obj.house_number %}<div class="detail-item"><span class="label">رقم المنزل</span><span class="value">{{ obj.house_number }}</span></div>{% endif %}
     </div>
-    {% endif %}
     {% if obj.notes %}
     <div class="doc-table-divider"><span>ملاحظات</span></div>
-    <div class="detail-item" style="border-bottom:none;">
-      <span class="value" style="font-size:13px;line-height:1.7;">{{ obj.notes }}</span>
+    <div class="doc-table">
+      <div class="detail-item" style="border-bottom:none;"><span class="value" style="font-weight:500;line-height:1.7;">{{ obj.notes }}</span></div>
     </div>
     {% endif %}
     {% if inspection and inspection.location_saved_at %}
     <div class="doc-table-divider"><span>الموقع الجغرافي</span></div>
-    <div class="detail-col-grid">
-      <div class="detail-item" style="border-bottom:none;">
+    <div class="doc-table">
+      <div class="detail-item">
         <span class="label">الموقع</span>
-        <span class="value" style="display:flex;align-items:center;gap:8px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          <span style="color:#15803d;font-weight:600;">تم تحديد الموقع</span>
-          <a href="https://maps.google.com/?q={{ inspection.latitude }},{{ inspection.longitude }}" target="_blank"
-             style="font-size:11px;color:#0369a1;border:1px solid #bae6fd;padding:2px 9px;border-radius:4px;text-decoration:none;">عرض على الخريطة</a>
+        <span class="value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1f6b3e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span style="color:#1a5233;">تم تحديد الموقع</span>
+          <a href="https://maps.google.com/?q={{ inspection.latitude }},{{ inspection.longitude }}" target="_blank">عرض على الخريطة</a>
         </span>
       </div>
-      {% if inspection.location_notes %}
-      <div class="detail-item" style="border-bottom:none;"><span class="label">ملاحظات الموقع</span><span class="value">{{ inspection.location_notes }}</span></div>
-      {% endif %}
       {% if can_admin %}
       <div class="detail-item" style="border-bottom:none;">
-        <form method="post" action="{% url 'weed_delete_location' obj.pk %}"
-              onsubmit="return confirm('حذف الموقع المحفوظ؟ سيحتاج المفتش لتحديده مرة أخرى.');">
-          {% csrf_token %}
-          <button type="submit" style="background:none;border:1px solid #fecaca;color:#dc2626;font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;">
-            حذف الموقع
-          </button>
-        </form>
+        <span class="label">إدارة الموقع</span>
+        <span class="value">
+          <form method="post" action="{% url 'weed_delete_location' obj.pk %}" onsubmit="return confirm('حذف الموقع المحفوظ؟ سيحتاج المفتش لتحديده مرة أخرى.');">
+            {% csrf_token %}
+            <button type="submit" class="btn-action btn-action--outline" style="padding:6px 14px;font-size:12px;">حذف الموقع</button>
+          </form>
+        </span>
       </div>
       {% endif %}
     </div>
     {% endif %}
   </div>
-</div>
 
-<!-- ══ STEP 1: Assign Inspector ══ -->
-{% if obj.status == 'new' and can_manage %}
-<div class="action-card" style="border-color:#fde68a;">
-  <div class="action-header" style="background:#fefce8;">
-    <div class="action-num" style="background:#fde68a;color:#92400e;">①</div>
-    <span class="action-title" style="color:#78350f;">تعيين مفتش للطلب</span>
-  </div>
-  <form method="post" action="{% url 'weed_assign_inspector' obj.pk %}">
-    {% csrf_token %}
-    <div style="display:flex;gap:10px;align-items:flex-end;">
-      <div style="flex:1;"><label class="f-label">اختر المفتش</label>
-        <select name="inspector_id" class="f-select">
-          <option value="">— اختر مفتشاً —</option>
-          {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
-        </select>
-      </div>
-      <button type="submit" class="btn-primary">تعيين</button>
+  <!-- ══ STEP 1: Assign Inspector ══ -->
+  {% if obj.status == 'new' and can_manage %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">① تعيين مفتش للطلب</span></div>
+    <div class="doc-form-body">
+      <form method="post" action="{% url 'weed_assign_inspector' obj.pk %}">
+        {% csrf_token %}
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;"><label class="f-label">اختر المفتش</label>
+            <select name="inspector_id" class="f-select">
+              <option value="">— اختر مفتشاً —</option>
+              {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn-action">تعيين</button>
+        </div>
+      </form>
     </div>
-  </form>
-</div>
-{% endif %}
-
-<!-- ══ STEP 2a: Save location ══ -->
-{% if is_inspector and obj.status != 'closed' and obj.status != 'rejected' %}
-{% if obj.status == 'inspector_assigned' or not inspection.location_saved_at %}
-<div class="action-card" style="border-color:#bae6fd;">
-  <div class="action-header" style="background:#f0f9ff;">
-    <div class="action-num" style="background:#bae6fd;color:#075985;">②</div>
-    <span class="action-title" style="color:#0c4a6e;">حفظ إحداثيات الموقع</span>
-  </div>
-  {% if inspection.location_saved_at %}
-  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;margin-bottom:14px;">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-    <span style="font-size:13px;font-weight:600;color:#15803d;">تم حفظ الموقع</span>
-    <a href="https://maps.google.com/?q={{ inspection.latitude }},{{ inspection.longitude }}" target="_blank"
-       style="margin-right:auto;font-size:12px;color:#0369a1;text-decoration:none;">عرض على الخريطة ↗</a>
   </div>
   {% endif %}
-  <form method="post" action="{% url 'weed_save_location' obj.pk %}" id="wr-loc-form">
-    {% csrf_token %}
-    <input type="hidden" name="latitude"  id="wr-loc-lat-inp">
-    <input type="hidden" name="longitude" id="wr-loc-lng-inp">
 
-    <div style="margin-bottom:14px;padding:14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:9px;">
-      <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:10px;">تحديد الموقع عبر GPS</div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <button type="button" id="wr-loc-gps-btn" onclick="captureWeedLocation()"
-          style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:7px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          تحديد الموقع الحالي
-        </button>
-        <span id="wr-loc-status" style="font-size:13px;font-weight:600;"></span>
+  <!-- ══ STEP 2a: Save location ══ -->
+  {% if is_inspector and obj.status != 'closed' and obj.status != 'rejected' %}
+  {% if obj.status == 'inspector_assigned' or not inspection.location_saved_at %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">② حفظ إحداثيات الموقع</span></div>
+    <div class="doc-form-body">
+      {% if inspection.location_saved_at %}
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#edf7f2;border:1.5px solid #bfe3cf;border-radius:6px;flex-wrap:wrap;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b3e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span style="font-size:13px;font-weight:700;color:#1a5233;">تم حفظ الموقع</span>
+        <a href="https://maps.google.com/?q={{ inspection.latitude }},{{ inspection.longitude }}" target="_blank" style="font-size:12px;color:var(--pd-accent);text-decoration:none;font-weight:600;">عرض على الخريطة ↗</a>
+        <button type="button" id="wr-loc-toggle-btn" class="btn-action btn-action--ghost" style="margin-inline-start:auto;" onclick="toggleWeedLocationForm()">تغيير الموقع</button>
       </div>
-      <div id="wr-loc-coords-wrap" style="display:none;margin-top:10px;padding:8px 12px;background:#fff;border:1.5px solid #bfdbfe;border-radius:7px;">
-        <a id="wr-loc-maps-link" href="#" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);">عرض على خرائط Google ↗</a>
-      </div>
-    </div>
-
-    <div class="f-row"><label class="f-label">ملاحظات الموقع</label>
-      <textarea name="location_notes" rows="2" class="f-textarea" placeholder="وصف الموقع، أقرب معلم…">{{ inspection.location_notes }}</textarea>
-    </div>
-    <div style="display:flex;gap:10px;align-items:center;">
-      <button type="submit" id="wr-loc-submit-btn" class="btn-primary" disabled>حفظ الموقع</button>
-      {% if inspection.location_saved_at and inspection.latitude %}
-      <a href="https://maps.google.com/?q={{ inspection.latitude }},{{ inspection.longitude }}" target="_blank"
-         style="display:inline-flex;align-items:center;gap:5px;padding:9px 16px;background:#fff;color:#0369a1;border:1.5px solid #bae6fd;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
-        فتح في خرائط
-      </a>
       {% endif %}
-    </div>
-  </form>
-</div>
-{% endif %}
-{% endif %}
+      <form method="post" action="{% url 'weed_save_location' obj.pk %}" id="wr-loc-form"
+            {% if inspection.location_saved_at %}style="display:none;margin-top:14px;"{% endif %}>
+        {% csrf_token %}
+        <input type="hidden" name="latitude"  id="wr-loc-lat-inp">
+        <input type="hidden" name="longitude" id="wr-loc-lng-inp">
 
-<!-- ══ STEP 2b: Inspector visit + before photos ══ -->
-{% if obj.status == 'inspector_assigned' and is_inspector %}
-<div class="action-card" style="border-color:#ddd6fe;">
-  <div class="action-header" style="background:#f5f3ff;">
-    <div class="action-num" style="background:#ddd6fe;color:#5b21b6;">②</div>
-    <span class="action-title" style="color:#4c1d95;">زيارة الموقع وتصوير الحالة قبل الإزالة</span>
+        <div style="padding:14px;background:var(--pd-surface);border:1.5px solid var(--pd-line);border-radius:8px;">
+          <div style="font-size:12px;font-weight:700;color:var(--pd-ink-2);margin-bottom:10px;">تحديد الموقع عبر GPS</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <button type="button" id="wr-loc-gps-btn" class="btn-action" onclick="captureWeedLocation()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              تحديد الموقع الحالي
+            </button>
+            <span id="wr-loc-status" style="font-size:13px;font-weight:600;"></span>
+          </div>
+        </div>
+      </form>
+    </div>
   </div>
-  <form method="post" action="{% url 'weed_inspector_done' obj.pk %}" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="f-row"><label class="f-label">ملاحظات التفتيش</label>
-      <textarea name="inspection_notes" rows="3" class="f-textarea" placeholder="وصف حالة الموقع، مساحة الحشائش، ملاحظات…"></textarea>
-    </div>
-    <div class="f-row"><label class="f-label">صور الموقع قبل العمل</label>
-      <label class="upload-zone">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        <span style="font-size:12px;color:var(--ink-3);display:block;">اضغط لاختيار صور (متعدد)</span>
-        <input type="file" name="before_photos" accept="image/*" multiple style="display:none;">
-      </label>
-    </div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-      <button type="submit" class="btn-green">✓ إتمام التفتيش</button>
-      <button type="button" class="btn-reject" onclick="openRejectModal()">رفض الطلب</button>
-    </div>
-  </form>
-</div>
-{% endif %}
+  {% endif %}
+  {% endif %}
 
-<!-- ══ STEP 3: Assign Supervisor ══ -->
-{% if obj.status == 'inspection_done' and can_manage %}
-<div class="action-card" style="border-color:#fbcfe8;">
-  <div class="action-header" style="background:#fdf2f8;">
-    <div class="action-num" style="background:#fbcfe8;color:#9d174d;">③</div>
-    <span class="action-title" style="color:#831843;">تعيين مراقب لتنفيذ الإزالة</span>
+  <!-- ══ STEP 2b: Inspector visit + before photos ══ -->
+  {% if obj.status == 'inspector_assigned' and is_inspector %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">② زيارة الموقع وتصوير الحالة قبل الإزالة</span></div>
+    <div class="doc-form-body">
+      <form method="post" action="{% url 'weed_inspector_done' obj.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="f-row"><label class="f-label">ملاحظات التفتيش</label>
+          <textarea name="inspection_notes" rows="3" class="f-textarea" placeholder="وصف حالة الموقع، مساحة الحشائش، ملاحظات…"></textarea>
+        </div>
+        <div class="f-row"><label class="f-label">صور الموقع قبل العمل</label>
+          <label class="upload-zone">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pd-ink-3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span style="font-size:12px;color:var(--pd-ink-3);display:block;">اضغط لاختيار صور (متعدد)</span>
+            <input type="file" name="before_photos" accept="image/*" multiple style="display:none;">
+          </label>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button type="submit" class="btn-action btn-action--green">✓ إتمام التفتيش</button>
+          <button type="button" class="btn-action btn-action--outline" onclick="openRejectModal()">رفض الطلب</button>
+        </div>
+      </form>
+    </div>
   </div>
-  <form method="post" action="{% url 'weed_assign_supervisor' obj.pk %}">
-    {% csrf_token %}
-    <div style="display:flex;gap:10px;align-items:flex-end;">
-      <div style="flex:1;"><label class="f-label">اختر المراقب</label>
-        <select name="supervisor_id" class="f-select">
-          <option value="">— اختر مراقباً —</option>
-          {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
-        </select>
+  {% endif %}
+
+  <!-- ══ STEP 3: Assign Supervisor ══ -->
+  {% if obj.status == 'inspection_done' and can_manage %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">③ تعيين مراقب لتنفيذ الإزالة</span></div>
+    <div class="doc-form-body">
+      <form method="post" action="{% url 'weed_assign_supervisor' obj.pk %}">
+        {% csrf_token %}
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;"><label class="f-label">اختر المراقب</label>
+            <select name="supervisor_id" class="f-select">
+              <option value="">— اختر مراقباً —</option>
+              {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn-action">تعيين</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══ STEP 4: Start first session ══ -->
+  {% if obj.status == 'supervisor_assigned' and is_supervisor %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">④ تسجيل العمال — بدء العمل</span></div>
+    <div class="doc-form-body">
+      <form method="post" action="{% url 'weed_work_start' obj.pk %}">
+        {% csrf_token %}
+        <div class="f-row">
+          <label class="f-label">وقت بدء العمل</label>
+          <input type="time" name="start_time" class="f-input" style="width:160px;" id="start-time-1">
+        </div>
+        <button type="submit" class="btn-action">▶ بدء العمل</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══ STEP 4b: Resume from work_paused ══ -->
+  {% if obj.status == 'work_paused' and is_supervisor %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">④ العمل متوقف — استئناف العمل</span></div>
+    <div class="doc-form-body">
+      <p style="font-size:13px;color:var(--pd-ink-3);margin:0 0 14px;">تم تأجيل العمل في جلسة سابقة. اضغط لفتح جلسة عمل جديدة.</p>
+      <form method="post" action="{% url 'weed_work_start' obj.pk %}">
+        {% csrf_token %}
+        <div class="f-row">
+          <label class="f-label">وقت بدء العمل</label>
+          <input type="time" name="start_time" class="f-input" style="width:140px;">
+        </div>
+        <button type="submit" class="btn-action btn-action--orange">▶ استئناف العمل</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══ STEP 5: Unified daily report ══ -->
+  {% if obj.status == 'work_in_progress' and is_supervisor %}
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-title">
+        ⑤ تقرير اليوم
+        {% if current_session %}<span style="font-size:11px;font-weight:600;color:var(--pd-ink-3);margin-right:10px;text-transform:none;letter-spacing:0;">بدأت {{ current_session.started_at|date:"H:i — d/m/Y" }}</span>{% endif %}
+      </span>
+    </div>
+    <div class="doc-form-body">
+      <form method="post" action="{% url 'weed_report_submit' obj.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Workers count -->
+        <div class="f-row">
+          <label class="f-label">عدد العمال اليوم</label>
+          <input type="number" name="workers_count" min="1" max="999" class="f-input" style="width:160px;" placeholder="مثال: 4">
+        </div>
+
+        <!-- Vehicles (6 types) -->
+        <div class="f-row">
+          <label class="f-label" style="margin-bottom:10px;">المركبات المستخدمة</label>
+          {% for vtype, vlabel in vehicle_type_choices %}
+          <label id="lbl-{{ vtype }}" class="veh-row">
+            <input type="checkbox" name="{{ vtype }}_checked" id="cb-{{ vtype }}"
+                   onchange="toggleVeh(this,'sel-{{ vtype }}','lbl-{{ vtype }}')">
+            <span class="veh-name">{{ vlabel }}</span>
+            <select name="{{ vtype }}_count" id="sel-{{ vtype }}" class="veh-count" disabled>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </label>
+          {% endfor %}
+        </div>
+
+        <!-- Photos: 3 sections -->
+        <div style="padding-top:14px;border-top:1px solid var(--pd-line);">
+          <div class="f-grid-2" style="grid-template-columns:1fr 1fr 1fr;gap:10px;">
+
+            <div><label class="f-label">📷 صور قبل العمل</label>
+              <label class="upload-zone">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pd-ink-3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span style="font-size:11px;color:var(--pd-ink-3);display:block;" id="lbl-start">اختر صور</span>
+                <input type="file" name="start_photos" accept="image/*" multiple style="display:none;"
+                       onchange="updateFileLabel(this,'lbl-start')">
+              </label>
+            </div>
+
+            <div><label class="f-label">📷 صور أثناء العمل</label>
+              <label class="upload-zone">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pd-ink-3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span style="font-size:11px;color:var(--pd-ink-3);display:block;" id="lbl-during">اختر صور</span>
+                <input type="file" name="during_photos" accept="image/*" multiple style="display:none;"
+                       onchange="updateFileLabel(this,'lbl-during')">
+              </label>
+            </div>
+
+            <div><label class="f-label">📷 صور انتهاء العمل</label>
+              <label class="upload-zone">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pd-ink-3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span style="font-size:11px;color:var(--pd-ink-3);display:block;" id="lbl-end">اختر صور</span>
+                <input type="file" name="end_photos" accept="image/*" multiple style="display:none;"
+                       onchange="updateFileLabel(this,'lbl-end')">
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="f-row" style="margin-top:14px;">
+          <label class="f-label">ملاحظات اليوم</label>
+          <textarea name="notes" rows="3" class="f-textarea" placeholder="وصف العمل المنجز، ملاحظات الإزالة…"></textarea>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding-top:16px;border-top:1px solid var(--pd-line);">
+          <button type="submit" name="action" value="postpone" class="btn-action btn-action--orange"
+                  onclick="return confirm('هل تريد تأجيل العمل إلى موعد آخر؟ سيتم حفظ التقرير وتسجيل وقت التوقف.')">
+            ⏸ تأجيل لموعد آخر
+          </button>
+          <button type="submit" name="action" value="complete" class="btn-action btn-action--green"
+                  onclick="return confirm('هل تريد إنهاء المهمة نهائياً؟')">
+            ✓ إنهاء المهمة
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══ STEP 6: Close (admin) ══ -->
+  {% if obj.status == 'work_done' and can_manage %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">⑥ إغلاق الطلب</span></div>
+    <div class="doc-form-body">
+      <p style="font-size:13px;color:var(--pd-ink-2);margin:0 0 16px;">تم استلام التقرير والصور. يمكنك إغلاق الطلب الآن.</p>
+      <form method="post" action="{% url 'weed_close' obj.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-action">إغلاق الطلب</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══ Rejection card ══ -->
+  {% if obj.status == 'rejected' and inspection and inspection.rejected_at %}
+  <div class="permit-section--doc">
+    <div class="doc-band">
+      <span class="doc-band-title">تم رفض هذا الطلب</span>
+      <span class="result-badge result-badge--rejected">✕ مرفوض</span>
+    </div>
+    <div class="meta-grid">
+      <div><div class="meta-label">رُفض بواسطة</div><div class="meta-value">{{ inspection.rejected_by.get_full_name|default:inspection.rejected_by.username|default:"—" }}</div></div>
+      <div><div class="meta-label">تاريخ الرفض</div><div class="meta-value">{{ inspection.rejected_at|date:"d/m/Y H:i" }}</div></div>
+    </div>
+    <div style="margin:0 18px 18px;padding:12px 16px;background:#fdf0ea;border:1.5px solid #e2b8a0;border-radius:6px;">
+      <div style="font-size:11.5px;font-weight:700;color:#7a2c0d;margin-bottom:6px;">سبب الرفض</div>
+      <p style="font-size:13px;color:#7a2c0d;margin:0;line-height:1.7;">{{ inspection.rejection_reason }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══ Inspector record ══ -->
+  {% if inspection %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">سجل المفتش</span></div>
+    <div class="meta-grid">
+      <div><div class="meta-label">المفتش</div><div class="meta-value">{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</div></div>
+      <div><div class="meta-label">تاريخ التعيين</div><div class="meta-value">{{ inspection.assigned_at|date:"d/m/Y H:i" }}</div></div>
+      {% if inspection.completed_at %}<div><div class="meta-label">تاريخ الإتمام</div><div class="meta-value">{{ inspection.completed_at|date:"d/m/Y H:i" }}</div></div>{% endif %}
+    </div>
+    {% if inspection.inspection_notes %}
+    <div style="padding:0 18px 16px;border-top:1px solid var(--pd-line);">
+      <div class="meta-label" style="margin:14px 0 5px;">ملاحظات التفتيش</div>
+      <p style="font-size:13px;color:var(--pd-ink-2);margin:0;line-height:1.7;">{{ inspection.inspection_notes }}</p>
+    </div>
+    {% endif %}
+    {% if photos_before %}
+    <div style="padding:0 18px 18px;border-top:1px solid var(--pd-line);">
+      <div class="meta-label" style="margin:14px 0 8px;">صور الموقع قبل العمل ({{ photos_before.count }})</div>
+      <div class="photo-grid">
+        {% for p in photos_before %}
+        <div class="photo-thumb"><img src="{{ p.file.url }}" alt="قبل" onclick="openWeedLightbox(this)">
+          {% if can_manage or p.uploaded_by_id == request.user.id %}
+          <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
+            <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
+          </form>{% endif %}
+        </div>
+        {% endfor %}
       </div>
-      <button type="submit" class="btn-primary">تعيين</button>
     </div>
-  </form>
-</div>
-{% endif %}
-
-<!-- ══ STEP 4: Start first session ══ -->
-{% if obj.status == 'supervisor_assigned' and is_supervisor %}
-<div class="action-card" style="border-color:#bbf7d0;">
-  <div class="action-header" style="background:#f0fdf4;">
-    <div class="action-num" style="background:#bbf7d0;color:#14532d;">④</div>
-    <span class="action-title" style="color:#14532d;">تسجيل العمال — بدء العمل</span>
+    {% endif %}
   </div>
-  <form method="post" action="{% url 'weed_work_start' obj.pk %}">
-    {% csrf_token %}
-    <div class="f-row">
-      <label class="f-label">وقت بدء العمل</label>
-      <input type="time" name="start_time" class="f-input" style="width:160px;" id="start-time-1">
-    </div>
-    <button type="submit" class="btn-primary">▶ بدء العمل</button>
-  </form>
-</div>
-{% endif %}
+  {% endif %}
 
-<!-- ══ STEP 4b: Resume from work_paused ══ -->
-{% if obj.status == 'work_paused' and is_supervisor %}
-<div class="action-card" style="border-color:#fde68a;">
-  <div class="action-header" style="background:#fefce8;">
-    <div class="action-num" style="background:#fde68a;color:#92400e;">④</div>
-    <span class="action-title" style="color:#78350f;">العمل متوقف — استئناف العمل</span>
-  </div>
-  <p style="font-size:13px;color:var(--ink-3);margin:0 0 14px;">تم تأجيل العمل في جلسة سابقة. اضغط لفتح جلسة عمل جديدة.</p>
-  <form method="post" action="{% url 'weed_work_start' obj.pk %}">
-    {% csrf_token %}
-    <div class="f-row">
-      <label class="f-label">وقت بدء العمل</label>
-      <input type="time" name="start_time" class="f-input" style="width:140px;">
-    </div>
-    <button type="submit" class="btn-orange">▶ استئناف العمل</button>
-  </form>
-</div>
-{% endif %}
-
-<!-- ══ STEP 5: Unified daily report ══ -->
-{% if obj.status == 'work_in_progress' and is_supervisor %}
-<div class="action-card" style="border-color:#bae6fd;">
-  <div class="action-header" style="background:#f0f9ff;">
-    <div class="action-num" style="background:#bae6fd;color:#0c4a6e;">⑤</div>
-    <span class="action-title" style="color:#0c4a6e;">
-      تقرير اليوم
-      {% if current_session %}<span style="font-size:12px;font-weight:400;color:#0369a1;margin-right:10px;">بدأت {{ current_session.started_at|date:"H:i — d/m/Y" }}</span>{% endif %}
-    </span>
-  </div>
-  <form method="post" action="{% url 'weed_report_submit' obj.pk %}" enctype="multipart/form-data">
-    {% csrf_token %}
-
-    <!-- Workers count -->
-    <div class="f-row">
-      <label class="f-label">عدد العمال اليوم</label>
-      <input type="number" name="workers_count" min="1" max="999" class="f-input" style="width:160px;" placeholder="مثال: 4">
+  <!-- ══ Supervisor record + session review ══ -->
+  {% if supervisor_task %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">سجل المراقب</span></div>
+    <div class="meta-grid">
+      <div><div class="meta-label">المراقب</div><div class="meta-value">{{ supervisor_task.supervisor.get_full_name|default:supervisor_task.supervisor.username }}</div></div>
+      <div><div class="meta-label">تاريخ التعيين</div><div class="meta-value">{{ supervisor_task.assigned_at|date:"d/m/Y H:i" }}</div></div>
+      {% if supervisor_task.completed_at %}<div><div class="meta-label">تاريخ الإتمام</div><div class="meta-value">{{ supervisor_task.completed_at|date:"d/m/Y H:i" }}</div></div>{% endif %}
     </div>
 
-    <!-- Vehicles (6 types) -->
-    <div class="f-row">
-      <label class="f-label" style="margin-bottom:10px;">المركبات المستخدمة</label>
-      {% for vtype, vlabel in vehicle_type_choices %}
-      <label id="lbl-{{ vtype }}" class="veh-row">
-        <input type="checkbox" name="{{ vtype }}_checked" id="cb-{{ vtype }}"
-               onchange="toggleVeh(this,'sel-{{ vtype }}','lbl-{{ vtype }}')">
-        <span class="veh-name">{{ vlabel }}</span>
-        <select name="{{ vtype }}_count" id="sel-{{ vtype }}" class="veh-count" disabled>
-          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-          <option value="10">10</option>
-        </select>
-      </label>
+    <!-- Session summary strip -->
+    {% if session_summary %}
+    <div class="summary-strip">
+      <div class="summary-cell">
+        <span class="sc-label">إجمالي أيام المهمة</span>
+        <span class="sc-val">{{ session_summary.total_days }}</span>
+      </div>
+      <div class="summary-cell">
+        <span class="sc-label">أيام العمل الفعلي</span>
+        <span class="sc-val" style="color:#1a5233;">{{ session_summary.work_days }}</span>
+      </div>
+      <div class="summary-cell">
+        <span class="sc-label">أيام التوقف</span>
+        <span class="sc-val" style="color:#7a5500;">{{ session_summary.idle_days }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Submitted sessions -->
+    {% if work_sessions %}
+    <div class="sessions-wrap">
+      <div class="sessions-wrap-title">
+        التقارير المقدمة
+        <span class="sessions-wrap-count">{{ work_sessions|length }} جلسة</span>
+      </div>
+      {% for s in work_sessions %}
+      <div class="session-card">
+        <div class="session-card-hd">
+          <div class="session-num">{{ forloop.counter }}</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;color:var(--pd-ink);">{{ s.started_at|date:"d/m/Y" }}</div>
+            <div style="font-size:11.5px;color:var(--pd-ink-3);margin-top:2px;">
+              بدأ <span dir="ltr" style="font-family:'JetBrains Mono','Courier New',monospace;font-weight:600;">{{ s.started_at|date:"H:i" }}</span>
+              — انتهى <span dir="ltr" style="font-family:'JetBrains Mono','Courier New',monospace;font-weight:600;">{{ s.ended_at|date:"H:i" }}</span>
+            </div>
+          </div>
+          {% if s.end_type == 'postponed' %}<span class="tag-postponed">مؤجل</span>
+          {% elif s.end_type == 'completed' %}<span class="tag-completed">مكتمل</span>{% endif %}
+        </div>
+        <div style="padding:14px 16px;background:#fff;">
+          <div class="meta-grid" style="padding:0;">
+            {% if s.workers_count is not None %}
+            <div><div class="meta-label">عدد العمال</div>
+              <div class="meta-value" style="font-size:20px;font-weight:800;font-family:'JetBrains Mono','Courier New',monospace;color:var(--pd-accent);">{{ s.workers_count }}</div>
+            </div>
+            {% endif %}
+          </div>
+
+          {% if s.vehicles.all %}
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pd-line);">
+            <div class="meta-label" style="margin-bottom:8px;">المركبات</div>
+            <table class="v-table">
+              <thead><tr><th>نوع المركبة</th><th>العدد</th></tr></thead>
+              <tbody>
+                {% for v in s.vehicles.all %}
+                <tr>
+                  <td><strong>{{ v.get_vehicle_type_display }}</strong></td>
+                  <td style="font-family:'JetBrains Mono','Courier New',monospace;font-weight:700;">{{ v.count }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+
+          {% if s.notes %}
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pd-line);">
+            <div class="meta-label" style="margin-bottom:5px;">ملاحظات</div>
+            <p style="font-size:13px;color:var(--pd-ink-2);margin:0;line-height:1.7;">{{ s.notes }}</p>
+          </div>
+          {% endif %}
+
+          {% if s.photos_start or s.photos_during or s.photos_end %}
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pd-line);">
+            {% if s.photos_start %}
+            <div class="meta-label" style="margin-bottom:6px;">صور قبل العمل ({{ s.photos_start|length }})</div>
+            <div class="photo-grid" style="margin-bottom:12px;">
+              {% for p in s.photos_start %}
+              <div class="photo-thumb"><img src="{{ p.file.url }}" alt="بداية" onclick="openWeedLightbox(this)">
+                {% if can_manage or p.uploaded_by_id == request.user.id %}
+                <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
+                  <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
+                </form>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            {% if s.photos_during %}
+            <div class="meta-label" style="margin-bottom:6px;">صور أثناء العمل ({{ s.photos_during|length }})</div>
+            <div class="photo-grid" style="margin-bottom:12px;">
+              {% for p in s.photos_during %}
+              <div class="photo-thumb"><img src="{{ p.file.url }}" alt="أثناء" onclick="openWeedLightbox(this)">
+                {% if can_manage or p.uploaded_by_id == request.user.id %}
+                <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
+                  <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
+                </form>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            {% if s.photos_end %}
+            <div class="meta-label" style="margin-bottom:6px;">صور انتهاء العمل ({{ s.photos_end|length }})</div>
+            <div class="photo-grid">
+              {% for p in s.photos_end %}
+              <div class="photo-thumb"><img src="{{ p.file.url }}" alt="نهاية" onclick="openWeedLightbox(this)">
+                {% if can_manage or p.uploaded_by_id == request.user.id %}
+                <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
+                  <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
+                </form>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
       {% endfor %}
     </div>
-
-    <!-- Photos: 3 sections -->
-    <div style="padding-top:14px;border-top:1px solid var(--line);">
-      <div class="f-grid-2" style="grid-template-columns:1fr 1fr 1fr;gap:10px;">
-
-        <div><label class="f-label">📷 صور قبل العمل</label>
-          <label class="upload-zone">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span style="font-size:11px;color:var(--ink-3);display:block;" id="lbl-start">اختر صور</span>
-            <input type="file" name="start_photos" accept="image/*" multiple style="display:none;"
-                   onchange="updateFileLabel(this,'lbl-start')">
-          </label>
-        </div>
-
-        <div><label class="f-label">📷 صور أثناء العمل</label>
-          <label class="upload-zone">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span style="font-size:11px;color:var(--ink-3);display:block;" id="lbl-during">اختر صور</span>
-            <input type="file" name="during_photos" accept="image/*" multiple style="display:none;"
-                   onchange="updateFileLabel(this,'lbl-during')">
-          </label>
-        </div>
-
-        <div><label class="f-label">📷 صور انتهاء العمل</label>
-          <label class="upload-zone">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span style="font-size:11px;color:var(--ink-3);display:block;" id="lbl-end">اختر صور</span>
-            <input type="file" name="end_photos" accept="image/*" multiple style="display:none;"
-                   onchange="updateFileLabel(this,'lbl-end')">
-          </label>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Notes -->
-    <div class="f-row">
-      <label class="f-label">ملاحظات اليوم</label>
-      <textarea name="notes" rows="3" class="f-textarea" placeholder="وصف العمل المنجز، ملاحظات الإزالة…"></textarea>
-    </div>
-
-    <!-- Action buttons -->
-    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding-top:16px;border-top:1px solid var(--line);">
-      <button type="submit" name="action" value="postpone" class="btn-orange"
-              onclick="return confirm('هل تريد تأجيل العمل إلى موعد آخر؟ سيتم حفظ التقرير وتسجيل وقت التوقف.')">
-        ⏸ تأجيل لموعد آخر
-      </button>
-      <button type="submit" name="action" value="complete" class="btn-green"
-              onclick="return confirm('هل تريد إنهاء المهمة نهائياً؟')">
-        ✓ إنهاء المهمة
-      </button>
-    </div>
-  </form>
-</div>
-{% endif %}
-
-<!-- ══ STEP 6: Close (admin) ══ -->
-{% if obj.status == 'work_done' and can_manage %}
-<div class="action-card" style="border-color:var(--line-2);">
-  <div class="action-header" style="background:var(--surface);">
-    <div class="action-num" style="background:var(--line);color:var(--ink-2);">⑥</div>
-    <span class="action-title" style="color:var(--ink);">إغلاق الطلب</span>
-  </div>
-  <p style="font-size:13px;color:var(--ink-2);margin:0 0 16px;">تم استلام التقرير والصور. يمكنك إغلاق الطلب الآن.</p>
-  <form method="post" action="{% url 'weed_close' obj.pk %}">
-    {% csrf_token %}
-    <button type="submit" class="btn-dark">إغلاق الطلب</button>
-  </form>
-</div>
-{% endif %}
-
-<!-- ══ Rejection card ══ -->
-{% if obj.status == 'rejected' and inspection and inspection.rejected_at %}
-<div class="c-card" style="border-color:#fca5a5;">
-  <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fef2f2;border-radius:8px;margin-bottom:16px;">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-    <span style="font-size:14px;font-weight:700;color:#dc2626;">تم رفض هذا الطلب</span>
-  </div>
-  <div class="meta-grid" style="margin-bottom:14px;">
-    <div><div class="meta-label">رُفض بواسطة</div><div class="meta-value">{{ inspection.rejected_by.get_full_name|default:inspection.rejected_by.username|default:"—" }}</div></div>
-    <div><div class="meta-label">تاريخ الرفض</div><div class="meta-value">{{ inspection.rejected_at|date:"d/m/Y H:i" }}</div></div>
-  </div>
-  <div style="padding:12px 16px;background:#fff5f5;border:1.5px solid #fecaca;border-radius:8px;">
-    <div style="font-size:11.5px;font-weight:700;color:#991b1b;margin-bottom:6px;">سبب الرفض</div>
-    <p style="font-size:13px;color:#7f1d1d;margin:0;line-height:1.7;">{{ inspection.rejection_reason }}</p>
-  </div>
-</div>
-{% endif %}
-
-<!-- ══ Inspector record ══ -->
-{% if inspection %}
-<div class="c-card">
-  <div class="c-card-title">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    سجل المفتش
-  </div>
-  <div class="meta-grid">
-    <div><div class="meta-label">المفتش</div><div class="meta-value">{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</div></div>
-    <div><div class="meta-label">تاريخ التعيين</div><div class="meta-value">{{ inspection.assigned_at|date:"d/m/Y H:i" }}</div></div>
-    {% if inspection.completed_at %}<div><div class="meta-label">تاريخ الإتمام</div><div class="meta-value">{{ inspection.completed_at|date:"d/m/Y H:i" }}</div></div>{% endif %}
-  </div>
-  {% if inspection.inspection_notes %}
-  <div style="padding-top:12px;border-top:1px solid var(--line);margin-top:14px;">
-    <div class="meta-label" style="margin-bottom:5px;">ملاحظات التفتيش</div>
-    <p style="font-size:13px;color:var(--ink-2);margin:0;line-height:1.7;">{{ inspection.inspection_notes }}</p>
-  </div>
-  {% endif %}
-</div>
-{% endif %}
-
-<!-- ══ Supervisor record + session review ══ -->
-{% if supervisor_task %}
-<div class="c-card">
-  <div class="c-card-title">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    سجل المراقب
-  </div>
-  <div class="meta-grid">
-    <div><div class="meta-label">المراقب</div><div class="meta-value">{{ supervisor_task.supervisor.get_full_name|default:supervisor_task.supervisor.username }}</div></div>
-    <div><div class="meta-label">تاريخ التعيين</div><div class="meta-value">{{ supervisor_task.assigned_at|date:"d/m/Y H:i" }}</div></div>
-    {% if supervisor_task.completed_at %}<div><div class="meta-label">تاريخ الإتمام</div><div class="meta-value">{{ supervisor_task.completed_at|date:"d/m/Y H:i" }}</div></div>{% endif %}
-  </div>
-
-  <!-- Session summary strip -->
-  {% if session_summary %}
-  <div class="summary-strip">
-    <div class="summary-cell">
-      <span class="sc-label">إجمالي أيام المهمة</span>
-      <span class="sc-val">{{ session_summary.total_days }}</span>
-    </div>
-    <div class="summary-cell">
-      <span class="sc-label">أيام العمل الفعلي</span>
-      <span class="sc-val" style="color:#15803d;">{{ session_summary.work_days }}</span>
-    </div>
-    <div class="summary-cell">
-      <span class="sc-label">أيام التوقف</span>
-      <span class="sc-val" style="color:#d97706;">{{ session_summary.idle_days }}</span>
-    </div>
+    {% endif %}
   </div>
   {% endif %}
 
-  <!-- Submitted sessions -->
-  {% if work_sessions %}
-  <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--line);">
-    <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:14px;">
-      التقارير المقدمة
-      <span style="font-size:11px;font-weight:600;color:var(--ink-3);margin-right:6px;">{{ work_sessions|length }} جلسة</span>
-    </div>
-    {% for s in work_sessions %}
-    <div class="session-card">
-      <div class="session-card-hd">
-        <div class="session-num">{{ forloop.counter }}</div>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:700;color:var(--ink);">{{ s.started_at|date:"d/m/Y" }}</div>
-          <div style="font-size:11.5px;color:var(--ink-3);margin-top:2px;">
-            بدأ <span dir="ltr" style="font-family:monospace;font-weight:600;">{{ s.started_at|date:"H:i" }}</span>
-            — انتهى <span dir="ltr" style="font-family:monospace;font-weight:600;">{{ s.ended_at|date:"H:i" }}</span>
-          </div>
-        </div>
-        {% if s.end_type == 'postponed' %}<span class="tag-postponed">مؤجل</span>
-        {% elif s.end_type == 'completed' %}<span class="tag-completed">مكتمل</span>{% endif %}
-      </div>
-      <div style="padding:14px 16px;">
-        <div class="meta-grid">
-          {% if s.workers_count is not None %}
-          <div><div class="meta-label">عدد العمال</div>
-            <div class="meta-value" style="font-size:20px;font-weight:800;font-family:monospace;color:var(--accent);">{{ s.workers_count }}</div>
-          </div>
-          {% endif %}
-        </div>
-
-        {% if s.vehicles.all %}
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
-          <div class="meta-label" style="margin-bottom:8px;">المركبات</div>
-          <table class="v-table">
-            <thead><tr><th>نوع المركبة</th><th>العدد</th></tr></thead>
-            <tbody>
-              {% for v in s.vehicles.all %}
-              <tr>
-                <td><strong>{{ v.get_vehicle_type_display }}</strong></td>
-                <td style="font-family:monospace;font-weight:700;">{{ v.count }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% endif %}
-
-        {% if s.notes %}
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
-          <div class="meta-label" style="margin-bottom:5px;">ملاحظات</div>
-          <p style="font-size:13px;color:var(--ink-2);margin:0;line-height:1.7;">{{ s.notes }}</p>
-        </div>
-        {% endif %}
-
-        {% if s.photos_start or s.photos_during or s.photos_end %}
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
-          {% if s.photos_start %}
-          <div class="meta-label" style="margin-bottom:6px;">صور قبل العمل ({{ s.photos_start|length }})</div>
-          <div class="photo-grid" style="margin-bottom:12px;">
-            {% for p in s.photos_start %}
-            <div class="photo-thumb"><img src="{{ p.file.url }}" alt="بداية">
-              {% if can_manage or p.uploaded_by_id == request.user.id %}
-              <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
-                <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
-              </form>{% endif %}
-            </div>
-            {% endfor %}
-          </div>
-          {% endif %}
-          {% if s.photos_during %}
-          <div class="meta-label" style="margin-bottom:6px;">صور أثناء العمل ({{ s.photos_during|length }})</div>
-          <div class="photo-grid" style="margin-bottom:12px;">
-            {% for p in s.photos_during %}
-            <div class="photo-thumb"><img src="{{ p.file.url }}" alt="أثناء">
-              {% if can_manage or p.uploaded_by_id == request.user.id %}
-              <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
-                <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
-              </form>{% endif %}
-            </div>
-            {% endfor %}
-          </div>
-          {% endif %}
-          {% if s.photos_end %}
-          <div class="meta-label" style="margin-bottom:6px;">صور انتهاء العمل ({{ s.photos_end|length }})</div>
-          <div class="photo-grid">
-            {% for p in s.photos_end %}
-            <div class="photo-thumb"><img src="{{ p.file.url }}" alt="نهاية">
-              {% if can_manage or p.uploaded_by_id == request.user.id %}
-              <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
-                <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
-              </form>{% endif %}
-            </div>
-            {% endfor %}
-          </div>
-          {% endif %}
-        </div>
-        {% endif %}
-
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
 </div>
-{% endif %}
-
-<!-- ══ Photos ══ -->
-{% if photos_before %}
-<div class="c-card">
-  <div class="c-card-title">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-    صور قبل العمل ({{ photos_before.count }})
-  </div>
-  <div class="photo-grid">
-    {% for p in photos_before %}
-    <div class="photo-thumb"><img src="{{ p.file.url }}" alt="قبل">
-      {% if can_manage or p.uploaded_by_id == request.user.id %}
-      <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
-        <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
-      </form>{% endif %}
-    </div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-
-{% if photos_during %}
-<div class="c-card">
-  <div class="c-card-title">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-    صور أثناء العمل ({{ photos_during.count }})
-  </div>
-  <div class="photo-grid">
-    {% for p in photos_during %}
-    <div class="photo-thumb"><img src="{{ p.file.url }}" alt="أثناء">
-      {% if can_manage or p.uploaded_by_id == request.user.id %}
-      <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
-        <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
-      </form>{% endif %}
-    </div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-
-{% if photos_after %}
-<div class="c-card">
-  <div class="c-card-title">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-    صور بعد العمل ({{ photos_after.count }})
-  </div>
-  <div class="photo-grid">
-    {% for p in photos_after %}
-    <div class="photo-thumb"><img src="{{ p.file.url }}" alt="بعد">
-      {% if can_manage or p.uploaded_by_id == request.user.id %}
-      <form method="post" action="{% url 'weed_photo_delete' obj.pk p.pk %}">{% csrf_token %}
-        <button class="photo-del" type="submit" onclick="return confirm('حذف؟')">✕</button>
-      </form>{% endif %}
-    </div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
+</section>
 
 <!-- ══ Reject Modal ══ -->
 {% if is_inspector and obj.status == 'inspector_assigned' %}
 <div class="reject-modal" id="rejectModal">
   <div class="reject-box">
-    <div style="font-size:16px;font-weight:700;color:#dc2626;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+    <div style="font-size:16px;font-weight:700;color:#8c2f2f;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
       رفض الطلب
     </div>
-    <p style="font-size:13px;color:var(--ink-3);margin-bottom:20px;">يرجى ذكر سبب الرفض بوضوح.</p>
+    <p style="font-size:13px;color:var(--pd-ink-3);margin-bottom:20px;">يرجى ذكر سبب الرفض بوضوح.</p>
     <form method="post" action="{% url 'weed_reject' obj.pk %}">
       {% csrf_token %}
       <textarea name="rejection_reason" rows="4" placeholder="سبب عدم إمكانية تنفيذ الإزالة…" required id="rejectReason"></textarea>
       <div class="rbox-actions">
-        <button type="button" class="btn-cancel-m" onclick="closeRejectModal()">إلغاء</button>
-        <button type="submit" class="btn-reject">تأكيد الرفض</button>
+        <button type="button" class="btn-action btn-action--ghost" onclick="closeRejectModal()">إلغاء</button>
+        <button type="submit" class="btn-action btn-action--outline">تأكيد الرفض</button>
       </div>
     </form>
   </div>
 </div>
 {% endif %}
+
+<!-- ══ Photo Lightbox ══ -->
+<div class="photo-lightbox" id="photoLightbox" dir="ltr">
+  <button type="button" class="photo-lightbox-close" onclick="closeWeedLightbox()">✕</button>
+  <div class="photo-lightbox-stage">
+    <button type="button" class="photo-lightbox-nav" id="lightboxPrevBtn" onclick="weedLightboxNav(-1)">‹</button>
+    <img id="photoLightboxImg" src="" alt="">
+    <button type="button" class="photo-lightbox-nav" id="lightboxNextBtn" onclick="weedLightboxNav(1)">›</button>
+  </div>
+</div>
 
 {% endblock %}
 
@@ -766,6 +777,50 @@ function closeRejectModal(){var m=document.getElementById('rejectModal');if(m)m.
 var modal=document.getElementById('rejectModal');
 if(modal){modal.addEventListener('click',function(e){if(e.target===this)closeRejectModal();});}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeRejectModal();});
+
+var weedLightboxItems = [];
+var weedLightboxIndex = 0;
+
+function openWeedLightbox(imgEl){
+  var lb  = document.getElementById('photoLightbox');
+  if(!lb) return;
+  var group = imgEl.closest('.photo-grid');
+  weedLightboxItems = group
+    ? Array.prototype.map.call(group.querySelectorAll('img'), function(im){ return im.src; })
+    : [imgEl.src];
+  weedLightboxIndex = weedLightboxItems.indexOf(imgEl.src);
+  if (weedLightboxIndex < 0) weedLightboxIndex = 0;
+  showWeedLightboxImage();
+  lb.classList.add('open');
+}
+function showWeedLightboxImage(){
+  var img = document.getElementById('photoLightboxImg');
+  if (img && weedLightboxItems.length) img.src = weedLightboxItems[weedLightboxIndex];
+  var multi = weedLightboxItems.length > 1;
+  var prevBtn = document.getElementById('lightboxPrevBtn');
+  var nextBtn = document.getElementById('lightboxNextBtn');
+  if (prevBtn) prevBtn.style.display = multi ? 'flex' : 'none';
+  if (nextBtn) nextBtn.style.display = multi ? 'flex' : 'none';
+}
+function weedLightboxNav(delta){
+  if (!weedLightboxItems.length) return;
+  weedLightboxIndex = (weedLightboxIndex + delta + weedLightboxItems.length) % weedLightboxItems.length;
+  showWeedLightboxImage();
+}
+function closeWeedLightbox(){
+  var lb = document.getElementById('photoLightbox');
+  if(lb) lb.classList.remove('open');
+}
+var photoLightbox=document.getElementById('photoLightbox');
+if(photoLightbox){photoLightbox.addEventListener('click',function(e){if(e.target===this)closeWeedLightbox();});}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape') closeWeedLightbox();
+  var lb = document.getElementById('photoLightbox');
+  if (lb && lb.classList.contains('open')) {
+    if (e.key==='ArrowLeft') weedLightboxNav(-1);
+    if (e.key==='ArrowRight') weedLightboxNav(1);
+  }
+});
 
 function toggleVeh(cb, selId, lblId) {
   var sel = document.getElementById(selId);
@@ -795,19 +850,26 @@ function updateFileLabel(input, lblId) {
     : 'اضغط لاختيار صور';
 }
 
+function toggleWeedLocationForm() {
+  var form = document.getElementById('wr-loc-form');
+  var btn  = document.getElementById('wr-loc-toggle-btn');
+  if (!form) return;
+  var showing = form.style.display !== 'none';
+  form.style.display = showing ? 'none' : 'block';
+  if (btn) btn.textContent = showing ? 'تغيير الموقع' : 'إلغاء';
+}
+
 function captureWeedLocation() {
   var btn    = document.getElementById('wr-loc-gps-btn');
   var status = document.getElementById('wr-loc-status');
-  var wrap   = document.getElementById('wr-loc-coords-wrap');
-  var link   = document.getElementById('wr-loc-maps-link');
   var latInp = document.getElementById('wr-loc-lat-inp');
   var lngInp = document.getElementById('wr-loc-lng-inp');
-  var submitBtn = document.getElementById('wr-loc-submit-btn');
+  var form   = document.getElementById('wr-loc-form');
   if (!btn) return;
 
   if (!navigator.geolocation) {
     status.textContent = 'المتصفح لا يدعم تحديد الموقع.';
-    status.style.color = '#991b1b';
+    status.style.color = '#8c2f2f';
     return;
   }
   btn.disabled = true;
@@ -820,17 +882,14 @@ function captureWeedLocation() {
       var lng = pos.coords.longitude.toFixed(6);
       latInp.value = lat;
       lngInp.value = lng;
-      link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
-      wrap.style.display = 'block';
-      status.textContent = '✓ تم تحديد الموقع';
-      status.style.color = '#166534';
-      btn.textContent = '↺ تحديث الموقع';
-      btn.disabled = false;
-      submitBtn.disabled = false;
+      status.textContent = '✓ تم تحديد الموقع — جارٍ الحفظ…';
+      status.style.color = '#1a5233';
+      if (typeof form.requestSubmit === 'function') { form.requestSubmit(); }
+      else { form.submit(); }
     },
     function() {
       status.textContent = 'تعذّر الحصول على الموقع — تأكد من منح صلاحية الموقع.';
-      status.style.color = '#991b1b';
+      status.style.color = '#8c2f2f';
       btn.disabled = false;
     },
     { enableHighAccuracy: true, timeout: 12000 }

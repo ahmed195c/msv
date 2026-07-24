@@ -336,6 +336,34 @@ class WasteDisposalRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # ── Timeline tracking (who did what, and when) ──
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='waste_disposal_requests_created',
+    )
+    reference_recorded_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='waste_disposal_references_recorded',
+    )
+    reference_recorded_at = models.DateTimeField(null=True, blank=True)
+    payment_confirmed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='waste_disposal_payments_confirmed',
+    )
+    payment_confirmed_at = models.DateTimeField(null=True, blank=True)
+    received_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='waste_disposal_requests_received',
+    )
+    received_at = models.DateTimeField(null=True, blank=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    cancelled_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='waste_disposal_requests_cancelled',
+    )
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    cancellation_reason = models.TextField(null=True, blank=True)
+
     def __str__(self):
         return f"{self.permit.company.name} - Disposal Request #{self.id}"
 

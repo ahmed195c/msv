@@ -1,6 +1,7 @@
 import calendar
 import datetime
 import os
+import re
 
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -388,6 +389,97 @@ def waste_permit_detail(request, id):
     )
 
 
+def _company_log_for_disposal_request(company, action, req_id):
+    """Best-effort lookup of the actor/timestamp for an older disposal
+    request from the shared company activity log, for records that predate
+    the dedicated tracking fields added directly to WasteDisposalRequest.
+    The log's notes are free text but reliably embed 'رقم <id>' (not
+    followed by another digit, so id=6 doesn't match a logged id=60/61...).
+    """
+    pattern = re.compile(rf'رقم\s+{req_id}(?!\d)')
+    for log in company.change_logs.filter(action=action).order_by('created_at'):
+        if pattern.search(log.notes or ''):
+            return log
+    return None
+
+
+def _build_disposal_timeline(disposal_request):
+    """Chronological lifecycle timeline for a waste disposal request, built
+    from its own tracking fields (who did what, and when) — falling back to
+    the company activity log for older requests created before those fields
+    existed, so history isn't lost for existing data."""
+    events = []
+    company = disposal_request.permit.company
+    req_id = disposal_request.id
+
+    created_by = disposal_request.created_by
+    if not created_by:
+        log = _company_log_for_disposal_request(company, 'waste_request_created', req_id)
+        if log:
+            created_by = log.changed_by
+    if disposal_request.created_at:
+        events.append({
+            'action': 'created', 'label': 'إنشاء الطلب',
+            'actor': created_by, 'timestamp': disposal_request.created_at, 'note': '',
+        })
+
+    ref_by, ref_at = disposal_request.reference_recorded_by, disposal_request.reference_recorded_at
+    if not ref_at:
+        log = _company_log_for_disposal_request(company, 'waste_request_payment_reference', req_id)
+        if log:
+            ref_by, ref_at = log.changed_by, log.created_at
+    if ref_at:
+        events.append({
+            'action': 'reference', 'label': 'تسجيل رقم أمر الدفع',
+            'actor': ref_by, 'timestamp': ref_at, 'note': disposal_request.disposal_reference or '',
+        })
+
+    paid_by, paid_at = disposal_request.payment_confirmed_by, disposal_request.payment_confirmed_at
+    if not paid_at:
+        log = _company_log_for_disposal_request(company, 'waste_request_paid', req_id)
+        if log:
+            paid_by, paid_at = log.changed_by, log.created_at
+    if paid_at:
+        events.append({
+            'action': 'paid', 'label': 'تأكيد الدفع',
+            'actor': paid_by, 'timestamp': paid_at, 'note': '',
+        })
+
+    if disposal_request.received_at:
+        events.append({
+            'action': 'received', 'label': 'استلام المفتش للطلب',
+            'actor': disposal_request.received_by, 'timestamp': disposal_request.received_at, 'note': '',
+        })
+
+    decided_at = disposal_request.decided_at
+    if not decided_at:
+        log = _company_log_for_disposal_request(company, 'waste_request_inspected', req_id)
+        if log:
+            decided_at = log.created_at
+    if decided_at:
+        if disposal_request.status == 'completed':
+            label, action = 'اعتماد الطلب بعد التفتيش', 'approved'
+        elif disposal_request.status == 'rejected':
+            label, action = 'رفض الطلب بعد التفتيش', 'rejected'
+        else:
+            label, action = 'تسجيل نتيجة التفتيش', 'decided'
+        events.append({
+            'action': action, 'label': label,
+            'actor': disposal_request.inspected_by, 'timestamp': decided_at,
+            'note': disposal_request.inspection_notes or '',
+        })
+
+    if disposal_request.cancelled_at:
+        events.append({
+            'action': 'cancelled', 'label': 'إغلاق الطلب إدارياً',
+            'actor': disposal_request.cancelled_by, 'timestamp': disposal_request.cancelled_at,
+            'note': disposal_request.cancellation_reason or '',
+        })
+
+    events.sort(key=lambda e: e['timestamp'])
+    return events
+
+
 @login_required
 def waste_disposal_request_detail(request, permit_id, request_id=None):
     permit = get_object_or_404(
@@ -449,6 +541,7 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                         waste_classification=waste_classification,
                         waste_type=waste_type,
                         material_state=material_state,
+                        created_by=request.user,
                     )
                     for doc in documents:
                         WasteDisposalRequestDocument.objects.create(
@@ -537,7 +630,11 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 review_errors.append('يرجى إدخال رقم أمر دفع طلب التخلص.')
             if not review_errors:
                 disposal_request.disposal_reference = reference
-                disposal_request.save(update_fields=['disposal_reference'])
+                disposal_request.reference_recorded_by = request.user
+                disposal_request.reference_recorded_at = timezone.now()
+                disposal_request.save(update_fields=[
+                    'disposal_reference', 'reference_recorded_by', 'reference_recorded_at',
+                ])
                 _log_pirmet_change(
                     permit,
                     'details_update',
@@ -605,8 +702,13 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 disposal_request.disposal_payment_receipt = receipt
                 disposal_request.status = 'inspection_pending'
                 disposal_request.inspected_by = None
+                disposal_request.payment_confirmed_by = request.user
+                disposal_request.payment_confirmed_at = timezone.now()
                 disposal_request.save(
-                    update_fields=['disposal_payment_receipt', 'status', 'inspected_by', 'updated_at']
+                    update_fields=[
+                        'disposal_payment_receipt', 'status', 'inspected_by', 'updated_at',
+                        'payment_confirmed_by', 'payment_confirmed_at',
+                    ]
                 )
                 permit_update_fields = []
                 if permit.status != 'inspection_pending':
@@ -653,7 +755,9 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
             if not review_errors:
                 if not disposal_request.inspected_by_id:
                     disposal_request.inspected_by = request.user
-                    disposal_request.save(update_fields=['inspected_by', 'updated_at'])
+                    disposal_request.received_by = request.user
+                    disposal_request.received_at = timezone.now()
+                    disposal_request.save(update_fields=['inspected_by', 'updated_at', 'received_by', 'received_at'])
                     InspectorReview.objects.update_or_create(
                         pirmet=permit,
                         defaults={
@@ -693,7 +797,9 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
 
             if not review_errors:
                 disposal_request.inspected_by = inspector_user
-                disposal_request.save(update_fields=['inspected_by', 'updated_at'])
+                disposal_request.received_by = inspector_user
+                disposal_request.received_at = timezone.now()
+                disposal_request.save(update_fields=['inspected_by', 'updated_at', 'received_by', 'received_at'])
                 InspectorReview.objects.update_or_create(
                     pirmet=permit,
                     defaults={
@@ -756,7 +862,10 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                     permit.unapprovedReason = notes or 'Waste disposal inspection rejected.'
                 disposal_request.inspection_notes = notes or None
                 disposal_request.inspected_by = request.user
-                disposal_request.save(update_fields=['status', 'inspection_notes', 'inspected_by', 'updated_at'])
+                disposal_request.decided_at = timezone.now()
+                disposal_request.save(update_fields=[
+                    'status', 'inspection_notes', 'inspected_by', 'updated_at', 'decided_at',
+                ])
                 permit_update_fields = ['status']
                 if decision == 'approved' and permit.unapprovedReason is None:
                     pass
@@ -818,7 +927,12 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                     review_errors.append('يرجى كتابة سبب الإغلاق.')
                 else:
                     disposal_request.status = 'cancelled_admin'
-                    disposal_request.save(update_fields=['status', 'updated_at'])
+                    disposal_request.cancelled_by = request.user
+                    disposal_request.cancelled_at = timezone.now()
+                    disposal_request.cancellation_reason = cancel_reason
+                    disposal_request.save(update_fields=[
+                        'status', 'updated_at', 'cancelled_by', 'cancelled_at', 'cancellation_reason',
+                    ])
                     _log_pirmet_change(
                         permit,
                         'status_change',
@@ -851,6 +965,7 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                 _can_admin(request.user)
                 and disposal_request.status not in _final_statuses
             ),
+            'timeline': _build_disposal_timeline(disposal_request),
         },
     )
 

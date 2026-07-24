@@ -731,6 +731,71 @@
   </div>
   {% endif %}
 
+  <!-- الجدول الزمني للطلب -->
+  {% if timeline %}
+  <div class="permit-section--doc no-print">
+    <div class="doc-band"><span class="doc-band-title">الجدول الزمني للطلب</span></div>
+    <div class="doc-form-body">
+      <div class="timeline">
+        {% for ev in timeline %}
+        <div class="tl-item">
+          <div class="tl-date">{{ ev.timestamp|date:"d/m/Y" }}</div>
+          <div class="tl-track">
+            <span class="tl-dot
+              {% if ev.action == 'approved' %}tl-dot--green
+              {% elif ev.action == 'rejected' or ev.action == 'cancelled' %}tl-dot--red
+              {% elif ev.action == 'created' %}tl-dot--gray
+              {% endif %}"></span>
+          </div>
+          <div class="tl-card">
+            <div class="tl-title">{{ ev.label }}</div>
+            <div class="tl-meta">
+              {{ ev.timestamp|date:"H:i" }}
+              {% if ev.actor %}· بواسطة {{ ev.actor.get_full_name|default:ev.actor.username }}{% else %}· بواسطة النظام{% endif %}
+            </div>
+            {% if ev.note %}<div class="tl-notes">{{ ev.note }}</div>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <style>
+  .timeline { --tgap: 12px; display: grid; gap: var(--tgap); }
+  .tl-item  { display: grid; grid-template-columns: 72px 20px minmax(0,1fr); gap: 14px; align-items: stretch; }
+  .tl-date  { font-size: 11.5px; color: var(--pd-ink-3); font-weight: 600; text-align: left; padding-top: 14px; }
+  .tl-track { position: relative; display: flex; align-items: center; justify-content: center; }
+  .tl-track::before {
+    content: ""; position: absolute;
+    top: calc(-1 * var(--tgap) / 2); bottom: calc(-1 * var(--tgap) / 2);
+    width: 2px;
+    background: repeating-linear-gradient(to bottom, var(--pd-line) 0, var(--pd-line) 5px, transparent 5px, transparent 10px);
+  }
+  .tl-item:first-child .tl-track::before { top: 0; }
+  .tl-item:last-child  .tl-track::before { bottom: 0; }
+  .tl-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--pd-accent); box-shadow: 0 0 0 3px var(--pd-surface-2);
+    position: relative; z-index: 1;
+  }
+  .tl-dot--green { background:#1f6b3e; box-shadow:0 0 0 3px #d4f5e2; }
+  .tl-dot--red   { background:#9c3a12; box-shadow:0 0 0 3px #fdf0ea; }
+  .tl-dot--gray  { background:#8a99a8; box-shadow:0 0 0 3px var(--pd-surface-2); }
+  .tl-card {
+    background: #fff; border: 1.5px solid var(--pd-line);
+    border-radius: 8px; padding: 12px 14px;
+  }
+  .tl-title { font-weight: 700; font-size: 13.5px; color: var(--pd-ink); margin-bottom: 3px; }
+  .tl-meta  { font-size: 12px; color: var(--pd-ink-3); }
+  .tl-notes { margin-top: 6px; font-size: 13px; color: var(--pd-ink-2); }
+  @media(max-width:640px){
+    .tl-item  { grid-template-columns: 1fr; gap: 6px; }
+    .tl-date  { padding-top: 0; text-align: right; }
+    .tl-track { display: none; }
+  }
+  </style>
+  {% endif %}
+
   {% endif %}
 </div>
 </section>
