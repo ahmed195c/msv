@@ -2086,7 +2086,7 @@ def field_work_excel_review(request):
                 excel_status_note = rows[i].get('excel_status_note', ''),
                 month_sheet     = rows[i].get('month_sheet', ''),
                 source            = 'excel',
-                complaint_source  = 'hotline',
+                complaint_source  = 'electronic',
                 created_by        = request.user,
             ))
         FieldWorkOrder.objects.bulk_create(to_create, batch_size=500)
