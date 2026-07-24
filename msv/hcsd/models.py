@@ -944,6 +944,10 @@ class FieldWorkOrder(models.Model):
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='field_work_orders_created', verbose_name='أنشئ بواسطة',
     )
+    recurring_template = models.ForeignKey(
+        'FieldWorkRecurringOrder', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='generated_orders', verbose_name='الطلب الدوري المصدر',
+    )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='تاريخ الإنشاء')
     updated_at = models.DateTimeField(auto_now=True)
 

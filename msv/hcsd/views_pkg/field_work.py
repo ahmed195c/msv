@@ -526,7 +526,12 @@ def field_work_recurring_list(request):
             )
             return redirect('field_work_recurring_list')
 
-    templates = FieldWorkRecurringOrder.objects.select_related('created_by').all()
+    templates = (
+        FieldWorkRecurringOrder.objects
+        .select_related('created_by')
+        .prefetch_related('generated_orders')
+        .all()
+    )
     return render(request, 'hcsd/field_work_recurring_list.html', {
         'errors':            errors,
         'post':              request.POST,
@@ -534,6 +539,70 @@ def field_work_recurring_list(request):
         'weekday_choices':   FieldWorkRecurringOrder.WEEKDAY_CHOICES,
         'complaint_sources': FieldWorkOrder.COMPLAINT_SOURCE_CHOICES,
         'can_manage':        True,
+    })
+
+
+@login_required
+def field_work_recurring_edit(request, pk):
+    if not (_can_admin(request.user) or _can_data_entry(request.user)):
+        return redirect('field_work_list')
+
+    tmpl = get_object_or_404(FieldWorkRecurringOrder, pk=pk)
+    errors = []
+
+    if request.method == 'POST':
+        get = lambda k: (request.POST.get(k) or '').strip()
+
+        site_name        = get('site_name')
+        customer_name    = get('customer_name')
+        mobile           = get('mobile')
+        area             = get('area')
+        street_number    = get('street_number')
+        house_number     = get('house_number')
+        location         = get('location')
+        pest_types       = get('pest_types')
+        complaint_source = get('complaint_source')
+        notes            = get('notes')
+        weekday_raw      = get('weekday')
+
+        _valid_sources  = {c for c, _ in FieldWorkOrder.COMPLAINT_SOURCE_CHOICES}
+        _valid_weekdays = {c for c, _ in FieldWorkRecurringOrder.WEEKDAY_CHOICES}
+
+        if not customer_name and not location:
+            errors.append('يرجى إدخال اسم المتعامل أو الموقع على الأقل.')
+        if complaint_source and complaint_source not in _valid_sources:
+            complaint_source = ''
+        try:
+            weekday = int(weekday_raw)
+        except (TypeError, ValueError):
+            weekday = None
+        if weekday not in _valid_weekdays:
+            errors.append('يرجى اختيار يوم تكرار صحيح.')
+
+        if not errors:
+            tmpl.site_name        = site_name
+            tmpl.customer_name    = customer_name
+            tmpl.mobile           = mobile
+            tmpl.area             = area
+            tmpl.street_number    = street_number
+            tmpl.house_number     = house_number
+            tmpl.location         = location
+            tmpl.pest_types       = pest_types
+            tmpl.complaint_source = complaint_source
+            tmpl.notes            = notes
+            tmpl.weekday          = weekday
+            tmpl.save(update_fields=[
+                'site_name', 'customer_name', 'mobile', 'area', 'street_number',
+                'house_number', 'location', 'pest_types', 'complaint_source',
+                'notes', 'weekday',
+            ])
+            return redirect('field_work_recurring_list')
+
+    return render(request, 'hcsd/field_work_recurring_edit.html', {
+        'errors':            errors,
+        'tmpl':              tmpl,
+        'weekday_choices':   FieldWorkRecurringOrder.WEEKDAY_CHOICES,
+        'complaint_sources': FieldWorkOrder.COMPLAINT_SOURCE_CHOICES,
     })
 
 

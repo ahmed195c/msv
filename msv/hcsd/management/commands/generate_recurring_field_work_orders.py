@@ -37,6 +37,7 @@ class Command(BaseCommand):
                 status='new',
                 source='recurring',
                 created_by=tmpl.created_by,
+                recurring_template=tmpl,
             )
             tmpl.last_generated_on = today
             tmpl.save(update_fields=['last_generated_on'])

@@ -123,6 +123,7 @@ urlpatterns = [
     path('field-work/', views.field_work_list, name='field_work_list'),
     path('field-work/create/', views.field_work_create, name='field_work_create'),
     path('field-work/recurring/', views.field_work_recurring_list, name='field_work_recurring_list'),
+    path('field-work/recurring/<int:pk>/edit/', views.field_work_recurring_edit, name='field_work_recurring_edit'),
     path('field-work/recurring/<int:pk>/toggle/', views.field_work_recurring_toggle, name='field_work_recurring_toggle'),
     path('field-work/recurring/<int:pk>/delete/', views.field_work_recurring_delete, name='field_work_recurring_delete'),
     path('field-work/supervisors/', views.field_work_supervisors, name='field_work_supervisors'),
