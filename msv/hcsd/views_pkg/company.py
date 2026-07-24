@@ -634,7 +634,9 @@ def company_detail(request, id):
     company_blocked = _company_has_active_extension(company)
     latest_pest_control_permit = latest_permits.get('pest_control')
     permit_suspended = bool(
-        latest_pest_control_permit and latest_pest_control_permit.status == 'cancelled_admin'
+        latest_pest_control_permit
+        and latest_pest_control_permit.status == 'cancelled_admin'
+        and not active_permits.get('pest_control')
     )
     # Engineer leave info for company's primary engineer
     engineer_active_leave = None
