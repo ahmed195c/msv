@@ -52,6 +52,12 @@ td{padding:10px 12px;vertical-align:middle;text-align:start;}
 .row-due-postponed:hover td { background:#ffedd5 !important; }
 .badge-due { display:inline-flex;align-items:center;background:#fee2e2;color:#ef4444;font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;margin-top:3px; }
 
+/* Recurring orders — stand out for easy assignment/distribution */
+.row-recurring td { background:#f5f3ff !important; border-right:3px solid #7c3aed; }
+.row-recurring:hover td { background:#ede9fe !important; }
+.tag-recurring{display:inline-flex;align-items:center;gap:4px;background:#7c3aed;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-inline-start:6px;white-space:nowrap;}
+.fw-card.is-recurring{border-color:#7c3aed;border-width:2px;background:#faf9ff;}
+
 .src-manual{background:#f0fdf4;color:#15803d;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700;}
 
 /* Pagination */
@@ -366,7 +372,7 @@ tr.row-selected{background:#eff6ff !important;}
       </thead>
       <tbody>
         {% for order in page_obj %}
-        <tr class="order-row{% if order.is_due_postponed %} row-due-postponed{% endif %}" data-id="{{ order.pk }}" data-url="{% url 'field_work_detail' order.pk %}" style="cursor:pointer;">
+        <tr class="order-row{% if order.is_due_postponed %} row-due-postponed{% endif %}{% if order.source == 'recurring' %} row-recurring{% endif %}" data-id="{{ order.pk }}" data-url="{% url 'field_work_detail' order.pk %}" style="cursor:pointer;">
           {% if can_assign %}<td class="chk-col"><input type="checkbox" class="fw-chk row-chk" name="order_ids" value="{{ order.pk }}"></td>{% endif %}
           <td style="text-align:center;font-size:11px;color:var(--ink-4);font-weight:600;width:36px;">{{ page_start|add:forloop.counter0 }}</td>
           <td style="font-family:var(--mono);font-weight:700;">
@@ -378,6 +384,12 @@ tr.row-selected{background:#eff6ff !important;}
             {% elif order.site_name %}
               {{ order.site_name }}
             {% else %}—{% endif %}
+            {% if order.source == 'recurring' %}
+            <span class="tag-recurring" title="طلب دوري متكرر — يحتاج تعيين مراقب">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              <span class="t-ar">دوري</span><span class="t-en">Recurring</span>
+            </span>
+            {% endif %}
           </td>
           <td>
             {% if order.area %}{{ order.area }}
@@ -459,9 +471,17 @@ tr.row-selected{background:#eff6ff !important;}
   <!-- Mobile cards -->
   <div class="fw-cards">
     {% for order in page_obj %}
-    <a href="{% url 'field_work_detail' order.pk %}" class="fw-card">
+    <a href="{% url 'field_work_detail' order.pk %}" class="fw-card{% if order.source == 'recurring' %} is-recurring{% endif %}">
       <div class="fw-card-top">
-        <span class="fw-card-num">{% if order.order_number %}{{ order.order_number }}{% else %}#{{ order.pk }}{% endif %}</span>
+        <span class="fw-card-num">
+          {% if order.order_number %}{{ order.order_number }}{% else %}#{{ order.pk }}{% endif %}
+          {% if order.source == 'recurring' %}
+          <span class="tag-recurring">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            <span class="t-ar">دوري</span><span class="t-en">Recurring</span>
+          </span>
+          {% endif %}
+        </span>
         <span class="badge
           {% if order.status == 'completed' %}s-completed
           {% elif order.status == 'supervisor_assigned' %}s-assigned
