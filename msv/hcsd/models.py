@@ -874,8 +874,9 @@ class FieldWorkOrder(models.Model):
     ]
 
     SOURCE_CHOICES = [
-        ('manual', 'يدوي'),
-        ('excel',  'مستورد من Excel'),
+        ('manual',    'يدوي'),
+        ('excel',     'مستورد من Excel'),
+        ('recurring', 'طلب دوري متكرر'),
     ]
 
     # ── Original generic fields ───────────────────────────────────────────
@@ -1124,6 +1125,51 @@ class FieldWorkOrderLog(models.Model):
 
     def __str__(self):
         return f"{self.get_action_display()} — {self.order_id}"
+
+
+class FieldWorkRecurringOrder(models.Model):
+    WEEKDAY_CHOICES = [
+        (0, 'الاثنين'),
+        (1, 'الثلاثاء'),
+        (2, 'الأربعاء'),
+        (3, 'الخميس'),
+        (4, 'الجمعة'),
+        (5, 'السبت'),
+        (6, 'الأحد'),
+    ]
+
+    site_name        = models.CharField(max_length=200, blank=True, verbose_name='اسم الموقع')
+    customer_name    = models.CharField(max_length=200, blank=True, verbose_name='اسم المتعامل')
+    mobile           = models.CharField(max_length=30, blank=True, verbose_name='الموبايل')
+    location         = models.CharField(max_length=300, blank=True, verbose_name='العنوان')
+    area             = models.CharField(max_length=200, blank=True, verbose_name='المنطقة')
+    street_number    = models.CharField(max_length=50, blank=True, verbose_name='رقم الشارع')
+    house_number     = models.CharField(max_length=50, blank=True, verbose_name='رقم المنزل')
+    pest_types       = models.CharField(max_length=300, blank=True, verbose_name='نوع الحشرات')
+    complaint_source = models.CharField(
+        max_length=20, choices=FieldWorkOrder.COMPLAINT_SOURCE_CHOICES, blank=True, default='',
+        verbose_name='مصدر الشكوى',
+    )
+    notes = models.TextField(blank=True, verbose_name='ملاحظات')
+
+    weekday   = models.PositiveSmallIntegerField(choices=WEEKDAY_CHOICES, verbose_name='يوم التكرار')
+    is_active = models.BooleanField(default=True, verbose_name='مفعّل')
+
+    last_generated_on = models.DateField(null=True, blank=True, verbose_name='آخر إنشاء تلقائي')
+
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='field_work_recurring_orders_created', verbose_name='أنشئ بواسطة',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاريخ الإنشاء')
+
+    class Meta:
+        ordering = ['weekday', '-created_at']
+        verbose_name = 'طلب دوري متكرر'
+        verbose_name_plural = 'الطلبات الدورية المتكررة'
+
+    def __str__(self):
+        return f"{self.customer_name or self.site_name or '—'} — {self.get_weekday_display()}"
 
 
 class FieldWorkSupervisorProfile(models.Model):

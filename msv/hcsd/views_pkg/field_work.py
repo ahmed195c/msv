@@ -15,8 +15,12 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
-from ..models import FieldWorkOrder, FieldWorkOrderLog, FieldWorkPhoto, FieldWorkSupervisorArea, FieldWorkSupervisorProfile
+from ..models import (
+    FieldWorkOrder, FieldWorkOrderLog, FieldWorkPhoto, FieldWorkSupervisorArea,
+    FieldWorkSupervisorProfile, FieldWorkRecurringOrder,
+)
 from .common import _can_admin, _can_data_entry, _can_fw_supervise, _fw_supervisor_users_qs
 
 logger = logging.getLogger(__name__)
@@ -463,6 +467,95 @@ def field_work_create(request):
         'status_choices':     FieldWorkOrder.STATUS_CHOICES,
         'complaint_sources':  FieldWorkOrder.COMPLAINT_SOURCE_CHOICES,
     })
+
+
+# ---------------------------------------------------------------------------
+# Recurring orders
+# ---------------------------------------------------------------------------
+
+@login_required
+def field_work_recurring_list(request):
+    if not (_can_admin(request.user) or _can_data_entry(request.user)):
+        return redirect('field_work_list')
+
+    errors = []
+
+    if request.method == 'POST':
+        get = lambda k: (request.POST.get(k) or '').strip()
+
+        site_name        = get('site_name')
+        customer_name    = get('customer_name')
+        mobile           = get('mobile')
+        area             = get('area')
+        street_number    = get('street_number')
+        house_number     = get('house_number')
+        location         = get('location')
+        pest_types       = get('pest_types')
+        complaint_source = get('complaint_source')
+        notes            = get('notes')
+        weekday_raw      = get('weekday')
+
+        _valid_sources  = {c for c, _ in FieldWorkOrder.COMPLAINT_SOURCE_CHOICES}
+        _valid_weekdays = {c for c, _ in FieldWorkRecurringOrder.WEEKDAY_CHOICES}
+
+        if not customer_name and not location:
+            errors.append('يرجى إدخال اسم المتعامل أو الموقع على الأقل.')
+        if complaint_source and complaint_source not in _valid_sources:
+            complaint_source = ''
+        try:
+            weekday = int(weekday_raw)
+        except (TypeError, ValueError):
+            weekday = None
+        if weekday not in _valid_weekdays:
+            errors.append('يرجى اختيار يوم تكرار صحيح.')
+
+        if not errors:
+            FieldWorkRecurringOrder.objects.create(
+                site_name=site_name,
+                customer_name=customer_name,
+                mobile=mobile,
+                area=area,
+                street_number=street_number,
+                house_number=house_number,
+                location=location,
+                pest_types=pest_types,
+                complaint_source=complaint_source,
+                notes=notes,
+                weekday=weekday,
+                created_by=request.user,
+            )
+            return redirect('field_work_recurring_list')
+
+    templates = FieldWorkRecurringOrder.objects.select_related('created_by').all()
+    return render(request, 'hcsd/field_work_recurring_list.html', {
+        'errors':            errors,
+        'post':              request.POST,
+        'templates':         templates,
+        'weekday_choices':   FieldWorkRecurringOrder.WEEKDAY_CHOICES,
+        'complaint_sources': FieldWorkOrder.COMPLAINT_SOURCE_CHOICES,
+        'can_manage':        True,
+    })
+
+
+@login_required
+@require_POST
+def field_work_recurring_toggle(request, pk):
+    if not (_can_admin(request.user) or _can_data_entry(request.user)):
+        return redirect('field_work_list')
+    tmpl = get_object_or_404(FieldWorkRecurringOrder, pk=pk)
+    tmpl.is_active = not tmpl.is_active
+    tmpl.save(update_fields=['is_active'])
+    return redirect('field_work_recurring_list')
+
+
+@login_required
+@require_POST
+def field_work_recurring_delete(request, pk):
+    if not _can_admin(request.user):
+        return redirect('field_work_list')
+    tmpl = get_object_or_404(FieldWorkRecurringOrder, pk=pk)
+    tmpl.delete()
+    return redirect('field_work_recurring_list')
 
 
 # ---------------------------------------------------------------------------
