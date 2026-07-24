@@ -42,7 +42,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
 .tmpl-status-link{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);text-decoration:none;}
 .tmpl-status-link:hover{color:var(--accent);}
 .tmpl-status-count{color:var(--ink-4);}
-.tmpl-status-empty{color:var(--ink-4);font-style:italic;}
 
 .badge{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;}
 .s-pending    {background:#fff8e0;color:#7a5500;}
@@ -120,9 +119,9 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
           </form>
         </div>
       </div>
+      {% with latest=t.generated_orders.all|first %}
+      {% if latest %}
       <div class="tmpl-status-row">
-        {% with latest=t.generated_orders.all|first %}
-        {% if latest %}
           <a href="{% url 'field_work_detail' latest.pk %}" class="tmpl-status-link">
             <span class="t-ar">آخر طلب مُنشأ:</span><span class="t-en">Last generated:</span>
             {{ latest.created_at|date:"d/m/Y" }} —
@@ -142,14 +141,9 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
             </span>
           </a>
           <span class="tmpl-status-count">({{ t.generated_orders.all|length }} <span class="t-ar">طلب تم إنشاؤه</span><span class="t-en">generated</span>)</span>
-        {% else %}
-          <span class="tmpl-status-empty">
-            <span class="t-ar">لم يُنشأ أي طلب بعد — سيُنشأ أول طلب يوم {{ t.get_weekday_display }} القادم.</span>
-            <span class="t-en">No order generated yet — the first will be created next {{ t.get_weekday_display }}.</span>
-          </span>
-        {% endif %}
-        {% endwith %}
       </div>
+      {% endif %}
+      {% endwith %}
     </div>
     {% empty %}
     <div class="empty-hint">
