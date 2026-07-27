@@ -1175,6 +1175,31 @@ class FieldWorkRecurringOrder(models.Model):
     def __str__(self):
         return f"{self.customer_name or self.site_name or '—'} — {self.get_weekday_display()}"
 
+    def generate_order(self, on_date=None):
+        """Create this template's field-work order for `on_date` (default: today) and mark it generated."""
+        from django.utils import timezone
+        on_date = on_date or timezone.localdate()
+        order = FieldWorkOrder.objects.create(
+            site_name=self.site_name,
+            customer_name=self.customer_name,
+            mobile=self.mobile,
+            area=self.area,
+            street_number=self.street_number,
+            house_number=self.house_number,
+            location=self.location,
+            pest_types=self.pest_types,
+            complaint_source=self.complaint_source,
+            notes=self.notes,
+            request_date=on_date,
+            status='new',
+            source='recurring',
+            created_by=self.created_by,
+            recurring_template=self,
+        )
+        self.last_generated_on = on_date
+        self.save(update_fields=['last_generated_on'])
+        return order
+
 
 class FieldWorkSupervisorProfile(models.Model):
     user         = models.OneToOneField(

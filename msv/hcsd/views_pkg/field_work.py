@@ -69,9 +69,22 @@ def _fw_build_timeline(order):
             'actor': order.created_by, 'timestamp': order.created_at, 'note': '',
         })
     if order.assigned_at and order.assigned_supervisor:
+        # The order snapshot only tracks *who was assigned*, not who performed the
+        # assignment — that actor lives on the matching log entry (if one exists;
+        # orders predating the audit trail won't have one).
+        assign_logs = [log for log in order.logs.all() if log.action in ('assigned', 'reassigned')]
+        assign_actor = max(assign_logs, key=lambda l: l.timestamp).actor if assign_logs else None
+        sup_number = ''
+        try:
+            sup_number = order.assigned_supervisor.fw_supervisor_profile.admin_number
+        except FieldWorkSupervisorProfile.DoesNotExist:
+            pass
+        sup_note = _sup_name(order.assigned_supervisor)
+        if sup_number:
+            sup_note = f'{sup_note} — رقم {sup_number}'
         events.append({
             'action': 'assigned', 'label': 'تعيين مراقب', 'label_en': 'Supervisor Assigned',
-            'actor': order.assigned_supervisor, 'timestamp': order.assigned_at, 'note': '',
+            'actor': assign_actor, 'timestamp': order.assigned_at, 'note': sup_note,
         })
     if order.received_at and order.received_by:
         events.append({
@@ -510,7 +523,7 @@ def field_work_recurring_list(request):
             errors.append('يرجى اختيار يوم تكرار صحيح.')
 
         if not errors:
-            FieldWorkRecurringOrder.objects.create(
+            tmpl = FieldWorkRecurringOrder.objects.create(
                 site_name=site_name,
                 customer_name=customer_name,
                 mobile=mobile,
@@ -524,6 +537,10 @@ def field_work_recurring_list(request):
                 weekday=weekday,
                 created_by=request.user,
             )
+            # If today is the chosen weekday, don't make the user wait a full
+            # week for the daily cron — generate today's order right away.
+            if weekday == timezone.localdate().weekday():
+                tmpl.generate_order()
             return redirect('field_work_recurring_list')
 
     templates = (
@@ -635,7 +652,8 @@ def field_work_recurring_delete(request, pk):
 def field_work_detail(request, pk):
     order = get_object_or_404(
         FieldWorkOrder.objects.select_related(
-            'created_by', 'assigned_supervisor', 'received_by',
+            'created_by', 'assigned_supervisor', 'assigned_supervisor__fw_supervisor_profile',
+            'received_by',
             'report_submitted_by', 'report_submitted_by__fw_supervisor_profile',
             'location_saved_by',
         ).prefetch_related('photos', 'logs__actor'), pk=pk
@@ -1189,6 +1207,13 @@ def field_work_report_print(request, pk):
         if order.report_submitted_at else None
     )
     photos = list(order.photos.order_by('uploaded_at'))
+    # Grouped into rows of 2 so the print template can break cleanly between
+    # rows across pages instead of relying on a CSS grid, which print engines
+    # paginate unreliably.
+    photo_rows = [
+        list(enumerate(photos[i:i + 2], start=i + 1))
+        for i in range(0, len(photos), 2)
+    ]
     is_rescheduled   = bool(order.postponed_until)
     is_completed     = bool(order.report_submitted_at)
     is_force_closed  = order.status.startswith('closed_') and is_completed
@@ -1202,6 +1227,7 @@ def field_work_report_print(request, pk):
         'time_in_dt': time_in_dt,
         'close_date': close_date,
         'photos': photos,
+        'photo_rows': photo_rows,
         'is_rescheduled': is_rescheduled,
         'is_completed': is_completed,
         'is_force_closed': is_force_closed,

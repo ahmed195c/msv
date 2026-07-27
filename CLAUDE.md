@@ -5,7 +5,7 @@ Django web application for Sharjah Municipality (HCSD) — manages company permi
 
 - **Stack**: Django 4.x, Python 3.12, SQLite/PostgreSQL, HTML/CSS templates (no JS framework)
 - **Main app**: `msv/hcsd/`
-- **Server**: Ubuntu, gunicorn + nginx, SSH `ahmed@192.168.50.74`
+- **Server**: Ubuntu, gunicorn + nginx, SSH `ahmed@192.168.1.74`
 
 ---
 
@@ -63,7 +63,7 @@ msv/
 ---
 
 ## Deployment
-- Deploy: `ssh ahmed@192.168.50.74`, then `cd /home/ahmed/msv && git pull`
+- Deploy: `ssh ahmed@192.168.1.74`, then `cd /home/ahmed/msv && git pull`
 - Restart server: `sudo systemctl restart msv-gunicorn`
 - If git conflicts on server: `git rebase --abort && git reset --hard origin/main`
 - Gunicorn timeout: 120s (configured for large file uploads)

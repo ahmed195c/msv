@@ -152,74 +152,6 @@ select.form-control{cursor:pointer;}
   <div class="alert alert-success">{{ success }}</div>
   {% endif %}
 
-  {% if timeline %}
-  <div class="card">
-    <div class="card-header">
-      <h2><span class="t-ar">الجدول الزمني للطلب</span><span class="t-en">Order Timeline</span></h2>
-    </div>
-    <div class="card-body">
-      <div class="timeline">
-        {% for ev in timeline %}
-        <div class="tl-item">
-          <div class="tl-date">{{ ev.timestamp|date:"d/m/Y" }}</div>
-          <div class="tl-track">
-            <span class="tl-dot
-              {% if ev.action == 'inspected' %}tl-dot--green
-              {% elif ev.action == 'closed' %}tl-dot--red
-              {% elif ev.action == 'postponed' %}tl-dot--orange
-              {% elif ev.action == 'created' or ev.action == 'status_changed' or ev.action == 'unassigned' %}tl-dot--gray
-              {% endif %}"></span>
-          </div>
-          <div class="tl-card">
-            <div class="tl-title"><span class="t-ar">{{ ev.label }}</span><span class="t-en">{{ ev.label_en }}</span></div>
-            <div class="tl-meta">
-              {{ ev.timestamp|date:"H:i" }}
-              {% if ev.actor %}· بواسطة {{ ev.actor.get_full_name|default:ev.actor.username }}{% else %}· بواسطة النظام{% endif %}
-            </div>
-            {% if ev.note %}<div class="tl-notes">{{ ev.note }}</div>{% endif %}
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-  <style>
-  .timeline { --tgap: 12px; display: grid; gap: var(--tgap); }
-  .tl-item  { display: grid; grid-template-columns: 72px 20px minmax(0,1fr); gap: 14px; align-items: stretch; }
-  .tl-date  { font-size: 11.5px; color: var(--ink-4,#94a3b8); font-weight: 600; text-align: left; padding-top: 14px; }
-  .tl-track { position: relative; display: flex; align-items: center; justify-content: center; }
-  .tl-track::before {
-    content: ""; position: absolute;
-    top: calc(-1 * var(--tgap) / 2); bottom: calc(-1 * var(--tgap) / 2);
-    width: 2px;
-    background: repeating-linear-gradient(to bottom, var(--line,#e2e8f0) 0, var(--line,#e2e8f0) 5px, transparent 5px, transparent 10px);
-  }
-  .tl-item:first-child .tl-track::before { top: 0; }
-  .tl-item:last-child  .tl-track::before { bottom: 0; }
-  .tl-dot {
-    width: 9px; height: 9px; border-radius: 50%;
-    background: var(--accent,#2563eb); box-shadow: 0 0 0 3px var(--accent-lt,#3b82f6);
-    position: relative; z-index: 1;
-  }
-  .tl-dot--green  { background:#16a34a; box-shadow:0 0 0 3px #bbf7d0; }
-  .tl-dot--red    { background:#dc2626; box-shadow:0 0 0 3px #fecaca; }
-  .tl-dot--orange { background:#ea580c; box-shadow:0 0 0 3px #fed7aa; }
-  .tl-dot--gray   { background:#94a3b8; box-shadow:0 0 0 3px #e2e8f0; }
-  .tl-card {
-    background: #fff; border: 1.5px solid var(--line,#e2e8f0);
-    border-radius: 10px; padding: 12px 14px;
-  }
-  .tl-title { font-weight: 700; font-size: 13.5px; color: var(--ink,#0f172a); margin-bottom: 3px; }
-  .tl-meta  { font-size: 12px; color: var(--ink-4,#94a3b8); }
-  .tl-notes { margin-top: 6px; font-size: 13px; color: var(--ink-2,#475569); }
-  @media(max-width:720px){
-    .tl-item  { grid-template-columns: 1fr; gap: 6px; }
-    .tl-date  { padding-top: 0; text-align: right; }
-    .tl-track { display: none; }
-  }
-  </style>
-  {% endif %}
-
   {% if can_edit %}
   <!-- Update Details -->
   <div class="card">
@@ -1236,6 +1168,74 @@ select.form-control{cursor:pointer;}
       </div>
     </div>
   </div>
+  {% endif %}
+
+  {% if timeline %}
+  <div class="card">
+    <div class="card-header">
+      <h2><span class="t-ar">الجدول الزمني للطلب</span><span class="t-en">Order Timeline</span></h2>
+    </div>
+    <div class="card-body">
+      <div class="timeline">
+        {% for ev in timeline %}
+        <div class="tl-item">
+          <div class="tl-date">{{ ev.timestamp|date:"d/m/Y" }}</div>
+          <div class="tl-track">
+            <span class="tl-dot
+              {% if ev.action == 'inspected' %}tl-dot--green
+              {% elif ev.action == 'closed' %}tl-dot--red
+              {% elif ev.action == 'postponed' %}tl-dot--orange
+              {% elif ev.action == 'created' or ev.action == 'status_changed' or ev.action == 'unassigned' %}tl-dot--gray
+              {% endif %}"></span>
+          </div>
+          <div class="tl-card">
+            <div class="tl-title"><span class="t-ar">{{ ev.label }}</span><span class="t-en">{{ ev.label_en }}</span></div>
+            <div class="tl-meta">
+              {{ ev.timestamp|date:"H:i" }}
+              {% if ev.actor %}· بواسطة {{ ev.actor.get_full_name|default:ev.actor.username }}{% else %}· بواسطة النظام{% endif %}
+            </div>
+            {% if ev.note %}<div class="tl-notes">{{ ev.note }}</div>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <style>
+  .timeline { --tgap: 12px; display: grid; gap: var(--tgap); }
+  .tl-item  { display: grid; grid-template-columns: 72px 20px minmax(0,1fr); gap: 14px; align-items: stretch; }
+  .tl-date  { font-size: 11.5px; color: var(--ink-4,#94a3b8); font-weight: 600; text-align: left; padding-top: 14px; }
+  .tl-track { position: relative; display: flex; align-items: center; justify-content: center; }
+  .tl-track::before {
+    content: ""; position: absolute;
+    top: calc(-1 * var(--tgap) / 2); bottom: calc(-1 * var(--tgap) / 2);
+    width: 2px;
+    background: repeating-linear-gradient(to bottom, var(--line,#e2e8f0) 0, var(--line,#e2e8f0) 5px, transparent 5px, transparent 10px);
+  }
+  .tl-item:first-child .tl-track::before { top: 0; }
+  .tl-item:last-child  .tl-track::before { bottom: 0; }
+  .tl-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent,#2563eb); box-shadow: 0 0 0 3px var(--accent-lt,#3b82f6);
+    position: relative; z-index: 1;
+  }
+  .tl-dot--green  { background:#16a34a; box-shadow:0 0 0 3px #bbf7d0; }
+  .tl-dot--red    { background:#dc2626; box-shadow:0 0 0 3px #fecaca; }
+  .tl-dot--orange { background:#ea580c; box-shadow:0 0 0 3px #fed7aa; }
+  .tl-dot--gray   { background:#94a3b8; box-shadow:0 0 0 3px #e2e8f0; }
+  .tl-card {
+    background: #fff; border: 1.5px solid var(--line,#e2e8f0);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .tl-title { font-weight: 700; font-size: 13.5px; color: var(--ink,#0f172a); margin-bottom: 3px; }
+  .tl-meta  { font-size: 12px; color: var(--ink-4,#94a3b8); }
+  .tl-notes { margin-top: 6px; font-size: 13px; color: var(--ink-2,#475569); }
+  @media(max-width:720px){
+    .tl-item  { grid-template-columns: 1fr; gap: 6px; }
+    .tl-date  { padding-top: 0; text-align: right; }
+    .tl-track { display: none; }
+  }
+  </style>
   {% endif %}
 
 </section>
