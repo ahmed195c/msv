@@ -6,27 +6,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pest Control Service Report – {{ order.pk }}</title>
   <style>
+    /*
+      Color system — 60 / 30 / 10:
+        60% dominant  → white / near-white surfaces  (--surface, --surface-soft)
+        30% secondary → slate neutrals for text & structure (--ink, --ink-soft, --line)
+        10% accent    → single municipality green, used only for emphasis (--accent, --accent-soft)
+      Amber/red are kept only as small, occasional status badges (reschedule / closure) —
+      operationally meaningful, not decorative — so they stay outside the 60/30/10 budget.
+    */
+    :root {
+      --surface:      #ffffff;
+      --surface-soft: #f8fafc;
+      --ink:          #1e293b;
+      --ink-soft:     #64748b;
+      --line:         #dbe1e8;
+      --accent:       #2d5a2d;
+      --accent-soft:  #eef4ea;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: Arial, "Tahoma", sans-serif;
-      background: #f0f0f0;
-      color: #1a1a1a;
+      background: #eef1f4;
+      color: var(--ink);
       font-size: 12px;
     }
 
     .page {
       width: 210mm;
       min-height: 297mm;
-      margin: 0 auto;
+      margin: 0 auto 20px;
       padding: 8mm 12mm 6mm;
-      background: #fff;
+      background: var(--surface);
       background-image: url("{% static 'hcsd/border.jpeg' %}");
       background-repeat: no-repeat;
-      background-size: 110% 100%;
+      background-size: 110% 297mm;
       background-position: center top;
       display: flex;
       flex-direction: column;
+      box-shadow: 0 1px 6px rgba(15, 23, 42, .12);
     }
 
     /* ── Header ── */
@@ -34,40 +53,33 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 100px;
-      margin-bottom: 16px;
+      margin-top: 130px;
+      margin-bottom: 10px;
       padding: 0 4px;
-    }
-    .header-logo img { width: 80px; height: auto; }
-    .header-center { text-align: center; flex: 1; }
-    .header-center .dept-en {
-      font-size: 10px; color: #555; font-style: italic;
-    }
-    .header-center .dept-ar {
-      font-size: 13px; font-weight: 700; color: #1a3a1a; direction: rtl;
-    }
-    .header-center .mun-name {
-      font-size: 12px; font-weight: 600; color: #2d5a2d;
     }
 
     /* ── Title ── */
     .report-title {
       text-align: center;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
-      text-decoration: underline;
-      margin: 10px 0 14px;
+      color: var(--accent);
+      margin: 2px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent);
       letter-spacing: .3px;
     }
 
     /* ── Section headings ── */
     .section-heading {
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
-      color: #1a3a1a;
-      margin: 14px 0 5px;
-      border-right: 3px solid #4a7a2d;
-      padding-right: 7px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      margin: 16px 0 6px;
+      border-right: 3px solid var(--accent);
+      padding-right: 8px;
     }
 
     /* ── Tables ── */
@@ -77,24 +89,30 @@
       margin-bottom: 4px;
     }
     th, td {
-      border: 1px solid #555;
-      padding: 5px 7px;
+      border: 1px solid var(--line);
+      padding: 6px 8px;
       font-size: 11.5px;
       vertical-align: middle;
     }
     th {
-      background: #d4e8c2;
+      background: var(--accent-soft);
+      color: var(--accent);
       font-weight: 700;
       text-align: center;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .03em;
     }
     td.lbl {
-      background: #d4e8c2;
+      background: var(--surface-soft);
+      color: var(--ink-soft);
       font-weight: 700;
       white-space: nowrap;
       width: 90px;
       text-align: center;
+      font-size: 10.5px;
     }
-    td.val { min-width: 100px; }
+    td.val { min-width: 100px; color: var(--ink); }
 
     /* ── Signature row ── */
     .sig-table td {
@@ -103,7 +121,8 @@
       padding: 5px 7px;
     }
     .sig-table td.sig-head {
-      background: #ccc;
+      background: var(--surface-soft);
+      color: var(--ink-soft);
       font-weight: 700;
       height: auto;
       vertical-align: middle;
@@ -117,7 +136,7 @@
       object-fit: contain;
     }
 
-    /* ── Notice boxes ── */
+    /* ── Notice boxes (status badges — outside the 60/30/10 budget by design) ── */
     .notice-box {
       border-radius: 4px;
       padding: 8px 10px;
@@ -146,8 +165,8 @@
       margin-bottom: 0;
     }
     .notice-box td.lbl {
-      background: #d4e8c2;
-      color: #1a1a1a;
+      background: var(--surface);
+      color: var(--ink);
     }
     .proof-img {
       max-width: 100%;
@@ -155,7 +174,7 @@
       object-fit: contain;
       display: block;
       margin-top: 8px;
-      border: 1px solid #d1d5db;
+      border: 1px solid var(--line);
       border-radius: 4px;
     }
 
@@ -163,12 +182,12 @@
     .doc-footer {
       margin-top: auto;
       padding-top: 8px;
-      border-top: 1px solid #aaa;
+      border-top: 1px solid var(--line);
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 9px;
-      color: #555;
+      color: var(--ink-soft);
     }
     .doc-footer img { height: 28px; }
 
@@ -176,12 +195,12 @@
     .no-print {
       text-align: center;
       padding: 14px;
-      background: #f1f5f9;
+      background: var(--surface-soft);
     }
     .print-btn {
       display: inline-block;
       padding: 9px 24px;
-      background: #2563eb;
+      background: var(--accent);
       color: #fff;
       border: none;
       border-radius: 7px;
@@ -190,11 +209,13 @@
       margin: 4px;
       text-decoration: none;
     }
+    .print-btn.secondary { background: var(--ink-soft); }
 
     @media print {
       .no-print { display: none !important; }
       body { background: #fff; }
-      .page { margin: 0; box-shadow: none; }
+      .page { margin: 0; box-shadow: none; page-break-after: always; }
+      .page:last-of-type { page-break-after: auto; }
       @page { margin: 0; size: A4; }
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
@@ -204,7 +225,7 @@
 
 <div class="no-print">
   <button class="print-btn" onclick="window.print()">🖨 Print Report</button>
-  <a class="print-btn" href="{% url 'field_work_detail' order.pk %}" style="background:#64748b;">← Back</a>
+  <a class="print-btn secondary" href="{% url 'field_work_detail' order.pk %}">← Back</a>
 </div>
 
 <div class="page">
@@ -216,7 +237,8 @@
   </div>
 
   <!-- Title -->
- 
+  <div class="report-title">Pest Control Service Report</div>
+
   <!-- General Information -->
   <div class="section-heading">General Information</div>
   <table>
@@ -256,7 +278,7 @@
     <tbody>
       <tr>
         <td style="line-height:1.9;font-size:11.5px;">
-          {% for p in all_pests %}<span style="display:inline-block;padding:2px 9px;margin:2px 3px 2px 0;border:1px solid #555;border-radius:3px;font-size:11px;">{{ p }}</span>{% endfor %}
+          {% for p in all_pests %}<span style="display:inline-block;padding:2px 9px;margin:2px 3px 2px 0;background:var(--accent-soft);color:var(--accent);border-radius:3px;font-size:11px;font-weight:600;">{{ p }}</span>{% endfor %}
         </td>
       </tr>
     </tbody>
@@ -289,7 +311,7 @@
         <td style="font-size:10.5px;">{{ row.action }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" style="text-align:center;color:#aaa;padding:10px;">—</td></tr>
+      <tr><td colspan="6" style="text-align:center;color:var(--ink-soft);padding:10px;">—</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -382,16 +404,21 @@
     </tr>
   </table>
 
-  <!-- Photos -->
-  {% if photos %}
-  <div style="margin-top:18px;{% if photos|length > 2 %}page-break-before:always;{% endif %}">
-    <div style="font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid #0f172a;padding-bottom:4px;margin-bottom:12px;">Report Photos / صور التقرير</div>
+</div>{# /page 1: report #}
+
+<!-- Photos (always their own page — request # repeated here links it back to page 1) -->
+{% if photos %}
+<div class="page">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:130px;border-bottom:2px solid var(--accent);padding-bottom:5px;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.03em;">Report Photos / صور التقرير</div>
+      <div style="font-size:10.5px;color:var(--ink-soft);">Request # <span style="color:var(--accent);font-weight:700;">{{ order.order_number|default:order.pk }}</span></div>
+    </div>
     {% for row in photo_rows %}
     <div style="display:flex;gap:12px;margin-bottom:12px;page-break-inside:avoid;break-inside:avoid;">
       {% for idx, photo in row %}
-      <div style="flex:0 0 calc(50% - 6px);border:1px solid #d1d5db;border-radius:6px;overflow:hidden;">
+      <div style="flex:0 0 calc(50% - 6px);border:1px solid var(--line);border-radius:6px;overflow:hidden;">
         <img src="{{ photo.file.url }}" alt="Photo {{ idx }}" style="width:100%;height:220px;object-fit:cover;display:block;">
-        <div style="padding:4px 8px;font-size:10px;color:#6b7280;background:#f9fafb;border-top:1px solid #e5e7eb;">
+        <div style="padding:4px 8px;font-size:10px;color:var(--ink-soft);background:var(--surface-soft);border-top:1px solid var(--line);">
           Photo {{ idx }}{% if photo.caption %} — {{ photo.caption }}{% endif %}
         </div>
       </div>
@@ -401,9 +428,5 @@
   </div>
   {% endif %}
 
-  <!-- Footer -->
-
-
-</div>
 </body>
 </html>
