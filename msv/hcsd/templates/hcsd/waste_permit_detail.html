@@ -247,7 +247,7 @@
         <div class="sub">قسم رقابة وتنظيم النفايات</div>
       </div>
     </div>
-    {% if pirmet.status == "issued" or pirmet.status == "disposal_approved" %}
+    {% if pirmet.issue_date and pirmet.status != "cancelled_admin" %}
       <a class="print-button" href="{% url 'waste_disposal_permit_print' pirmet.id %}" target="_blank">طباعة التصريح</a>
     {% endif %}
   </div>

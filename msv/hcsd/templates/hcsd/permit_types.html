@@ -530,7 +530,7 @@ var ALL_COMPANIES = [
   {% for c in all_companies %}
   {id: {{ c.id }}, name: "{{ c.name|escapejs }}", number: "{{ c.number|escapejs }}",
    pest_expiry: "{{ c.pest_expiry }}", pest_expired: {{ c.pest_expired|yesno:'true,false' }},
-   vehicle_expiry: "{{ c.vehicle_expiry }}", vehicle_expired: {{ c.vehicle_expired|yesno:'true,false' }},
+   vehicle_permits: [{% for vp in c.vehicle_permits %}{expiry: "{{ vp.expiry }}", expired: {{ vp.expired|yesno:'true,false' }}}{% if not forloop.last %}, {% endif %}{% endfor %}],
    waste_expiry: "{{ c.waste_expiry }}", waste_expired: {{ c.waste_expired|yesno:'true,false' }}},
   {% endfor %}
 ];
@@ -594,12 +594,53 @@ document.getElementById('pest-modal').addEventListener('click', function(e){ if 
 renderPestResults(ALL_COMPANIES);
 
 // ── Vehicle permit modal ────────────────────────────────────────────────────
+// A company can have more than one active vehicle permit (one per vehicle),
+// so this row shows every one of them instead of a single collapsed badge.
 var VEHICLE_URL_TPL = "{% url 'vehicle_permit' %}?company_id=COMPANY_ID";
 
-function renderVehicleResults(items) {
-  _renderModalResults('vehicle-results', 'vehicle-empty', 'vehicle-count', VEHICLE_URL_TPL, 'vehicle_expiry', 'vehicle_expired', items);
+function _makeVehicleRow(c) {
+  var permits = c.vehicle_permits || [];
+  var anyExpired = permits.some(function(p){ return p.expired; });
+  var border  = anyExpired ? '#fca5a5' : '#e2e8f0';
+  var bgHover = anyExpired ? '#fef2f2' : '#eff6ff';
+  var bdHover = anyExpired ? '#ef4444' : '#2563eb';
+  var row = document.createElement('a');
+  row.href = VEHICLE_URL_TPL.replace('COMPANY_ID', c.id);
+  row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid ' + border + ';border-radius:8px;text-decoration:none;color:#0f172a;transition:.12s;' + (anyExpired ? 'background:#fff5f5;' : '');
+  row.onmouseover = function(){this.style.background=bgHover;this.style.borderColor=bdHover;};
+  row.onmouseout  = function(){this.style.background=anyExpired?'#fff5f5':'';this.style.borderColor=border;};
+  var badges = permits.map(function(p){
+    return p.expired
+      ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#fee2e2;color:#b91c1c;border-radius:10px;white-space:nowrap;">منتهي ' + p.expiry + '</span>'
+      : '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#dcfce7;color:#166534;border-radius:10px;white-space:nowrap;">ساري حتى ' + p.expiry + '</span>';
+  }).join('');
+  row.innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:3px;">' +
+      '<div style="font-size:14px;font-weight:600;">' + c.name + '</div>' +
+      '<div style="font-size:11px;color:#64748b;">رقم الشركة: ' + c.number + (permits.length > 1 ? ' — ' + permits.length + ' مركبات' : '') + '</div>' +
+      (badges ? '<div style="margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;">' + badges + '</div>' : '') +
+    '</div>' +
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (anyExpired?'#ef4444':'#2563eb') + '" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  return row;
 }
-function filterVehicleCompanies(q) { _filterModal('vehicle-results', 'vehicle-empty', 'vehicle-count', VEHICLE_URL_TPL, 'vehicle_expiry', 'vehicle_expired', q); }
+
+function renderVehicleResults(items) {
+  var box   = document.getElementById('vehicle-results');
+  var empty = document.getElementById('vehicle-empty');
+  var count = document.getElementById('vehicle-count');
+  box.innerHTML = '';
+  if (!items.length) { empty.style.display = 'block'; count.textContent = ''; return; }
+  empty.style.display = 'none';
+  count.textContent = items.length + ' شركة';
+  items.forEach(function(c) { box.appendChild(_makeVehicleRow(c)); });
+}
+function filterVehicleCompanies(q) {
+  q = q.trim().toLowerCase();
+  var filtered = q
+    ? ALL_COMPANIES.filter(function(c){ return c.name.toLowerCase().includes(q) || c.number.toLowerCase().includes(q); })
+    : ALL_COMPANIES;
+  renderVehicleResults(filtered);
+}
 function closeVehicleModal() {
   document.getElementById('vehicle-modal').style.display = 'none';
   document.getElementById('vehicle-search').value = '';

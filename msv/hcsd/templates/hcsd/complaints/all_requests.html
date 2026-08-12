@@ -4,6 +4,71 @@
 
 
 
+{% block extra_css %}
+<style>
+.filters-card {
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+.filters-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+.filter-actions { display: flex; gap: 10px; }
+.filter-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-3);
+  margin-bottom: 5px;
+}
+.filter-field input, .filter-field select {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 7px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--ink);
+  background: #fff;
+}
+.filter-btn {
+  padding: 7px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.filter-btn.clear {
+  background: #fff;
+  color: var(--ink-3);
+  border: 1.5px solid var(--line);
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 768px) {
+  .filters-grid { grid-template-columns: 1fr 1fr; }
+  .filters-grid .filter-field.search { grid-column: 1 / -1; }
+  .filters-grid .filter-actions { grid-column: 1 / -1; display: flex; gap: 10px; }
+  .filters-grid .filter-actions > * { flex: 1; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
@@ -14,20 +79,19 @@
 </div>
 
 <!-- Filters -->
-<div style="background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
-  <form method="get" style="display:contents;">
+<div class="filters-card">
+  <form method="get" class="filters-grid">
 
     <!-- Search -->
-    <div style="flex:1;min-width:180px;">
-      <label style="display:block;font-size:11px;font-weight:700;color:var(--ink-3);margin-bottom:5px;">{% if lang == 'en' %}Search{% else %}بحث{% endif %}</label>
-      <input type="text" name="q" value="{{ search }}" placeholder="{% if lang == 'en' %}Number / name / area…{% else %}رقم / اسم / منطقة…{% endif %}"
-        style="width:100%;padding:7px 10px;border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-family:inherit;color:var(--ink);">
+    <div class="filter-field search">
+      <label>{% if lang == 'en' %}Search{% else %}بحث{% endif %}</label>
+      <input type="text" name="q" value="{{ search }}" placeholder="{% if lang == 'en' %}Number / name / area…{% else %}رقم / اسم / منطقة…{% endif %}">
     </div>
 
     <!-- Type -->
-    <div style="min-width:140px;">
-      <label style="display:block;font-size:11px;font-weight:700;color:var(--ink-3);margin-bottom:5px;">{% if lang == 'en' %}Type{% else %}النوع{% endif %}</label>
-      <select name="type" style="width:100%;padding:7px 10px;border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-family:inherit;color:var(--ink);background:#fff;">
+    <div class="filter-field">
+      <label>{% if lang == 'en' %}Type{% else %}النوع{% endif %}</label>
+      <select name="type">
         <option value="all" {% if type_filter == 'all' %}selected{% endif %}>{% if lang == 'en' %}All{% else %}الكل{% endif %}</option>
         <option value="weed" {% if type_filter == 'weed' %}selected{% endif %}>{% if lang == 'en' %}Weed Removal{% else %}إزالة حشائش{% endif %}</option>
         <option value="container" {% if type_filter == 'container' %}selected{% endif %}>{% if lang == 'en' %}Container Transfers{% else %}نقل الحاويات{% endif %}</option>
@@ -35,9 +99,9 @@
     </div>
 
     <!-- Status -->
-    <div style="min-width:180px;">
-      <label style="display:block;font-size:11px;font-weight:700;color:var(--ink-3);margin-bottom:5px;">{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
-      <select name="status" style="width:100%;padding:7px 10px;border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-family:inherit;color:var(--ink);background:#fff;">
+    <div class="filter-field">
+      <label>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</label>
+      <select name="status">
         <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{% if lang == 'en' %}All{% else %}الكل{% endif %}</option>
         {% if type_filter == 'container' %}
           {% for key, label in container_statuses %}
@@ -58,14 +122,16 @@
       </select>
     </div>
 
-    <button type="submit" style="padding:7px 18px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">
-      {% if lang == 'en' %}Filter{% else %}بحث{% endif %}
-    </button>
-    {% if search or type_filter != 'all' or status_filter != 'all' %}
-    <a href="{% url 'all_requests' %}" style="padding:7px 14px;background:#fff;color:var(--ink-3);border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;">
-      {% if lang == 'en' %}Clear{% else %}مسح{% endif %}
-    </a>
-    {% endif %}
+    <div class="filter-actions">
+      <button type="submit" class="filter-btn">
+        {% if lang == 'en' %}Filter{% else %}بحث{% endif %}
+      </button>
+      {% if search or type_filter != 'all' or status_filter != 'all' %}
+      <a href="{% url 'all_requests' %}" class="filter-btn clear">
+        {% if lang == 'en' %}Clear{% else %}مسح{% endif %}
+      </a>
+      {% endif %}
+    </div>
   </form>
 </div>
 
@@ -76,7 +142,8 @@
 
 {% if items %}
 <div style="background:#fff;border-radius:12px;border:1.5px solid var(--line);overflow:hidden;box-shadow:var(--shadow-sm);">
-  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+  <div class="table-scroll">
+  <table style="width:100%;min-width:760px;border-collapse:collapse;font-size:13px;">
     <thead>
       <tr style="background:var(--surface-2);border-bottom:1.5px solid var(--line);">
         <th style="padding:11px 14px;text-align:right;font-weight:600;color:var(--ink-3);white-space:nowrap;">النوع</th>
@@ -96,12 +163,12 @@
         <!-- Type badge -->
         <td style="padding:12px 14px;">
           {% if item.kind == 'weed' %}
-            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;white-space:nowrap;">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M7 12s1.5-2 5-2 5 2 5 2"/></svg>
               حشائش
             </span>
           {% else %}
-            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;">
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;white-space:nowrap;">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
               حاوية
             </span>
@@ -121,39 +188,43 @@
         <td style="padding:12px 14px;">
           {% if item.kind == 'weed' %}
             {% if item.status == 'new' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;">جديد</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;white-space:nowrap;">جديد</span>
             {% elif item.status == 'inspector_assigned' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;">بانتظار المفتش</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;white-space:nowrap;">بانتظار المفتش</span>
             {% elif item.status == 'inspection_done' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">اكتمل التفتيش</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;white-space:nowrap;">اكتمل التفتيش</span>
             {% elif item.status == 'supervisor_assigned' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;">بانتظار المراقب</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;white-space:nowrap;">بانتظار المراقب</span>
             {% elif item.status == 'work_in_progress' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;">العمل جارٍ</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;white-space:nowrap;">العمل جارٍ</span>
             {% elif item.status == 'work_paused' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#fefce8;color:#854d0e;font-size:11px;font-weight:700;">العمل متوقف مؤقتاً</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#fefce8;color:#854d0e;font-size:11px;font-weight:700;white-space:nowrap;">العمل متوقف مؤقتاً</span>
             {% elif item.status == 'work_done' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">تم إنهاء العمل</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;white-space:nowrap;">تم إنهاء العمل</span>
             {% elif item.status == 'closed' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;">مغلق</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;white-space:nowrap;">مغلق</span>
             {% elif item.status == 'rejected' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#fef2f2;color:#dc2626;font-size:11px;font-weight:700;">مرفوض</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#fef2f2;color:#dc2626;font-size:11px;font-weight:700;white-space:nowrap;">مرفوض</span>
+            {% else %}
+              <span style="padding:3px 9px;border-radius:10px;background:var(--surface-2);color:var(--ink-3);font-size:11px;font-weight:700;white-space:nowrap;">{{ item.status|default:"—" }}</span>
             {% endif %}
           {% else %}
             {% if item.status == 'new' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;">جديد</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;white-space:nowrap;">جديد</span>
             {% elif item.status == 'assigned' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;">بانتظار المفتش</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;white-space:nowrap;">بانتظار المفتش</span>
             {% elif item.status == 'location_saved' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;">تم حفظ الموقع</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;white-space:nowrap;">تم حفظ الموقع</span>
             {% elif item.status == 'biaa_contacted' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;">تم التواصل مع بيئة</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;white-space:nowrap;">تم التواصل مع بيئة</span>
             {% elif item.status == 'biaa_transferred' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#ecfdf5;color:#065f46;font-size:11px;font-weight:700;">تم نقل الحاوية</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#ecfdf5;color:#065f46;font-size:11px;font-weight:700;white-space:nowrap;">تم نقل الحاوية</span>
             {% elif item.status == 'report_submitted' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;">تم تقديم التقرير</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;white-space:nowrap;">تم تقديم التقرير</span>
             {% elif item.status == 'closed' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;">مغلق</span>
+              <span style="padding:3px 9px;border-radius:10px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;white-space:nowrap;">مغلق</span>
+            {% else %}
+              <span style="padding:3px 9px;border-radius:10px;background:var(--surface-2);color:var(--ink-3);font-size:11px;font-weight:700;white-space:nowrap;">{{ item.status|default:"—" }}</span>
             {% endif %}
           {% endif %}
         </td>
@@ -176,6 +247,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 
 {% else %}

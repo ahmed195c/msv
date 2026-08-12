@@ -72,14 +72,12 @@
 
     /* ── Section headings ── */
     .section-heading {
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 700;
       color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: .03em;
-      margin: 16px 0 6px;
-      border-right: 3px solid var(--accent);
-      padding-right: 8px;
+      margin: 18px 0 8px;
+      padding-bottom: 4px;
+      border-bottom: 1.5px solid var(--accent-soft);
     }
 
     /* ── Tables ── */
@@ -136,37 +134,31 @@
       object-fit: contain;
     }
 
-    /* ── Notice boxes (status badges — outside the 60/30/10 budget by design) ── */
+    /* ── Notice boxes: same 60/30/10 language as the rest of the page (white
+       surface + slate structure) — the status color is only a 10% accent
+       (edge stripe + title), not a fill. Table cells fall through to the
+       normal .lbl/.val rules used everywhere else on the page. ── */
     .notice-box {
-      border-radius: 4px;
-      padding: 8px 10px;
-      margin-top: 14px;
+      border-radius: 5px;
+      padding: 10px 14px;
+      margin-top: 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-left-width: 4px;
       page-break-inside: avoid;
       break-inside: avoid;
     }
-    .notice-box.reschedule {
-      border: 1.5px solid #d97706;
-      background: #fffbeb;
-    }
-    .notice-box.closure {
-      border: 1.5px solid #b91c1c;
-      background: #fef2f2;
-    }
+    .notice-box.reschedule { border-left-color: #d97706; }
+    .notice-box.closure    { border-left-color: #b91c1c; }
     .notice-title {
       font-size: 12px;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
-    .notice-box.reschedule .notice-title { color: #92400e; }
-    .notice-box.closure    .notice-title { color: #991b1b; }
+    .notice-box.reschedule .notice-title { color: #d97706; }
+    .notice-box.closure    .notice-title { color: #b91c1c; }
     .notice-box table {
       margin-bottom: 0;
-    }
-    .notice-box td.lbl {
-      background: var(--surface);
-      color: var(--ink);
     }
     .proof-img {
       max-width: 100%;
@@ -210,6 +202,59 @@
       text-decoration: none;
     }
     .print-btn.secondary { background: var(--ink-soft); }
+
+    /* ── Reusable bits (previously duplicated as inline styles) ── */
+    .pest-tag {
+      display: inline-block;
+      padding: 2px 9px;
+      margin: 2px 3px 2px 0;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .empty-row { text-align: center; color: var(--ink-soft); padding: 10px; }
+    .proof-label { margin-top: 8px; font-size: 10.5px; font-weight: 600; color: #991b1b; }
+
+    .photos-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-top: 130px;
+      margin-bottom: 12px;
+      padding-bottom: 5px;
+      border-bottom: 2px solid var(--accent);
+    }
+    .photos-heading-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .photos-heading-ref { font-size: 10.5px; color: var(--ink-soft); }
+    .photos-heading-ref strong { color: var(--accent); font-weight: 700; }
+
+    .photo-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .photo-item {
+      flex: 0 0 calc(50% - 6px);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .photo-item img { width: 100%; height: 220px; object-fit: cover; display: block; }
+    .photo-caption {
+      padding: 4px 8px;
+      font-size: 10px;
+      color: var(--ink-soft);
+      background: var(--surface-soft);
+      border-top: 1px solid var(--line);
+    }
 
     @media print {
       .no-print { display: none !important; }
@@ -278,7 +323,7 @@
     <tbody>
       <tr>
         <td style="line-height:1.9;font-size:11.5px;">
-          {% for p in all_pests %}<span style="display:inline-block;padding:2px 9px;margin:2px 3px 2px 0;background:var(--accent-soft);color:var(--accent);border-radius:3px;font-size:11px;font-weight:600;">{{ p }}</span>{% endfor %}
+          {% for p in all_pests %}<span class="pest-tag">{{ p }}</span>{% endfor %}
         </td>
       </tr>
     </tbody>
@@ -311,7 +356,7 @@
         <td style="font-size:10.5px;">{{ row.action }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" style="text-align:center;color:var(--ink-soft);padding:10px;">—</td></tr>
+      <tr><td colspan="6" class="empty-row">—</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -387,7 +432,7 @@
       </tr>
     </table>
     {% if proof_img_url %}
-    <div style="margin-top:8px;font-size:10.5px;font-weight:600;color:#991b1b;">Proof / Closure Screenshot:</div>
+    <div class="proof-label">Proof / Closure Screenshot:</div>
     <img class="proof-img" src="{{ proof_img_url }}" alt="Closure proof">
     {% endif %}
   </div>
@@ -399,7 +444,7 @@
     <tr>
       <td class="sig-head">Completed By:<br>{% if order.report_submitted_by %}{{ order.report_submitted_by.get_full_name|default:order.report_submitted_by.username }}{% else %}-{% endif %}</td>
       <td>{% if order.supervisor_signature %}<img src="{{ order.supervisor_signature }}" alt="supervisor signature">{% endif %}</td>
-      <td class="sig-head">Client Name:<br>{{ order.site_name|default:"-" }}</td>
+      <td class="sig-head">Client Name:<br>{{ order.customer_name|default:order.site_name|default:"-" }}</td>
       <td>{% if order.client_signature %}<img src="{{ order.client_signature }}" alt="client signature">{% endif %}</td>
     </tr>
   </table>
@@ -409,16 +454,16 @@
 <!-- Photos (always their own page — request # repeated here links it back to page 1) -->
 {% if photos %}
 <div class="page">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:130px;border-bottom:2px solid var(--accent);padding-bottom:5px;margin-bottom:12px;">
-      <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.03em;">Report Photos / صور التقرير</div>
-      <div style="font-size:10.5px;color:var(--ink-soft);">Request # <span style="color:var(--accent);font-weight:700;">{{ order.order_number|default:order.pk }}</span></div>
+    <div class="photos-heading">
+      <div class="photos-heading-title">Report Photos / صور التقرير</div>
+      <div class="photos-heading-ref">Request # <strong>{{ order.order_number|default:order.pk }}</strong></div>
     </div>
     {% for row in photo_rows %}
-    <div style="display:flex;gap:12px;margin-bottom:12px;page-break-inside:avoid;break-inside:avoid;">
+    <div class="photo-row">
       {% for idx, photo in row %}
-      <div style="flex:0 0 calc(50% - 6px);border:1px solid var(--line);border-radius:6px;overflow:hidden;">
-        <img src="{{ photo.file.url }}" alt="Photo {{ idx }}" style="width:100%;height:220px;object-fit:cover;display:block;">
-        <div style="padding:4px 8px;font-size:10px;color:var(--ink-soft);background:var(--surface-soft);border-top:1px solid var(--line);">
+      <div class="photo-item">
+        <img src="{{ photo.file.url }}" alt="Photo {{ idx }}">
+        <div class="photo-caption">
           Photo {{ idx }}{% if photo.caption %} — {{ photo.caption }}{% endif %}
         </div>
       </div>

@@ -90,11 +90,16 @@ def waste_disposal_permit_print(request, permit_id):
     )
     company = base_permit.company
 
-    # Use the latest issued permit for this company as the active permit
+    # Use the latest issued permit for this company as the active permit.
+    # issue_date (not status) is the reliable "has been issued" signal — the
+    # disposal-request workflow reuses this same status field for its own
+    # inspection queue (e.g. 'inspection_pending'), which would otherwise
+    # make an actually-issued permit disappear from these lookups.
     permit = (
         PirmetClearance.objects
         .select_related('company', 'waste_details')
-        .filter(company=company, permit_type='waste_disposal', status__in=['issued', 'disposal_approved'])
+        .filter(company=company, permit_type='waste_disposal', issue_date__isnull=False)
+        .exclude(status='cancelled_admin')
         .order_by('-issue_date', '-id')
         .first()
     )
@@ -104,7 +109,7 @@ def waste_disposal_permit_print(request, permit_id):
             PirmetClearance.objects.select_related('company', 'waste_details'),
             id=permit_id,
             permit_type='waste_disposal',
-            status__in=['issued'],
+            issue_date__isnull=False,
         )
 
     waste = getattr(permit, 'waste_details', None)

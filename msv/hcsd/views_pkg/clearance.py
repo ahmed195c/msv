@@ -566,9 +566,20 @@ def permit_types(request):
                 result[p['company_id']] = p['dateOfExpiry']
         return result
 
-    pest_expiry_map     = _latest_expiry_by_company('pest_control')
-    vehicle_expiry_map  = _latest_expiry_by_company('pesticide_transport')
-    waste_expiry_map    = _latest_expiry_by_company('waste_disposal')
+    def _all_expiries_by_company(permit_type):
+        # Unlike _latest_expiry_by_company, keeps every issued permit — a
+        # company can have more than one active vehicle permit (one per
+        # vehicle), so collapsing to "the latest" was hiding the others.
+        result = {}
+        for p in PirmetClearance.objects.filter(
+            permit_type=permit_type, status='issued'
+        ).order_by('-dateOfExpiry', '-id').values('company_id', 'dateOfExpiry'):
+            result.setdefault(p['company_id'], []).append(p['dateOfExpiry'])
+        return result
+
+    pest_expiry_map      = _latest_expiry_by_company('pest_control')
+    vehicle_expiries_map = _all_expiries_by_company('pesticide_transport')
+    waste_expiry_map     = _latest_expiry_by_company('waste_disposal')
 
     all_companies = []
     for c in _Company.objects.order_by('name').values('id', 'name', 'number'):
@@ -577,12 +588,15 @@ def permit_types(request):
             return exp.isoformat() if exp else '', exp is not None and exp < today
 
         p_exp, p_expired = _info(pest_expiry_map)
-        v_exp, v_expired = _info(vehicle_expiry_map)
         w_exp, w_expired = _info(waste_expiry_map)
+        vehicle_permits = [
+            {'expiry': exp.isoformat() if exp else '', 'expired': exp is not None and exp < today}
+            for exp in vehicle_expiries_map.get(c['id'], [])
+        ]
         all_companies.append({
             'id': c['id'], 'name': c['name'], 'number': c['number'],
             'pest_expiry': p_exp,     'pest_expired': p_expired,
-            'vehicle_expiry': v_exp,  'vehicle_expired': v_expired,
+            'vehicle_permits': vehicle_permits,
             'waste_expiry': w_exp,    'waste_expired': w_expired,
         })
 

@@ -1133,13 +1133,13 @@ class FieldWorkOrderLog(models.Model):
 
 class FieldWorkRecurringOrder(models.Model):
     WEEKDAY_CHOICES = [
-        (0, 'الاثنين'),
-        (1, 'الثلاثاء'),
-        (2, 'الأربعاء'),
-        (3, 'الخميس'),
-        (4, 'الجمعة'),
-        (5, 'السبت'),
-        (6, 'الأحد'),
+        (0, 'يوم اثنين'),
+        (1, 'يوم ثلاثاء'),
+        (2, 'يوم أربعاء'),
+        (3, ' يوم خميس'),
+        (4, ' يوم جمعة'),
+        (5, ' يوم سبت '),
+        (6, 'يوم أحد'),
     ]
 
     site_name        = models.CharField(max_length=200, blank=True, verbose_name='اسم الموقع')
