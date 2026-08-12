@@ -566,19 +566,33 @@ def permit_types(request):
                 result[p['company_id']] = p['dateOfExpiry']
         return result
 
-    def _all_expiries_by_company(permit_type):
-        # Unlike _latest_expiry_by_company, keeps every issued permit — a
-        # company can have more than one active vehicle permit (one per
-        # vehicle), so collapsing to "the latest" was hiding the others.
+    def _latest_vehicle_permits_by_company():
+        # One entry per (company, physical vehicle) — the latest issued permit
+        # for each vehicle_number, not every historical renewal. A company can
+        # have more than one active vehicle permit (one per vehicle), so
+        # collapsing to "the latest permit overall" was hiding the others; but
+        # keeping every renewal ever issued cluttered the list with old,
+        # already-superseded permits for the same vehicle.
+        seen = set()
         result = {}
-        for p in PirmetClearance.objects.filter(
-            permit_type=permit_type, status='issued'
-        ).order_by('-dateOfExpiry', '-id').values('company_id', 'dateOfExpiry'):
-            result.setdefault(p['company_id'], []).append(p['dateOfExpiry'])
+        qs = (
+            PirmetClearance.objects.filter(permit_type='pesticide_transport', status='issued')
+            .select_related('transport_details')
+            .order_by('-dateOfExpiry', '-id')
+        )
+        for p in qs:
+            vehicle_number = (getattr(p.transport_details, 'vehicle_number', '') or '').strip()
+            # No vehicle number on record — don't merge these together, each
+            # is its own unknown vehicle rather than risk hiding a real one.
+            key = (p.company_id, vehicle_number or f'_pk{p.id}')
+            if key in seen:
+                continue
+            seen.add(key)
+            result.setdefault(p.company_id, []).append(p.dateOfExpiry)
         return result
 
     pest_expiry_map      = _latest_expiry_by_company('pest_control')
-    vehicle_expiries_map = _all_expiries_by_company('pesticide_transport')
+    vehicle_expiries_map = _latest_vehicle_permits_by_company()
     waste_expiry_map     = _latest_expiry_by_company('waste_disposal')
 
     all_companies = []

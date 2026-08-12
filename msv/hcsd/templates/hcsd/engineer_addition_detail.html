@@ -187,11 +187,14 @@
     transition: border-color 0.15s, box-shadow 0.15s;
   }
   .review-form input:focus,
-  .review-form select:focus,
   .review-form textarea:focus { border-color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(48,67,87,0.12); }
+  /* No box-shadow on select:focus — Firefox on Linux can corrupt the native
+     <option> popup's layout when a focus box-shadow is present, rendering it
+     as an unreadable blank/grey blob. Border-color is enough. */
+  .review-form select:focus { border-color: var(--pd-accent); }
   /* `color` on <select> doesn't reliably reach the native <option> popup in
      every browser — set it explicitly so option text can't render invisible. */
-  .review-form select option { color: var(--pd-ink); background: #fff; }
+  .review-form select option { color: #000 !important; background: #fff !important; }
   .review-form button {
     border: 1.5px solid #4a627c; border-radius: 6px;
     background: #4a627c; color: #fff;
