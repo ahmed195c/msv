@@ -311,7 +311,7 @@
     {% elif pirmet.status == 'payment_pending' %}
       <span class="status-badge status-badge--pending">بانتظار دفع التصريح</span>
     {% elif pirmet.status == 'order_received' %}
-      <span class="status-badge status-badge--pending">تم استلام الطلب</span>
+      <span class="status-badge status-badge--pending">بانتظار دفع التفتيش</span>
     {% else %}
       <span class="status-badge">{{ pirmet.get_status_display }}</span>
     {% endif %}
