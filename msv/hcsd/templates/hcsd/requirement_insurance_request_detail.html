@@ -281,6 +281,12 @@
       border-color: var(--pd-accent);
       box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.14);
     }
+    /* `color` on <select> doesn't reliably reach the native <option> popup in
+       every browser — set it explicitly so option text can't render invisible. */
+    .review-form select option {
+      color: var(--pd-ink);
+      background: #fff;
+    }
 
     .review-form button {
       border: 1.5px solid var(--pd-accent);

@@ -546,6 +546,13 @@
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
+    /* `color` on <select> doesn't reliably reach the native <option> popup in
+       every browser — set it explicitly so option text can't render invisible. */
+    .review-form select option {
+      color: var(--pd-ink);
+      background: #fff;
+    }
+
     .review-form input:focus,
     .review-form select:focus,
     .review-form textarea:focus,

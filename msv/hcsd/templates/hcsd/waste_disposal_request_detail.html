@@ -180,6 +180,9 @@
   .review-form input:focus,
   .review-form select:focus,
   .review-form textarea:focus { border-color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(48,67,87,0.08); }
+  /* `color` on <select> doesn't reliably reach the native <option> popup in
+     every browser — set it explicitly so option text can't render invisible. */
+  .review-form select option { color: var(--pd-ink); background: #fff; }
 
   /* ── Drop zone ── */
   .drop-zone {

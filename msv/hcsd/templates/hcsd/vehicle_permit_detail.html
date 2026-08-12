@@ -168,6 +168,9 @@
     .review-form input:focus, .review-form select:focus, .review-form textarea:focus {
       border-color: var(--pd-accent); outline: none;
     }
+    /* `color` on <select> doesn't reliably reach the native <option> popup in
+       every browser — set it explicitly so option text can't render invisible. */
+    .review-form select option { color: var(--pd-ink); background: #fff; }
     .review-form button, .admin-edit-toggle {
       border: 1.5px solid #4a627c; border-radius: 6px;
       background: #4a627c; color: #fff;
