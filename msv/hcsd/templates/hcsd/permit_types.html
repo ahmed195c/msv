@@ -8,6 +8,7 @@
    10% : #2563eb  (primary action only)
 ──────────────────────────────────────────── */
 .pt-page { max-width: 1160px; margin: 0 auto; }
+.veh-badge:hover { filter: brightness(0.93); }
 
 /* ── Page header ── */
 .pt-header {
@@ -530,7 +531,7 @@ var ALL_COMPANIES = [
   {% for c in all_companies %}
   {id: {{ c.id }}, name: "{{ c.name|escapejs }}", number: "{{ c.number|escapejs }}",
    pest_expiry: "{{ c.pest_expiry }}", pest_expired: {{ c.pest_expired|yesno:'true,false' }},
-   vehicle_permits: [{% for vp in c.vehicle_permits %}{expiry: "{{ vp.expiry }}", expired: {{ vp.expired|yesno:'true,false' }}}{% if not forloop.last %}, {% endif %}{% endfor %}],
+   vehicle_permits: [{% for vp in c.vehicle_permits %}{id: {{ vp.id }}, expiry: "{{ vp.expiry }}", expired: {{ vp.expired|yesno:'true,false' }}}{% if not forloop.last %}, {% endif %}{% endfor %}],
    waste_expiry: "{{ c.waste_expiry }}", waste_expired: {{ c.waste_expired|yesno:'true,false' }}},
   {% endfor %}
 ];
@@ -601,26 +602,30 @@ var VEHICLE_URL_TPL = "{% url 'vehicle_permit' %}?company_id=COMPANY_ID";
 function _makeVehicleRow(c) {
   var permits = c.vehicle_permits || [];
   var anyExpired = permits.some(function(p){ return p.expired; });
-  var border  = anyExpired ? '#fca5a5' : '#e2e8f0';
-  var bgHover = anyExpired ? '#fef2f2' : '#eff6ff';
-  var bdHover = anyExpired ? '#ef4444' : '#2563eb';
-  var row = document.createElement('a');
-  row.href = VEHICLE_URL_TPL.replace('COMPANY_ID', c.id);
-  row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid ' + border + ';border-radius:8px;text-decoration:none;color:#0f172a;transition:.12s;' + (anyExpired ? 'background:#fff5f5;' : '');
-  row.onmouseover = function(){this.style.background=bgHover;this.style.borderColor=bdHover;};
-  row.onmouseout  = function(){this.style.background=anyExpired?'#fff5f5':'';this.style.borderColor=border;};
-  var badges = permits.map(function(p){
-    return p.expired
-      ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#fee2e2;color:#b91c1c;border-radius:10px;white-space:nowrap;">منتهي ' + p.expiry + '</span>'
-      : '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#dcfce7;color:#166534;border-radius:10px;white-space:nowrap;">ساري حتى ' + p.expiry + '</span>';
+  var border = anyExpired ? '#fca5a5' : '#e2e8f0';
+  var row = document.createElement('div');
+  row.style.cssText = 'display:flex;flex-direction:column;gap:3px;padding:10px 14px;border:1.5px solid ' + border + ';border-radius:8px;color:#0f172a;' + (anyExpired ? 'background:#fff5f5;' : '');
+
+  // Each vehicle is its own link — clicking it carries that vehicle's own
+  // details into the renewal form instead of starting a blank request, so
+  // picking the wrong one out of several doesn't need to be guessed.
+  var badges = permits.map(function(p) {
+    var label = (p.expired ? 'منتهي ' : 'ساري حتى ') + p.expiry;
+    var bg = p.expired ? '#fee2e2' : '#dcfce7';
+    var fg = p.expired ? '#b91c1c' : '#166534';
+    var href = VEHICLE_URL_TPL.replace('COMPANY_ID', c.id) + '&renew_permit_id=' + p.id;
+    return '<a class="veh-badge" href="' + href + '" title="تجديد هذه المركبة" ' +
+      'style="font-size:10px;font-weight:700;padding:2px 7px;background:' + bg + ';color:' + fg + ';border-radius:10px;white-space:nowrap;text-decoration:none;">' + label + '</a>';
   }).join('');
+
+  var newVehicleHref = VEHICLE_URL_TPL.replace('COMPANY_ID', c.id);
+  var newVehicleBadge = '<a class="veh-badge" href="' + newVehicleHref + '" title="إضافة مركبة جديدة" ' +
+    'style="font-size:10px;font-weight:700;padding:2px 7px;background:#eff6ff;color:#2563eb;border:1px dashed #93c5fd;border-radius:10px;white-space:nowrap;text-decoration:none;">+ مركبة جديدة</a>';
+
   row.innerHTML =
-    '<div style="display:flex;flex-direction:column;gap:3px;">' +
-      '<div style="font-size:14px;font-weight:600;">' + c.name + '</div>' +
-      '<div style="font-size:11px;color:#64748b;">رقم الشركة: ' + c.number + (permits.length > 1 ? ' — ' + permits.length + ' مركبات' : '') + '</div>' +
-      (badges ? '<div style="margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;">' + badges + '</div>' : '') +
-    '</div>' +
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (anyExpired?'#ef4444':'#2563eb') + '" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
+    '<div style="font-size:14px;font-weight:600;">' + c.name + '</div>' +
+    '<div style="font-size:11px;color:#64748b;">رقم الشركة: ' + c.number + (permits.length > 1 ? ' — ' + permits.length + ' مركبات' : '') + '</div>' +
+    '<div style="margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;">' + badges + newVehicleBadge + '</div>';
   return row;
 }
 

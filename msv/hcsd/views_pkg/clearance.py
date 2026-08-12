@@ -588,7 +588,7 @@ def permit_types(request):
             if key in seen:
                 continue
             seen.add(key)
-            result.setdefault(p.company_id, []).append(p.dateOfExpiry)
+            result.setdefault(p.company_id, []).append((p.id, p.dateOfExpiry))
         return result
 
     pest_expiry_map      = _latest_expiry_by_company('pest_control')
@@ -604,8 +604,8 @@ def permit_types(request):
         p_exp, p_expired = _info(pest_expiry_map)
         w_exp, w_expired = _info(waste_expiry_map)
         vehicle_permits = [
-            {'expiry': exp.isoformat() if exp else '', 'expired': exp is not None and exp < today}
-            for exp in vehicle_expiries_map.get(c['id'], [])
+            {'id': pk, 'expiry': exp.isoformat() if exp else '', 'expired': exp is not None and exp < today}
+            for pk, exp in vehicle_expiries_map.get(c['id'], [])
         ]
         all_companies.append({
             'id': c['id'], 'name': c['name'], 'number': c['number'],

@@ -63,6 +63,27 @@ def vehicle_permit(request):
         'issue_authority': '',
         'vehicle_license_expiry': '',
     }
+
+    # Renewing a specific existing vehicle permit (picked from the company
+    # modal) carries its vehicle details over instead of starting blank —
+    # the vehicle itself hasn't changed, only the license/expiry has.
+    renew_permit_id = _parse_int(request.GET.get('renew_permit_id'))
+    if renew_permit_id and selected_company and request.method != 'POST':
+        renew_from = (
+            PirmetClearance.objects
+            .filter(id=renew_permit_id, company=selected_company, permit_type='pesticide_transport')
+            .select_related('transport_details')
+            .first()
+        )
+        renew_details = getattr(renew_from, 'transport_details', None)
+        if renew_details:
+            form_data.update({
+                'vehicle_type': renew_details.vehicle_type or '',
+                'vehicle_number': renew_details.vehicle_number or '',
+                'vehicle_color': renew_details.vehicle_color or '',
+                'issue_authority': renew_details.issue_authority or '',
+            })
+
     form_errors = []
     invalid_docs = []
 
