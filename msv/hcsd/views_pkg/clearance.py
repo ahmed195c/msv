@@ -99,7 +99,7 @@ def clearance_list(request):
     # Only fetch the active tab's records — not all 4 types at once
     clearances_qs = (
         PirmetClearance.objects.filter(permit_type=active_tab)
-        .select_related('company', 'company__enginer')
+        .select_related('company', 'company__enginer', 'transport_details')
         .order_by('-dateOfCreation')
     )
     if search_query:

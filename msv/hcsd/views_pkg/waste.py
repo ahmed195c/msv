@@ -157,6 +157,19 @@ def waste_permit(request):
     return render(request, 'hcsd/waste_permit.html', context)
 
 
+def _previous_waste_permit_expiry(company, exclude_pk):
+    """dateOfExpiry of the company's most recent other waste_disposal permit,
+    or None if it's never had one before."""
+    prev = (
+        PirmetClearance.objects
+        .filter(company=company, permit_type='waste_disposal', dateOfExpiry__isnull=False)
+        .exclude(pk=exclude_pk)
+        .order_by('-dateOfExpiry')
+        .first()
+    )
+    return prev.dateOfExpiry if prev else None
+
+
 @login_required
 def waste_permit_detail(request, id):
     pirmet = get_object_or_404(
@@ -173,6 +186,20 @@ def waste_permit_detail(request, id):
         and pirmet.dateOfExpiry
         and pirmet.dateOfExpiry >= today
     )
+
+    # New permit's start date: continue seamlessly from the previous permit's
+    # expiry if it's still within the last year; if the gap is bigger than
+    # that (or there's no previous permit), treat it as a fresh issuance —
+    # 'today' for a first-ever permit, manual entry for a stale renewal
+    # where assuming continuity wouldn't make sense.
+    _prev_expiry = _previous_waste_permit_expiry(pirmet.company, pirmet.pk)
+    _one_year_ago = today - datetime.timedelta(days=365)
+    if _prev_expiry is None:
+        waste_permit_start_mode = 'today'
+    elif _prev_expiry >= _one_year_ago:
+        waste_permit_start_mode = 'continue'
+    else:
+        waste_permit_start_mode = 'manual'
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -219,11 +246,20 @@ def waste_permit_detail(request, id):
                 ext = os.path.splitext(receipt.name)[1].lower()
                 if ext not in ALLOWED_DOC_EXTENSIONS:
                     review_errors.append('يُسمح فقط بملفات PDF أو صور للإيصال.')
+
+            if waste_permit_start_mode == 'today':
+                issue_date = today
+            elif waste_permit_start_mode == 'continue':
+                issue_date = _prev_expiry
+            else:
+                issue_date = _parse_date((request.POST.get('issue_date') or '').strip())
+                if not issue_date:
+                    review_errors.append('التصريح السابق منتهٍ منذ أكثر من سنة — يرجى إدخال تاريخ بداية التصريح الجديد يدوياً.')
+
             if not review_errors:
                 old_status = pirmet.status
                 pirmet.payment_receipt = receipt
-                pirmet.payment_date = datetime.date.today()
-                issue_date = datetime.date.today()
+                pirmet.payment_date = today
                 expiry_date = _add_months(issue_date, 6)
                 pirmet.issue_date = issue_date
                 pirmet.dateOfExpiry = expiry_date
@@ -257,9 +293,18 @@ def waste_permit_detail(request, id):
                 review_errors.append('ليس لديك صلاحية لإصدار التصريح.')
             if pirmet.status != 'payment_pending':
                 review_errors.append('لا يمكن إصدار التصريح قبل تأكيد الدفع.')
+
+            if waste_permit_start_mode == 'today':
+                issue_date = today
+            elif waste_permit_start_mode == 'continue':
+                issue_date = _prev_expiry
+            else:
+                issue_date = _parse_date((request.POST.get('issue_date') or '').strip())
+                if not issue_date:
+                    review_errors.append('التصريح السابق منتهٍ منذ أكثر من سنة — يرجى إدخال تاريخ بداية التصريح الجديد يدوياً.')
+
             if not review_errors:
                 old_status = pirmet.status
-                issue_date = datetime.date.today()
                 expiry_date = _add_months(issue_date, 6)
                 pirmet.issue_date = issue_date
                 pirmet.dateOfExpiry = expiry_date
@@ -385,6 +430,8 @@ def waste_permit_detail(request, id):
                 _can_admin(request.user)
                 and pirmet.status not in {'issued', 'cancelled_admin'}
             ),
+            'waste_permit_start_mode': waste_permit_start_mode,
+            'waste_permit_prev_expiry': _prev_expiry,
         },
     )
 

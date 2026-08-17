@@ -425,6 +425,17 @@
         <form method="post" enctype="multipart/form-data" class="review-form" id="payment-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="payment">
+          {% if waste_permit_start_mode == 'continue' %}
+            <div style="font-size:12px;color:var(--pd-ink-2);background:var(--pd-surface-2);border-radius:6px;padding:8px 10px;">
+              سيبدأ التصريح الجديد من تاريخ انتهاء التصريح السابق: <strong>{{ waste_permit_prev_expiry|date:"d/m/Y" }}</strong>
+            </div>
+          {% elif waste_permit_start_mode == 'manual' %}
+            <label for="issue_date">تاريخ بداية التصريح الجديد <span style="color:#c0392b;">*</span></label>
+            <input id="issue_date" name="issue_date" type="date" required>
+            <div style="font-size:11px;color:var(--pd-ink-3);margin-top:-4px;">
+              التصريح السابق منتهٍ منذ أكثر من سنة (بتاريخ {{ waste_permit_prev_expiry|date:"d/m/Y" }}) — يرجى إدخال تاريخ البداية يدوياً.
+            </div>
+          {% endif %}
           <div class="drop-zone" id="receipt-drop-zone">
             <input id="payment_receipt" name="payment_receipt" type="file" accept=".pdf,.jpg,.jpeg,.png" required>
             <div>اسحب الملف هنا أو <strong>انقر للاختيار</strong></div>

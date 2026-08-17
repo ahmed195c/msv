@@ -123,6 +123,9 @@
       <span class="cl-sep">·</span>
       <span class="cl-meta-col">
         <span class="cl-permit-type">{{ c.permit_label_ar }}{% if c.permit_no %} · {{ c.permit_no }}{% endif %}</span>
+        {% if c.permit_type == 'pesticide_transport' and c.transport_details.vehicle_number %}
+          <span class="cl-vehicle-no">رقم المركبة: {{ c.transport_details.vehicle_number }}</span>
+        {% endif %}
         <span class="cl-date">{{ c.dateOfCreation|date:"d/m/Y"|default:"—" }}</span>
       </span>
       {% if c.contact_number %}
