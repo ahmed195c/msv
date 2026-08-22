@@ -494,6 +494,7 @@ _LOG_NOTE_PATTERNS = [
     (re.compile(r'^inspection_report_notes:(.*)$', re.DOTALL), lambda m: (f'ملاحظات التفتيش: {m.group(1)}' if m.group(1) else 'تمت إضافة ملاحظات التفتيش.')),
     (re.compile(r'^Payment number updated to: (.+)$'), lambda m: f'تم تحديث رقم أمر الدفع إلى: {m.group(1)}'),
     (re.compile(r'^Administrative cancellation: (.+)$'), lambda m: f'إغلاق إداري — السبب: {m.group(1)}'),
+    (re.compile(r'^Closed administratively: (.+)$', re.DOTALL), lambda m: f'إغلاق إداري — السبب: {m.group(1)}'),
     (re.compile(r'^Violation order recorded: (\d+) months, order (.+)$'), lambda m: f'تم تسجيل أمر مخالفة لمدة {m.group(1)} أشهر، رقم الأمر {m.group(2)}'),
     (re.compile(r'^Violation order recorded\. Amount: (.+)$'), lambda m: f'تم تسجيل أمر مخالفة — المبلغ: {m.group(1)}'),
     (re.compile(r'^Inspection payment order recorded: (.+)$'), lambda m: f'تم تسجيل رقم أمر دفع التفتيش: {m.group(1)}'),
