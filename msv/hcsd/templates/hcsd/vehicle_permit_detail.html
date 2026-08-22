@@ -755,9 +755,6 @@
                 {{ log.created_at|date:"H:i" }}
                 {% if log.changed_by %}· بواسطة {{ log.changed_by.get_full_name|default:log.changed_by.username }}{% else %}· بواسطة النظام{% endif %}
               </div>
-              {% if log.old_status or log.new_status %}
-              <div class="tl-notes">الحالة: {{ log.old_status_label|default:"—" }} ← {{ log.new_status_label|default:"—" }}</div>
-              {% endif %}
             </div>
           </div>
           {% endfor %}
