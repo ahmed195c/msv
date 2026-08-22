@@ -88,50 +88,35 @@ def company_list(request):
         if permit.company_id not in latest_permit_any_map:
             latest_permit_any_map[permit.company_id] = permit
 
-    # A renewal creates a brand-new PirmetClearance row rather than updating
-    # the old one, so an old, already-superseded permit stays status='issued'
-    # with a past dateOfExpiry forever. Flagging on ANY historical issued
-    # permit therefore marked companies "expired" despite holding a valid,
-    # newer permit. Only the latest permit per (company, permit_type) — and,
-    # for vehicle permits, per (company, vehicle_number) since a company can
-    # hold several concurrently-active vehicle permits — should count.
-    expired_company_ids = {
-        company_id
-        for company_id, permit in latest_issued_permit_map.items()
-        if permit.dateOfExpiry and permit.dateOfExpiry < today
-    }
-
-    latest_waste_permit_map = {}
+    # A company can hold several concurrently-valid permits of the same type
+    # (e.g. one permit per vehicle), and a renewal creates a brand-new
+    # PirmetClearance row rather than updating the old one. So neither "any
+    # historical issued permit is expired" nor "the single latest-created
+    # permit is expired" correctly answers "does this company currently hold
+    # a valid permit of this type" — a company can have an old, never-renewed
+    # vehicle permit sitting expired right next to a different vehicle that
+    # was actually renewed. Match the same effective-active semantics
+    # company_details.html already uses (_is_effective_active_permit): a
+    # permit type only counts as expired if the company has at least one
+    # issued record of that type and NONE of them are currently active.
+    _has_issued_of_type = set()
+    _has_active_of_type = set()
     for permit in PirmetClearance.objects.filter(
         company_id__in=company_ids,
-        permit_type='waste_disposal',
-        status='issued',
-    ).order_by('company_id', '-dateOfCreation', '-id'):
-        if permit.company_id not in latest_waste_permit_map:
-            latest_waste_permit_map[permit.company_id] = permit
-    expired_company_ids |= {
-        company_id
-        for company_id, permit in latest_waste_permit_map.items()
-        if permit.dateOfExpiry and permit.dateOfExpiry < today
-    }
-
-    _vehicle_seen = set()
-    for permit in (
-        PirmetClearance.objects.filter(
-            company_id__in=company_ids,
-            permit_type='pesticide_transport',
-            status='issued',
-        )
-        .select_related('transport_details')
-        .order_by('-dateOfCreation', '-id')
+        permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'],
     ):
-        vehicle_number = (getattr(permit.transport_details, 'vehicle_number', '') or '').strip()
-        key = (permit.company_id, vehicle_number or f'_pk{permit.id}')
-        if key in _vehicle_seen:
-            continue
-        _vehicle_seen.add(key)
-        if permit.dateOfExpiry and permit.dateOfExpiry < today:
-            expired_company_ids.add(permit.company_id)
+        key = (permit.company_id, permit.permit_type)
+        is_issued_record = bool(permit.issue_date) or permit.status == 'issued'
+        if is_issued_record and permit.status != 'cancelled_admin':
+            _has_issued_of_type.add(key)
+        if _is_effective_active_permit(permit, today):
+            _has_active_of_type.add(key)
+
+    expired_company_ids = {
+        company_id
+        for (company_id, _ptype) in _has_issued_of_type
+        if (company_id, _ptype) not in _has_active_of_type
+    }
 
     latest_extension_map = {}
     for log in CompanyChangeLog.objects.filter(
