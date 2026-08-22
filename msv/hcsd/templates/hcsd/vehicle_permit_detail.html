@@ -743,7 +743,7 @@
             <div class="tl-track"><span class="tl-dot"></span></div>
             <div class="tl-card">
               <div class="tl-title">
-                {% if log.notes %}{{ log.notes }}
+                {% if log.notes %}{{ log.notes_ar|default:log.notes }}
                 {% elif log.change_type == 'created' %}إنشاء الطلب
                 {% elif log.change_type == 'status_change' %}تغيير الحالة
                 {% elif log.change_type == 'payment_update' %}تحديث الدفع

@@ -36,7 +36,7 @@ from .common import (
     _vehicle_inspection_report_photo_docs, _request_documents,
     _latest_expired_activity_permit_before, _delay_months_after_first_month,
     _initial_violation_reference_expiry, _violation_reference_expiry_date,
-    _log_pirmet_change, _log_company_change, _split_activities,
+    _log_pirmet_change, _log_company_change, _split_activities, _translate_log_note,
     _activity_keys_for_company, _permit_label_ar, _permit_detail_url_name,
     _certificate_type_for_exam, _certificate_expiry, _enginer_has_passed_for_certificate,
     _is_effective_active_permit, _engineer_no_certificate_notice,
@@ -1266,6 +1266,7 @@ def pest_control_permit_detail(request, id):
     for log in change_logs:
         log.old_status_label = _status_labels.get(log.old_status, log.old_status)
         log.new_status_label = _status_labels.get(log.new_status, log.new_status)
+        log.notes_ar = _translate_log_note(log.notes)
 
     return render(
         request,

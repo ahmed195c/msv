@@ -442,6 +442,83 @@ def _log_pirmet_change(pirmet, change_type, user, old_status=None, new_status=No
     )
 
 
+# Exact-match English/legacy notes -> Arabic, for the change-log timeline display.
+_LOG_NOTE_TRANSLATIONS = {
+    'Vehicle permit request created.':                       'تم إنشاء طلب تصريح المركبة.',
+    'Permit request created.':                               'تم إنشاء طلب التصريح.',
+    'Company created from permit request.':                  'تم إنشاء الشركة من طلب التصريح.',
+    'Company data updated from permit request form.':        'تم تحديث بيانات الشركة من نموذج طلب التصريح.',
+    'Vehicle inspection report submitted.':                  'تم تقديم تقرير تفتيش المركبة.',
+    'Inspection report submitted.':                          'تم تقديم تقرير التفتيش.',
+    'Vehicle permit payment number entered.':                'تم إدخال رقم أمر دفع تصريح المركبة.',
+    'Vehicle permit payment reference recorded.':            'تم تسجيل رقم أمر دفع تصريح المركبة.',
+    'Permit payment reference recorded.':                    'تم تسجيل رقم أمر دفع التصريح.',
+    'Vehicle permit payment received and permit issued.':    'تم استلام دفع تصريح المركبة وإصدار التصريح.',
+    'Payment received and permit issued.':                   'تم استلام الدفع وإصدار التصريح.',
+    'Vehicle permit issued.':                                'تم إصدار تصريح المركبة.',
+    'Permit issued.':                                        'تم إصدار التصريح.',
+    'Permit dates updated.':                                 'تم تحديث تواريخ التصريح.',
+    'Request email updated.':                                'تم تحديث البريد الإلكتروني للطلب.',
+    'Company email updated from permit request detail page.': 'تم تحديث البريد الإلكتروني للشركة من صفحة تفاصيل الطلب.',
+    'Violation payment receipt uploaded.':                   'تم رفع إيصال دفع المخالفة.',
+    'Violation data updated by admin/data-entry.':           'تم تحديث بيانات المخالفة من قبل الإدارة.',
+    'Inspection payment reference recorded.':                'تم تسجيل رقم أمر دفع التفتيش.',
+    'Inspection payment reference updated.':                 'تم تحديث رقم أمر دفع التفتيش.',
+    'Inspection payment received.':                          'تم استلام دفع التفتيش.',
+    'Inspector review updated.':                              'تم تحديث مراجعة المفتش.',
+    'Head of section final approval.':                        'تم الاعتماد النهائي من رئيس القسم.',
+    'Head of section rejected - request closed.':             'تم رفض الطلب من رئيس القسم وإغلاقه.',
+    'admin_update_request_data':                               'تم تحديث بيانات الطلب من قبل الإدارة.',
+    'payment_receipt:replaced':                                'تم استبدال إيصال الدفع.',
+    'Awaiting payment.':                                       'بانتظار الدفع.',
+    'Inspection receipt uploaded.':                            'تم رفع إيصال التفتيش.',
+    'Payment received.':                                       'تم استلام الدفع.',
+    'Payment receipt uploaded.':                                'تم رفع إيصال الدفع.',
+}
+
+# Prefix/pattern-based English/legacy notes -> Arabic, for values that embed data.
+_LOG_NOTE_PATTERNS = [
+    (re.compile(r'^Documents uploaded: (\d+)$'), lambda m: f'تم رفع {m.group(1)} مستند(ات).'),
+    (re.compile(r'^Vehicle inspection report photos uploaded: (\d+)$'), lambda m: f'تم رفع {m.group(1)} صورة لتقرير التفتيش.'),
+    (re.compile(r'^Inspection report photos uploaded: (\d+)$'), lambda m: f'تم رفع {m.group(1)} صورة لتقرير التفتيش.'),
+    (re.compile(r'^Vehicle inspection report photo deleted: (.+)$'), lambda m: f'تم حذف صورة من تقرير التفتيش: {m.group(1)}'),
+    (re.compile(r'^Inspection report photo deleted: (.+)$'), lambda m: f'تم حذف صورة من تقرير التفتيش: {m.group(1)}'),
+    (re.compile(r'^inspection_received_by:(.+)$'), lambda m: f'تم استلام التفتيش من قبل: {m.group(1)}'),
+    (re.compile(r'^inspection_report:approved$'), lambda m: 'نتيجة التفتيش: معتمد.'),
+    (re.compile(r'^inspection_report:rejected$'), lambda m: 'نتيجة التفتيش: مرفوض.'),
+    (re.compile(r'^inspection_report_notes:(.*)$'), lambda m: (f'ملاحظات التفتيش: {m.group(1)}' if m.group(1) else 'تمت إضافة ملاحظات التفتيش.')),
+    (re.compile(r'^Payment number updated to: (.+)$'), lambda m: f'تم تحديث رقم أمر الدفع إلى: {m.group(1)}'),
+    (re.compile(r'^Administrative cancellation: (.+)$'), lambda m: f'إغلاق إداري — السبب: {m.group(1)}'),
+    (re.compile(r'^Violation order recorded: (\d+) months, order (.+)$'), lambda m: f'تم تسجيل أمر مخالفة لمدة {m.group(1)} أشهر، رقم الأمر {m.group(2)}'),
+    (re.compile(r'^Violation order recorded\. Amount: (.+)$'), lambda m: f'تم تسجيل أمر مخالفة — المبلغ: {m.group(1)}'),
+    (re.compile(r'^Inspection payment order recorded: (.+)$'), lambda m: f'تم تسجيل رقم أمر دفع التفتيش: {m.group(1)}'),
+    (re.compile(r'^Payment order recorded: (.+)$'), lambda m: f'تم تسجيل رقم أمر الدفع: {m.group(1)}'),
+    (re.compile(r'^Admin updated request data: (.+)$'), lambda m: f'تم تحديث بيانات الطلب: {m.group(1)}'),
+    (re.compile(r'^head_remarks:(.*)$'), lambda m: (f'ملاحظات رئيس القسم: {m.group(1)}' if m.group(1) else 'تمت إضافة ملاحظات رئيس القسم.')),
+    (re.compile(r'^inspection_requires_insurance:yes$'), lambda m: 'التفتيش يتطلب تأمين استيفاء الشروط.'),
+    (re.compile(r'^inspection_requires_insurance:no$'), lambda m: 'التفتيش لا يتطلب تأمين استيفاء الشروط.'),
+    (re.compile(r'^\w+:deleted$'), lambda m: 'تم حذف الملف المرفق.'),
+    (re.compile(r'^\w+:replaced$'), lambda m: 'تم استبدال الملف المرفق.'),
+]
+
+
+def _translate_log_note(note):
+    """Best-effort Arabic translation of a PirmetChangeLog note for display.
+    Falls back to the original text when the pattern isn't recognized, so
+    nothing is ever hidden — just shown in whatever form it was logged in.
+    """
+    if not note:
+        return note
+    translated = _LOG_NOTE_TRANSLATIONS.get(note)
+    if translated:
+        return translated
+    for pattern, build in _LOG_NOTE_PATTERNS:
+        m = pattern.match(note)
+        if m:
+            return build(m)
+    return note
+
+
 def _log_company_change(company, action, user, notes='', attachment=None, **extra_fields):
     CompanyChangeLog.objects.create(
         company=company,
