@@ -627,69 +627,6 @@ body.is-navigating .app-main {
 }
 input[type="date"]::-webkit-date-and-time-value { text-align: right; }
 input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
-
-/* ══════════════════════════════════════════
-   BOTTOM NAV (mobile only)
-══════════════════════════════════════════ */
-.bottom-nav {
-  display: none;
-  position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  z-index: 130;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(15,23,42,.14), 0 0 0 1px rgba(15,23,42,.04);
-  padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
-}
-.bottom-nav-list {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-.bottom-nav-item {
-  position: relative;
-  flex: 1 0 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 2px;
-  text-decoration: none;
-  color: #64748b;
-}
-.bottom-nav-item svg { width: 22px; height: 22px; flex-shrink: 0; }
-.bottom-nav-item span {
-  font-size: 10.5px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-.bottom-nav-item.is-active { color: #582fff; }
-.bottom-nav-item.is-active span { font-weight: 600; }
-.bottom-nav-item.is-active::before {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 22px;
-  height: 2px;
-  border-radius: 2px;
-  background: #582fff;
-}
-
-@media (max-width: 860px) {
-  .bottom-nav { display: block; }
-  body.app-shell { padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
-  /* Primary sections now live in the bottom nav; keep only account/session
-     actions in the hamburger panel on mobile. */
-  .nav-mobile-panel .nav-links { display: none; }
-}
 </style>
 </head>
 
@@ -852,37 +789,6 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
   <main class="app-main">
     {% block content %}{% endblock %}
   </main>
-
-  {# ── BOTTOM NAV (mobile only) ── #}
-  <nav class="bottom-nav" aria-label="التنقل الرئيسي">
-    <div class="bottom-nav-list">
-      <a class="bottom-nav-item{% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' or request.resolver_match.url_name == 'add_company' %} is-active{% endif %}"
-         href="{% url 'company_list' %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01M15 11h.01M9 7h.01M15 7h.01"/></svg>
-        <span>الشركات</span>
-      </a>
-      <a class="bottom-nav-item{% if request.resolver_match.url_name == 'enginer_list' or request.resolver_match.url_name == 'enginer_add' or request.resolver_match.url_name == 'enginer_detail' %} is-active{% endif %}"
-         href="{% url 'enginer_list' %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span>المهندسين</span>
-      </a>
-      <a class="bottom-nav-item{% if request.resolver_match.url_name == 'permit_types' or request.resolver_match.url_name == 'pest_control_permit' or request.resolver_match.url_name == 'vehicle_permit' or request.resolver_match.url_name == 'waste_permit' or request.resolver_match.url_name == 'pest_control_permit_detail' or request.resolver_match.url_name == 'vehicle_permit_detail' or request.resolver_match.url_name == 'waste_permit_detail' or request.resolver_match.url_name == 'pest_control_permit_view' or request.resolver_match.url_name == 'waste_disposal_request_new' or request.resolver_match.url_name == 'waste_disposal_request_detail' %} is-active{% endif %}"
-         href="{% url 'permit_types' %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
-        <span>التصاريح</span>
-      </a>
-      <a class="bottom-nav-item{% if request.resolver_match.url_name == 'clearance_list' %} is-active{% endif %}"
-         href="{% url 'clearance_list' %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v2a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V3"/><path d="M9 12h6M9 16h6"/></svg>
-        <span>متابعة الطلبات</span>
-      </a>
-      <a class="bottom-nav-item{% if request.resolver_match.url_name == 'extension_followup' %} is-active{% endif %}"
-         href="{% url 'extension_followup' %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="M12 14v3l2 1.5"/></svg>
-        <span>متابعة المهل</span>
-      </a>
-    </div>
-  </nav>
 
   {# ── PAGE TRANSITION SKELETON ── #}
   <div class="page-nav-skeleton" aria-hidden="true" aria-live="polite" aria-label="جارٍ التحميل…">
