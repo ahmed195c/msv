@@ -101,6 +101,20 @@ def company_list(request):
         if permit.dateOfExpiry and permit.dateOfExpiry < today
     }
 
+    latest_waste_permit_map = {}
+    for permit in PirmetClearance.objects.filter(
+        company_id__in=company_ids,
+        permit_type='waste_disposal',
+        status='issued',
+    ).order_by('company_id', '-dateOfCreation', '-id'):
+        if permit.company_id not in latest_waste_permit_map:
+            latest_waste_permit_map[permit.company_id] = permit
+    expired_company_ids |= {
+        company_id
+        for company_id, permit in latest_waste_permit_map.items()
+        if permit.dateOfExpiry and permit.dateOfExpiry < today
+    }
+
     _vehicle_seen = set()
     for permit in (
         PirmetClearance.objects.filter(
