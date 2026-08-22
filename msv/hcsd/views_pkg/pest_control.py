@@ -1261,6 +1261,12 @@ def pest_control_permit_detail(request, id):
         RequirementInsuranceRequest.objects.filter(related_permit=pirmet).order_by('-id')
     )
 
+    change_logs = list(pirmet.changes.select_related('changed_by').order_by('-created_at'))
+    _status_labels = dict(PirmetClearance.STATUS_CHOICES)
+    for log in change_logs:
+        log.old_status_label = _status_labels.get(log.old_status, log.old_status)
+        log.new_status_label = _status_labels.get(log.new_status, log.new_status)
+
     return render(
         request,
         'hcsd/pest_control_activity_permit_detail.html',
@@ -1273,6 +1279,7 @@ def pest_control_permit_detail(request, id):
             'review_errors': review_errors,
             'status_changes': status_changes,
             'detail_changes': detail_changes,
+            'change_logs': change_logs,
             'inspection_receiver_name': inspection_receiver_name,
             'inspection_report_decision': inspection_report_decision,
             'inspection_report_by': inspection_report_by,
