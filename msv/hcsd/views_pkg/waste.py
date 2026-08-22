@@ -38,7 +38,7 @@ from .common import (
     _vehicle_inspection_report_photo_docs, _request_documents,
     _latest_expired_activity_permit_before, _delay_months_after_first_month,
     _initial_violation_reference_expiry, _violation_reference_expiry_date,
-    _log_pirmet_change, _log_company_change, _split_activities,
+    _log_pirmet_change, _log_company_change, _split_activities, _translate_log_note,
     _activity_keys_for_company, _permit_label_ar, _permit_detail_url_name,
     _certificate_type_for_exam, _certificate_expiry, _enginer_has_passed_for_certificate,
     _is_effective_active_permit, _engineer_no_certificate_notice,
@@ -407,6 +407,11 @@ def waste_permit_detail(request, id):
             waste_details.material_state or '—' if waste_details else '—',
         ),
     }
+
+    change_logs = list(pirmet.changes.select_related('changed_by').order_by('-created_at'))
+    for log in change_logs:
+        log.notes_ar = _translate_log_note(log.notes)
+
     return render(
         request,
         'hcsd/waste_permit_detail.html',
@@ -414,6 +419,7 @@ def waste_permit_detail(request, id):
             'pirmet': pirmet,
             'waste_details': waste_details,
             'waste_detail_labels': waste_detail_labels,
+            'change_logs': change_logs,
             'waste_detail_choices': {
                 'waste_classification': WasteDisposalRequest.WASTE_CLASSIFICATION_CHOICES,
                 'waste_types': WasteDisposalRequest.WASTE_TYPE_CHOICES,

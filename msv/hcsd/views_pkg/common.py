@@ -474,6 +474,10 @@ _LOG_NOTE_TRANSLATIONS = {
     'Inspection receipt uploaded.':                            'تم رفع إيصال التفتيش.',
     'Payment received.':                                       'تم استلام الدفع.',
     'Payment receipt uploaded.':                                'تم رفع إيصال الدفع.',
+    'Waste disposal base permit created.':                     'تم إنشاء تصريح التخلص من النفايات.',
+    'Waste permit payment reference recorded.':                'تم تسجيل رقم أمر دفع تصريح التخلص.',
+    'Waste permit payment received and permit issued.':        'تم استلام دفع تصريح التخلص وإصدار التصريح.',
+    'Waste permit issued for 6 months.':                       'تم إصدار تصريح التخلص لمدة 6 أشهر.',
 }
 
 # Prefix/pattern-based English/legacy notes -> Arabic, for values that embed data.
@@ -500,6 +504,14 @@ _LOG_NOTE_PATTERNS = [
     (re.compile(r'^inspection_requires_insurance:no$'), lambda m: 'التفتيش لا يتطلب تأمين استيفاء الشروط.'),
     (re.compile(r'^\w+:deleted$'), lambda m: 'تم حذف الملف المرفق.'),
     (re.compile(r'^\w+:replaced$'), lambda m: 'تم استبدال الملف المرفق.'),
+    (re.compile(r'^waste_disposal_request_documents:(\d+):(\d+)$'), lambda m: f'تم رفع {m.group(2)} مستند(ات) لطلب التخلص رقم {m.group(1)}.'),
+    (re.compile(r'^waste_disposal_payment_reference:(\d+)$'), lambda m: f'تم تسجيل رقم دفع طلب التخلص رقم {m.group(1)}.'),
+    (re.compile(r'^waste_disposal_payment_received:(\d+)$'), lambda m: f'تم تأكيد دفع طلب التخلص رقم {m.group(1)}.'),
+    (re.compile(r'^Waste disposal request (\d+) decision: approved\.$'), lambda m: f'قرار طلب التخلص رقم {m.group(1)}: معتمد.'),
+    (re.compile(r'^Waste disposal request (\d+) decision: rejected\.$'), lambda m: f'قرار طلب التخلص رقم {m.group(1)}: مرفوض.'),
+    (re.compile(r'^waste_disposal_inspection:(\d+):approved$'), lambda m: f'نتيجة تفتيش طلب التخلص رقم {m.group(1)}: معتمد.'),
+    (re.compile(r'^waste_disposal_inspection:(\d+):rejected$'), lambda m: f'نتيجة تفتيش طلب التخلص رقم {m.group(1)}: مرفوض.'),
+    (re.compile(r'^waste_disposal_request_cancelled:(\d+):(.+)$', re.DOTALL), lambda m: f'تم إلغاء طلب التخلص رقم {m.group(1)} — السبب: {m.group(2)}'),
 ]
 
 
