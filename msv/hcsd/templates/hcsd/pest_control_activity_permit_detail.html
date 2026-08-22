@@ -1879,7 +1879,8 @@
             <div class="tl-track"><span class="tl-dot"></span></div>
             <div class="tl-card">
               <div class="tl-title">
-                {% if log.change_type == 'created' %}إنشاء الطلب
+                {% if log.notes %}{{ log.notes }}
+                {% elif log.change_type == 'created' %}إنشاء الطلب
                 {% elif log.change_type == 'status_change' %}تغيير الحالة
                 {% elif log.change_type == 'payment_update' %}تحديث الدفع
                 {% elif log.change_type == 'document_upload' %}رفع مستندات
@@ -1893,7 +1894,6 @@
               {% if log.old_status or log.new_status %}
               <div class="tl-notes">الحالة: {{ log.old_status_label|default:"—" }} ← {{ log.new_status_label|default:"—" }}</div>
               {% endif %}
-              {% if log.notes %}<div class="tl-notes">{{ log.notes }}</div>{% endif %}
             </div>
           </div>
           {% endfor %}
