@@ -661,6 +661,12 @@ def vehicle_permit_detail(request, id):
     if latest_inspection_report_notes and ':' in latest_inspection_report_notes.notes:
         inspection_report_notes = latest_inspection_report_notes.notes.split(':', 1)[1].strip()
 
+    change_logs = list(pirmet.changes.select_related('changed_by').order_by('-created_at'))
+    _status_labels = dict(PirmetClearance.STATUS_CHOICES)
+    for log in change_logs:
+        log.old_status_label = _status_labels.get(log.old_status, log.old_status)
+        log.new_status_label = _status_labels.get(log.new_status, log.new_status)
+
     return render(
         request,
         'hcsd/vehicle_permit_detail.html',
@@ -690,6 +696,7 @@ def vehicle_permit_detail(request, id):
                 and pirmet.status not in {'issued', 'cancelled_admin'}
             ),
             'inspector_users': _inspector_users_qs(),
+            'change_logs': change_logs,
         },
     )
 
