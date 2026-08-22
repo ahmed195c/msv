@@ -79,9 +79,39 @@ def clearance_list(request):
             list(_via_review) + list(_via_report)
         )
 
+    # A permit sitting at 'inspection_completed' whose latest inspection report
+    # was NOT approved (rejected / requirements_required) is effectively
+    # finished too — same rule the detailed active/finished split below uses —
+    # even though its status hasn't transitioned to 'needs_completion'/
+    # 'rejected' yet. Exclude those from the "active" tab-badge count as well,
+    # otherwise it overcounts requests that are actually done.
+    _inspection_completed_ids = list(
+        PirmetClearance.objects.filter(
+            permit_type__in=list(_valid_tab_keys), status='inspection_completed',
+        ).values_list('id', flat=True)
+    )
+    _non_approved_inspection_completed_ids = set()
+    if _inspection_completed_ids:
+        _latest_report_logs = (
+            PirmetChangeLog.objects.filter(
+                pirmet_id__in=_inspection_completed_ids,
+                change_type='details_update',
+                notes__startswith='inspection_report:',
+            )
+            .order_by('pirmet_id', '-created_at')
+        )
+        _seen_pirmet_ids = set()
+        for log in _latest_report_logs:
+            if log.pirmet_id in _seen_pirmet_ids:
+                continue
+            _seen_pirmet_ids.add(log.pirmet_id)
+            decision = _inspection_report_decision_from_note(log.notes)
+            if decision and decision != 'approved':
+                _non_approved_inspection_completed_ids.add(log.pirmet_id)
+
     _counts_base = PirmetClearance.objects.filter(
         permit_type__in=list(_valid_tab_keys)
-    ).exclude(status__in=_finished_statuses_set)
+    ).exclude(status__in=_finished_statuses_set).exclude(id__in=_non_approved_inspection_completed_ids)
     if search_query:
         _counts_base = _counts_base.filter(
             Q(company__name__icontains=search_query)
