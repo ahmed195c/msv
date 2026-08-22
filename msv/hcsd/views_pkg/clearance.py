@@ -608,7 +608,7 @@ def permit_types(request):
         qs = (
             PirmetClearance.objects.filter(permit_type='pesticide_transport', status='issued')
             .select_related('transport_details')
-            .order_by('-dateOfExpiry', '-id')
+            .order_by('-dateOfCreation', '-id')
         )
         for p in qs:
             vehicle_number = (getattr(p.transport_details, 'vehicle_number', '') or '').strip()

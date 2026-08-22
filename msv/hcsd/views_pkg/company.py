@@ -109,7 +109,7 @@ def company_list(request):
             status='issued',
         )
         .select_related('transport_details')
-        .order_by('-dateOfExpiry', '-id')
+        .order_by('-dateOfCreation', '-id')
     ):
         vehicle_number = (getattr(permit.transport_details, 'vehicle_number', '') or '').strip()
         key = (permit.company_id, vehicle_number or f'_pk{permit.id}')
