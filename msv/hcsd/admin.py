@@ -13,6 +13,7 @@ from .models import (
     UserProfile,
     WasteDisposalPermit,
 )
+from .views_pkg.common import _inspector_users_qs
 
 
 @admin.register(PirmetClearance)
@@ -23,10 +24,27 @@ class PirmetClearanceAdmin(admin.ModelAdmin):
     ordering = ('-dateOfCreation',)
 
 
+@admin.register(InspectorReview)
+class InspectorReviewAdmin(admin.ModelAdmin):
+    list_display = ('id', 'pirmet', 'inspector_user', 'isApproved', 'reviewDate')
+    list_filter = ('isApproved',)
+    search_fields = ('pirmet__permit_no', 'pirmet__company__name', 'inspector_user__username')
+    ordering = ('-reviewDate',)
+    # `inspector` (Enginer FK) is legacy and only read as a fallback for old
+    # data — see _inspector_review_name() in views_pkg/common.py. Editing it
+    # here would let someone assign a company engineer as the "receiving
+    # inspector", which is wrong; the real field is inspector_user.
+    exclude = ('inspector',)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'inspector_user':
+            kwargs['queryset'] = _inspector_users_qs()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 admin.site.register(Company)
 admin.site.register(Enginer)
 admin.site.register(PirmetDocument)
-admin.site.register(InspectorReview)
 admin.site.register(PirmetChangeLog)
 admin.site.register(PesticideTransportPermit)
 admin.site.register(WasteDisposalPermit)
