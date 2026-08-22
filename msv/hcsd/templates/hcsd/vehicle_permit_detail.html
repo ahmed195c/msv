@@ -661,38 +661,20 @@
           <form method="post" enctype="multipart/form-data" class="review-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="payment">
-            <div class="upload-grid-two">
-              <div class="upload-card">
-                <div class="upload-card-head">
-                  <span>التقاط صورة مباشرة</span>
-                  <span class="upload-card-note">كاميرا الجهاز</span>
-                </div>
-                <label class="upload-dropzone js-dropzone" for="payment_receipt_camera">
-                  <span class="upload-dropzone-icon">CAM</span>
-                  <span class="upload-dropzone-title">اضغط لالتقاط صورة الإيصال</span>
-                  <span class="upload-dropzone-sub">صورة مباشرة من الكاميرا</span>
-                </label>
-                <input id="payment_receipt_camera" name="payment_receipt_camera" type="file" accept="image/*" capture="environment" class="upload-hidden-input js-file-input">
-                <div class="upload-file-chip js-file-chip" aria-live="polite">
-                  <span class="upload-file-chip-name js-file-name">لم يتم اختيار صورة</span>
-                  <span class="upload-file-chip-size js-file-size"></span>
-                </div>
+            <div class="upload-card">
+              <div class="upload-card-head">
+                <span>إرفاق إثبات الدفع</span>
+                <span class="upload-card-note">PDF أو صورة</span>
               </div>
-              <div class="upload-card">
-                <div class="upload-card-head">
-                  <span>إرفاق إثبات الدفع</span>
-                  <span class="upload-card-note">PDF أو صورة</span>
-                </div>
-                <label class="upload-dropzone js-dropzone" for="payment_receipt">
-                  <span class="upload-dropzone-icon">⇪</span>
-                  <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
-                  <span class="upload-dropzone-sub">يمكنك رفع صورة أو PDF</span>
-                </label>
-                <input id="payment_receipt" name="payment_receipt" type="file" accept=".pdf,image/*" class="upload-hidden-input js-file-input">
-                <div class="upload-file-chip js-file-chip" aria-live="polite">
-                  <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
-                  <span class="upload-file-chip-size js-file-size"></span>
-                </div>
+              <label class="upload-dropzone js-dropzone" for="payment_receipt">
+                <span class="upload-dropzone-icon">⇪</span>
+                <span class="upload-dropzone-title">اسحب الملف هنا أو اضغط للاختيار</span>
+                <span class="upload-dropzone-sub">يمكنك رفع صورة أو PDF</span>
+              </label>
+              <input id="payment_receipt" name="payment_receipt" type="file" accept=".pdf,image/*" class="upload-hidden-input js-file-input">
+              <div class="upload-file-chip js-file-chip" aria-live="polite">
+                <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملف</span>
+                <span class="upload-file-chip-size js-file-size"></span>
               </div>
             </div>
             <button type="submit">حفظ إثبات الدفع</button>
