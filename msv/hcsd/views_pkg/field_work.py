@@ -1683,7 +1683,12 @@ def field_work_monthly_excel(request):
     FONT_WHITE = Font(name='Calibri', bold=True, color='FFFFFF', size=9)
     FONT_DATA  = Font(name='Calibri', size=9)
     ALIGN_CTR  = Alignment(horizontal='center', vertical='center', wrap_text=False)
-    ALIGN_LFT  = Alignment(horizontal='left',   vertical='center', wrap_text=False)
+    # readingOrder=2 forces RTL explicitly. Without it, Excel auto-detects
+    # per-cell direction from the first character — an area name written in
+    # English (while others are Arabic) then renders left-to-right, so the
+    # column looks inconsistent depending on which language each row happens
+    # to start with.
+    ALIGN_LFT  = Alignment(horizontal='left',   vertical='center', wrap_text=False, readingOrder=2)
 
     for (yr, month) in sorted(monthly.keys()):
         orders_in_month = monthly[(yr, month)]
@@ -1862,7 +1867,11 @@ def field_work_materials_excel(request):
     FONT_HDR  = Font(name='Calibri', bold=True, color='FFFFFF', size=9)
     FONT_DATA = Font(name='Calibri', size=9)
     ALIGN_CTR = Alignment(horizontal='center', vertical='center', wrap_text=False)
-    ALIGN_LFT = Alignment(horizontal='right',  vertical='center', wrap_text=False)
+    # readingOrder=2 forces RTL explicitly — otherwise Excel auto-detects
+    # per-cell direction from the first character, so an area name written
+    # in English renders left-to-right while Arabic ones don't, making the
+    # column look inconsistent.
+    ALIGN_LFT = Alignment(horizontal='right',  vertical='center', wrap_text=False, readingOrder=2)
 
     for col_idx, width in enumerate(_MAT_COL_WIDTHS, start=1):
         ws.column_dimensions[get_column_letter(col_idx)].width = width
