@@ -314,7 +314,7 @@
           <div style="flex:1;min-width:200px;"><label class="f-label">اختر المفتش</label>
             <select name="inspector_id" class="f-select">
               <option value="">— اختر مفتشاً —</option>
-              {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
+              {% for u in inspector_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
             </select>
           </div>
           <button type="submit" class="btn-action">تعيين</button>

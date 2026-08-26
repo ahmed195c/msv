@@ -27,7 +27,10 @@ from ..models import (
     WeedRemovalSupervisorTask, WeedRemovalVehicle, WeedRemovalPhoto,
     WeedRemovalWorkSession, WeedRemovalSessionVehicle,
 )
-from .common import _can_admin, _can_data_entry, _get_lang, _fix_rtl_pdf_text, _arabic_digits_to_western
+from .common import (
+    _can_admin, _can_data_entry, _get_lang, _fix_rtl_pdf_text, _arabic_digits_to_western,
+    _inspector_users_qs,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -156,6 +159,7 @@ def weed_detail(request, pk):
     inspection      = getattr(obj, 'inspection', None)
     supervisor_task = getattr(obj, 'supervisor_task', None)
     staff_users     = User.objects.filter(is_active=True).order_by('first_name', 'username')
+    inspector_users = _inspector_users_qs()
 
     can_manage    = _can_manage(request.user)
     is_inspector  = bool(inspection)  if can_manage else (inspection  and inspection.inspector_id       == request.user.id)
@@ -209,6 +213,7 @@ def weed_detail(request, pk):
         'work_sessions': work_sessions,
         'session_summary': session_summary,
         'staff_users': staff_users,
+        'inspector_users': inspector_users,
         'is_inspector': is_inspector,
         'is_supervisor': is_supervisor,
         'can_manage': can_manage,
@@ -235,7 +240,7 @@ def weed_assign_inspector(request, pk):
     if not inspector_id:
         return redirect('weed_detail', pk=pk)
 
-    inspector = get_object_or_404(User, pk=inspector_id, is_active=True)
+    inspector = get_object_or_404(_inspector_users_qs(), pk=inspector_id)
     inspection, created = WeedRemovalInspection.objects.get_or_create(
         request=obj,
         defaults={'inspector': inspector, 'assigned_by': request.user},
