@@ -180,6 +180,11 @@ def weed_detail(request, pk):
     can_manage    = _can_manage(request.user)
     is_inspector  = bool(inspection)  if can_manage else (inspection  and inspection.inspector_id       == request.user.id)
     is_supervisor = bool(supervisor_task) if can_manage else (supervisor_task and supervisor_task.supervisor_id == request.user.id)
+    can_take_inspection = (
+        obj.status == 'new'
+        and not inspection
+        and inspector_users.filter(pk=request.user.pk).exists()
+    )
 
     # Only the inspector's own visit photos (not tied to any supervisor work
     # session) — session-scoped photos are shown inside each session's own
@@ -232,6 +237,7 @@ def weed_detail(request, pk):
         'supervisor_users': supervisor_users,
         'is_inspector': is_inspector,
         'is_supervisor': is_supervisor,
+        'can_take_inspection': can_take_inspection,
         'can_manage': can_manage,
         'can_admin': _can_admin(request.user),
         'photos_before': photos_before,
@@ -268,6 +274,30 @@ def weed_assign_inspector(request, pk):
 
     obj.status = 'inspector_assigned'
     obj.save(update_fields=['status', 'updated_at'])
+    return redirect('weed_detail', pk=pk)
+
+
+@login_required
+@require_POST
+def weed_take_inspection(request, pk):
+    """Let an inspector self-assign an unclaimed request instead of waiting
+    for an admin/data-entry person to pick them from the dropdown."""
+    from django.db import transaction
+
+    if not _weed_inspector_users_qs().filter(pk=request.user.pk).exists():
+        return redirect('weed_detail', pk=pk)
+
+    with transaction.atomic():
+        obj = get_object_or_404(WeedRemovalRequest.objects.select_for_update(), pk=pk)
+        if obj.status != 'new':
+            return redirect('weed_detail', pk=pk)
+
+        WeedRemovalInspection.objects.get_or_create(
+            request=obj,
+            defaults={'inspector': request.user, 'assigned_by': request.user},
+        )
+        obj.status = 'inspector_assigned'
+        obj.save(update_fields=['status', 'updated_at'])
     return redirect('weed_detail', pk=pk)
 
 

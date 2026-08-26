@@ -34,7 +34,7 @@ from .engineer_addition import engineer_addition_create, engineer_addition_detai
 from .field_work import field_work_list, field_work_create, field_work_detail, field_work_report, field_work_report_print, field_work_excel_import, field_work_excel_review, field_work_supervisors, field_work_supervisor_orders, field_work_excel_report, field_work_monthly_excel, field_work_materials_excel, field_work_recurring_list, field_work_recurring_edit, field_work_recurring_toggle, field_work_recurring_delete
 from .weed_removal import (
     weed_list, weed_create, weed_detail,
-    weed_assign_inspector, weed_inspector_done,
+    weed_assign_inspector, weed_take_inspection, weed_inspector_done,
     weed_assign_supervisor,
     weed_work_start, weed_report_submit, weed_add_photos,
     weed_reject, weed_close, weed_photo_delete, weed_delete,
@@ -71,7 +71,7 @@ __all__ = [
     'container_mark_transferred', 'container_submit_report', 'container_close',
     'container_photo_delete', 'container_reject', 'container_delete',
     'weed_list', 'weed_create', 'weed_detail',
-    'weed_assign_inspector', 'weed_inspector_done',
+    'weed_assign_inspector', 'weed_take_inspection', 'weed_inspector_done',
     'weed_assign_supervisor',
     'weed_work_start', 'weed_report_submit', 'weed_add_photos',
     'weed_reject', 'weed_close', 'weed_photo_delete', 'weed_delete',

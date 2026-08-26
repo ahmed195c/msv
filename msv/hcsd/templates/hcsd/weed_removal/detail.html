@@ -265,7 +265,7 @@
     <div class="doc-table">
       <div class="detail-item"><span class="label">تاريخ التقديم</span><span class="value">{{ obj.created_at|date:"d/m/Y" }}</span></div>
       <div class="detail-item"><span class="label">آخر تحديث</span><span class="value">{{ obj.updated_at|date:"d/m/Y" }}</span></div>
-      <div class="detail-item"><span class="label">أضيف بواسطة</span><span class="value">{{ obj.created_by.get_full_name|default:obj.created_by.username|default:"—" }}</span></div>
+      <div class="detail-item"><span class="label">أضيف بواسطة</span><span class="value">{% if obj.created_by %}{{ obj.created_by.get_full_name|default:obj.created_by.username }}{% else %}—{% endif %}</span></div>
       {% if obj.complainant_name %}<div class="detail-item"><span class="label">اسم المتعامل</span><span class="value">{{ obj.complainant_name }}</span></div>{% endif %}
       {% if obj.complainant_mobile %}<div class="detail-item"><span class="label">الموبايل</span><span class="value" dir="ltr">{{ obj.complainant_mobile }}</span></div>{% endif %}
       {% if obj.area %}<div class="detail-item"><span class="label">المنطقة</span><span class="value">{{ obj.area }}</span></div>{% endif %}
@@ -319,6 +319,19 @@
           </div>
           <button type="submit" class="btn-action">تعيين</button>
         </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══ STEP 1b: Inspector self-take ══ -->
+  {% if can_take_inspection %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">استلام الطلب</span></div>
+    <div class="doc-form-body">
+      <form method="post" action="{% url 'weed_take_inspection' obj.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-action">استلام الطلب</button>
       </form>
     </div>
   </div>
@@ -557,7 +570,7 @@
       <span class="result-badge result-badge--rejected">✕ مرفوض</span>
     </div>
     <div class="meta-grid">
-      <div><div class="meta-label">رُفض بواسطة</div><div class="meta-value">{{ inspection.rejected_by.get_full_name|default:inspection.rejected_by.username|default:"—" }}</div></div>
+      <div><div class="meta-label">رُفض بواسطة</div><div class="meta-value">{% if inspection.rejected_by %}{{ inspection.rejected_by.get_full_name|default:inspection.rejected_by.username }}{% else %}—{% endif %}</div></div>
       <div><div class="meta-label">تاريخ الرفض</div><div class="meta-value">{{ inspection.rejected_at|date:"d/m/Y H:i" }}</div></div>
     </div>
     <div style="margin:0 18px 18px;padding:12px 16px;background:#fdf0ea;border:1.5px solid #e2b8a0;border-radius:6px;">
@@ -572,7 +585,7 @@
   <div class="permit-section--doc">
     <div class="doc-band"><span class="doc-band-title">سجل المفتش</span></div>
     <div class="meta-grid">
-      <div><div class="meta-label">المفتش</div><div class="meta-value">{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</div></div>
+      <div><div class="meta-label">المفتش</div><div class="meta-value">{% if inspection.inspector %}{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}{% else %}—{% endif %}</div></div>
       <div><div class="meta-label">تاريخ التعيين</div><div class="meta-value">{{ inspection.assigned_at|date:"d/m/Y H:i" }}</div></div>
       {% if inspection.completed_at %}<div><div class="meta-label">تاريخ الإتمام</div><div class="meta-value">{{ inspection.completed_at|date:"d/m/Y H:i" }}</div></div>{% endif %}
     </div>
@@ -605,7 +618,7 @@
   <div class="permit-section--doc">
     <div class="doc-band"><span class="doc-band-title">سجل المراقب</span></div>
     <div class="meta-grid">
-      <div><div class="meta-label">المراقب</div><div class="meta-value">{{ supervisor_task.supervisor.get_full_name|default:supervisor_task.supervisor.username }}</div></div>
+      <div><div class="meta-label">المراقب</div><div class="meta-value">{% if supervisor_task.supervisor %}{{ supervisor_task.supervisor.get_full_name|default:supervisor_task.supervisor.username }}{% else %}—{% endif %}</div></div>
       <div><div class="meta-label">تاريخ التعيين</div><div class="meta-value">{{ supervisor_task.assigned_at|date:"d/m/Y H:i" }}</div></div>
       {% if supervisor_task.completed_at %}<div><div class="meta-label">تاريخ الإتمام</div><div class="meta-value">{{ supervisor_task.completed_at|date:"d/m/Y H:i" }}</div></div>{% endif %}
     </div>
