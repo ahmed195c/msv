@@ -397,7 +397,7 @@
           <div style="flex:1;min-width:200px;"><label class="f-label">اختر المراقب</label>
             <select name="supervisor_id" class="f-select">
               <option value="">— اختر مراقباً —</option>
-              {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
+              {% for u in supervisor_users %}<option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>{% endfor %}
             </select>
           </div>
           <button type="submit" class="btn-action">تعيين</button>

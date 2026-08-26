@@ -27,16 +27,32 @@ from ..models import (
     WeedRemovalSupervisorTask, WeedRemovalVehicle, WeedRemovalPhoto,
     WeedRemovalWorkSession, WeedRemovalSessionVehicle,
 )
-from .common import (
-    _can_admin, _can_data_entry, _get_lang, _fix_rtl_pdf_text, _arabic_digits_to_western,
-    _inspector_users_qs,
-)
+from .common import _can_admin, _can_data_entry, _get_lang, _fix_rtl_pdf_text, _arabic_digits_to_western
 
 logger = logging.getLogger(__name__)
 
 ALLOWED_PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp'}
 ALLOWED_PDF_EXTENSION = '.pdf'
 _PDF_IMPORT_SESSION_KEY = 'weed_pdf_import'
+
+# Weed removal is its own program with its own staff — separate from the
+# permits system's "Inspector" group and from field-work's "fw_supervisor".
+WEED_INSPECTOR_GROUP = 'Weed Removal Inspector'
+WEED_SUPERVISOR_GROUP = 'Weed Removal Supervisor'
+
+
+def _weed_inspector_users_qs():
+    return (
+        User.objects.filter(is_active=True, groups__name=WEED_INSPECTOR_GROUP)
+        .distinct().order_by('first_name', 'username')
+    )
+
+
+def _weed_supervisor_users_qs():
+    return (
+        User.objects.filter(is_active=True, groups__name=WEED_SUPERVISOR_GROUP)
+        .distinct().order_by('first_name', 'username')
+    )
 
 
 def _can_manage(user):
@@ -158,8 +174,8 @@ def weed_detail(request, pk):
 
     inspection      = getattr(obj, 'inspection', None)
     supervisor_task = getattr(obj, 'supervisor_task', None)
-    staff_users     = User.objects.filter(is_active=True).order_by('first_name', 'username')
-    inspector_users = _inspector_users_qs()
+    inspector_users = _weed_inspector_users_qs()
+    supervisor_users = _weed_supervisor_users_qs()
 
     can_manage    = _can_manage(request.user)
     is_inspector  = bool(inspection)  if can_manage else (inspection  and inspection.inspector_id       == request.user.id)
@@ -212,8 +228,8 @@ def weed_detail(request, pk):
         'current_session': current_session,
         'work_sessions': work_sessions,
         'session_summary': session_summary,
-        'staff_users': staff_users,
         'inspector_users': inspector_users,
+        'supervisor_users': supervisor_users,
         'is_inspector': is_inspector,
         'is_supervisor': is_supervisor,
         'can_manage': can_manage,
@@ -240,7 +256,7 @@ def weed_assign_inspector(request, pk):
     if not inspector_id:
         return redirect('weed_detail', pk=pk)
 
-    inspector = get_object_or_404(_inspector_users_qs(), pk=inspector_id)
+    inspector = get_object_or_404(_weed_inspector_users_qs(), pk=inspector_id)
     inspection, created = WeedRemovalInspection.objects.get_or_create(
         request=obj,
         defaults={'inspector': inspector, 'assigned_by': request.user},
@@ -301,7 +317,7 @@ def weed_assign_supervisor(request, pk):
     if not supervisor_id:
         return redirect('weed_detail', pk=pk)
 
-    supervisor = get_object_or_404(User, pk=supervisor_id, is_active=True)
+    supervisor = get_object_or_404(_weed_supervisor_users_qs(), pk=supervisor_id)
     task, created = WeedRemovalSupervisorTask.objects.get_or_create(
         request=obj,
         defaults={'supervisor': supervisor, 'assigned_by': request.user},
