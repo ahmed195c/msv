@@ -420,6 +420,19 @@
   </div>
   {% endif %}
 
+  <!-- ══ STEP 3b: Supervisor self-take ══ -->
+  {% if can_take_supervision %}
+  <div class="permit-section--doc">
+    <div class="doc-band"><span class="doc-band-title">استلام الطلب</span></div>
+    <div class="doc-form-body">
+      <form method="post" action="{% url 'weed_take_supervision' obj.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-action">استلام الطلب</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- ══ STEP 4: Start first session ══ -->
   {% if obj.status == 'supervisor_assigned' and is_supervisor %}
   <div class="permit-section--doc">

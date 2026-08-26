@@ -185,6 +185,11 @@ def weed_detail(request, pk):
         and not inspection
         and inspector_users.filter(pk=request.user.pk).exists()
     )
+    can_take_supervision = (
+        obj.status == 'inspection_done'
+        and not supervisor_task
+        and supervisor_users.filter(pk=request.user.pk).exists()
+    )
 
     # Only the inspector's own visit photos (not tied to any supervisor work
     # session) — session-scoped photos are shown inside each session's own
@@ -238,6 +243,7 @@ def weed_detail(request, pk):
         'is_inspector': is_inspector,
         'is_supervisor': is_supervisor,
         'can_take_inspection': can_take_inspection,
+        'can_take_supervision': can_take_supervision,
         'can_manage': can_manage,
         'can_admin': _can_admin(request.user),
         'photos_before': photos_before,
@@ -359,6 +365,30 @@ def weed_assign_supervisor(request, pk):
 
     obj.status = 'supervisor_assigned'
     obj.save(update_fields=['status', 'updated_at'])
+    return redirect('weed_detail', pk=pk)
+
+
+@login_required
+@require_POST
+def weed_take_supervision(request, pk):
+    """Let a supervisor self-assign a request once the inspection is done,
+    instead of waiting for an admin/data-entry person to pick them."""
+    from django.db import transaction
+
+    if not _weed_supervisor_users_qs().filter(pk=request.user.pk).exists():
+        return redirect('weed_detail', pk=pk)
+
+    with transaction.atomic():
+        obj = get_object_or_404(WeedRemovalRequest.objects.select_for_update(), pk=pk)
+        if obj.status != 'inspection_done':
+            return redirect('weed_detail', pk=pk)
+
+        WeedRemovalSupervisorTask.objects.get_or_create(
+            request=obj,
+            defaults={'supervisor': request.user, 'assigned_by': request.user},
+        )
+        obj.status = 'supervisor_assigned'
+        obj.save(update_fields=['status', 'updated_at'])
     return redirect('weed_detail', pk=pk)
 
 

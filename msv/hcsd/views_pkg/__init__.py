@@ -35,7 +35,7 @@ from .field_work import field_work_list, field_work_create, field_work_detail, f
 from .weed_removal import (
     weed_list, weed_create, weed_detail,
     weed_assign_inspector, weed_take_inspection, weed_inspector_done,
-    weed_assign_supervisor,
+    weed_assign_supervisor, weed_take_supervision,
     weed_work_start, weed_report_submit, weed_add_photos,
     weed_reject, weed_close, weed_photo_delete, weed_delete,
     weed_pdf_import, weed_pdf_review,
@@ -72,7 +72,7 @@ __all__ = [
     'container_photo_delete', 'container_reject', 'container_delete',
     'weed_list', 'weed_create', 'weed_detail',
     'weed_assign_inspector', 'weed_take_inspection', 'weed_inspector_done',
-    'weed_assign_supervisor',
+    'weed_assign_supervisor', 'weed_take_supervision',
     'weed_work_start', 'weed_report_submit', 'weed_add_photos',
     'weed_reject', 'weed_close', 'weed_photo_delete', 'weed_delete',
     'weed_pdf_import', 'weed_pdf_review', 'weed_save_location', 'weed_delete_location',
