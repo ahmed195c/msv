@@ -9,6 +9,7 @@ import datetime as _dt
 import io
 import logging
 import os
+import unicodedata
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -26,6 +27,13 @@ from .common import _can_admin, _can_data_entry, _can_fw_supervise, _fw_supervis
 logger = logging.getLogger(__name__)
 
 _STATUS_LABELS = dict(FieldWorkOrder.STATUS_CHOICES)
+
+
+def _clean_text(value):
+    """Strip and normalize Arabic Presentation Forms (e.g. pasted from a
+    legacy PDF/document source) back to standard Arabic letters, since most
+    fonts have no glyphs for that block and render it as boxes."""
+    return unicodedata.normalize('NFKC', (value or '').strip())
 
 
 def _fw_log(order, action, actor, from_value='', to_value='', note=''):
@@ -420,7 +428,7 @@ def field_work_create(request):
 
     if request.method == 'POST':
         import datetime as _dt_cls
-        get = lambda k: (request.POST.get(k) or '').strip()
+        get = lambda k: _clean_text(request.POST.get(k))
 
         order_number      = get('order_number')
         customer_name     = get('customer_name')
@@ -494,7 +502,7 @@ def field_work_recurring_list(request):
     errors = []
 
     if request.method == 'POST':
-        get = lambda k: (request.POST.get(k) or '').strip()
+        get = lambda k: _clean_text(request.POST.get(k))
 
         site_name        = get('site_name')
         customer_name    = get('customer_name')
@@ -568,7 +576,7 @@ def field_work_recurring_edit(request, pk):
     errors = []
 
     if request.method == 'POST':
-        get = lambda k: (request.POST.get(k) or '').strip()
+        get = lambda k: _clean_text(request.POST.get(k))
 
         site_name        = get('site_name')
         customer_name    = get('customer_name')
@@ -737,21 +745,21 @@ def field_work_detail(request, pk):
             _valid_src = {c for c, _ in FieldWorkOrder.COMPLAINT_SOURCE_CHOICES}
             if complaint_source_upd not in _valid_src:
                 complaint_source_upd = ''
-            site_name   = (request.POST.get('site_name') or '').strip()
-            work_type   = (request.POST.get('work_type') or '').strip()
-            location    = (request.POST.get('location') or '').strip()
-            description = (request.POST.get('description') or '').strip()
+            site_name   = _clean_text(request.POST.get('site_name'))
+            work_type   = _clean_text(request.POST.get('work_type'))
+            location    = _clean_text(request.POST.get('location'))
+            description = _clean_text(request.POST.get('description'))
             work_date   = (request.POST.get('work_date') or '').strip() or None
-            notes       = (request.POST.get('notes') or '').strip()
+            notes       = _clean_text(request.POST.get('notes'))
             workers_count_raw = (request.POST.get('workers_count') or '').strip()
-            equipment   = (request.POST.get('equipment_used') or '').strip()
+            equipment   = _clean_text(request.POST.get('equipment_used'))
             # Excel-specific fields
-            customer_name = (request.POST.get('customer_name') or '').strip()
+            customer_name = _clean_text(request.POST.get('customer_name'))
             mobile        = (request.POST.get('mobile') or '').strip()
-            area          = (request.POST.get('area') or '').strip()
-            street_number = (request.POST.get('street_number') or '').strip()
-            house_number  = (request.POST.get('house_number') or '').strip()
-            pest_types    = (request.POST.get('pest_types') or '').strip()
+            area          = _clean_text(request.POST.get('area'))
+            street_number = _clean_text(request.POST.get('street_number'))
+            house_number  = _clean_text(request.POST.get('house_number'))
+            pest_types    = _clean_text(request.POST.get('pest_types'))
             close_date_raw = (request.POST.get('close_date') or '').strip() or None
 
             workers_count = None
@@ -859,8 +867,8 @@ def field_work_detail(request, pk):
             import json as _json
             workers_raw    = (request.POST.get('workers_count') or '').strip()
             vehicles_raw   = (request.POST.get('vehicles_count') or '').strip()
-            building_type  = (request.POST.get('building_type') or '').strip()
-            sup_notes      = (request.POST.get('supervisor_notes') or '').strip()
+            building_type  = _clean_text(request.POST.get('building_type'))
+            sup_notes      = _clean_text(request.POST.get('supervisor_notes'))
             client_sig     = (request.POST.get('client_signature') or '').strip()
             supervisor_sig = (request.POST.get('supervisor_signature') or '').strip()
 
@@ -925,7 +933,7 @@ def field_work_detail(request, pk):
         elif action == 'postpone_order' and can_submit_report:
             from datetime import date as _date
             postponed_until_raw = (request.POST.get('postponed_until') or '').strip()
-            postpone_notes      = (request.POST.get('postpone_notes') or '').strip()
+            postpone_notes      = _clean_text(request.POST.get('postpone_notes'))
             try:
                 postponed_until = _date.fromisoformat(postponed_until_raw)
                 if postponed_until <= _date.today():
@@ -2262,25 +2270,25 @@ def field_work_excel_review(request):
             include = request.POST.get(f'row_{i}_include')
             if not include:
                 continue
-            order_number = (request.POST.get(f'row_{i}_order_number') or '').strip()
+            order_number = _clean_text(request.POST.get(f'row_{i}_order_number'))
             if mode == 'new_only' and order_number in existing:
                 continue
             _ex_status = (request.POST.get(f'row_{i}_excel_status') or '').strip()
             to_create.append(FieldWorkOrder(
                 order_number    = order_number,
                 request_date    = _to_date((request.POST.get(f'row_{i}_request_date') or '').strip()),
-                customer_name   = (request.POST.get(f'row_{i}_customer_name') or '').strip(),
+                customer_name   = _clean_text(request.POST.get(f'row_{i}_customer_name')),
                 mobile          = (request.POST.get(f'row_{i}_mobile') or '').strip(),
-                area            = (request.POST.get(f'row_{i}_area') or '').strip(),
-                house_number    = (request.POST.get(f'row_{i}_house_number') or '').strip(),
-                pest_types      = (request.POST.get(f'row_{i}_pest_types') or '').strip(),
-                supervisor_name = (request.POST.get(f'row_{i}_supervisor_name') or '').strip(),
-                worker_name     = (request.POST.get(f'row_{i}_worker_name') or '').strip(),
+                area            = _clean_text(request.POST.get(f'row_{i}_area')),
+                house_number    = _clean_text(request.POST.get(f'row_{i}_house_number')),
+                pest_types      = _clean_text(request.POST.get(f'row_{i}_pest_types')),
+                supervisor_name = _clean_text(request.POST.get(f'row_{i}_supervisor_name')),
+                worker_name     = _clean_text(request.POST.get(f'row_{i}_worker_name')),
                 excel_status    = _ex_status,
                 status          = _infer_status_from_excel(_ex_status),
-                street_number   = rows[i].get('street_number', ''),
+                street_number   = _clean_text(rows[i].get('street_number', '')),
                 close_date      = _to_date(rows[i].get('close_date', '')),
-                excel_status_note = rows[i].get('excel_status_note', ''),
+                excel_status_note = _clean_text(rows[i].get('excel_status_note', '')),
                 month_sheet     = rows[i].get('month_sheet', ''),
                 source            = 'excel',
                 complaint_source  = 'electronic',
@@ -2349,10 +2357,10 @@ def field_work_supervisors(request):
             username     = (request.POST.get('username') or '').strip()
             password     = (request.POST.get('password') or '').strip()
             password2    = (request.POST.get('password2') or '').strip()
-            name_ar      = (request.POST.get('name_ar') or '').strip()
+            name_ar      = _clean_text(request.POST.get('name_ar'))
             name_en      = (request.POST.get('name_en') or '').strip()
             admin_number = (request.POST.get('admin_number') or '').strip()
-            areas_raw    = (request.POST.get('areas') or '').strip()
+            areas_raw    = _clean_text(request.POST.get('areas'))
 
             if not username:
                 error = 'يرجى إدخال اسم المستخدم.'
@@ -2382,7 +2390,7 @@ def field_work_supervisors(request):
 
         elif action == 'add_area':
             sup_id = (request.POST.get('supervisor_id') or '').strip()
-            area = (request.POST.get('area') or '').strip()
+            area = _clean_text(request.POST.get('area'))
             if not sup_id or not area:
                 error = 'يرجى اختيار مراقب ومنطقة.'
             else:
