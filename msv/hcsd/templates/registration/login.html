@@ -92,6 +92,38 @@
     box-shadow: 0 0 0 3px var(--accent-bg);
   }
 
+  .field-input-wrap {
+    position: relative;
+  }
+
+  .field-input-wrap input {
+    padding-left: 40px;
+  }
+
+  .pw-toggle {
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--ink-3);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .pw-toggle:hover { background: var(--surface); color: var(--ink-2); }
+  .pw-toggle svg { width: 18px; height: 18px; }
+  .pw-toggle .icon-hide { display: none; }
+  .pw-toggle.is-visible .icon-show { display: none; }
+  .pw-toggle.is-visible .icon-hide { display: block; }
+
   .field-wrap .errorlist {
     margin: 0;
     padding: 0;
@@ -167,12 +199,32 @@
 
         <div class="field-wrap">
           <label for="{{ form.password.id_for_label }}">كلمة المرور</label>
-          {{ form.password }}
+          <div class="field-input-wrap">
+            {{ form.password }}
+            <button type="button" class="pw-toggle" id="pw-toggle" aria-label="إظهار كلمة المرور">
+              <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a19.68 19.68 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a19.7 19.7 0 0 1-3.22 4.41M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
           {{ form.password.errors }}
         </div>
 
         <button type="submit" class="auth-submit">دخول</button>
       </form>
+
+      <script>
+        (function () {
+          var btn = document.getElementById('pw-toggle');
+          var input = document.getElementById('{{ form.password.id_for_label }}');
+          if (!btn || !input) return;
+          btn.addEventListener('click', function () {
+            var showing = input.type === 'text';
+            input.type = showing ? 'password' : 'text';
+            btn.classList.toggle('is-visible', !showing);
+            btn.setAttribute('aria-label', showing ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور');
+          });
+        })();
+      </script>
 
       <div class="auth-divider"></div>
 
