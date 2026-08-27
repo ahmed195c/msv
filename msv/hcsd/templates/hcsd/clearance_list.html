@@ -10,9 +10,9 @@
   --surface-1:  #F1F4F7;
   --surface-2:  #e6ecf2;
   --border:     #d7dfe8;
-  --accent:     #304357;
-  --accent-dk:  #26384a;
-  --accent-lt:  #eaf0f6;
+  --accent:     #0e7490;
+  --accent-dk:  #0b5568;
+  --accent-lt:  #e6f2f4;
   --mono:       'JetBrains Mono', monospace;
   padding: 24px 16px 56px;
   background: var(--surface-1);
@@ -70,12 +70,12 @@
 .cl-field input:focus,
 .cl-field select:focus {
   outline: none; border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(26,92,154,.12); background: #fff;
+  box-shadow: 0 0 0 3px rgba(14,116,144,.12); background: #fff;
 }
 .cl-tag {
   display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;
   padding: 3px 12px; border-radius: 20px;
-  background: var(--accent-lt); border: 1.5px solid #a9bece;
+  background: var(--accent-lt); border: 1.5px solid #8fbac7;
   color: var(--accent); font-size: 12px; font-weight: 700;
 }
 .cl-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
@@ -188,7 +188,7 @@
 .st-waiting { background: var(--surface-2); color: var(--ink-2); border-color: var(--border); }
 .st-action  { background: #fff4e0; color: #7a4500; border-color: #e8c97a; }
 .st-error   { background: #fdeaea; color: #7a1a1a; border-color: #d08080; }
-.st-process { background: var(--accent-lt); color: var(--accent-dk); border-color: #a9bece; }
+.st-process { background: var(--accent-lt); color: var(--accent-dk); border-color: #8fbac7; }
 .st-done    { background: #e8f5ee; color: #1a5233; border-color: #7bcf9a; }
 .st-issued  { background: #d4f0e0; color: #0e3d1d; border-color: #5cbf8a; }
 .st-head    { background: #f0ebff; color: #4c1d95; border-color: #9b72e0; }
@@ -203,7 +203,7 @@
 }
 .cl-next svg { flex-shrink: 0; opacity: .6; }
 .cl-next--link {
-  color: var(--accent-dk); background: var(--accent-lt); border-color: #a9bece; text-decoration: none;
+  color: var(--accent-dk); background: var(--accent-lt); border-color: #8fbac7; text-decoration: none;
 }
 .cl-next--link:hover { background: #dde6ee; }
 .cl-next--err { color: #7a1a1a; background: #fdeaea; border-color: #d08080; }

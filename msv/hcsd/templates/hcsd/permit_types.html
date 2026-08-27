@@ -5,7 +5,7 @@
 /* ── 60-30-10 palette
    60% : #F1F4F7 / #fff  (background, cards)
    30% : #304357 / #41576f / #97a6b5  (text, borders)
-   10% : #304357  (primary action only)
+   10% : #0e7490  (primary action only)
 ──────────────────────────────────────────── */
 .pt-page { max-width: 1160px; margin: 0 auto; }
 .veh-badge:hover { filter: brightness(0.93); }
@@ -31,10 +31,10 @@
 }
 .pt-btn:hover { background: #e6ecf2; border-color: #bec9d5; }
 .pt-btn--primary {
-  background: #304357; color: #fff; border-color: #304357;
-  box-shadow: 0 2px 6px rgba(37,99,235,.22);
+  background: #0e7490; color: #fff; border-color: #0e7490;
+  box-shadow: 0 2px 6px rgba(14,116,144,.22);
 }
-.pt-btn--primary:hover { background: #26384a; border-color: #26384a; }
+.pt-btn--primary:hover { background: #0b5568; border-color: #0b5568; }
 
 /* ── Section ── */
 .pt-section {
@@ -88,7 +88,7 @@
 .pt-table td { padding: 11px 12px; border-bottom: 1px solid #e6ecf2; color: #304357; vertical-align: middle; }
 .pt-table tbody tr:last-child td { border-bottom: none; }
 .pt-table tbody tr:hover td { background: #F1F4F7; }
-.pt-table a { color: #304357; font-weight: 600; text-decoration: none; }
+.pt-table a { color: #0e7490; font-weight: 600; text-decoration: none; }
 .pt-table a:hover { text-decoration: underline; }
 
 /* ── Expiring badge ── */
@@ -104,7 +104,7 @@
 /* ── Section title pill ── */
 .pt-pill {
   display: inline-block; padding: 4px 12px;
-  background: #304357; color: #fff;
+  background: #0e7490; color: #fff;
   border-radius: 6px; font-size: 12px; font-weight: 700;
   margin-bottom: 14px;
 }
@@ -117,7 +117,7 @@
   border-radius: 7px; font-family: inherit; font-size: 13px;
   direction: rtl; outline: none; transition: border-color .15s;
 }
-.pt-search:focus { border-color: #304357; }
+.pt-search:focus { border-color: #0e7490; }
 
 @media (max-width: 680px) {
   .pt-header { flex-direction: column; }
@@ -367,7 +367,7 @@
 <!-- ── Pest-control permit company-select modal ── -->
 <div id="pest-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;">
   <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
-    <div style="background:#26384a;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="background:#0b5568;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <div style="color:#fff;font-size:15px;font-weight:700;">تصريح مزاولة نشاط — اختر الشركة</div>
         <div style="color:#c7d3de;font-size:12px;margin-top:3px;">ابحث بالاسم أو رقم الشركة</div>
@@ -389,7 +389,7 @@
 <!-- ── Vehicle permit company-select modal ── -->
 <div id="vehicle-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;">
   <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
-    <div style="background:#26384a;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="background:#0b5568;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <div style="color:#fff;font-size:15px;font-weight:700;">تصريح المركبة — اختر الشركة</div>
         <div style="color:#c7d3de;font-size:12px;margin-top:3px;">ابحث بالاسم أو رقم الشركة</div>
@@ -411,7 +411,7 @@
 <!-- ── Waste permit company-select modal ── -->
 <div id="waste-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;">
   <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
-    <div style="background:#26384a;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="background:#0b5568;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <div style="color:#fff;font-size:15px;font-weight:700;">تصريح التخلص من النفايات — اختر الشركة</div>
         <div style="color:#c7d3de;font-size:12px;margin-top:3px;">ابحث بالاسم أو رقم الشركة</div>
@@ -435,7 +435,7 @@
   <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
 
     <!-- header -->
-    <div style="background:#26384a;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="background:#0b5568;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <div style="color:#fff;font-size:15px;font-weight:700;">طلب تخلص من عبوات مبيدات فارغة</div>
         <div style="color:#c7d3de;font-size:12px;margin-top:3px;">ابحث عن الشركة بالاسم أو الرقم</div>
@@ -492,14 +492,14 @@ function renderDisposalResults(items) {
     var row = document.createElement('a');
     row.href = NEW_DISPOSAL_URL_TPL.replace('PERMIT_ID', p.id);
     row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid #d7dfe8;border-radius:8px;text-decoration:none;color:#304357;transition:.12s;';
-    row.onmouseover = function(){this.style.background='#eaf0f6';this.style.borderColor='#304357';};
+    row.onmouseover = function(){this.style.background='#e6f2f4';this.style.borderColor='#0e7490';};
     row.onmouseout  = function(){this.style.background='';this.style.borderColor='#d7dfe8';};
     row.innerHTML =
       '<div>' +
         '<div style="font-size:14px;font-weight:600;">' + p.name + '</div>' +
         '<div style="font-size:11px;color:#6f8194;margin-top:2px;">رقم الشركة: ' + p.number + '</div>' +
       '</div>' +
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#304357" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0e7490" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
     box.appendChild(row);
   });
 }
@@ -541,7 +541,7 @@ function _makePermitRow(urlTpl, c, expiryField, expiredField) {
   var expiry  = c[expiryField];
   var border  = expired ? '#fca5a5' : '#d7dfe8';
   var bgHover = expired ? '#fef2f2' : '#eaf0f6';
-  var bdHover = expired ? '#ef4444' : '#304357';
+  var bdHover = expired ? '#ef4444' : '#0e7490';
   var row = document.createElement('a');
   row.href = urlTpl.replace('COMPANY_ID', c.id);
   row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid ' + border + ';border-radius:8px;text-decoration:none;color:#304357;transition:.12s;' + (expired ? 'background:#fff5f5;' : '');
@@ -556,7 +556,7 @@ function _makePermitRow(urlTpl, c, expiryField, expiredField) {
       '<div style="font-size:11px;color:#6f8194;">رقم الشركة: ' + c.number + '</div>' +
       (badge ? '<div style="margin-top:2px;">' + badge + '</div>' : '') +
     '</div>' +
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (expired?'#ef4444':'#304357') + '" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (expired?'#ef4444':'#0e7490') + '" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
   return row;
 }
 
@@ -620,7 +620,7 @@ function _makeVehicleRow(c) {
 
   var newVehicleHref = VEHICLE_URL_TPL.replace('COMPANY_ID', c.id);
   var newVehicleBadge = '<a class="veh-badge" href="' + newVehicleHref + '" title="إضافة مركبة جديدة" ' +
-    'style="font-size:10px;font-weight:700;padding:2px 7px;background:#eaf0f6;color:#304357;border:1px dashed #b8c7d6;border-radius:10px;white-space:nowrap;text-decoration:none;">+ مركبة جديدة</a>';
+    'style="font-size:10px;font-weight:700;padding:2px 7px;background:#e6f2f4;color:#0e7490;border:1px dashed #7fb3c0;border-radius:10px;white-space:nowrap;text-decoration:none;">+ مركبة جديدة</a>';
 
   row.innerHTML =
     '<div style="font-size:14px;font-weight:600;">' + c.name + '</div>' +
@@ -713,7 +713,7 @@ renderWasteResults(ALL_COMPANIES);
         </div>
 
         <button type="submit"
-          style="padding:11px 16px;background:#304357;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;">
+          style="padding:11px 16px;background:#0e7490;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;">
           تحميل Excel
         </button>
       </div>
