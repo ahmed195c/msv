@@ -3,16 +3,16 @@
 {% block content %}
 <style>
 .cl-page {
-  --ink-1:      #1a2a3a;
-  --ink-2:      #3a4a5a;
-  --ink-3:      #5a6a7a;
-  --ink-4:      #8a9aaa;
-  --surface-1:  #f4f6f8;
-  --surface-2:  #e8ecf0;
-  --border:     #d0d8e0;
-  --accent:     #1a5c9a;
-  --accent-dk:  #14487a;
-  --accent-lt:  #e8f0f8;
+  --ink-1:      #304357;
+  --ink-2:      #41576f;
+  --ink-3:      #6f8194;
+  --ink-4:      #97a6b5;
+  --surface-1:  #F1F4F7;
+  --surface-2:  #e6ecf2;
+  --border:     #d7dfe8;
+  --accent:     #304357;
+  --accent-dk:  #26384a;
+  --accent-lt:  #eaf0f6;
   --mono:       'JetBrains Mono', monospace;
   padding: 24px 16px 56px;
   background: var(--surface-1);
@@ -75,7 +75,7 @@
 .cl-tag {
   display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;
   padding: 3px 12px; border-radius: 20px;
-  background: var(--accent-lt); border: 1.5px solid #b8d0e8;
+  background: var(--accent-lt); border: 1.5px solid #a9bece;
   color: var(--accent); font-size: 12px; font-weight: 700;
 }
 .cl-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
@@ -103,7 +103,7 @@
   cursor: pointer; transition: background .15s, border-color .15s, color .15s;
   white-space: nowrap;
 }
-.cl-tab:hover { background: var(--surface-2); border-color: #b0bcc8; color: var(--ink-1); }
+.cl-tab:hover { background: var(--surface-2); border-color: #bec9d5; color: var(--ink-1); }
 .cl-tab--active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .cl-tab--active:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
 .cl-tab-count {
@@ -157,7 +157,7 @@
 
 /* Left stripe */
 .cl-stripe { width: 5px; flex-shrink: 0; }
-.s-waiting { background: #8a9aaa; }
+.s-waiting { background: #97a6b5; }
 .s-action  { background: #c8860a; }
 .s-error   { background: #b03a1a; }
 .s-process { background: var(--accent); }
@@ -188,7 +188,7 @@
 .st-waiting { background: var(--surface-2); color: var(--ink-2); border-color: var(--border); }
 .st-action  { background: #fff4e0; color: #7a4500; border-color: #e8c97a; }
 .st-error   { background: #fdeaea; color: #7a1a1a; border-color: #d08080; }
-.st-process { background: var(--accent-lt); color: var(--accent-dk); border-color: #8ab0d8; }
+.st-process { background: var(--accent-lt); color: var(--accent-dk); border-color: #a9bece; }
 .st-done    { background: #e8f5ee; color: #1a5233; border-color: #7bcf9a; }
 .st-issued  { background: #d4f0e0; color: #0e3d1d; border-color: #5cbf8a; }
 .st-head    { background: #f0ebff; color: #4c1d95; border-color: #9b72e0; }
@@ -203,9 +203,9 @@
 }
 .cl-next svg { flex-shrink: 0; opacity: .6; }
 .cl-next--link {
-  color: var(--accent-dk); background: var(--accent-lt); border-color: #8ab0d8; text-decoration: none;
+  color: var(--accent-dk); background: var(--accent-lt); border-color: #a9bece; text-decoration: none;
 }
-.cl-next--link:hover { background: #d4e8f5; }
+.cl-next--link:hover { background: #dde6ee; }
 .cl-next--err { color: #7a1a1a; background: #fdeaea; border-color: #d08080; }
 
 /* Bottom row */
@@ -266,7 +266,7 @@
   border-radius: 8px; padding: 5px 16px; font-size: 13px;
   font-family: inherit; cursor: pointer; transition: background .15s;
 }
-.cl-pagination button:hover:not(:disabled) { background: var(--surface-2); border-color: #b0bcc8; }
+.cl-pagination button:hover:not(:disabled) { background: var(--surface-2); border-color: #bec9d5; }
 .cl-pagination button:disabled { opacity: .35; cursor: default; }
 .cl-pagination .pg-info { font-size: 12px; color: var(--ink-4); font-family: var(--mono); min-width: 52px; text-align: center; }
 
@@ -391,9 +391,9 @@
       {% if active_clearances %}
         {% for group in active_clearance_groups %}
           <div class="cl-group-head">
-            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#8a9aaa"/></svg>
+            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#97a6b5"/></svg>
             {{ group.label }}
-            <span style="font-family:var(--mono);font-size:11px;color:#8a9aaa;">({{ group.items|length }})</span>
+            <span style="font-family:var(--mono);font-size:11px;color:#97a6b5;">({{ group.items|length }})</span>
           </div>
 
           <div data-pg-group="a{{ forloop.counter }}">
@@ -424,9 +424,9 @@
       <div class="cl-section cl-section--finished" data-finished-body="finished" style="display:none;">
         {% for group in finished_clearance_groups %}
           <div class="cl-group-head">
-            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#8a9aaa"/></svg>
+            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#97a6b5"/></svg>
             {{ group.label }}
-            <span style="font-family:var(--mono);font-size:11px;color:#8a9aaa;">({{ group.items|length }})</span>
+            <span style="font-family:var(--mono);font-size:11px;color:#97a6b5;">({{ group.items|length }})</span>
           </div>
 
           <div data-pg-group="f{{ forloop.counter }}">
