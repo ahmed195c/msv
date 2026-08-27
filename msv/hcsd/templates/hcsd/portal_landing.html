@@ -296,16 +296,16 @@
 
   <div class="portal-auth-bar">
     {% if user.is_authenticated %}
+      <span class="portal-auth-user">
+        <span class="portal-auth-avatar">{{ user.get_full_name|default:user.username|slice:":1" }}</span>
+        {{ user.get_full_name|default:user.username }}
+      </span>
       {% if user.is_superuser or nav_is_admin %}
         <a href="{% url 'register' %}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           إنشاء حساب
         </a>
       {% endif %}
-      <span class="portal-auth-user">
-        <span class="portal-auth-avatar">{{ user.get_full_name|default:user.username|slice:":1" }}</span>
-        {{ user.get_full_name|default:user.username }}
-      </span>
       <form method="post" action="{% url 'logout' %}" style="margin:0;">
         {% csrf_token %}
         <button type="submit">
