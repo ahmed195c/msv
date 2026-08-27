@@ -210,9 +210,113 @@
       .portal-header { margin-bottom: 32px; }
       .portal-card   { padding: 28px 22px 24px; min-width: 260px; }
     }
+
+    /* ── Auth bar ── */
+    .portal-auth-bar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 12px 20px;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      z-index: 10;
+    }
+
+    .portal-auth-bar a, .portal-auth-bar button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink-2);
+      padding: 7px 14px;
+      border-radius: 8px;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+
+    .portal-auth-bar a:hover, .portal-auth-bar button:hover {
+      border-color: var(--permits-color);
+      color: var(--permits-color);
+    }
+
+    .portal-auth-bar .portal-auth-primary {
+      background: var(--permits-color);
+      border-color: var(--permits-color);
+      color: #fff;
+    }
+
+    .portal-auth-bar .portal-auth-primary:hover {
+      background: var(--permits-dk);
+      color: #fff;
+    }
+
+    .portal-auth-bar svg { width: 14px; height: 14px; }
+
+    .portal-auth-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: var(--ink-2);
+      padding-left: 4px;
+    }
+
+    .portal-auth-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--permits-lt);
+      color: var(--permits-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 600px) {
+      .portal-auth-bar { padding: 10px 14px; gap: 6px; flex-wrap: wrap; justify-content: center; }
+      .portal-auth-user { padding-left: 0; }
+    }
   </style>
 </head>
 <body>
+
+  <div class="portal-auth-bar">
+    {% if user.is_authenticated %}
+      {% if user.is_superuser or nav_is_admin %}
+        <a href="{% url 'register' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          إنشاء حساب
+        </a>
+      {% endif %}
+      <span class="portal-auth-user">
+        <span class="portal-auth-avatar">{{ user.get_full_name|default:user.username|slice:":1" }}</span>
+        {{ user.get_full_name|default:user.username }}
+      </span>
+      <form method="post" action="{% url 'logout' %}" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          تسجيل خروج
+        </button>
+      </form>
+    {% else %}
+      <a class="portal-auth-primary" href="{% url 'login' %}">تسجيل الدخول</a>
+    {% endif %}
+  </div>
 
   <header class="portal-header">
     <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="بلدية الشارقة" class="portal-logo">
