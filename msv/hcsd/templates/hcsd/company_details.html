@@ -4,15 +4,15 @@
 {% block extra_css %}
 <style>
 .cd-page {
-  --ink-1:      #1a2a3a;
-  --ink-2:      #3a4a5a;
-  --ink-3:      #5a6a7a;
-  --ink-4:      #8a9aaa;
-  --surface-1:  #f4f6f8;
-  --surface-2:  #e8ecf0;
-  --border:     #d0d8e0;
-  --accent:     #1a5c9a;
-  --accent-lt:  #e8f0f8;
+  --ink-1:      #304357;
+  --ink-2:      #41576f;
+  --ink-3:      #6f8194;
+  --ink-4:      #97a6b5;
+  --surface-1:  #F1F4F7;
+  --surface-2:  #e6ecf2;
+  --border:     #d7dfe8;
+  --accent:     #0e7490;
+  --accent-lt:  #e6f2f4;
   --success:    #1a7a3a;
   --success-bg: #e8f5ee;
   --warn:       #7a4500;
@@ -75,7 +75,7 @@
 .btn-outline { background: #fff; color: var(--ink-2); border: 1.5px solid var(--border); }
 .btn-outline:hover { background: var(--surface-2); }
 .btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: #14487a; }
+.btn-primary:hover { background: #0b5568; }
 .btn-green { background: var(--success); color: #fff; }
 .btn-green:hover { background: #145c2a; }
 .btn-sm { padding: 5px 12px; font-size: 12px; }
@@ -166,7 +166,7 @@
 }
 .form-field textarea { min-height: 90px; resize: vertical; }
 .form-field input:focus,.form-field select:focus,.form-field textarea:focus {
-  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,92,154,.12);
+  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,116,144,.12);
 }
 .form-field input:disabled,.form-field select:disabled,.form-field textarea:disabled {
   background: var(--surface-2); color: var(--ink-3);
@@ -180,7 +180,7 @@
   border-radius: 8px; background: #fff; color: var(--ink-1);
   padding: 8px 12px; font-family: inherit; font-size: 14px; box-sizing: border-box; outline: none;
 }
-.ext-form input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,92,154,.12); }
+.ext-form input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,116,144,.12); }
 
 .close-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 14px; }
 .close-row__field { flex:1; min-width:200px; display:grid; gap:4px; }
@@ -259,7 +259,7 @@
 .eng-picker__item:hover { background:var(--surface-1); }
 .eng-picker__empty { padding:10px 14px;font-size:12.5px;color:var(--ink-4); }
 .drop-zone { border:2px dashed var(--border);border-radius:9px;padding:22px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s; }
-.drop-zone.drag-over { border-color:var(--accent);background:var(--accent-bg,#eff6ff); }
+.drop-zone.drag-over { border-color:var(--accent);background:var(--accent-lt); }
 .drop-zone__icon { font-size:26px;margin-bottom:6px; }
 .drop-zone__text { font-size:13.5px;color:var(--ink-2); }
 .drop-zone__link { color:var(--accent);text-decoration:underline;cursor:pointer; }
@@ -503,8 +503,8 @@
         <input type="hidden" name="latitude"  id="loc-lat-inp">
         <input type="hidden" name="longitude" id="loc-lng-inp">
 
-        <div style="margin-bottom:14px;padding:14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:9px;">
-          <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:10px;">تحديد الموقع عبر GPS</div>
+        <div style="margin-bottom:14px;padding:14px;background:#e6f2f4;border:1.5px solid #a9d3db;border-radius:9px;">
+          <div style="font-size:12px;font-weight:700;color:#0b5568;margin-bottom:10px;">تحديد الموقع عبر GPS</div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <button type="button" id="loc-gps-btn" onclick="captureCompanyLocation()"
               style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:7px;">
@@ -513,8 +513,8 @@
             </button>
             <span id="loc-status" style="font-size:13px;font-weight:600;"></span>
           </div>
-          <div id="loc-coords-wrap" style="display:none;margin-top:10px;padding:8px 12px;background:#fff;border:1.5px solid #bfdbfe;border-radius:7px;">
-            <div id="loc-coords-text" style="font-family:var(--mono);font-size:12.5px;color:#1e40af;margin-bottom:4px;"></div>
+          <div id="loc-coords-wrap" style="display:none;margin-top:10px;padding:8px 12px;background:#fff;border:1.5px solid #a9d3db;border-radius:7px;">
+            <div id="loc-coords-text" style="font-family:var(--mono);font-size:12.5px;color:#0b5568;margin-bottom:4px;"></div>
             <a id="loc-maps-link" href="#" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);">عرض على خرائط Google ↗</a>
           </div>
         </div>
