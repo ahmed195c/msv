@@ -13,8 +13,8 @@
       --pd-surface-2: #e8eef4;
       --pd-line: #d4dce5;
       --pd-line-2: #bcc8d5;
-      --pd-accent: #304357;
-      --pd-accent-dark: #26384a;
+      --pd-accent: #0e7490;
+      --pd-accent-dark: #0b5568;
       --pd-danger: #8c2f2f;
       --pd-radius: 8px;
       --pd-shadow: 0 10px 24px rgba(48, 67, 87, 0.08);
@@ -519,7 +519,7 @@
     .tl-item:last-child  .tl-track::before { bottom: 0; }
     .tl-dot {
       width: 9px; height: 9px; border-radius: 50%;
-      background: var(--pd-accent); box-shadow: 0 0 0 3px var(--pd-btn, #4a627c);
+      background: var(--pd-accent); box-shadow: 0 0 0 3px var(--pd-btn, #3f8fa3);
       position: relative; z-index: 1;
     }
     .tl-card {
@@ -588,7 +588,7 @@
     .review-form textarea:focus,
     .admin-inline-edit .js-edit-input:focus {
       border-color: var(--pd-accent);
-      box-shadow: 0 0 0 3px rgba(48, 67, 87, 0.14);
+      box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.14);
     }
     /* No box-shadow on select:focus — Firefox on Linux can corrupt the
        native <option> popup's layout when a focus box-shadow is present,
@@ -599,9 +599,9 @@
 
     .review-form button,
     .admin-edit-toggle {
-      border: 1.5px solid #4a627c;
+      border: 1.5px solid #3f8fa3;
       border-radius: 6px;
-      background: #4a627c;
+      background: #3f8fa3;
       color: #fff;
       font-size: 13px;
       font-weight: 800;
@@ -612,8 +612,8 @@
 
     .review-form button:hover,
     .admin-edit-toggle:hover {
-      background: #304357;
-      border-color: #304357;
+      background: #0b5568;
+      border-color: #0b5568;
     }
 
     .admin-inline-edit .js-edit-input,
@@ -694,8 +694,8 @@
       flex-shrink: 0;
       padding: 6px 14px !important;
       font-size: 12px !important;
-      background: #4a627c !important;
-      border: 1.5px solid #4a627c !important;
+      background: #3f8fa3 !important;
+      border: 1.5px solid #3f8fa3 !important;
       border-radius: 6px;
       color: #fff;
       font-weight: 700;
@@ -704,8 +704,8 @@
     }
 
     .receipt-upload-wrap form button[type="submit"]:hover {
-      background: #304357 !important;
-      border-color: #304357 !important;
+      background: #0b5568 !important;
+      border-color: #0b5568 !important;
     }
 
     .alert {
@@ -824,7 +824,7 @@
       border-radius: 6px;
       display: grid;
       place-items: center;
-      background: rgba(48, 67, 87, 0.08);
+      background: rgba(14, 116, 144, 0.08);
       color: var(--pd-accent);
       font-size: 16px;
       font-weight: 800;
@@ -1165,7 +1165,7 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="admin_update_request_data">
         <div class="admin-edit-actions no-print">
-          <button type="submit" class="js-save-actions" style="background:var(--pd-btn,#4a627c);color:#fff;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">حفظ التعديلات</button>
+          <button type="submit" class="js-save-actions" style="background:var(--pd-btn,#3f8fa3);color:#fff;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">حفظ التعديلات</button>
           <button type="button" class="admin-edit-toggle" data-edit-toggle>تعديل</button>
         </div>
       {% endif %}

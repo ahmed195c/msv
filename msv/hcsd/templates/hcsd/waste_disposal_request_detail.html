@@ -12,8 +12,8 @@
     --pd-surface-2: #e8eef4;
     --pd-line: #d4dce5;
     --pd-line-2: #bcc8d5;
-    --pd-accent: #304357;
-    --pd-accent-dark: #26384a;
+    --pd-accent: #0e7490;
+    --pd-accent-dark: #0b5568;
     padding: 20px 10px 36px;
     background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
     direction: rtl;
@@ -99,7 +99,7 @@
     font-size: 11px; font-weight: 700; color: var(--pd-ink-3); flex-shrink: 0;
   }
   .wf-step.done .wf-dot      { background: #16a34a; border-color: #16a34a; color: #fff; }
-  .wf-step.active .wf-dot    { background: #fff; border-color: var(--pd-accent); color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(48,67,87,0.12); }
+  .wf-step.active .wf-dot    { background: #fff; border-color: var(--pd-accent); color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(14,116,144,0.12); }
   .wf-step.cancelled .wf-dot { background: #dc2626; border-color: #dc2626; color: #fff; }
   .wf-label { font-size: 10px; color: var(--pd-ink-3); margin-top: 6px; text-align: center; line-height: 1.3; max-width: 68px; }
   .wf-step.done .wf-label      { color: #16a34a; font-weight: 600; }
@@ -178,7 +178,7 @@
   }
   .review-form textarea { min-height: 90px; resize: vertical; }
   .review-form input:focus,
-  .review-form textarea:focus { border-color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(48,67,87,0.08); }
+  .review-form textarea:focus { border-color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(14,116,144,0.08); }
   /* No box-shadow on select:focus — Firefox on Linux can corrupt the native
      <option> popup's layout when a focus box-shadow is present, rendering it
      as an unreadable blank/grey blob. Border-color is enough. */
@@ -258,7 +258,7 @@
   <div class="permit-section--doc" style="margin-bottom:0;">
     <div class="doc-band"><span class="doc-band-title">إنشاء طلب تخلص من العبوات</span></div>
     <div style="padding:18px;background:#fff;">
-      <div style="padding:10px 14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;margin-bottom:18px;font-size:13px;color:#1e40af;">
+      <div style="padding:10px 14px;background:#e6f2f4;border:1.5px solid #a9d3db;border-radius:8px;margin-bottom:18px;font-size:13px;color:#0b5568;">
         تصريح: <strong>{{ permit.permit_no|default:"—" }}</strong> — شركة: <strong>{{ permit.company.name }}</strong>
       </div>
       {% if review_errors %}

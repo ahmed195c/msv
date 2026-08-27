@@ -12,9 +12,9 @@
       --pd-surface-2:  #e8eef4;
       --pd-line:       #d4dce5;
       --pd-line-2:     #bcc8d5;
-      --pd-accent:     #304357;
-      --pd-accent-dark:#26384a;
-      --pd-btn:        #4a627c;
+      --pd-accent:     #0e7490;
+      --pd-accent-dark:#0b5568;
+      --pd-btn:        #3f8fa3;
       --pd-radius:     8px;
       padding: 20px 10px 36px;
       direction: rtl;
@@ -203,13 +203,13 @@
        every browser — set it explicitly so option text can't render invisible. */
     .review-form select option { color: #000 !important; background: #fff !important; }
     .review-form button, .admin-edit-toggle {
-      border: 1.5px solid #4a627c; border-radius: 6px;
-      background: #4a627c; color: #fff;
+      border: 1.5px solid #3f8fa3; border-radius: 6px;
+      background: #3f8fa3; color: #fff;
       font-size: 13px; font-weight: 800;
       padding: 9px 12px; cursor: pointer; font-family: inherit;
       transition: background .15s, border-color .15s;
     }
-    .review-form button:hover, .admin-edit-toggle:hover { background: #304357; border-color: #304357; }
+    .review-form button:hover, .admin-edit-toggle:hover { background: #0b5568; border-color: #0b5568; }
 
     /* ── Admin inline edit ── */
     .admin-inline-edit .js-edit-input { display: none; }
@@ -246,7 +246,7 @@
     .upload-dropzone.is-dragover { border-color: var(--pd-accent-dark); background: var(--pd-surface-2); }
     .upload-dropzone-icon {
       width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
-      background: rgba(48,67,87,0.10); color: var(--pd-accent); font-size: 14px; font-weight: 800;
+      background: rgba(14,116,144,0.10); color: var(--pd-accent); font-size: 14px; font-weight: 800;
     }
     .upload-dropzone-title { font-weight: 700; color: var(--pd-ink); }
     .upload-dropzone-sub { color: var(--pd-ink-3); font-size: 12px; }
@@ -402,7 +402,7 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="admin_update_request_data">
         <div class="admin-edit-actions no-print">
-          <button type="submit" class="js-save-actions" style="background:#4a627c;color:#fff;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">حفظ التعديلات</button>
+          <button type="submit" class="js-save-actions" style="background:#3f8fa3;color:#fff;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">حفظ التعديلات</button>
           <button type="button" class="admin-edit-toggle" data-edit-toggle>تعديل</button>
         </div>
       {% endif %}

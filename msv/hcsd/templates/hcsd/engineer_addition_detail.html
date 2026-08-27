@@ -12,8 +12,8 @@
     --pd-surface-2: #e8eef4;
     --pd-line: #d4dce5;
     --pd-line-2: #bcc8d5;
-    --pd-accent: #304357;
-    --pd-accent-dark: #26384a;
+    --pd-accent: #0e7490;
+    --pd-accent-dark: #0b5568;
     padding: 20px 16px 48px;
     background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
     direction: rtl;
@@ -187,7 +187,7 @@
     transition: border-color 0.15s, box-shadow 0.15s;
   }
   .review-form input:focus,
-  .review-form textarea:focus { border-color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(48,67,87,0.12); }
+  .review-form textarea:focus { border-color: var(--pd-accent); box-shadow: 0 0 0 3px rgba(14,116,144,0.12); }
   /* No box-shadow on select:focus — Firefox on Linux can corrupt the native
      <option> popup's layout when a focus box-shadow is present, rendering it
      as an unreadable blank/grey blob. Border-color is enough. */
@@ -196,8 +196,8 @@
      every browser — set it explicitly so option text can't render invisible. */
   .review-form select option { color: #000 !important; background: #fff !important; }
   .review-form button {
-    border: 1.5px solid #4a627c; border-radius: 6px;
-    background: #4a627c; color: #fff;
+    border: 1.5px solid #3f8fa3; border-radius: 6px;
+    background: #3f8fa3; color: #fff;
     font-size: 13px; font-weight: 800; font-family: inherit;
     padding: 9px 16px; cursor: pointer; justify-self: start;
     transition: background 0.15s, border-color 0.15s;
@@ -227,7 +227,7 @@
   .upload-dropzone-icon {
     width: 34px; height: 34px;
     border-radius: 6px;
-    background: rgba(48,67,87,0.08);
+    background: rgba(14,116,144,0.08);
     display: grid; place-items: center;
     font-size: 18px; line-height: 1;
   }
@@ -603,7 +603,7 @@
       <form method="post">
         {% csrf_token %}
         <input type="hidden" name="action" value="receive_for_inspection">
-        <button type="submit" style="width:100%;border:1.5px solid #4a627c;border-radius:6px;background:#4a627c;color:#fff;font-size:14px;font-weight:800;font-family:inherit;padding:11px 20px;cursor:pointer;transition:background 0.15s;">استلام الطلب</button>
+        <button type="submit" style="width:100%;border:1.5px solid #3f8fa3;border-radius:6px;background:#3f8fa3;color:#fff;font-size:14px;font-weight:800;font-family:inherit;padding:11px 20px;cursor:pointer;transition:background 0.15s;">استلام الطلب</button>
       </form>
     </div>
   </section>
