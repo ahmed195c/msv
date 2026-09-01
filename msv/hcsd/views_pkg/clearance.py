@@ -1196,9 +1196,16 @@ def permits_monthly_report_excel(request):
 
     from ..models import InspectorReview, PirmetChangeLog
 
+    # pest_control and waste_disposal permits reuse `status` for their
+    # ongoing lifecycle after issuance (periodic re-inspection for activity
+    # permits; each individual container-disposal request for waste-disposal
+    # permits), so a permit issued this month with any later activity is no
+    # longer status='issued' by report time. issue_date is the stable record
+    # of "was this permit issued in range" — a reverted/cancelled issuance
+    # clears issue_date back to null, so this still correctly excludes those.
     permits = list(
         PirmetClearance.objects
-        .filter(status='issued', issue_date__gte=date_from, issue_date__lte=date_to)
+        .filter(issue_date__gte=date_from, issue_date__lte=date_to)
         .select_related('company', 'approvedBy', 'head_approved_by')
         .order_by('permit_type', 'issue_date', 'id')
     )
