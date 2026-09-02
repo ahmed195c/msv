@@ -49,6 +49,7 @@ from .container_transfer import (
 )
 from .rodent_control import (
     rodent_control_list, rodent_control_building_create, rodent_control_building_detail,
+    rodent_control_monthly_excel,
 )
 
 __all__ = [
@@ -80,5 +81,6 @@ __all__ = [
     'weed_reject', 'weed_close', 'weed_photo_delete', 'weed_delete',
     'weed_pdf_import', 'weed_pdf_review', 'weed_save_location', 'weed_delete_location',
     'rodent_control_list', 'rodent_control_building_create', 'rodent_control_building_detail',
+    'rodent_control_monthly_excel',
     'all_requests',
 ]

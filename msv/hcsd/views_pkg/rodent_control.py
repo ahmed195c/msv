@@ -11,8 +11,10 @@ when the team actually visits.
 """
 
 import datetime
+import io
 
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -163,3 +165,110 @@ def rodent_control_building_detail(request, pk):
         'history': history,
         'can_manage': can_manage,
     })
+
+
+@login_required
+def rodent_control_monthly_excel(request):
+    """Excel export of visit records for a date range, in the same layout
+    used by the old hand-built monthly spreadsheets — so future reports can
+    be produced straight from this system instead of being rebuilt by hand."""
+    import openpyxl
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from openpyxl.utils import get_column_letter
+
+    today = timezone.localdate()
+    raw_from = (request.GET.get('date_from') or '').strip()
+    raw_to = (request.GET.get('date_to') or '').strip()
+    try:
+        date_from = datetime.date.fromisoformat(raw_from)
+    except ValueError:
+        date_from = today.replace(day=1)
+    try:
+        date_to = datetime.date.fromisoformat(raw_to)
+    except ValueError:
+        date_to = today
+    if date_from > date_to:
+        date_from, date_to = date_to, date_from
+
+    visits = list(
+        RodentControlVisit.objects.filter(
+            period_start__gte=date_from.replace(day=1),
+            period_start__lte=date_to,
+        )
+        .select_related('building', 'visited_by')
+        .order_by('building__name', 'period_start')
+    )
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'تقرير المصايد'
+    ws.sheet_view.rightToLeft = True
+
+    thin = Side(style='thin', color='999999')
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    header_fill = PatternFill('solid', fgColor='0e7490')
+    ok_fill = PatternFill('solid', fgColor='e8f5ee')
+    bad_fill = PatternFill('solid', fgColor='fdeaea')
+
+    headers = [
+        '#', 'اسم البناية', 'المنطقة', 'الشهر', 'تاريخ الزيارة', 'بواسطة',
+        'تم التفتيش', 'بها إصابة', 'تالفة', 'تركيب جديد', 'تعبئة',
+        'نوع المادة', 'الكمية', 'ملاحظات',
+    ]
+    widths = [5, 26, 16, 10, 14, 18, 10, 10, 10, 10, 10, 22, 10, 30]
+    for col, (hdr, w) in enumerate(zip(headers, widths), start=1):
+        c = ws.cell(row=1, column=col, value=hdr)
+        c.font = Font(name='Arial', bold=True, color='FFFFFF', size=11)
+        c.fill = header_fill
+        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        c.border = border
+        ws.column_dimensions[get_column_letter(col)].width = w
+    ws.row_dimensions[1].height = 24
+
+    bool_cols = ['inspected', 'infested', 'damaged', 'newly_installed', 'replenished']
+    for row_idx, v in enumerate(visits, start=2):
+        visited_by = v.visited_by.get_full_name() or v.visited_by.username if v.visited_by else '—'
+        values = [
+            row_idx - 1,
+            v.building.name,
+            v.building.area or '—',
+            v.period_start.strftime('%m/%Y'),
+            v.visit_date.strftime('%d/%m/%Y') if v.visit_date else '—',
+            visited_by,
+            'نعم' if v.inspected else '—',
+            'نعم' if v.infested else '—',
+            'نعم' if v.damaged else '—',
+            'نعم' if v.newly_installed else '—',
+            'نعم' if v.replenished else '—',
+            v.rodenticide_type or '—',
+            v.rodenticide_quantity if v.rodenticide_quantity is not None else '—',
+            v.notes or '—',
+        ]
+        flag_values = {
+            'inspected': v.inspected, 'infested': v.infested, 'damaged': v.damaged,
+            'newly_installed': v.newly_installed, 'replenished': v.replenished,
+        }
+        for col, val in enumerate(values, start=1):
+            c = ws.cell(row=row_idx, column=col, value=val)
+            c.font = Font(name='Arial', size=10.5)
+            c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            c.border = border
+            header_key = headers[col - 1]
+            if header_key == 'بها إصابة' and v.infested:
+                c.fill = bad_fill
+            elif header_key == 'تالفة' and v.damaged:
+                c.fill = bad_fill
+            elif header_key == 'تم التفتيش' and v.inspected:
+                c.fill = ok_fill
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f'rodent_control_{date_from:%Y-%m}_{date_to:%Y-%m}.xlsx'
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response

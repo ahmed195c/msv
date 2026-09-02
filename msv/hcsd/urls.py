@@ -47,6 +47,7 @@ urlpatterns = [
 
     path('rodent-control/', views.rodent_control_list, name='rodent_control_list'),
     path('rodent-control/add/', views.rodent_control_building_create, name='rodent_control_building_create'),
+    path('rodent-control/report/excel/', views.rodent_control_monthly_excel, name='rodent_control_monthly_excel'),
     path('rodent-control/<int:pk>/', views.rodent_control_building_detail, name='rodent_control_building_detail'),
 
     path('companies/', views.company_list, name='company_list'),
