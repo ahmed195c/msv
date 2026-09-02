@@ -118,6 +118,27 @@ def rodent_control_building_detail(request, pk):
         action = request.POST.get('action', '')
 
         if action == 'record_visit':
+            def _int(name):
+                raw = (request.POST.get(name) or '').strip()
+                try:
+                    return int(raw) if raw else None
+                except ValueError:
+                    return None
+
+            def _float(name):
+                raw = (request.POST.get(name) or '').strip()
+                try:
+                    return float(raw) if raw else None
+                except ValueError:
+                    return None
+
+            def _time(name):
+                raw = (request.POST.get(name) or '').strip()
+                try:
+                    return datetime.time.fromisoformat(raw) if raw else None
+                except ValueError:
+                    return None
+
             visit_date_raw = (request.POST.get('visit_date') or '').strip()
             try:
                 visit_date = datetime.date.fromisoformat(visit_date_raw)
@@ -126,23 +147,45 @@ def rodent_control_building_detail(request, pk):
 
             current_visit.visit_date = visit_date
             current_visit.visited_by = request.user
-            current_visit.inspected = bool(request.POST.get('inspected'))
-            current_visit.infested = bool(request.POST.get('infested'))
-            current_visit.damaged = bool(request.POST.get('damaged'))
-            current_visit.newly_installed = bool(request.POST.get('newly_installed'))
-            current_visit.replenished = bool(request.POST.get('replenished'))
+
+            current_visit.team_leader_name = (request.POST.get('team_leader_name') or '').strip()
+            current_visit.team_leader_id = (request.POST.get('team_leader_id') or '').strip()
+            current_visit.time_in = _time('time_in')
+            current_visit.time_out = _time('time_out')
+
+            current_visit.rbs_inspected_count = _int('rbs_inspected_count')
+            current_visit.rbs_lock_ok = 'rbs_lock_ok' in request.POST
+            current_visit.rbs_infested_count = _int('rbs_infested_count')
+            current_visit.rbs_damaged_count = _int('rbs_damaged_count')
+            current_visit.rbs_new_installed_count = _int('rbs_new_installed_count')
+            current_visit.stick_change_ok = 'stick_change_ok' in request.POST
+            current_visit.rbs_replenished_count = _int('rbs_replenished_count')
+
+            current_visit.manholes_inspected_count = _int('manholes_inspected_count')
+            current_visit.manholes_treated_count = _int('manholes_treated_count')
+            current_visit.manholes_treated_qty = _float('manholes_treated_qty')
+            current_visit.manholes_infested_count = _int('manholes_infested_count')
+
+            current_visit.burrows_outside_count = _int('burrows_outside_count')
+            current_visit.burrows_infested_count = _int('burrows_infested_count')
+
+            current_visit.trees_inspected_count = _int('trees_inspected_count')
+            current_visit.trees_treated_count = _int('trees_treated_count')
+            current_visit.trees_infested_count = _int('trees_infested_count')
+
             current_visit.rodenticide_type = (request.POST.get('rodenticide_type') or '').strip()
-            rq_raw = (request.POST.get('rodenticide_quantity') or '').strip()
-            try:
-                current_visit.rodenticide_quantity = float(rq_raw) if rq_raw else None
-            except ValueError:
-                current_visit.rodenticide_quantity = None
+            current_visit.rodenticide_quantity = _float('rodenticide_quantity')
             current_visit.notes = (request.POST.get('notes') or '').strip()
-            current_visit.save(update_fields=[
-                'visit_date', 'visited_by', 'inspected', 'infested', 'damaged',
-                'newly_installed', 'replenished', 'rodenticide_type',
-                'rodenticide_quantity', 'notes',
-            ])
+
+            # Auto-derive the summary flags (used by the list-page badge and
+            # by the historical import) from the actual counts just entered.
+            current_visit.inspected = bool(current_visit.rbs_inspected_count)
+            current_visit.infested = bool(current_visit.rbs_infested_count) or bool(current_visit.manholes_infested_count) or bool(current_visit.burrows_infested_count) or bool(current_visit.trees_infested_count)
+            current_visit.damaged = bool(current_visit.rbs_damaged_count) or not current_visit.rbs_lock_ok
+            current_visit.newly_installed = bool(current_visit.rbs_new_installed_count)
+            current_visit.replenished = bool(current_visit.rbs_replenished_count)
+
+            current_visit.save()
             return redirect('rodent_control_building_detail', pk=pk)
 
         elif action == 'update_building':
@@ -211,54 +254,73 @@ def rodent_control_monthly_excel(request):
     bad_fill = PatternFill('solid', fgColor='fdeaea')
 
     headers = [
-        '#', 'اسم البناية', 'المنطقة', 'الشهر', 'تاريخ الزيارة', 'بواسطة',
-        'تم التفتيش', 'بها إصابة', 'تالفة', 'تركيب جديد', 'تعبئة',
+        '#', 'اسم البناية', 'المنطقة', 'الشهر', 'تاريخ الزيارة',
+        'قائد الفريق', 'الرقم الوظيفي', 'دخول', 'خروج',
+        'مصايد مفتشة', 'قفل سليم', 'مصايد مصابة', 'مصايد تالفة',
+        'تركيب جديد', 'تغيير لاصقة', 'مصايد معبأة',
+        'مناهيل مفتشة', 'مناهيل معالجة (عدد)', 'مناهيل معالجة (كمية)', 'مناهيل مصابة',
+        'جحور خارجية', 'جحور مصابة',
+        'نخيل مفتش', 'نخيل معالج', 'نخيل مصاب',
         'نوع المادة', 'الكمية', 'ملاحظات',
     ]
-    widths = [5, 26, 16, 10, 14, 18, 10, 10, 10, 10, 10, 22, 10, 30]
+    widths = [5, 26, 14, 9, 12, 16, 10, 8, 8, 10, 8, 10, 10, 9, 10, 10, 10, 10, 10, 10, 10, 10, 9, 9, 9, 22, 9, 26]
     for col, (hdr, w) in enumerate(zip(headers, widths), start=1):
         c = ws.cell(row=1, column=col, value=hdr)
-        c.font = Font(name='Arial', bold=True, color='FFFFFF', size=11)
+        c.font = Font(name='Arial', bold=True, color='FFFFFF', size=10)
         c.fill = header_fill
         c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
         c.border = border
         ws.column_dimensions[get_column_letter(col)].width = w
-    ws.row_dimensions[1].height = 24
+    ws.row_dimensions[1].height = 30
 
-    bool_cols = ['inspected', 'infested', 'damaged', 'newly_installed', 'replenished']
+    def _n(v):
+        return v if v is not None else '—'
+
     for row_idx, v in enumerate(visits, start=2):
-        visited_by = v.visited_by.get_full_name() or v.visited_by.username if v.visited_by else '—'
+        visited_by_name = v.team_leader_name or (
+            v.visited_by.get_full_name() or v.visited_by.username if v.visited_by else '—'
+        )
         values = [
             row_idx - 1,
             v.building.name,
             v.building.area or '—',
             v.period_start.strftime('%m/%Y'),
             v.visit_date.strftime('%d/%m/%Y') if v.visit_date else '—',
-            visited_by,
-            'نعم' if v.inspected else '—',
-            'نعم' if v.infested else '—',
-            'نعم' if v.damaged else '—',
-            'نعم' if v.newly_installed else '—',
-            'نعم' if v.replenished else '—',
+            visited_by_name,
+            v.team_leader_id or '—',
+            v.time_in.strftime('%H:%M') if v.time_in else '—',
+            v.time_out.strftime('%H:%M') if v.time_out else '—',
+            _n(v.rbs_inspected_count),
+            'نعم' if v.rbs_lock_ok else 'لا',
+            _n(v.rbs_infested_count),
+            _n(v.rbs_damaged_count),
+            _n(v.rbs_new_installed_count),
+            'نعم' if v.stick_change_ok else 'لا',
+            _n(v.rbs_replenished_count),
+            _n(v.manholes_inspected_count),
+            _n(v.manholes_treated_count),
+            _n(v.manholes_treated_qty),
+            _n(v.manholes_infested_count),
+            _n(v.burrows_outside_count),
+            _n(v.burrows_infested_count),
+            _n(v.trees_inspected_count),
+            _n(v.trees_treated_count),
+            _n(v.trees_infested_count),
             v.rodenticide_type or '—',
             v.rodenticide_quantity if v.rodenticide_quantity is not None else '—',
             v.notes or '—',
         ]
-        flag_values = {
-            'inspected': v.inspected, 'infested': v.infested, 'damaged': v.damaged,
-            'newly_installed': v.newly_installed, 'replenished': v.replenished,
-        }
         for col, val in enumerate(values, start=1):
             c = ws.cell(row=row_idx, column=col, value=val)
-            c.font = Font(name='Arial', size=10.5)
+            c.font = Font(name='Arial', size=10)
             c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
             c.border = border
             header_key = headers[col - 1]
-            if header_key == 'بها إصابة' and v.infested:
+            if header_key == 'مصايد مصابة' and v.rbs_infested_count:
                 c.fill = bad_fill
-            elif header_key == 'تالفة' and v.damaged:
+            elif header_key == 'مصايد تالفة' and v.rbs_damaged_count:
                 c.fill = bad_fill
-            elif header_key == 'تم التفتيش' and v.inspected:
+            elif header_key == 'مصايد مفتشة' and v.rbs_inspected_count:
                 c.fill = ok_fill
 
     output = io.BytesIO()

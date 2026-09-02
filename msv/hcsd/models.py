@@ -1673,11 +1673,41 @@ class RodentControlVisit(models.Model):
         related_name='rodent_visits_recorded',
     )
 
+    # Summary flags — kept for the list-page badge and for the historical
+    # data imported from the old spreadsheets (which only ever had this much
+    # detail). Auto-derived from the counts below whenever a visit is
+    # recorded through the real field-report form.
     inspected       = models.BooleanField(default=False, verbose_name='تم التفتيش')
     infested        = models.BooleanField(default=False, verbose_name='بها إصابة')
     damaged         = models.BooleanField(default=False, verbose_name='تالفة')
     newly_installed = models.BooleanField(default=False, verbose_name='تم تركيب مصيدة جديدة')
     replenished     = models.BooleanField(default=False, verbose_name='تم تعبئتها')
+
+    # ── Field-report detail (matches the team leader's real visit report) ──
+    team_leader_name = models.CharField(max_length=150, blank=True, verbose_name='اسم قائد الفريق')
+    team_leader_id   = models.CharField(max_length=50, blank=True, verbose_name='الرقم الوظيفي')
+    time_in          = models.TimeField(null=True, blank=True, verbose_name='وقت الدخول')
+    time_out         = models.TimeField(null=True, blank=True, verbose_name='وقت الخروج')
+
+    rbs_inspected_count     = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي المصايد المفتشة')
+    rbs_lock_ok              = models.BooleanField(default=True, verbose_name='قفل المصيدة سليم')
+    rbs_infested_count      = models.PositiveIntegerField(null=True, blank=True, verbose_name='المصايد المصابة')
+    rbs_damaged_count       = models.PositiveIntegerField(null=True, blank=True, verbose_name='المصايد التالفة')
+    rbs_new_installed_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='المصايد المركبة حديثاً')
+    stick_change_ok          = models.BooleanField(default=True, verbose_name='تم تغيير اللاصقة')
+    rbs_replenished_count   = models.PositiveIntegerField(null=True, blank=True, verbose_name='المصايد المعاد تعبئتها')
+
+    manholes_inspected_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي المناهيل المفتشة')
+    manholes_treated_count   = models.PositiveIntegerField(null=True, blank=True, verbose_name='المناهيل المعالجة')
+    manholes_treated_qty     = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='كمية معالجة المناهيل')
+    manholes_infested_count  = models.PositiveIntegerField(null=True, blank=True, verbose_name='المناهيل المصابة')
+
+    burrows_outside_count  = models.PositiveIntegerField(null=True, blank=True, verbose_name='الجحور الخارجية')
+    burrows_infested_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='الجحور المصابة')
+
+    trees_inspected_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي النخيل المفتش')
+    trees_treated_count   = models.PositiveIntegerField(null=True, blank=True, verbose_name='النخيل المعالج')
+    trees_infested_count  = models.PositiveIntegerField(null=True, blank=True, verbose_name='النخيل المصاب')
 
     rodenticide_type     = models.CharField(max_length=150, blank=True, verbose_name='نوع المادة')
     rodenticide_quantity = models.DecimalField(

@@ -44,7 +44,16 @@ details.rc-edit input, details.rc-edit textarea {
   box-sizing: border-box; width: 100%;
 }
 .field-wrap input:focus, .field-wrap textarea:focus { outline: none; border-color: var(--accent); }
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.two-col   { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.four-col  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.rc-form-group {
+  font-size: 12px; font-weight: 700; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: .04em;
+  border-bottom: 1px solid var(--line); padding-bottom: 6px;
+  margin: 18px 0 10px;
+}
+.rc-form-group:first-of-type { margin-top: 4px; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -92,7 +101,10 @@ details.rc-edit input, details.rc-edit textarea {
 .rc-empty { color: var(--ink-3); font-size: 13px; padding: 10px 0; }
 
 @media (max-width: 600px) {
-  .two-col { grid-template-columns: 1fr; }
+  .two-col, .three-col, .four-col { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 420px) {
+  .two-col, .three-col, .four-col { grid-template-columns: 1fr; }
 }
 </style>
 
@@ -156,16 +168,55 @@ details.rc-edit input, details.rc-edit textarea {
         <label>تاريخ الزيارة</label>
         <input type="date" name="visit_date" value="{{ current_visit.visit_date|date:'Y-m-d' }}">
       </div>
-      <div class="check-row">
-        <label><input type="checkbox" name="inspected" {% if current_visit.inspected %}checked{% endif %}> تم التفتيش</label>
-        <label><input type="checkbox" name="infested" {% if current_visit.infested %}checked{% endif %}> بها إصابة</label>
-        <label><input type="checkbox" name="damaged" {% if current_visit.damaged %}checked{% endif %}> تالفة</label>
-        <label><input type="checkbox" name="newly_installed" {% if current_visit.newly_installed %}checked{% endif %}> تم تركيب مصيدة جديدة</label>
-        <label><input type="checkbox" name="replenished" {% if current_visit.replenished %}checked{% endif %}> تم تعبئتها</label>
+
+      <h3 class="rc-form-group">بيانات الفريق</h3>
+      <div class="two-col">
+        <div class="field-wrap"><label>اسم قائد الفريق</label><input type="text" name="team_leader_name" value="{{ current_visit.team_leader_name }}"></div>
+        <div class="field-wrap"><label>الرقم الوظيفي</label><input type="text" name="team_leader_id" value="{{ current_visit.team_leader_id }}"></div>
       </div>
       <div class="two-col">
+        <div class="field-wrap"><label>وقت الدخول</label><input type="time" name="time_in" value="{{ current_visit.time_in|time:'H:i' }}"></div>
+        <div class="field-wrap"><label>وقت الخروج</label><input type="time" name="time_out" value="{{ current_visit.time_out|time:'H:i' }}"></div>
+      </div>
+
+      <h3 class="rc-form-group">المصايد (RBS)</h3>
+      <div class="four-col">
+        <div class="field-wrap"><label>إجمالي المفتشة</label><input type="number" name="rbs_inspected_count" value="{{ current_visit.rbs_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>المصابة</label><input type="number" name="rbs_infested_count" value="{{ current_visit.rbs_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>التالفة</label><input type="number" name="rbs_damaged_count" value="{{ current_visit.rbs_damaged_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>المركبة حديثاً</label><input type="number" name="rbs_new_installed_count" value="{{ current_visit.rbs_new_installed_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>المعاد تعبئتها</label><input type="number" name="rbs_replenished_count" value="{{ current_visit.rbs_replenished_count|default_if_none:'' }}"></div>
+      </div>
+      <div class="check-row">
+        <label><input type="checkbox" name="rbs_lock_ok" {% if current_visit.rbs_lock_ok %}checked{% endif %}> قفل المصيدة سليم</label>
+        <label><input type="checkbox" name="stick_change_ok" {% if current_visit.stick_change_ok %}checked{% endif %}> تم تغيير اللاصقة</label>
+      </div>
+
+      <h3 class="rc-form-group">المناهيل</h3>
+      <div class="four-col">
+        <div class="field-wrap"><label>إجمالي المفتشة</label><input type="number" name="manholes_inspected_count" value="{{ current_visit.manholes_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>المعالجة (عدد)</label><input type="number" name="manholes_treated_count" value="{{ current_visit.manholes_treated_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>المعالجة (كمية)</label><input type="number" step="0.01" name="manholes_treated_qty" value="{{ current_visit.manholes_treated_qty|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>المصابة</label><input type="number" name="manholes_infested_count" value="{{ current_visit.manholes_infested_count|default_if_none:'' }}"></div>
+      </div>
+
+      <h3 class="rc-form-group">الجحور الخارجية</h3>
+      <div class="two-col">
+        <div class="field-wrap"><label>الجحور الخارجية</label><input type="number" name="burrows_outside_count" value="{{ current_visit.burrows_outside_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>المصابة</label><input type="number" name="burrows_infested_count" value="{{ current_visit.burrows_infested_count|default_if_none:'' }}"></div>
+      </div>
+
+      <h3 class="rc-form-group">النخيل</h3>
+      <div class="three-col">
+        <div class="field-wrap"><label>إجمالي المفتش</label><input type="number" name="trees_inspected_count" value="{{ current_visit.trees_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>المعالج</label><input type="number" name="trees_treated_count" value="{{ current_visit.trees_treated_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>المصاب</label><input type="number" name="trees_infested_count" value="{{ current_visit.trees_infested_count|default_if_none:'' }}"></div>
+      </div>
+
+      <h3 class="rc-form-group">المادة المستخدمة</h3>
+      <div class="two-col">
         <div class="field-wrap"><label>نوع المادة</label><input type="text" name="rodenticide_type" value="{{ current_visit.rodenticide_type }}"></div>
-        <div class="field-wrap"><label>الكمية</label><input type="number" step="0.01" name="rodenticide_quantity" value="{{ current_visit.rodenticide_quantity|default:'' }}"></div>
+        <div class="field-wrap"><label>الكمية</label><input type="number" step="0.01" name="rodenticide_quantity" value="{{ current_visit.rodenticide_quantity|default_if_none:'' }}"></div>
       </div>
       <div class="field-wrap"><label>ملاحظات</label><textarea name="notes">{{ current_visit.notes }}</textarea></div>
       <button type="submit" class="btn btn-primary">حفظ الزيارة</button>
@@ -200,9 +251,33 @@ details.rc-edit input, details.rc-edit textarea {
           {% if v.visit_date %}
           <div class="tl-meta">
             تاريخ الزيارة: {{ v.visit_date|date:"d/m/Y" }}
+            {% if v.time_in %} — دخول: {{ v.time_in|time:"H:i" }}{% endif %}
+            {% if v.time_out %} — خروج: {{ v.time_out|time:"H:i" }}{% endif %}
             {% if v.visited_by %} — بواسطة: {{ v.visited_by.get_full_name|default:v.visited_by.username }}{% endif %}
-            {% if v.newly_installed %} — تم تركيب مصيدة جديدة{% endif %}
-            {% if v.replenished %} — تم تعبئتها{% endif %}
+            {% if v.team_leader_name %} — قائد الفريق: {{ v.team_leader_name }}{% if v.team_leader_id %} ({{ v.team_leader_id }}){% endif %}{% endif %}
+          </div>
+          {% endif %}
+          {% if v.rbs_inspected_count is not None %}
+          <div class="tl-notes">
+            مصايد: {{ v.rbs_inspected_count|default:0 }} مفتشة
+            {% if v.rbs_infested_count %} — {{ v.rbs_infested_count }} مصابة{% endif %}
+            {% if v.rbs_damaged_count %} — {{ v.rbs_damaged_count }} تالفة{% endif %}
+            {% if v.rbs_new_installed_count %} — {{ v.rbs_new_installed_count }} تركيب جديد{% endif %}
+            {% if v.rbs_replenished_count %} — {{ v.rbs_replenished_count }} تعبئة{% endif %}
+          </div>
+          {% endif %}
+          {% if v.manholes_inspected_count is not None %}
+          <div class="tl-notes">
+            مناهيل: {{ v.manholes_inspected_count|default:0 }} مفتشة
+            {% if v.manholes_treated_count %} — {{ v.manholes_treated_count }} معالجة{% endif %}
+            {% if v.manholes_infested_count %} — {{ v.manholes_infested_count }} مصابة{% endif %}
+          </div>
+          {% endif %}
+          {% if v.trees_inspected_count %}
+          <div class="tl-notes">
+            نخيل: {{ v.trees_inspected_count }} مفتش
+            {% if v.trees_treated_count %} — {{ v.trees_treated_count }} معالج{% endif %}
+            {% if v.trees_infested_count %} — {{ v.trees_infested_count }} مصاب{% endif %}
           </div>
           {% endif %}
           {% if v.rodenticide_type %}
