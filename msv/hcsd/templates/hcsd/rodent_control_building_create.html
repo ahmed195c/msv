@@ -1,0 +1,67 @@
+{% extends "hcsd/base.html" %}
+{% block title %}إضافة بناية جديدة{% endblock %}
+{% block content %}
+<style>
+.rc-form-page { max-width: 560px; margin: 0 auto; }
+.rc-form-page h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+.rc-form-page p.sub { font-size: 13px; color: var(--ink-3); margin: 0 0 20px; }
+
+.rc-alert {
+  background: #fef2f2; border: 1.5px solid #fca5a5; color: #991b1b;
+  border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.field-wrap { display: grid; gap: 6px; margin-bottom: 14px; }
+.field-wrap label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.field-wrap input, .field-wrap textarea {
+  border: 1.5px solid var(--line); border-radius: 8px; background: #fff;
+  padding: 9px 12px; font-size: 14px; font-family: inherit; color: var(--ink);
+  box-sizing: border-box; width: 100%;
+}
+.field-wrap input:focus, .field-wrap textarea:focus { outline: none; border-color: var(--accent); }
+.field-wrap textarea { resize: vertical; min-height: 70px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; cursor: pointer; border: none; font-family: inherit;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-dk); }
+</style>
+
+<div class="rc-form-page">
+  <h1>إضافة بناية جديدة</h1>
+  <p class="sub">ستبدأ متابعة المصيدة لهذه البناية من هذا الشهر.</p>
+
+  {% if errors %}
+    {% for e in errors %}<div class="rc-alert">{{ e }}</div>{% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="field-wrap">
+      <label>اسم البناية *</label>
+      <input type="text" name="name" value="{{ post.name }}" required>
+    </div>
+    <div class="field-wrap">
+      <label>رقم البناية</label>
+      <input type="text" name="number" value="{{ post.number }}">
+    </div>
+    <div class="field-wrap">
+      <label>المنطقة</label>
+      <input type="text" name="area" value="{{ post.area }}">
+    </div>
+    <div class="field-wrap">
+      <label>الموقع</label>
+      <input type="text" name="location" value="{{ post.location }}" placeholder="وصف الموقع…">
+    </div>
+    <div class="field-wrap">
+      <label>ملاحظات</label>
+      <textarea name="notes">{{ post.notes }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">إضافة البناية</button>
+  </form>
+</div>
+{% endblock %}

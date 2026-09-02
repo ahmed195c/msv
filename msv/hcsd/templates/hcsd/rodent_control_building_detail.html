@@ -1,0 +1,221 @@
+{% extends "hcsd/base.html" %}
+{% block title %}{{ building.name }}{% endblock %}
+{% block content %}
+<style>
+.rc-page { max-width: 800px; margin: 0 auto; }
+
+.rc-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 18px;
+}
+.rc-header h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0; }
+.rc-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+
+.rc-section {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 18px; margin-bottom: 16px;
+}
+.rc-section h2 { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0 0 14px; }
+
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px 16px; }
+.info-grid div { font-size: 13px; }
+.info-grid .lbl { color: var(--ink-3); font-size: 11.5px; margin-bottom: 2px; }
+.info-grid .val { color: var(--ink); font-weight: 600; }
+
+details.rc-edit summary { cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--accent); margin-top: 12px; }
+details.rc-edit .field-wrap { display: grid; gap: 6px; margin: 10px 0; }
+details.rc-edit label { font-size: 12px; font-weight: 700; color: var(--ink-2); }
+details.rc-edit input, details.rc-edit textarea {
+  border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px;
+  font-family: inherit; font-size: 13.5px; width: 100%; box-sizing: border-box;
+}
+
+.check-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; }
+.check-row label {
+  display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600;
+  color: var(--ink-2); cursor: pointer;
+}
+
+.field-wrap { display: grid; gap: 6px; margin-bottom: 12px; }
+.field-wrap label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.field-wrap input, .field-wrap textarea {
+  border: 1.5px solid var(--line); border-radius: 8px; background: #fff;
+  padding: 9px 12px; font-size: 14px; font-family: inherit; color: var(--ink);
+  box-sizing: border-box; width: 100%;
+}
+.field-wrap input:focus, .field-wrap textarea:focus { outline: none; border-color: var(--accent); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; cursor: pointer; border: 1.5px solid var(--line);
+  background: var(--paper); color: var(--ink-2); font-family: inherit;
+}
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+.btn-outline:hover { background: var(--surface); }
+
+/* Timeline */
+.timeline { --tgap: 12px; display: grid; gap: var(--tgap); }
+.tl-item  { display: grid; grid-template-columns: 72px 20px minmax(0,1fr); gap: 14px; align-items: stretch; }
+.tl-date  { font-size: 11.5px; color: var(--ink-3); font-weight: 600; text-align: left; padding-top: 14px; }
+.tl-track { position: relative; display: flex; align-items: center; justify-content: center; }
+.tl-track::before {
+  content: ""; position: absolute;
+  top: calc(-1 * var(--tgap) / 2); bottom: calc(-1 * var(--tgap) / 2);
+  width: 2px;
+  background: repeating-linear-gradient(to bottom, var(--line) 0, var(--line) 5px, transparent 5px, transparent 10px);
+}
+.tl-item:first-child .tl-track::before { top: 0; }
+.tl-item:last-child  .tl-track::before { bottom: 0; }
+.tl-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg);
+  position: relative; z-index: 1;
+}
+.tl-card { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.tl-title { font-weight: 700; font-size: 13.5px; color: var(--ink); margin-bottom: 4px; }
+.tl-meta  { font-size: 12px; color: var(--ink-3); }
+.tl-notes { margin-top: 6px; font-size: 13px; color: var(--ink-2); }
+
+.rc-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700;
+}
+.rc-badge::before { content:''; width:5px; height:5px; border-radius:50%; background: currentColor; }
+.rc-badge--pending { background: var(--surface-2); color: var(--ink-3); }
+.rc-badge--ok      { background: #e8f5ee; color: #1a7a3a; }
+.rc-badge--infested{ background: #fdeaea; color: #b03a1a; }
+.rc-badge--damaged { background: #fff4e0; color: #7a4500; }
+
+.rc-empty { color: var(--ink-3); font-size: 13px; padding: 10px 0; }
+
+@media (max-width: 600px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="rc-page">
+  <div class="rc-header">
+    <div>
+      <h1>{{ building.name }}</h1>
+      <p>
+        {% if building.area %}{{ building.area }}{% endif %}
+        {% if building.number %} — رقم {{ building.number }}{% endif %}
+        {% if not building.is_active %} — <strong style="color:#b03a1a;">متابعة موقوفة</strong>{% endif %}
+      </p>
+    </div>
+    <a href="{% url 'rodent_control_list' %}" class="btn btn-outline">العودة للقائمة</a>
+  </div>
+
+  <div class="rc-section">
+    <h2>بيانات البناية</h2>
+    <div class="info-grid">
+      <div><div class="lbl">المنطقة</div><div class="val">{{ building.area|default:"—" }}</div></div>
+      <div><div class="lbl">الرقم</div><div class="val">{{ building.number|default:"—" }}</div></div>
+      <div><div class="lbl">الموقع</div><div class="val">{{ building.location|default:"—" }}</div></div>
+    </div>
+    {% if building.notes %}
+      <div style="margin-top:12px;"><div class="lbl" style="font-size:11.5px;color:var(--ink-3);">ملاحظات</div><div style="font-size:13px;color:var(--ink);">{{ building.notes }}</div></div>
+    {% endif %}
+
+    {% if can_manage %}
+    <details class="rc-edit">
+      <summary>تعديل بيانات البناية</summary>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_building">
+        <div class="field-wrap"><label>اسم البناية</label><input type="text" name="name" value="{{ building.name }}"></div>
+        <div class="two-col">
+          <div class="field-wrap"><label>الرقم</label><input type="text" name="number" value="{{ building.number }}"></div>
+          <div class="field-wrap"><label>المنطقة</label><input type="text" name="area" value="{{ building.area }}"></div>
+        </div>
+        <div class="field-wrap"><label>الموقع</label><input type="text" name="location" value="{{ building.location }}"></div>
+        <div class="field-wrap"><label>ملاحظات</label><textarea name="notes">{{ building.notes }}</textarea></div>
+        <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+      </form>
+      <form method="post" style="margin-top:10px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="toggle_active">
+        <button type="submit" class="btn btn-outline">
+          {% if building.is_active %}إيقاف المتابعة{% else %}استئناف المتابعة{% endif %}
+        </button>
+      </form>
+    </details>
+    {% endif %}
+  </div>
+
+  <div class="rc-section">
+    <h2>زيارة شهر {{ current_visit.period_start|date:"m/Y" }}</h2>
+    {% if can_manage %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="record_visit">
+      <div class="field-wrap" style="max-width:200px;">
+        <label>تاريخ الزيارة</label>
+        <input type="date" name="visit_date" value="{{ current_visit.visit_date|date:'Y-m-d' }}">
+      </div>
+      <div class="check-row">
+        <label><input type="checkbox" name="inspected" {% if current_visit.inspected %}checked{% endif %}> تم التفتيش</label>
+        <label><input type="checkbox" name="infested" {% if current_visit.infested %}checked{% endif %}> بها إصابة</label>
+        <label><input type="checkbox" name="damaged" {% if current_visit.damaged %}checked{% endif %}> تالفة</label>
+        <label><input type="checkbox" name="newly_installed" {% if current_visit.newly_installed %}checked{% endif %}> تم تركيب مصيدة جديدة</label>
+        <label><input type="checkbox" name="replenished" {% if current_visit.replenished %}checked{% endif %}> تم تعبئتها</label>
+      </div>
+      <div class="two-col">
+        <div class="field-wrap"><label>نوع المادة</label><input type="text" name="rodenticide_type" value="{{ current_visit.rodenticide_type }}"></div>
+        <div class="field-wrap"><label>الكمية</label><input type="number" step="0.01" name="rodenticide_quantity" value="{{ current_visit.rodenticide_quantity|default:'' }}"></div>
+      </div>
+      <div class="field-wrap"><label>ملاحظات</label><textarea name="notes">{{ current_visit.notes }}</textarea></div>
+      <button type="submit" class="btn btn-primary">حفظ الزيارة</button>
+    </form>
+    {% else %}
+      <div class="info-grid">
+        <div><div class="lbl">تاريخ الزيارة</div><div class="val">{{ current_visit.visit_date|date:"d/m/Y"|default:"لم تتم بعد" }}</div></div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="rc-section">
+    <h2>السجل الشهري</h2>
+    {% if history %}
+    <div class="timeline">
+      {% for v in history %}
+      <div class="tl-item">
+        <div class="tl-date">{{ v.period_start|date:"m/Y" }}</div>
+        <div class="tl-track"><div class="tl-dot"></div></div>
+        <div class="tl-card">
+          <div class="tl-title">
+            {% if not v.visit_date %}
+              <span class="rc-badge rc-badge--pending">لم تتم الزيارة</span>
+            {% elif v.infested %}
+              <span class="rc-badge rc-badge--infested">بها إصابة</span>
+            {% elif v.damaged %}
+              <span class="rc-badge rc-badge--damaged">مصيدة تالفة</span>
+            {% else %}
+              <span class="rc-badge rc-badge--ok">سليمة</span>
+            {% endif %}
+          </div>
+          {% if v.visit_date %}
+          <div class="tl-meta">
+            تاريخ الزيارة: {{ v.visit_date|date:"d/m/Y" }}
+            {% if v.visited_by %} — بواسطة: {{ v.visited_by.get_full_name|default:v.visited_by.username }}{% endif %}
+            {% if v.newly_installed %} — تم تركيب مصيدة جديدة{% endif %}
+            {% if v.replenished %} — تم تعبئتها{% endif %}
+          </div>
+          {% endif %}
+          {% if v.rodenticide_type %}
+          <div class="tl-notes">المادة: {{ v.rodenticide_type }}{% if v.rodenticide_quantity %} — الكمية: {{ v.rodenticide_quantity }}{% endif %}</div>
+          {% endif %}
+          {% if v.notes %}<div class="tl-notes">{{ v.notes }}</div>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="rc-empty">لا يوجد سجل سابق بعد.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

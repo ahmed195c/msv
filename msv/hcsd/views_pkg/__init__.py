@@ -47,6 +47,9 @@ from .container_transfer import (
     container_mark_transferred, container_submit_report, container_close,
     container_photo_delete, container_reject, container_delete,
 )
+from .rodent_control import (
+    rodent_control_list, rodent_control_building_create, rodent_control_building_detail,
+)
 
 __all__ = [
     'portal_landing', 'home', 'set_app_language',
@@ -76,5 +79,6 @@ __all__ = [
     'weed_work_start', 'weed_report_submit', 'weed_add_photos',
     'weed_reject', 'weed_close', 'weed_photo_delete', 'weed_delete',
     'weed_pdf_import', 'weed_pdf_review', 'weed_save_location', 'weed_delete_location',
+    'rodent_control_list', 'rodent_control_building_create', 'rodent_control_building_detail',
     'all_requests',
 ]

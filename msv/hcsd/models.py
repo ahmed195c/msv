@@ -1626,3 +1626,73 @@ class EngineerRemovalDocument(models.Model):
 
     def __str__(self):
         return f"مستند — {self.removal}"
+
+
+# ══════════════════════════════════════════
+#  Rodent Control — building trap monitoring
+# ══════════════════════════════════════════
+
+class RodentControlBuilding(models.Model):
+    """A building/site tracked for rodent-control trap (RBS) monitoring.
+    One trap per building — monthly visit records track its status over time."""
+    name          = models.CharField(max_length=200, verbose_name='اسم البناية')
+    number        = models.CharField(max_length=50, blank=True, verbose_name='رقم البناية')
+    area          = models.CharField(max_length=150, blank=True, verbose_name='المنطقة')
+    location      = models.CharField(max_length=300, blank=True, verbose_name='الموقع')
+    latitude      = models.FloatField(null=True, blank=True, verbose_name='خط العرض')
+    longitude     = models.FloatField(null=True, blank=True, verbose_name='خط الطول')
+    notes         = models.TextField(blank=True, verbose_name='ملاحظات')
+    is_active     = models.BooleanField(default=True, verbose_name='قيد المتابعة')
+    created_by    = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='rodent_buildings_created',
+    )
+    created_at    = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name        = 'بناية متابعة مصايد'
+        verbose_name_plural = 'بنايات متابعة المصايد'
+
+    def __str__(self):
+        return self.name
+
+
+class RodentControlVisit(models.Model):
+    """One monthly trap-status record for a building. Auto-generated on the
+    1st of each month by generate_rodent_control_visits; filled in when the
+    team actually visits."""
+    building        = models.ForeignKey(
+        RodentControlBuilding, on_delete=models.CASCADE, related_name='visits',
+    )
+    period_start    = models.DateField(verbose_name='شهر المتابعة')  # always day=1
+
+    visit_date      = models.DateField(null=True, blank=True, verbose_name='تاريخ الزيارة')
+    visited_by      = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='rodent_visits_recorded',
+    )
+
+    inspected       = models.BooleanField(default=False, verbose_name='تم التفتيش')
+    infested        = models.BooleanField(default=False, verbose_name='بها إصابة')
+    damaged         = models.BooleanField(default=False, verbose_name='تالفة')
+    newly_installed = models.BooleanField(default=False, verbose_name='تم تركيب مصيدة جديدة')
+    replenished     = models.BooleanField(default=False, verbose_name='تم تعبئتها')
+
+    rodenticide_type     = models.CharField(max_length=150, blank=True, verbose_name='نوع المادة')
+    rodenticide_quantity = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='الكمية',
+    )
+    notes           = models.TextField(blank=True, verbose_name='ملاحظات الزيارة')
+
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-period_start']
+        unique_together = [('building', 'period_start')]
+        verbose_name        = 'زيارة متابعة مصيدة'
+        verbose_name_plural = 'زيارات متابعة المصايد'
+
+    def __str__(self):
+        return f"{self.building.name} — {self.period_start:%Y-%m}"

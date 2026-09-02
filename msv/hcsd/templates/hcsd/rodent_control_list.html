@@ -1,0 +1,105 @@
+{% extends "hcsd/base.html" %}
+{% block title %}متابعة المصايد{% endblock %}
+{% block content %}
+<style>
+.rc-page { max-width: 1100px; margin: 0 auto; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600;
+  text-decoration: none; cursor: pointer; border: 1.5px solid var(--line);
+  background: var(--paper); color: var(--ink-2); font-family: inherit;
+  transition: background .15s, border-color .15s;
+}
+.btn:hover { background: var(--surface); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+.btn-outline { background: var(--paper); color: var(--ink-2); }
+.rc-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 14px; margin-bottom: 22px;
+}
+.rc-header h1 { font-size: 20px; font-weight: 700; color: var(--ink); margin: 0; }
+.rc-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+
+.rc-search {
+  display: flex; gap: 10px; margin-bottom: 18px;
+}
+.rc-search input {
+  flex: 1; max-width: 340px; padding: 8px 12px;
+  border: 1.5px solid var(--line); border-radius: 8px;
+  font-family: inherit; font-size: 13.5px; direction: rtl;
+}
+.rc-search input:focus { outline: none; border-color: var(--accent); }
+
+.rc-count { font-size: 12.5px; color: var(--ink-3); margin-bottom: 12px; }
+
+.rc-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.rc-card {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 16px; display: flex; flex-direction: column; gap: 8px;
+  text-decoration: none; color: inherit; transition: border-color .15s, box-shadow .15s;
+}
+.rc-card:hover { border-color: var(--line-2); box-shadow: 0 4px 14px rgba(0,0,0,.06); }
+.rc-card__name { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+.rc-card__meta { font-size: 12px; color: var(--ink-3); }
+
+.rc-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700;
+  width: fit-content;
+}
+.rc-badge::before { content:''; width:5px; height:5px; border-radius:50%; background: currentColor; }
+.rc-badge--pending { background: var(--surface-2); color: var(--ink-3); }
+.rc-badge--ok      { background: #e8f5ee; color: #1a7a3a; }
+.rc-badge--infested{ background: #fdeaea; color: #b03a1a; }
+.rc-badge--damaged { background: #fff4e0; color: #7a4500; }
+
+.rc-empty { text-align: center; padding: 40px; color: var(--ink-3); font-size: 14px; }
+</style>
+
+<div class="rc-page">
+  <div class="rc-header">
+    <div>
+      <h1>متابعة المصايد</h1>
+      <p>متابعة مصايد القوارض داخل البنايات — شهر {{ period_start|date:"m/Y" }}</p>
+    </div>
+    {% if can_manage %}
+    <a href="{% url 'rodent_control_building_create' %}" class="btn btn-primary">+ إضافة بناية جديدة</a>
+    {% endif %}
+  </div>
+
+  <form method="get" class="rc-search">
+    <input type="text" name="q" value="{{ query }}" placeholder="ابحث باسم البناية…">
+    <button type="submit" class="btn btn-outline">بحث</button>
+  </form>
+
+  <div class="rc-count">{{ total_buildings }} بناية قيد المتابعة</div>
+
+  {% if rows %}
+  <div class="rc-grid">
+    {% for row in rows %}
+    <a href="{% url 'rodent_control_building_detail' row.building.id %}" class="rc-card">
+      <div class="rc-card__name">{{ row.building.name }}</div>
+      <div class="rc-card__meta">
+        {% if row.building.area %}{{ row.building.area }}{% endif %}
+        {% if row.building.number %} — رقم {{ row.building.number }}{% endif %}
+      </div>
+      {% with v=row.visit %}
+        {% if not v or not v.visit_date %}
+          <span class="rc-badge rc-badge--pending">لم تتم الزيارة هذا الشهر</span>
+        {% elif v.infested %}
+          <span class="rc-badge rc-badge--infested">بها إصابة</span>
+        {% elif v.damaged %}
+          <span class="rc-badge rc-badge--damaged">مصيدة تالفة</span>
+        {% else %}
+          <span class="rc-badge rc-badge--ok">سليمة</span>
+        {% endif %}
+      {% endwith %}
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="rc-empty">لا توجد بنايات قيد المتابعة حالياً.</div>
+  {% endif %}
+</div>
+{% endblock %}
