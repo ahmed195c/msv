@@ -23,6 +23,9 @@
       --fieldwork-color:  #2b7a4a;
       --fieldwork-dk:     #1e5c36;
       --fieldwork-lt:     #edfaf3;
+      --rodent-color:     #92400e;
+      --rodent-dk:        #7c3708;
+      --rodent-lt:        #fef3e2;
       --ink:   #1f2937;
       --ink-2: #4b5563;
       --ink-3: #9ca3af;
@@ -124,6 +127,7 @@
     .portal-card--permits::before    { background: var(--permits-color); }
     .portal-card--complaints::before { background: var(--complaints-color); }
     .portal-card--fieldwork::before  { background: var(--fieldwork-color); }
+    .portal-card--rodent::before     { background: var(--rodent-color); }
 
     .portal-card:hover {
       transform: translateY(-4px);
@@ -133,6 +137,7 @@
     .portal-card--permits:hover    { border-color: var(--permits-color); }
     .portal-card--complaints:hover { border-color: var(--complaints-color); }
     .portal-card--fieldwork:hover  { border-color: var(--fieldwork-color); }
+    .portal-card--rodent:hover     { border-color: var(--rodent-color); }
 
     .portal-card-icon {
       width: 64px;
@@ -159,6 +164,11 @@
       color: var(--fieldwork-color);
     }
 
+    .portal-card--rodent .portal-card-icon {
+      background: var(--rodent-lt);
+      color: var(--rodent-color);
+    }
+
     .portal-card-icon svg {
       width: 32px;
       height: 32px;
@@ -173,6 +183,7 @@
     .portal-card--permits    .portal-card-name { color: var(--permits-color); }
     .portal-card--complaints .portal-card-name { color: var(--complaints-color); }
     .portal-card--fieldwork  .portal-card-name { color: var(--fieldwork-color); }
+    .portal-card--rodent     .portal-card-name { color: var(--rodent-color); }
 
     .portal-card-desc {
       font-size: 13px;
@@ -201,6 +212,8 @@
     .portal-card--complaints .portal-card-btn:hover { background: var(--complaints-dk); }
     .portal-card--fieldwork  .portal-card-btn { background: var(--fieldwork-color); }
     .portal-card--fieldwork  .portal-card-btn:hover { background: var(--fieldwork-dk); }
+    .portal-card--rodent     .portal-card-btn { background: var(--rodent-color); }
+    .portal-card--rodent     .portal-card-btn:hover { background: var(--rodent-dk); }
 
     /* ── Footer ── */
     .portal-footer {
@@ -364,6 +377,18 @@
         </svg>
       </div>
       <div class="portal-card-name">العمل الميداني</div>
+      <span class="portal-card-btn">الدخول للنظام</span>
+    </a>
+
+    <!-- Rodent Control Building Tracking -->
+    <a href="{% url 'rodent_control_list' %}" class="portal-card portal-card--rodent">
+      <div class="portal-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/>
+          <circle cx="12" cy="10" r="2.5"/>
+        </svg>
+      </div>
+      <div class="portal-card-name">متابعة المصايد</div>
       <span class="portal-card-btn">الدخول للنظام</span>
     </a>
 
