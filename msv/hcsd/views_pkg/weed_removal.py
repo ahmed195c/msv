@@ -7,8 +7,11 @@ Templates  : hcsd/weed_removal/
 Workflow
 --------
 new → inspector_assigned → inspection_done → supervisor_assigned
-    → work_in_progress → work_done → closed
+    → work_in_progress → closed
     (rejected at any active step by inspector or admin)
+
+The request closes automatically once the supervisor submits their final
+report (action == 'complete') — no separate admin "close" step needed.
 """
 
 import logging
@@ -494,7 +497,7 @@ def weed_report_submit(request, pk):
         if not task.completed_at:
             task.completed_at = now
             task.save(update_fields=['completed_at'])
-        obj.status = 'work_done'
+        obj.status = 'closed'
         obj.save(update_fields=['status', 'updated_at'])
 
     else:

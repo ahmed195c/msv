@@ -561,20 +561,6 @@
   </div>
   {% endif %}
 
-  <!-- ══ STEP 6: Close (admin) ══ -->
-  {% if obj.status == 'work_done' and can_manage %}
-  <div class="permit-section--doc">
-    <div class="doc-band"><span class="doc-band-title">⑥ إغلاق الطلب</span></div>
-    <div class="doc-form-body">
-      <p style="font-size:13px;color:var(--pd-ink-2);margin:0 0 16px;">تم استلام التقرير والصور. يمكنك إغلاق الطلب الآن.</p>
-      <form method="post" action="{% url 'weed_close' obj.pk %}">
-        {% csrf_token %}
-        <button type="submit" class="btn-action">إغلاق الطلب</button>
-      </form>
-    </div>
-  </div>
-  {% endif %}
-
   <!-- ══ Rejection card ══ -->
   {% if obj.status == 'rejected' and inspection and inspection.rejected_at %}
   <div class="permit-section--doc">
