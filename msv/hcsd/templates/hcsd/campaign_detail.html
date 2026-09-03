@@ -1,0 +1,110 @@
+{% extends "hcsd/campaign_base.html" %}
+{% block title %}{{ obj.company_name }}{% endblock %}
+{% block content %}
+<style>
+.cp-page { max-width: 700px; margin: 0 auto; }
+
+.cp-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 18px;
+}
+.cp-header h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0; }
+.cp-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+
+.cp-section {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 18px; margin-bottom: 16px;
+}
+.cp-section h2 { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0 0 14px; }
+
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px 16px; }
+.info-grid div { font-size: 13px; }
+.info-grid .lbl { color: var(--ink-3); font-size: 11.5px; margin-bottom: 2px; }
+.info-grid .val { color: var(--ink); font-weight: 600; }
+
+.cp-photo { max-width: 100%; border-radius: 8px; border: 1.5px solid var(--line); margin-top: 12px; }
+
+.field-wrap { display: grid; gap: 6px; margin-bottom: 12px; }
+.field-wrap label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.field-wrap textarea {
+  border: 1.5px solid var(--line); border-radius: 8px; background: #fff;
+  padding: 9px 12px; font-size: 14px; font-family: inherit; color: var(--ink);
+  box-sizing: border-box; width: 100%; min-height: 100px; resize: vertical;
+}
+.field-wrap textarea:focus { outline: none; border-color: var(--accent); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; cursor: pointer; border: 1.5px solid var(--line);
+  background: var(--paper); color: var(--ink-2); font-family: inherit;
+}
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+.btn-outline:hover { background: var(--surface); }
+
+.cp-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+}
+.cp-badge::before { content:''; width:5px; height:5px; border-radius:50%; background: currentColor; }
+.cp-badge--ongoing { background: #fff4e0; color: #92400e; }
+.cp-badge--done    { background: #e8f5ee; color: #1a7a3a; }
+
+.cp-note-meta { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
+</style>
+
+<div class="cp-page">
+  <div class="cp-header">
+    <div>
+      <h1>{{ obj.company_name }}</h1>
+      <p>
+        {% if obj.area %}{{ obj.area }}{% endif %}
+        {% if obj.building_number %} — رقم {{ obj.building_number }}{% endif %}
+      </p>
+    </div>
+    <a href="{% url 'campaign_list' %}" class="btn btn-outline">العودة للقائمة</a>
+  </div>
+
+  <div class="cp-section">
+    <h2>بيانات الطلب</h2>
+    <div class="info-grid">
+      <div><div class="lbl">اسم الشركة</div><div class="val">{{ obj.company_name }}</div></div>
+      <div><div class="lbl">المنطقة</div><div class="val">{{ obj.area|default:"—" }}</div></div>
+      <div><div class="lbl">رقم البناية</div><div class="val">{{ obj.building_number|default:"—" }}</div></div>
+      <div><div class="lbl">الموقع</div><div class="val">{{ obj.location|default:"—" }}</div></div>
+    </div>
+    {% if obj.photo %}
+      <img class="cp-photo" src="{{ obj.photo.url }}" alt="">
+    {% endif %}
+  </div>
+
+  <div class="cp-section">
+    <h2>
+      الحالة —
+      {% if obj.is_done %}
+        <span class="cp-badge cp-badge--done">تم اتخاذ إجراء</span>
+      {% else %}
+        <span class="cp-badge cp-badge--ongoing">جارية</span>
+      {% endif %}
+    </h2>
+    {% if can_manage %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="field-wrap">
+        <label>ملاحظة المفتش</label>
+        <textarea name="note" placeholder="اكتب هنا بعد المراجعة أو التفتيش…">{{ obj.note }}</textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">حفظ الملاحظة</button>
+    </form>
+    {% else %}
+      <p style="font-size:13px;color:var(--ink-2);">{{ obj.note|default:"لا توجد ملاحظة بعد." }}</p>
+    {% endif %}
+    {% if obj.noted_by %}
+    <div class="cp-note-meta">
+      بواسطة: {{ obj.noted_by.get_full_name|default:obj.noted_by.username }} — {{ obj.noted_at|date:"d/m/Y H:i" }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

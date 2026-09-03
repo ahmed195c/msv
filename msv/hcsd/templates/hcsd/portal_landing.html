@@ -26,6 +26,9 @@
       --rodent-color:     #92400e;
       --rodent-dk:        #7c3708;
       --rodent-lt:        #fef3e2;
+      --campaign-color:   #4338ca;
+      --campaign-dk:      #3730a3;
+      --campaign-lt:      #eef2ff;
       --ink:   #1f2937;
       --ink-2: #4b5563;
       --ink-3: #9ca3af;
@@ -128,6 +131,7 @@
     .portal-card--complaints::before { background: var(--complaints-color); }
     .portal-card--fieldwork::before  { background: var(--fieldwork-color); }
     .portal-card--rodent::before     { background: var(--rodent-color); }
+    .portal-card--campaign::before   { background: var(--campaign-color); }
 
     .portal-card:hover {
       transform: translateY(-4px);
@@ -138,6 +142,7 @@
     .portal-card--complaints:hover { border-color: var(--complaints-color); }
     .portal-card--fieldwork:hover  { border-color: var(--fieldwork-color); }
     .portal-card--rodent:hover     { border-color: var(--rodent-color); }
+    .portal-card--campaign:hover   { border-color: var(--campaign-color); }
 
     .portal-card-icon {
       width: 64px;
@@ -169,6 +174,11 @@
       color: var(--rodent-color);
     }
 
+    .portal-card--campaign .portal-card-icon {
+      background: var(--campaign-lt);
+      color: var(--campaign-color);
+    }
+
     .portal-card-icon svg {
       width: 32px;
       height: 32px;
@@ -184,6 +194,7 @@
     .portal-card--complaints .portal-card-name { color: var(--complaints-color); }
     .portal-card--fieldwork  .portal-card-name { color: var(--fieldwork-color); }
     .portal-card--rodent     .portal-card-name { color: var(--rodent-color); }
+    .portal-card--campaign   .portal-card-name { color: var(--campaign-color); }
 
     .portal-card-desc {
       font-size: 13px;
@@ -214,6 +225,8 @@
     .portal-card--fieldwork  .portal-card-btn:hover { background: var(--fieldwork-dk); }
     .portal-card--rodent     .portal-card-btn { background: var(--rodent-color); }
     .portal-card--rodent     .portal-card-btn:hover { background: var(--rodent-dk); }
+    .portal-card--campaign   .portal-card-btn { background: var(--campaign-color); }
+    .portal-card--campaign   .portal-card-btn:hover { background: var(--campaign-dk); }
 
     /* ── Footer ── */
     .portal-footer {
@@ -389,6 +402,18 @@
         </svg>
       </div>
       <div class="portal-card-name">متابعة المصايد</div>
+      <span class="portal-card-btn">الدخول للنظام</span>
+    </a>
+
+    <!-- Campaign Follow-up -->
+    <a href="{% url 'campaign_list' %}" class="portal-card portal-card--campaign">
+      <div class="portal-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+      </div>
+      <div class="portal-card-name">متابعة حملة</div>
       <span class="portal-card-btn">الدخول للنظام</span>
     </a>
 

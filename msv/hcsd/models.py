@@ -1726,3 +1726,43 @@ class RodentControlVisit(models.Model):
 
     def __str__(self):
         return f"{self.building.name} — {self.period_start:%Y-%m}"
+
+
+# ══════════════════════════════════════════
+#  Campaign Follow-up — independent, standalone tracking
+# ══════════════════════════════════════════
+
+class CampaignRequest(models.Model):
+    """A single site flagged for a campaign visit. An inspector marks it
+    handled simply by writing a note — no separate status field, no fixed
+    workflow. Presence of a note is the whole status model."""
+    company_name    = models.CharField(max_length=200, verbose_name='اسم الشركة')
+    location        = models.CharField(max_length=300, blank=True, verbose_name='الموقع')
+    photo           = models.ImageField(upload_to='campaign/photos/', null=True, blank=True, verbose_name='صورة')
+    building_number = models.CharField(max_length=50, blank=True, verbose_name='رقم البناية')
+    area            = models.CharField(max_length=150, blank=True, verbose_name='المنطقة')
+
+    note      = models.TextField(blank=True, verbose_name='ملاحظة المفتش')
+    noted_by  = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='campaign_notes_written',
+    )
+    noted_at  = models.DateTimeField(null=True, blank=True)
+
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='campaign_requests_created',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name        = 'طلب متابعة حملة'
+        verbose_name_plural = 'طلبات متابعة الحملة'
+
+    def __str__(self):
+        return self.company_name
+
+    @property
+    def is_done(self):
+        return bool(self.note.strip())

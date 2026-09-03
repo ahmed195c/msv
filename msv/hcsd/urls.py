@@ -50,6 +50,10 @@ urlpatterns = [
     path('rodent-control/report/excel/', views.rodent_control_monthly_excel, name='rodent_control_monthly_excel'),
     path('rodent-control/<int:pk>/', views.rodent_control_building_detail, name='rodent_control_building_detail'),
 
+    path('campaign/', views.campaign_list, name='campaign_list'),
+    path('campaign/add/', views.campaign_create, name='campaign_create'),
+    path('campaign/<int:pk>/', views.campaign_detail, name='campaign_detail'),
+
     path('companies/', views.company_list, name='company_list'),
     path('company_detail/<int:id>/', views.company_detail, name='company_detail'),
     path(
