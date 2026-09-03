@@ -51,7 +51,7 @@ from .rodent_control import (
     rodent_control_list, rodent_control_building_create, rodent_control_building_detail,
     rodent_control_monthly_excel,
 )
-from .campaign import campaign_list, campaign_create, campaign_detail
+from .campaign import campaign_list, campaign_create, campaign_detail, campaign_delete
 
 __all__ = [
     'portal_landing', 'home', 'set_app_language',
@@ -83,6 +83,6 @@ __all__ = [
     'weed_pdf_import', 'weed_pdf_review', 'weed_save_location', 'weed_delete_location',
     'rodent_control_list', 'rodent_control_building_create', 'rodent_control_building_detail',
     'rodent_control_monthly_excel',
-    'campaign_list', 'campaign_create', 'campaign_detail',
+    'campaign_list', 'campaign_create', 'campaign_detail', 'campaign_delete',
     'all_requests',
 ]

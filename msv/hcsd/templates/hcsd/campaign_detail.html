@@ -42,6 +42,8 @@
 .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
 .btn-primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
 .btn-outline:hover { background: var(--surface); }
+.btn-danger { background: #b03a1a; color: #fff; border-color: #b03a1a; }
+.btn-danger:hover { background: #8c2f14; border-color: #8c2f14; }
 
 .cp-badge {
   display: inline-flex; align-items: center; gap: 5px;
@@ -63,7 +65,15 @@
         {% if obj.building_number %} — رقم {{ obj.building_number }}{% endif %}
       </p>
     </div>
-    <a href="{% url 'campaign_list' %}" class="btn btn-outline">العودة للقائمة</a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="{% url 'campaign_list' %}" class="btn btn-outline">العودة للقائمة</a>
+      {% if can_admin %}
+      <form method="post" action="{% url 'campaign_delete' obj.pk %}" onsubmit="return confirm('هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">حذف الطلب</button>
+      </form>
+      {% endif %}
+    </div>
   </div>
 
   <div class="cp-section">

@@ -10,8 +10,10 @@ the note itself is the whole status model.
 """
 
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from ..models import CampaignRequest
 from .common import _can_admin, _can_data_entry
@@ -94,4 +96,16 @@ def campaign_detail(request, pk):
     return render(request, 'hcsd/campaign_detail.html', {
         'obj': obj,
         'can_manage': can_manage,
+        'can_admin': _can_admin(request.user),
     })
+
+
+@login_required
+@require_POST
+def campaign_delete(request, pk):
+    obj = get_object_or_404(CampaignRequest, pk=pk)
+    if not _can_admin(request.user):
+        return HttpResponseForbidden()
+
+    obj.delete()
+    return redirect('campaign_list')

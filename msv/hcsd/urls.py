@@ -53,6 +53,7 @@ urlpatterns = [
     path('campaign/', views.campaign_list, name='campaign_list'),
     path('campaign/add/', views.campaign_create, name='campaign_create'),
     path('campaign/<int:pk>/', views.campaign_detail, name='campaign_detail'),
+    path('campaign/<int:pk>/delete/', views.campaign_delete, name='campaign_delete'),
 
     path('companies/', views.company_list, name='company_list'),
     path('company_detail/<int:id>/', views.company_detail, name='company_detail'),
