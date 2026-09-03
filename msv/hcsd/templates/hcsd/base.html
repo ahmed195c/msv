@@ -662,9 +662,6 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
 
           <a class="{% if request.resolver_match.url_name == 'extension_followup' %}is-active{% endif %}"
              href="{% url 'extension_followup' %}">متابعة المهل</a>
-
-          <a class="{% if request.resolver_match.url_name == 'rodent_control_list' or request.resolver_match.url_name == 'rodent_control_building_detail' %}is-active{% endif %}"
-             href="{% url 'rodent_control_list' %}">متابعة المصايد</a>
         </div>
 
         <div class="nav-auth">
