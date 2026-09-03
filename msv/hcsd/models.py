@@ -1741,6 +1741,7 @@ class CampaignRequest(models.Model):
     photo           = models.ImageField(upload_to='campaign/photos/', null=True, blank=True, verbose_name='صورة')
     building_number = models.CharField(max_length=50, blank=True, verbose_name='رقم البناية')
     area            = models.CharField(max_length=150, blank=True, verbose_name='المنطقة')
+    google_maps_url = models.URLField(max_length=500, blank=True, verbose_name='رابط الموقع على خرائط قوقل')
 
     note      = models.TextField(blank=True, verbose_name='ملاحظة المفتش')
     noted_by  = models.ForeignKey(

@@ -62,6 +62,7 @@ def campaign_create(request):
         location        = (request.POST.get('location') or '').strip()
         building_number = (request.POST.get('building_number') or '').strip()
         area            = (request.POST.get('area') or '').strip()
+        google_maps_url = (request.POST.get('google_maps_url') or '').strip()
         photo           = request.FILES.get('photo')
 
         if not company_name:
@@ -70,7 +71,8 @@ def campaign_create(request):
         if not errors:
             obj = CampaignRequest.objects.create(
                 company_name=company_name, location=location,
-                building_number=building_number, area=area, photo=photo,
+                building_number=building_number, area=area,
+                google_maps_url=google_maps_url, photo=photo,
                 created_by=request.user,
             )
             return redirect('campaign_detail', pk=obj.pk)
@@ -87,10 +89,15 @@ def campaign_detail(request, pk):
     can_manage = _can_manage(request.user)
 
     if request.method == 'POST' and can_manage:
-        obj.note = (request.POST.get('note') or '').strip()
-        obj.noted_by = request.user
-        obj.noted_at = timezone.now()
-        obj.save(update_fields=['note', 'noted_by', 'noted_at'])
+        action = request.POST.get('action', 'note')
+        if action == 'maps_link':
+            obj.google_maps_url = (request.POST.get('google_maps_url') or '').strip()
+            obj.save(update_fields=['google_maps_url'])
+        else:
+            obj.note = (request.POST.get('note') or '').strip()
+            obj.noted_by = request.user
+            obj.noted_at = timezone.now()
+            obj.save(update_fields=['note', 'noted_by', 'noted_at'])
         return redirect('campaign_detail', pk=pk)
 
     return render(request, 'hcsd/campaign_detail.html', {
