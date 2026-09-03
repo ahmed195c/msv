@@ -25,12 +25,18 @@
 
 .field-wrap { display: grid; gap: 6px; margin-bottom: 12px; }
 .field-wrap label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
-.field-wrap textarea {
+.field-wrap textarea, .field-wrap input {
   border: 1.5px solid var(--line); border-radius: 8px; background: #fff;
   padding: 9px 12px; font-size: 14px; font-family: inherit; color: var(--ink);
-  box-sizing: border-box; width: 100%; min-height: 100px; resize: vertical;
+  box-sizing: border-box; width: 100%;
 }
-.field-wrap textarea:focus { outline: none; border-color: var(--accent); }
+.field-wrap textarea { min-height: 100px; resize: vertical; }
+.field-wrap textarea:focus, .field-wrap input:focus { outline: none; border-color: var(--accent); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .two-col { grid-template-columns: 1fr; } }
+
+details.cp-edit summary { cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--accent); margin-top: 14px; }
+details.cp-edit form { margin-top: 12px; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -94,17 +100,32 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           فتح في خرائط قوقل
         </a>
-      {% endif %}
-      {% if can_manage %}
-      <form method="post" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="maps_link">
-        <input type="url" name="google_maps_url" value="{{ obj.google_maps_url }}" placeholder="https://maps.app.goo.gl/…"
-               style="flex:1;min-width:220px;border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font-size:14px;font-family:inherit;">
-        <button type="submit" class="btn btn-outline">حفظ الرابط</button>
-      </form>
+      {% else %}
+        <span style="font-size:13px;color:var(--ink-3);">— لا يوجد رابط محفوظ —</span>
       {% endif %}
     </div>
+
+    {% if can_manage %}
+    <details class="cp-edit">
+      <summary>تعديل بيانات الطلب</summary>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_request">
+        <div class="field-wrap"><label>اسم الشركة</label><input type="text" name="company_name" value="{{ obj.company_name }}"></div>
+        <div class="two-col">
+          <div class="field-wrap"><label>رقم البناية</label><input type="text" name="building_number" value="{{ obj.building_number }}"></div>
+          <div class="field-wrap"><label>المنطقة</label><input type="text" name="area" value="{{ obj.area }}"></div>
+        </div>
+        <div class="field-wrap"><label>الموقع</label><input type="text" name="location" value="{{ obj.location }}"></div>
+        <div class="field-wrap"><label>رابط الموقع على خرائط قوقل</label><input type="url" name="google_maps_url" value="{{ obj.google_maps_url }}" placeholder="https://maps.app.goo.gl/…"></div>
+        <div class="field-wrap">
+          <label>صورة {% if obj.photo %}(اختر صورة جديدة لاستبدال الحالية){% endif %}</label>
+          <input type="file" name="photo" accept="image/*">
+        </div>
+        <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+      </form>
+    </details>
+    {% endif %}
   </div>
 
   <div class="cp-section">

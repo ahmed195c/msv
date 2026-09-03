@@ -90,9 +90,18 @@ def campaign_detail(request, pk):
 
     if request.method == 'POST' and can_manage:
         action = request.POST.get('action', 'note')
-        if action == 'maps_link':
+        if action == 'update_request':
+            obj.company_name    = (request.POST.get('company_name') or obj.company_name).strip()
+            obj.building_number = (request.POST.get('building_number') or '').strip()
+            obj.area            = (request.POST.get('area') or '').strip()
+            obj.location        = (request.POST.get('location') or '').strip()
             obj.google_maps_url = (request.POST.get('google_maps_url') or '').strip()
-            obj.save(update_fields=['google_maps_url'])
+            update_fields = ['company_name', 'building_number', 'area', 'location', 'google_maps_url']
+            new_photo = request.FILES.get('photo')
+            if new_photo:
+                obj.photo = new_photo
+                update_fields.append('photo')
+            obj.save(update_fields=update_fields)
         else:
             obj.note = (request.POST.get('note') or '').strip()
             obj.noted_by = request.user
