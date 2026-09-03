@@ -1737,7 +1737,6 @@ class CampaignRequest(models.Model):
     handled simply by writing a note — no separate status field, no fixed
     workflow. Presence of a note is the whole status model."""
     company_name    = models.CharField(max_length=200, verbose_name='اسم الشركة')
-    location        = models.CharField(max_length=300, blank=True, verbose_name='الموقع')
     photo           = models.ImageField(upload_to='campaign/photos/', null=True, blank=True, verbose_name='صورة')
     building_number = models.CharField(max_length=50, blank=True, verbose_name='رقم البناية')
     area            = models.CharField(max_length=150, blank=True, verbose_name='المنطقة')

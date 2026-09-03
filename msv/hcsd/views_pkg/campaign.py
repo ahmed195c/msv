@@ -59,7 +59,6 @@ def campaign_create(request):
     errors = []
     if request.method == 'POST':
         company_name    = (request.POST.get('company_name') or '').strip()
-        location        = (request.POST.get('location') or '').strip()
         building_number = (request.POST.get('building_number') or '').strip()
         area            = (request.POST.get('area') or '').strip()
         infestation_location = (request.POST.get('infestation_location') or '').strip()
@@ -71,7 +70,7 @@ def campaign_create(request):
 
         if not errors:
             obj = CampaignRequest.objects.create(
-                company_name=company_name, location=location,
+                company_name=company_name,
                 building_number=building_number, area=area,
                 infestation_location=infestation_location,
                 google_maps_url=google_maps_url, photo=photo,
@@ -96,10 +95,9 @@ def campaign_detail(request, pk):
             obj.company_name    = (request.POST.get('company_name') or obj.company_name).strip()
             obj.building_number = (request.POST.get('building_number') or '').strip()
             obj.area            = (request.POST.get('area') or '').strip()
-            obj.location        = (request.POST.get('location') or '').strip()
             obj.infestation_location = (request.POST.get('infestation_location') or '').strip()
             obj.google_maps_url = (request.POST.get('google_maps_url') or '').strip()
-            update_fields = ['company_name', 'building_number', 'area', 'location', 'infestation_location', 'google_maps_url']
+            update_fields = ['company_name', 'building_number', 'area', 'infestation_location', 'google_maps_url']
             new_photo = request.FILES.get('photo')
             if new_photo:
                 obj.photo = new_photo
