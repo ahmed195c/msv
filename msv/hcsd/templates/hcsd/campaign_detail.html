@@ -105,6 +105,7 @@
           <div class="field-wrap"><label>المنطقة</label><input type="text" name="area" value="{{ obj.area }}"></div>
         </div>
         <div class="field-wrap"><label>الموقع</label><input type="text" name="location" value="{{ obj.location }}"></div>
+        <div class="field-wrap"><label>مكان الإصابة</label><input type="text" name="infestation_location" value="{{ obj.infestation_location }}"></div>
         <div class="field-wrap"><label>رابط الموقع على خرائط قوقل</label><input type="url" name="google_maps_url" value="{{ obj.google_maps_url }}" placeholder="https://maps.app.goo.gl/…"></div>
         <div class="field-wrap">
           <label>صورة {% if obj.photo %}(اختر صورة جديدة لاستبدال الحالية){% endif %}</label>
@@ -126,6 +127,7 @@
       <div><div class="lbl">المنطقة</div><div class="val">{{ obj.area|default:"—" }}</div></div>
       <div><div class="lbl">رقم البناية</div><div class="val">{{ obj.building_number|default:"—" }}</div></div>
       <div><div class="lbl">الموقع</div><div class="val">{{ obj.location|default:"—" }}</div></div>
+      <div><div class="lbl">مكان الإصابة</div><div class="val">{{ obj.infestation_location|default:"—" }}</div></div>
     </div>
     {% if obj.photo %}
       <img class="cp-photo" src="{{ obj.photo.url }}" alt="">
