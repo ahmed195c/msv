@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}متابعة المصايد{% endblock %} — بلدية الشارقة</title>
+  <link rel="icon" type="image/png" href="{% static 'hcsd/shjmun-logo-website.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap"></noscript>
+  {% block extra_css %}{% endblock %}
+
+<style>
+:root {
+  --ink:       #1f2937;
+  --ink-2:     #4b5563;
+  --ink-3:     #6b7280;
+  --ink-4:     #9ca3af;
+  --paper:     #ffffff;
+  --surface:   #faf6f1;
+  --surface-2: #f3ece3;
+  --line:      #e7dfd4;
+  --line-2:    #d8cbb8;
+  --accent:      #92400e;
+  --accent-dk:   #7c3708;
+  --accent-lt:   #b5651d;
+  --accent-bg:   #fef3e2;
+  --sans: 'IBM Plex Sans Arabic', sans-serif;
+  --nav-h: 58px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { font-family: var(--sans); color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; }
+
+body.app-shell {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--surface);
+  direction: rtl;
+  text-align: right;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--paper);
+  border-bottom: 1.5px solid var(--line);
+}
+
+.navbar {
+  max-width: 1100px;
+  margin: 0 auto;
+  height: var(--nav-h);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.nav-brand img { height: 28px; border-radius: 4px; }
+.nav-brand-label { display: flex; flex-direction: column; line-height: 1.25; }
+.nav-brand-name { font-size: 14px; font-weight: 700; color: var(--ink); }
+.nav-brand-sub  { font-size: 10.5px; font-weight: 500; color: var(--ink-4); }
+
+.nav-spacer { flex: 1; }
+
+.nav-end { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.nav-switch {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 7px;
+  background: var(--surface-2); border: 1.5px solid var(--line);
+  color: var(--ink-2); font-size: 12.5px; font-weight: 600; text-decoration: none;
+  transition: background .15s, border-color .15s;
+}
+.nav-switch:hover { background: var(--line); border-color: var(--line-2); }
+
+.nav-user-chip { display: inline-flex; align-items: center; gap: 7px; }
+.nav-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent-bg); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+}
+.nav-username { font-size: 12.5px; font-weight: 600; color: var(--ink-2); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.nav-logout {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 7px;
+  color: var(--ink-3); background: none; border: 1.5px solid transparent;
+  cursor: pointer; font-family: inherit;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.nav-logout:hover { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+.nav-logout svg { width: 14px; height: 14px; }
+
+.app-main { flex: 1; padding: 24px 20px 48px; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+@media (max-width: 640px) {
+  .navbar { flex-wrap: wrap; height: auto; padding: 10px 14px; }
+  .nav-brand-sub { display: none; }
+  .nav-username { display: none; }
+}
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+
+<body class="app-shell">
+
+<div class="app-chrome">
+  <nav class="navbar">
+    <a href="{% url 'rodent_control_list' %}" class="nav-brand">
+      <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="">
+      <span class="nav-brand-label">
+        <span class="nav-brand-name">متابعة المصايد</span>
+        <span class="nav-brand-sub">قسم البيئة — بلدية الشارقة</span>
+      </span>
+    </a>
+
+    <div class="nav-spacer"></div>
+
+    <div class="nav-end">
+      <a href="{% url 'portal_landing' %}" class="nav-switch">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        الرئيسية
+      </a>
+      {% if request.user.is_authenticated %}
+      <div class="nav-user-chip">
+        <div class="nav-avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1" }}</div>
+        <span class="nav-username">{{ request.user.get_full_name|default:request.user.username }}</span>
+      </div>
+      <form method="post" action="{% url 'logout' %}" style="display:contents;">
+        {% csrf_token %}
+        <button type="submit" class="nav-logout" title="تسجيل الخروج">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </nav>
+</div>
+
+<main class="app-main">
+  {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>
