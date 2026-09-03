@@ -126,7 +126,9 @@
           {% elif r.status == 'rejected' %}<span class="badge b-rejected">مرفوض</span>{% endif %}
         </td>
         <td style="color:var(--ink-2);white-space:nowrap;">{{ r.created_at|date:"d/m/Y" }}</td>
-        <td style="color:var(--ink-2);">{{ r.created_by.get_full_name|default:r.created_by.username|default:"—" }}</td>
+        <td style="color:var(--ink-2);">
+          {% if r.created_by %}{{ r.created_by.get_full_name|default:r.created_by.username }}{% else %}—{% endif %}
+        </td>
         <td style="text-align:center;white-space:nowrap;">
           <a href="{% url 'weed_detail' r.pk %}" class="view-btn">عرض <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></a>
           {% if can_delete %}
