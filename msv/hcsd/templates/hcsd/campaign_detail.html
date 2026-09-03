@@ -35,8 +35,14 @@
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 @media (max-width: 480px) { .two-col { grid-template-columns: 1fr; } }
 
-details.cp-edit summary { cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--accent); margin-top: 14px; }
-details.cp-edit form { margin-top: 12px; }
+.cp-edit-check { display: none; }
+.cp-edit-panel { display: none; margin-bottom: 16px; }
+.cp-edit-check:checked ~ .cp-edit-panel { display: block; }
+.cp-edit-section { border-color: var(--accent); border-width: 2px; }
+.cp-edit-section h2 { display: flex; align-items: center; justify-content: space-between; }
+.cp-edit-cancel { font-size: 12px; font-weight: 700; color: var(--ink-3); cursor: pointer; }
+.cp-edit-cancel:hover { color: var(--ink); }
+.cp-edit-actions { display: flex; gap: 8px; margin-top: 6px; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -62,6 +68,7 @@ details.cp-edit form { margin-top: 12px; }
 </style>
 
 <div class="cp-page">
+  {% if can_manage %}<input type="checkbox" id="edit-toggle" class="cp-edit-check">{% endif %}
   <div class="cp-header">
     <div>
       <h1>{{ obj.company_name }}</h1>
@@ -71,6 +78,7 @@ details.cp-edit form { margin-top: 12px; }
       </p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      {% if can_manage %}<label for="edit-toggle" class="btn btn-primary">تعديل البيانات</label>{% endif %}
       <a href="{% url 'campaign_list' %}" class="btn btn-outline">العودة للقائمة</a>
       {% if can_admin %}
       <form method="post" action="{% url 'campaign_delete' obj.pk %}" onsubmit="return confirm('هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.');">
@@ -80,6 +88,36 @@ details.cp-edit form { margin-top: 12px; }
       {% endif %}
     </div>
   </div>
+
+  {% if can_manage %}
+  <div class="cp-edit-panel">
+    <div class="cp-section cp-edit-section">
+      <h2>
+        تعديل بيانات الطلب
+        <label for="edit-toggle" class="cp-edit-cancel">إغلاق ✕</label>
+      </h2>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_request">
+        <div class="field-wrap"><label>اسم الشركة</label><input type="text" name="company_name" value="{{ obj.company_name }}"></div>
+        <div class="two-col">
+          <div class="field-wrap"><label>رقم البناية</label><input type="text" name="building_number" value="{{ obj.building_number }}"></div>
+          <div class="field-wrap"><label>المنطقة</label><input type="text" name="area" value="{{ obj.area }}"></div>
+        </div>
+        <div class="field-wrap"><label>الموقع</label><input type="text" name="location" value="{{ obj.location }}"></div>
+        <div class="field-wrap"><label>رابط الموقع على خرائط قوقل</label><input type="url" name="google_maps_url" value="{{ obj.google_maps_url }}" placeholder="https://maps.app.goo.gl/…"></div>
+        <div class="field-wrap">
+          <label>صورة {% if obj.photo %}(اختر صورة جديدة لاستبدال الحالية){% endif %}</label>
+          <input type="file" name="photo" accept="image/*">
+        </div>
+        <div class="cp-edit-actions">
+          <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+          <label for="edit-toggle" class="btn btn-outline">إلغاء</label>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="cp-section">
     <h2>بيانات الطلب</h2>
@@ -105,27 +143,6 @@ details.cp-edit form { margin-top: 12px; }
       {% endif %}
     </div>
 
-    {% if can_manage %}
-    <details class="cp-edit">
-      <summary>تعديل بيانات الطلب</summary>
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="update_request">
-        <div class="field-wrap"><label>اسم الشركة</label><input type="text" name="company_name" value="{{ obj.company_name }}"></div>
-        <div class="two-col">
-          <div class="field-wrap"><label>رقم البناية</label><input type="text" name="building_number" value="{{ obj.building_number }}"></div>
-          <div class="field-wrap"><label>المنطقة</label><input type="text" name="area" value="{{ obj.area }}"></div>
-        </div>
-        <div class="field-wrap"><label>الموقع</label><input type="text" name="location" value="{{ obj.location }}"></div>
-        <div class="field-wrap"><label>رابط الموقع على خرائط قوقل</label><input type="url" name="google_maps_url" value="{{ obj.google_maps_url }}" placeholder="https://maps.app.goo.gl/…"></div>
-        <div class="field-wrap">
-          <label>صورة {% if obj.photo %}(اختر صورة جديدة لاستبدال الحالية){% endif %}</label>
-          <input type="file" name="photo" accept="image/*">
-        </div>
-        <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
-      </form>
-    </details>
-    {% endif %}
   </div>
 
   <div class="cp-section">
