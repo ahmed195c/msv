@@ -1746,7 +1746,6 @@ class RodentControlVisit(models.Model):
 
     class Meta:
         ordering = ['-period_start']
-        unique_together = [('building', 'period_start')]
         verbose_name        = 'زيارة متابعة مصيدة'
         verbose_name_plural = 'زيارات متابعة المصايد'
 

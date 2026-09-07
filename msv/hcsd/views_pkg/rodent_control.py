@@ -33,10 +33,15 @@ def _current_period_start(today=None):
 
 
 def _get_or_create_current_visit(building, today=None):
+    # A building can have more than one visit in the same month (imported
+    # historical data, or more than one real field visit) — the manual
+    # entry form always works on the most recent one for the current month.
     period_start = _current_period_start(today)
-    visit, _ = RodentControlVisit.objects.get_or_create(
+    visit = RodentControlVisit.objects.filter(
         building=building, period_start=period_start,
-    )
+    ).order_by('-id').first()
+    if visit is None:
+        visit = RodentControlVisit.objects.create(building=building, period_start=period_start)
     return visit
 
 
