@@ -152,12 +152,24 @@ class Command(BaseCommand):
                     if c and _num(c) > 0:
                         flags[field] = True
 
+                def _raw_num(col):
+                    # Unlike _num(), distinguishes a genuinely blank cell
+                    # (None) from an explicitly recorded zero.
+                    raw = ws.cell(row=r, column=col).value
+                    if raw is None or (isinstance(raw, str) and not raw.strip()):
+                        return None
+                    try:
+                        return int(float(raw))
+                    except (TypeError, ValueError):
+                        return None
+
                 numeric_values = {}
                 for header, field in NUMERIC_FIELDS.items():
                     c = col_of.get(header)
                     if c:
-                        v = _num(c)
-                        numeric_values[field] = int(v) if v else None
+                        v = _raw_num(c)
+                        if v is not None:
+                            numeric_values[field] = v
 
                 rod_parts = []
                 total_qty = 0.0
