@@ -174,7 +174,8 @@ details.rc-edit input, details.rc-edit textarea {
         <div class="field-wrap"><label>اسم قائد الفريق</label><input type="text" name="team_leader_name" value="{{ current_visit.team_leader_name }}"></div>
         <div class="field-wrap"><label>الرقم الوظيفي</label><input type="text" name="team_leader_id" value="{{ current_visit.team_leader_id }}"></div>
       </div>
-      <div class="two-col">
+      <div class="three-col">
+        <div class="field-wrap"><label>عدد الفنيين</label><input type="number" name="technicians_count" value="{{ current_visit.technicians_count|default_if_none:'' }}"></div>
         <div class="field-wrap"><label>وقت الدخول</label><input type="time" name="time_in" value="{{ current_visit.time_in|time:'H:i' }}"></div>
         <div class="field-wrap"><label>وقت الخروج</label><input type="time" name="time_out" value="{{ current_visit.time_out|time:'H:i' }}"></div>
       </div>
@@ -213,11 +214,36 @@ details.rc-edit input, details.rc-edit textarea {
         <div class="field-wrap"><label>المصاب</label><input type="number" name="trees_infested_count" value="{{ current_visit.trees_infested_count|default_if_none:'' }}"></div>
       </div>
 
+      <h3 class="rc-form-group">مباني وفلل / إنشاءات / مساجد / غرف كهربائية</h3>
+      <div class="four-col">
+        <div class="field-wrap"><label>مباني/فلل مفتشة</label><input type="number" name="bldg_villa_inspected_count" value="{{ current_visit.bldg_villa_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>مباني/فلل مصابة</label><input type="number" name="bldg_villa_infested_count" value="{{ current_visit.bldg_villa_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>إنشاءات مفتشة</label><input type="number" name="construction_inspected_count" value="{{ current_visit.construction_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>إنشاءات مصابة</label><input type="number" name="construction_infested_count" value="{{ current_visit.construction_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>مساجد مفتشة</label><input type="number" name="masjed_inspected_count" value="{{ current_visit.masjed_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>مساجد مصابة</label><input type="number" name="masjed_infested_count" value="{{ current_visit.masjed_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>غرف كهربائية مفتشة</label><input type="number" name="electrical_inspected_count" value="{{ current_visit.electrical_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>غرف كهربائية مصابة</label><input type="number" name="electrical_infested_count" value="{{ current_visit.electrical_infested_count|default_if_none:'' }}"></div>
+      </div>
+      <div class="field-wrap" style="max-width:200px;"><label>المكاتب الحكومية</label><input type="number" name="gov_offices_count" value="{{ current_visit.gov_offices_count|default_if_none:'' }}"></div>
+
       <h3 class="rc-form-group">المادة المستخدمة</h3>
       <div class="two-col">
         <div class="field-wrap"><label>نوع المادة</label><input type="text" name="rodenticide_type" value="{{ current_visit.rodenticide_type }}"></div>
         <div class="field-wrap"><label>الكمية</label><input type="number" step="0.01" name="rodenticide_quantity" value="{{ current_visit.rodenticide_quantity|default_if_none:'' }}"></div>
       </div>
+
+      <h3 class="rc-form-group">كميات المواد المستخدمة حسب النوع</h3>
+      <div class="three-col">
+        <div class="field-wrap"><label>SUREFIRE ALL WEATHER</label><input type="number" step="0.01" name="rodenticide_surefire_qty" value="{{ current_visit.rodenticide_surefire_qty|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>FACORAT PELLETS</label><input type="number" step="0.01" name="rodenticide_facorat_qty" value="{{ current_visit.rodenticide_facorat_qty|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>VERTOX Okta Blocks</label><input type="number" step="0.01" name="rodenticide_vertox_qty" value="{{ current_visit.rodenticide_vertox_qty|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>SELLIOX D</label><input type="number" step="0.01" name="rodenticide_sellioxid_qty" value="{{ current_visit.rodenticide_sellioxid_qty|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>VICTOR V FAST KILL</label><input type="number" step="0.01" name="rodenticide_victor_qty" value="{{ current_visit.rodenticide_victor_qty|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>Protect Sensation 2in1</label><input type="number" step="0.01" name="rodenticide_protect_qty" value="{{ current_visit.rodenticide_protect_qty|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>NOCURAT PARAFFINATO</label><input type="number" step="0.01" name="rodenticide_nocurat_qty" value="{{ current_visit.rodenticide_nocurat_qty|default_if_none:'' }}"></div>
+      </div>
+
       <div class="field-wrap"><label>ملاحظات</label><textarea name="notes">{{ current_visit.notes }}</textarea></div>
       <button type="submit" class="btn btn-primary">حفظ الزيارة</button>
     </form>

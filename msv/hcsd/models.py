@@ -1713,6 +1713,32 @@ class RodentControlVisit(models.Model):
     rodenticide_quantity = models.DecimalField(
         max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='الكمية',
     )
+
+    # ── Matches the monthly "Rodent Team Report" spreadsheet columns ──
+    technicians_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='عدد الفنيين')
+
+    bldg_villa_inspected_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي المباني/الفلل المفتشة')
+    bldg_villa_infested_count  = models.PositiveIntegerField(null=True, blank=True, verbose_name='المباني/الفلل المصابة')
+
+    construction_inspected_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي الإنشاءات المفتشة')
+    construction_infested_count  = models.PositiveIntegerField(null=True, blank=True, verbose_name='الإنشاءات المصابة')
+
+    masjed_inspected_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي المساجد المفتشة')
+    masjed_infested_count  = models.PositiveIntegerField(null=True, blank=True, verbose_name='المساجد المصابة')
+
+    electrical_inspected_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي الغرف الكهربائية المفتشة')
+    electrical_infested_count  = models.PositiveIntegerField(null=True, blank=True, verbose_name='الغرف الكهربائية المصابة')
+
+    gov_offices_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='المكاتب الحكومية')
+
+    rodenticide_surefire_qty  = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='SUREFIRE ALL WEATHER')
+    rodenticide_facorat_qty   = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='FACORAT PELLETS')
+    rodenticide_vertox_qty    = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='VERTOX Okta Blocks')
+    rodenticide_sellioxid_qty = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='SELLIOX D')
+    rodenticide_victor_qty    = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='VICTOR V FAST KILL')
+    rodenticide_protect_qty   = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='Protect Sensation 2in1')
+    rodenticide_nocurat_qty   = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='NOCURAT PARAFFINATO')
+
     notes           = models.TextField(blank=True, verbose_name='ملاحظات الزيارة')
 
     created_at      = models.DateTimeField(auto_now_add=True)

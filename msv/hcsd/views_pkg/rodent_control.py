@@ -175,6 +175,31 @@ def rodent_control_building_detail(request, pk):
 
             current_visit.rodenticide_type = (request.POST.get('rodenticide_type') or '').strip()
             current_visit.rodenticide_quantity = _float('rodenticide_quantity')
+
+            current_visit.technicians_count = _int('technicians_count')
+
+            current_visit.bldg_villa_inspected_count = _int('bldg_villa_inspected_count')
+            current_visit.bldg_villa_infested_count = _int('bldg_villa_infested_count')
+
+            current_visit.construction_inspected_count = _int('construction_inspected_count')
+            current_visit.construction_infested_count = _int('construction_infested_count')
+
+            current_visit.masjed_inspected_count = _int('masjed_inspected_count')
+            current_visit.masjed_infested_count = _int('masjed_infested_count')
+
+            current_visit.electrical_inspected_count = _int('electrical_inspected_count')
+            current_visit.electrical_infested_count = _int('electrical_infested_count')
+
+            current_visit.gov_offices_count = _int('gov_offices_count')
+
+            current_visit.rodenticide_surefire_qty = _float('rodenticide_surefire_qty')
+            current_visit.rodenticide_facorat_qty = _float('rodenticide_facorat_qty')
+            current_visit.rodenticide_vertox_qty = _float('rodenticide_vertox_qty')
+            current_visit.rodenticide_sellioxid_qty = _float('rodenticide_sellioxid_qty')
+            current_visit.rodenticide_victor_qty = _float('rodenticide_victor_qty')
+            current_visit.rodenticide_protect_qty = _float('rodenticide_protect_qty')
+            current_visit.rodenticide_nocurat_qty = _float('rodenticide_nocurat_qty')
+
             current_visit.notes = (request.POST.get('notes') or '').strip()
 
             # Auto-derive the summary flags (used by the list-page badge and
@@ -212,9 +237,11 @@ def rodent_control_building_detail(request, pk):
 
 @login_required
 def rodent_control_monthly_excel(request):
-    """Excel export of visit records for a date range, in the same layout
-    used by the old hand-built monthly spreadsheets — so future reports can
-    be produced straight from this system instead of being rebuilt by hand."""
+    """Excel export of visit records for a date range, matching the exact
+    column layout of the real "Rodent Team Report" spreadsheet (see
+    hcsd/static/hcsd/excl/buldings/MONTHLY REPORT RODENT CONTROL 2026.xlsx)
+    so this export is a drop-in replacement for it — header text and column
+    order are copied verbatim from that file, quirks included."""
     import openpyxl
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     from openpyxl.utils import get_column_letter
@@ -239,31 +266,51 @@ def rodent_control_monthly_excel(request):
             period_start__lte=date_to,
         )
         .select_related('building', 'visited_by')
-        .order_by('building__name', 'period_start')
+        .order_by('building__area', 'period_start')
     )
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = 'تقرير المصايد'
-    ws.sheet_view.rightToLeft = True
+    ws.title = 'Rodent Team Report'
+    ws.sheet_view.rightToLeft = False
 
     thin = Side(style='thin', color='999999')
     border = Border(left=thin, right=thin, top=thin, bottom=thin)
     header_fill = PatternFill('solid', fgColor='0e7490')
-    ok_fill = PatternFill('solid', fgColor='e8f5ee')
-    bad_fill = PatternFill('solid', fgColor='fdeaea')
 
+    # Verbatim from the real spreadsheet's header row — do not edit the text.
     headers = [
-        '#', 'اسم البناية', 'المنطقة', 'الشهر', 'تاريخ الزيارة',
-        'قائد الفريق', 'الرقم الوظيفي', 'دخول', 'خروج',
-        'مصايد مفتشة', 'قفل سليم', 'مصايد مصابة', 'مصايد تالفة',
-        'تركيب جديد', 'تغيير لاصقة', 'مصايد معبأة',
-        'مناهيل مفتشة', 'مناهيل معالجة (عدد)', 'مناهيل معالجة (كمية)', 'مناهيل مصابة',
-        'جحور خارجية', 'جحور مصابة',
-        'نخيل مفتش', 'نخيل معالج', 'نخيل مصاب',
-        'نوع المادة', 'الكمية', 'ملاحظات',
+        'Team Leader',
+        'Date',
+        'Area Name',
+        'No of Technicians',
+        'Time In',
+        'Total number of Inspecteted Bldg/ Villa',
+        'Number of Infested Bldg/ Villa',
+        'Total Number of  Manholes',
+        'Number of Insp & Treated Manholes',
+        ' Number of Infested Manholes',
+        'Total number of Inspected Burrows',
+        'Number of Infested Burrows',
+        'Total Inspected Construction',
+        ' Infested Construction',
+        'Totol InspectedMasjed',
+        ' InfestedMasjed',
+        'Total Inspected Trees',
+        ' Insfested Trees',
+        'Total Inspected Electrical Rooms',
+        ' Insfested Electrical Rooms',
+        'Gov Offices',
+        'Rodenticide 1 {SUREFIRE ALL WEATHER.}  Qyt',
+        'Rodenticide 2 {FACORAT PELLETS}Qyt',
+        'Rodenticide 3 {VERTOX Okta Blocks}Qyt',
+        'Rodenticide 4 {SELLIOX D}Qyt',
+        'Rodenticide 5 VICTOR V FAST KILL',
+        'Rodenticide 6 Protect Sensation 2in1',
+        'Rodenticide 6 NOCURAT PARAFFINATO',
+        'Time Out:',
     ]
-    widths = [5, 26, 14, 9, 12, 16, 10, 8, 8, 10, 8, 10, 10, 9, 10, 10, 10, 10, 10, 10, 10, 10, 9, 9, 9, 22, 9, 26]
+    widths = [16, 12, 16, 9, 9, 14, 14, 12, 14, 14, 14, 14, 12, 12, 12, 12, 12, 12, 14, 14, 10, 14, 14, 14, 14, 14, 14, 14, 9]
     for col, (hdr, w) in enumerate(zip(headers, widths), start=1):
         c = ws.cell(row=1, column=col, value=hdr)
         c.font = Font(name='Arial', bold=True, color='FFFFFF', size=10)
@@ -273,55 +320,46 @@ def rodent_control_monthly_excel(request):
         ws.column_dimensions[get_column_letter(col)].width = w
     ws.row_dimensions[1].height = 30
 
-    def _n(v):
-        return v if v is not None else '—'
-
     for row_idx, v in enumerate(visits, start=2):
-        visited_by_name = v.team_leader_name or (
-            v.visited_by.get_full_name() or v.visited_by.username if v.visited_by else '—'
+        team_leader = v.team_leader_name or (
+            (v.visited_by.get_full_name() or v.visited_by.username) if v.visited_by else ''
         )
         values = [
-            row_idx - 1,
-            v.building.name,
-            v.building.area or '—',
-            v.period_start.strftime('%m/%Y'),
-            v.visit_date.strftime('%d/%m/%Y') if v.visit_date else '—',
-            visited_by_name,
-            v.team_leader_id or '—',
-            v.time_in.strftime('%H:%M') if v.time_in else '—',
-            v.time_out.strftime('%H:%M') if v.time_out else '—',
-            _n(v.rbs_inspected_count),
-            'نعم' if v.rbs_lock_ok else 'لا',
-            _n(v.rbs_infested_count),
-            _n(v.rbs_damaged_count),
-            _n(v.rbs_new_installed_count),
-            'نعم' if v.stick_change_ok else 'لا',
-            _n(v.rbs_replenished_count),
-            _n(v.manholes_inspected_count),
-            _n(v.manholes_treated_count),
-            _n(v.manholes_treated_qty),
-            _n(v.manholes_infested_count),
-            _n(v.burrows_outside_count),
-            _n(v.burrows_infested_count),
-            _n(v.trees_inspected_count),
-            _n(v.trees_treated_count),
-            _n(v.trees_infested_count),
-            v.rodenticide_type or '—',
-            v.rodenticide_quantity if v.rodenticide_quantity is not None else '—',
-            v.notes or '—',
+            team_leader,
+            v.visit_date.strftime('%d/%m/%Y') if v.visit_date else '',
+            v.building.area or '',
+            v.technicians_count,
+            v.time_in.strftime('%H:%M') if v.time_in else '',
+            v.bldg_villa_inspected_count,
+            v.bldg_villa_infested_count,
+            v.manholes_inspected_count,
+            v.manholes_treated_count,
+            v.manholes_infested_count,
+            v.burrows_outside_count,
+            v.burrows_infested_count,
+            v.construction_inspected_count,
+            v.construction_infested_count,
+            v.masjed_inspected_count,
+            v.masjed_infested_count,
+            v.trees_inspected_count,
+            v.trees_infested_count,
+            v.electrical_inspected_count,
+            v.electrical_infested_count,
+            v.gov_offices_count,
+            v.rodenticide_surefire_qty,
+            v.rodenticide_facorat_qty,
+            v.rodenticide_vertox_qty,
+            v.rodenticide_sellioxid_qty,
+            v.rodenticide_victor_qty,
+            v.rodenticide_protect_qty,
+            v.rodenticide_nocurat_qty,
+            v.time_out.strftime('%H:%M') if v.time_out else '',
         ]
         for col, val in enumerate(values, start=1):
             c = ws.cell(row=row_idx, column=col, value=val)
             c.font = Font(name='Arial', size=10)
             c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
             c.border = border
-            header_key = headers[col - 1]
-            if header_key == 'مصايد مصابة' and v.rbs_infested_count:
-                c.fill = bad_fill
-            elif header_key == 'مصايد تالفة' and v.rbs_damaged_count:
-                c.fill = bad_fill
-            elif header_key == 'مصايد مفتشة' and v.rbs_inspected_count:
-                c.fill = ok_fill
 
     output = io.BytesIO()
     wb.save(output)
