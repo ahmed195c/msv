@@ -34,9 +34,24 @@ COUNT_FIELDS = {
     'New Installed RBS': 'newly_installed',
     'Replenished RBS': 'replenished',
 }
-NOTE_FIELDS = [
-    'Inspected manhole', 'Infested manhole', 'Outside Burrows', 'Infested Burrows',
-]
+NUMERIC_FIELDS = {
+    'Inspected manhole': 'manholes_inspected_count',
+    'Infested manhole': 'manholes_infested_count',
+    'Outside Burrows': 'burrows_outside_count',
+    'Infested Burrows': 'burrows_infested_count',
+}
+
+# Normalized product name (see _rodenticide_name) -> named quantity field.
+PRODUCT_FIELD_MAP = {
+    'SUREFIRE ALL WEATHER WB': 'rodenticide_surefire_qty',
+    'SUREFIRE ALL WEATHER.': 'rodenticide_surefire_qty',
+    'VERTOX Okta Blocks': 'rodenticide_vertox_qty',
+    'VERTOX OCTA BLOCK': 'rodenticide_vertox_qty',
+    'STELLIOX D50': 'rodenticide_sellioxid_qty',
+    'FACORAT PELLETS': 'rodenticide_facorat_qty',
+    'VICTOR V FAST KILL': 'rodenticide_victor_qty',
+    'NOCURAT WAX BLOCK': 'rodenticide_nocurat_qty',
+}
 
 
 def _find_header_row(ws):
@@ -107,6 +122,9 @@ class Command(BaseCommand):
                 if not name or not str(name).strip():
                     continue
                 name = str(name).strip()
+                if name.upper() == 'TOTAL':
+                    # Spreadsheet subtotal row, not a real site — skip it.
+                    continue
 
                 if dry_run:
                     building = RodentControlBuilding.objects.filter(name=name).first()
@@ -134,23 +152,25 @@ class Command(BaseCommand):
                     if c and _num(c) > 0:
                         flags[field] = True
 
-                note_parts = []
-                for header in NOTE_FIELDS:
+                numeric_values = {}
+                for header, field in NUMERIC_FIELDS.items():
                     c = col_of.get(header)
                     if c:
                         v = _num(c)
-                        if v:
-                            note_parts.append(f'{header}: {int(v) if v == int(v) else v}')
+                        numeric_values[field] = int(v) if v else None
 
                 rod_parts = []
                 total_qty = 0.0
+                product_totals = {}
                 for c, prod_name in rodenticide_cols:
                     v = _num(c)
                     if v:
                         rod_parts.append(f'{prod_name}: {v:g}')
                         total_qty += v
+                        field = PRODUCT_FIELD_MAP.get(prod_name)
+                        if field:
+                            product_totals[field] = product_totals.get(field, 0) + v
 
-                notes = ' | '.join(note_parts)
                 rodenticide_type = ', '.join(rod_parts)
 
                 if dry_run:
@@ -164,9 +184,10 @@ class Command(BaseCommand):
                     defaults={
                         'visit_date': visit_date,
                         **flags,
+                        **numeric_values,
+                        **product_totals,
                         'rodenticide_type': rodenticide_type,
                         'rodenticide_quantity': total_qty or None,
-                        'notes': notes,
                     },
                 )
                 if created:
