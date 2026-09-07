@@ -247,18 +247,27 @@ def rodent_control_monthly_excel(request):
     from openpyxl.utils import get_column_letter
 
     today = timezone.localdate()
+    raw_month = (request.GET.get('month') or '').strip()
     raw_from = (request.GET.get('date_from') or '').strip()
     raw_to = (request.GET.get('date_to') or '').strip()
-    try:
-        date_from = datetime.date.fromisoformat(raw_from)
-    except ValueError:
-        date_from = today.replace(day=1)
-    try:
-        date_to = datetime.date.fromisoformat(raw_to)
-    except ValueError:
-        date_to = today
-    if date_from > date_to:
-        date_from, date_to = date_to, date_from
+
+    if raw_month:
+        try:
+            date_from = datetime.date.fromisoformat(f'{raw_month}-01')
+        except ValueError:
+            date_from = today.replace(day=1)
+        date_to = date_from
+    else:
+        try:
+            date_from = datetime.date.fromisoformat(raw_from)
+        except ValueError:
+            date_from = today.replace(day=1)
+        try:
+            date_to = datetime.date.fromisoformat(raw_to)
+        except ValueError:
+            date_to = today
+        if date_from > date_to:
+            date_from, date_to = date_to, date_from
 
     visits = list(
         RodentControlVisit.objects.filter(

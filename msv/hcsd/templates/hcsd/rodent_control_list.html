@@ -63,10 +63,12 @@
       <h1>متابعة المصايد</h1>
       <p>متابعة مصايد القوارض داخل البنايات — شهر {{ period_start|date:"m/Y" }}</p>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <a href="{% url 'rodent_control_monthly_excel' %}" class="btn btn-outline" download>
-        تحميل تقرير الشهر الحالي
-      </a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <form method="get" action="{% url 'rodent_control_monthly_excel' %}" style="display:flex;gap:8px;">
+        <input type="month" name="month" value="{{ period_start|date:'Y-m' }}"
+               style="padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:13.5px;">
+        <button type="submit" class="btn btn-outline">تحميل تقرير الشهر</button>
+      </form>
       {% if can_manage %}
       <a href="{% url 'rodent_control_building_create' %}" class="btn btn-primary">+ إضافة بناية جديدة</a>
       {% endif %}
