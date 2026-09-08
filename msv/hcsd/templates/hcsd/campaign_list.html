@@ -80,9 +80,12 @@
     <div>
       <h1>متابعة الحملة</h1>
     </div>
-    {% if can_manage %}
-    <a href="{% url 'campaign_create' %}" class="btn btn-primary">+ إضافة طلب جديد</a>
-    {% endif %}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      {% if can_manage %}
+      <a href="{% url 'campaign_report_excel' %}" class="btn btn-outline" download>تحميل التقرير</a>
+      <a href="{% url 'campaign_create' %}" class="btn btn-primary">+ إضافة طلب جديد</a>
+      {% endif %}
+    </div>
   </div>
 
   <div class="cp-tabs">

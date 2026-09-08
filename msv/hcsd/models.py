@@ -1801,3 +1801,30 @@ class CampaignRequest(models.Model):
     @property
     def is_done(self):
         return bool(self.note.strip()) or bool(self.action_type)
+
+
+class CampaignActionLog(models.Model):
+    """One audit-trail entry per note/action submission on a
+    CampaignRequest — kept even after the request's current note/action_type
+    is later changed, so the full history of who did what stays intact."""
+    request = models.ForeignKey(
+        CampaignRequest, on_delete=models.CASCADE, related_name='action_logs',
+    )
+    action_type = models.CharField(
+        max_length=20, blank=True, choices=CampaignRequest.ACTION_TYPE_CHOICES,
+        verbose_name='نوع الإجراء',
+    )
+    note = models.TextField(blank=True, verbose_name='الملاحظة')
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='campaign_action_logs',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name        = 'سجل إجراء حملة'
+        verbose_name_plural = 'سجل إجراءات الحملة'
+
+    def __str__(self):
+        return f"{self.request.company_name} — {self.get_action_type_display() or 'ملاحظة'}"

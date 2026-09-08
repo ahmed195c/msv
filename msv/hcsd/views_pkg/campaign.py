@@ -9,13 +9,15 @@ which point it's "تم اتخاذ إجراء" (action taken). No separate status
 the note itself is the whole status model.
 """
 
+import io
+
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from ..models import CampaignRequest
+from ..models import CampaignActionLog, CampaignRequest
 from .common import _can_admin, _can_data_entry
 
 
@@ -110,7 +112,8 @@ def campaign_detail(request, pk):
                 update_fields.append('photo')
             obj.save(update_fields=update_fields)
         else:
-            obj.note = (request.POST.get('note') or '').strip()
+            note = (request.POST.get('note') or '').strip()
+            obj.note = note
             if 'action_type' in request.POST:
                 action_type = (request.POST.get('action_type') or '').strip()
                 valid_types = {c for c, _ in CampaignRequest.ACTION_TYPE_CHOICES}
@@ -119,13 +122,81 @@ def campaign_detail(request, pk):
             obj.noted_by = request.user
             obj.noted_at = timezone.now()
             obj.save(update_fields=['note', 'action_type', 'noted_by', 'noted_at'])
+
+            CampaignActionLog.objects.create(
+                request=obj, action_type=obj.action_type, note=note,
+                created_by=request.user,
+            )
         return redirect('campaign_detail', pk=pk)
 
     return render(request, 'hcsd/campaign_detail.html', {
         'obj': obj,
         'can_manage': can_manage,
         'can_admin': _can_admin(request.user),
+        'action_logs': obj.action_logs.select_related('created_by').all(),
     })
+
+
+@login_required
+def campaign_report_excel(request):
+    """Excel report of every logged action: company, action taken, note,
+    inspector, and date — one row per action, so the same company can
+    appear more than once if it was acted on more than once."""
+    import openpyxl
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+
+    logs = (
+        CampaignActionLog.objects
+        .select_related('request', 'created_by')
+        .order_by('request__company_name', 'created_at')
+    )
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'تقرير متابعة الحملة'
+    ws.sheet_view.rightToLeft = True
+
+    thin = Side(style='thin', color='999999')
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    header_fill = PatternFill('solid', fgColor='4338ca')
+
+    headers = ['اسم الشركة', 'المنطقة', 'رقم البناية', 'الحالة', 'الملاحظة', 'اسم المفتش', 'التاريخ والوقت']
+    widths = [30, 16, 12, 14, 40, 20, 18]
+    for col, (hdr, w) in enumerate(zip(headers, widths), start=1):
+        c = ws.cell(row=1, column=col, value=hdr)
+        c.font = Font(name='Arial', bold=True, color='FFFFFF', size=11)
+        c.fill = header_fill
+        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        c.border = border
+    ws.row_dimensions[1].height = 26
+
+    for row_idx, log in enumerate(logs, start=2):
+        inspector = log.created_by.get_full_name() or log.created_by.username if log.created_by else ''
+        values = [
+            log.request.company_name,
+            log.request.area,
+            log.request.building_number,
+            log.get_action_type_display() or 'ملاحظة',
+            log.note,
+            inspector,
+            timezone.localtime(log.created_at).strftime('%d/%m/%Y %H:%M'),
+        ]
+        for col, val in enumerate(values, start=1):
+            c = ws.cell(row=row_idx, column=col, value=val)
+            c.font = Font(name='Arial', size=10.5)
+            c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            c.border = border
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = 'attachment; filename="campaign_report.xlsx"'
+    return response
 
 
 @login_required

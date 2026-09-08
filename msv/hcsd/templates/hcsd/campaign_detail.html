@@ -72,6 +72,12 @@
 .cp-badge--followup  { background: #e6f2f4; color: #0e7490; }
 
 .cp-note-meta { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
+
+.cp-log-list { display: grid; gap: 10px; }
+.cp-log-item { border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.cp-log-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cp-log-meta { font-size: 12px; color: var(--ink-3); }
+.cp-log-note { margin-top: 6px; font-size: 13px; color: var(--ink-2); white-space: pre-wrap; }
 </style>
 
 <div class="cp-page">
@@ -189,6 +195,36 @@
     <div class="cp-note-meta">
       بواسطة: {{ obj.noted_by.get_full_name|default:obj.noted_by.username }} — {{ obj.noted_at|date:"d/m/Y H:i" }}
     </div>
+    {% endif %}
+  </div>
+
+  <div class="cp-section">
+    <h2>سجل الإجراءات ({{ action_logs|length }})</h2>
+    {% if action_logs %}
+    <div class="cp-log-list">
+      {% for log in action_logs %}
+      <div class="cp-log-item">
+        <div class="cp-log-head">
+          {% if log.action_type == 'violation' %}
+            <span class="cp-badge cp-badge--violation">مخالفة</span>
+          {% elif log.action_type == 'warning' %}
+            <span class="cp-badge cp-badge--warning">إنذار</span>
+          {% elif log.action_type == 'followup' %}
+            <span class="cp-badge cp-badge--followup">متابعة</span>
+          {% else %}
+            <span class="cp-badge cp-badge--ongoing">ملاحظة</span>
+          {% endif %}
+          <span class="cp-log-meta">
+            {% if log.created_by %}{{ log.created_by.get_full_name|default:log.created_by.username }}{% else %}—{% endif %}
+            — {{ log.created_at|date:"d/m/Y H:i" }}
+          </span>
+        </div>
+        {% if log.note %}<div class="cp-log-note">{{ log.note }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <p style="font-size:13px;color:var(--ink-3);">لا يوجد سجل إجراءات بعد.</p>
     {% endif %}
   </div>
 </div>
