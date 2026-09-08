@@ -32,21 +32,27 @@ def campaign_list(request):
     if query:
         requests_qs = requests_qs.filter(company_name__icontains=query)
     if status_filter == 'ongoing':
-        requests_qs = requests_qs.filter(note='')
-    elif status_filter == 'done':
-        requests_qs = requests_qs.exclude(note='')
+        requests_qs = requests_qs.filter(note='', action_type='')
+    elif status_filter in ('violation', 'warning', 'followup'):
+        requests_qs = requests_qs.filter(action_type=status_filter)
 
     requests_list = list(requests_qs)
-    ongoing_count = CampaignRequest.objects.filter(note='').count()
-    done_count = CampaignRequest.objects.exclude(note='').count()
+    all_qs = CampaignRequest.objects.all()
+    ongoing_count   = all_qs.filter(note='', action_type='').count()
+    violation_count = all_qs.filter(action_type='violation').count()
+    warning_count   = all_qs.filter(action_type='warning').count()
+    followup_count  = all_qs.filter(action_type='followup').count()
+    total_count     = all_qs.count()
 
     return render(request, 'hcsd/campaign_list.html', {
         'rows': requests_list,
         'query': query,
         'status_filter': status_filter,
         'ongoing_count': ongoing_count,
-        'done_count': done_count,
-        'total_count': ongoing_count + done_count,
+        'violation_count': violation_count,
+        'warning_count': warning_count,
+        'followup_count': followup_count,
+        'total_count': total_count,
         'can_manage': _can_manage(request.user),
     })
 

@@ -30,6 +30,9 @@
   text-decoration: none;
 }
 .cp-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.cp-tab--violation.active { background: #b03a1a; border-color: #b03a1a; }
+.cp-tab--warning.active   { background: #92400e; border-color: #92400e; }
+.cp-tab--followup.active  { background: #0e7490; border-color: #0e7490; }
 
 .cp-search { display: flex; gap: 10px; margin-bottom: 18px; }
 .cp-search input {
@@ -63,8 +66,11 @@
   width: fit-content;
 }
 .cp-badge::before { content:''; width:5px; height:5px; border-radius:50%; background: currentColor; }
-.cp-badge--ongoing { background: #fff4e0; color: #92400e; }
-.cp-badge--done    { background: #e8f5ee; color: #1a7a3a; }
+.cp-badge--ongoing   { background: #fff4e0; color: #92400e; }
+.cp-badge--done      { background: #e8f5ee; color: #1a7a3a; }
+.cp-badge--violation { background: #fdeaea; color: #b03a1a; }
+.cp-badge--warning   { background: #fff4e0; color: #92400e; }
+.cp-badge--followup  { background: #e6f2f4; color: #0e7490; }
 
 .cp-empty { text-align: center; padding: 40px; color: var(--ink-3); font-size: 14px; }
 </style>
@@ -82,7 +88,9 @@
   <div class="cp-tabs">
     <a href="?status=all" class="cp-tab {% if status_filter == 'all' %}active{% endif %}">الكل ({{ total_count }})</a>
     <a href="?status=ongoing" class="cp-tab {% if status_filter == 'ongoing' %}active{% endif %}">جارية ({{ ongoing_count }})</a>
-    <a href="?status=done" class="cp-tab {% if status_filter == 'done' %}active{% endif %}">تم اتخاذ إجراء ({{ done_count }})</a>
+    <a href="?status=violation" class="cp-tab cp-tab--violation {% if status_filter == 'violation' %}active{% endif %}">مخالفة ({{ violation_count }})</a>
+    <a href="?status=warning" class="cp-tab cp-tab--warning {% if status_filter == 'warning' %}active{% endif %}">إنذار ({{ warning_count }})</a>
+    <a href="?status=followup" class="cp-tab cp-tab--followup {% if status_filter == 'followup' %}active{% endif %}">متابعة ({{ followup_count }})</a>
   </div>
 
   <form method="get" class="cp-search">
@@ -107,7 +115,13 @@
           {% if row.area %}{{ row.area }}{% endif %}
           {% if row.building_number %} — رقم {{ row.building_number }}{% endif %}
         </div>
-        {% if row.is_done %}
+        {% if row.action_type == 'violation' %}
+          <span class="cp-badge cp-badge--violation">مخالفة</span>
+        {% elif row.action_type == 'warning' %}
+          <span class="cp-badge cp-badge--warning">إنذار</span>
+        {% elif row.action_type == 'followup' %}
+          <span class="cp-badge cp-badge--followup">متابعة</span>
+        {% elif row.is_done %}
           <span class="cp-badge cp-badge--done">تم اتخاذ إجراء</span>
         {% else %}
           <span class="cp-badge cp-badge--ongoing">جارية</span>
