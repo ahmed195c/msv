@@ -55,8 +55,6 @@
 .btn-outline:hover { background: var(--surface); }
 .btn-danger { background: #b03a1a; color: #fff; border-color: #b03a1a; }
 .btn-danger:hover { background: #8c2f14; border-color: #8c2f14; }
-.btn-warning { background: #92400e; color: #fff; border-color: #92400e; }
-.btn-warning:hover { background: #7a3607; border-color: #7a3607; }
 
 .cp-action-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 
@@ -178,14 +176,13 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="note">
       <div class="field-wrap">
-        <label>ملاحظة المفتش</label>
-        <textarea name="note" placeholder="اكتب هنا بعد المراجعة أو التفتيش…">{{ obj.note }}</textarea>
+        <label>ادخال تقرير بسيط عن الاجراء المتخذ  </label>
+        <textarea name="note" placeholder=" مثال تم تحرير مخالفة للشركة المعنيه ">{{ obj.note }}</textarea>
       </div>
       <div class="cp-action-buttons">
-        <button type="submit" name="action_type" value="violation" class="btn btn-danger">مخالفة الشركة</button>
-        <button type="submit" name="action_type" value="warning" class="btn btn-warning">إنذار</button>
-        <button type="submit" name="action_type" value="followup" class="btn btn-outline">متابعة</button>
-        <button type="submit" class="btn btn-primary">حفظ الملاحظة فقط</button>
+        <button type="submit" name="action_type" value="violation" class="btn btn-primary">مخالفة الشركة</button>
+        <button type="submit" name="action_type" value="warning" class="btn btn-primary">إنذار</button>
+        <button type="submit" name="action_type" value="followup" class="btn btn-primary">متابعة</button>
       </div>
     </form>
     {% else %}
