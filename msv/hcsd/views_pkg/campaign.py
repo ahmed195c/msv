@@ -105,9 +105,12 @@ def campaign_detail(request, pk):
             obj.save(update_fields=update_fields)
         else:
             obj.note = (request.POST.get('note') or '').strip()
+            action_type = (request.POST.get('action_type') or '').strip()
+            valid_types = {c for c, _ in CampaignRequest.ACTION_TYPE_CHOICES}
+            obj.action_type = action_type if action_type in valid_types else ''
             obj.noted_by = request.user
             obj.noted_at = timezone.now()
-            obj.save(update_fields=['note', 'noted_by', 'noted_at'])
+            obj.save(update_fields=['note', 'action_type', 'noted_by', 'noted_at'])
         return redirect('campaign_detail', pk=pk)
 
     return render(request, 'hcsd/campaign_detail.html', {

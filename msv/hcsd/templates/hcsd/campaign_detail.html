@@ -55,14 +55,21 @@
 .btn-outline:hover { background: var(--surface); }
 .btn-danger { background: #b03a1a; color: #fff; border-color: #b03a1a; }
 .btn-danger:hover { background: #8c2f14; border-color: #8c2f14; }
+.btn-warning { background: #92400e; color: #fff; border-color: #92400e; }
+.btn-warning:hover { background: #7a3607; border-color: #7a3607; }
+
+.cp-action-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 
 .cp-badge {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
 }
 .cp-badge::before { content:''; width:5px; height:5px; border-radius:50%; background: currentColor; }
-.cp-badge--ongoing { background: #fff4e0; color: #92400e; }
-.cp-badge--done    { background: #e8f5ee; color: #1a7a3a; }
+.cp-badge--ongoing   { background: #fff4e0; color: #92400e; }
+.cp-badge--done      { background: #e8f5ee; color: #1a7a3a; }
+.cp-badge--violation { background: #fdeaea; color: #b03a1a; }
+.cp-badge--warning   { background: #fff4e0; color: #92400e; }
+.cp-badge--followup  { background: #e6f2f4; color: #0e7490; }
 
 .cp-note-meta { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
 </style>
@@ -148,7 +155,13 @@
   <div class="cp-section">
     <h2>
       الحالة —
-      {% if obj.is_done %}
+      {% if obj.action_type == 'violation' %}
+        <span class="cp-badge cp-badge--violation">مخالفة</span>
+      {% elif obj.action_type == 'warning' %}
+        <span class="cp-badge cp-badge--warning">إنذار</span>
+      {% elif obj.action_type == 'followup' %}
+        <span class="cp-badge cp-badge--followup">متابعة</span>
+      {% elif obj.is_done %}
         <span class="cp-badge cp-badge--done">تم اتخاذ إجراء</span>
       {% else %}
         <span class="cp-badge cp-badge--ongoing">جارية</span>
@@ -162,7 +175,11 @@
         <label>ملاحظة المفتش</label>
         <textarea name="note" placeholder="اكتب هنا بعد المراجعة أو التفتيش…">{{ obj.note }}</textarea>
       </div>
-      <button type="submit" class="btn btn-primary">حفظ الملاحظة</button>
+      <div class="cp-action-buttons">
+        <button type="submit" name="action_type" value="violation" class="btn btn-danger">مخالفة الشركة</button>
+        <button type="submit" name="action_type" value="warning" class="btn btn-warning">إنذار</button>
+        <button type="submit" name="action_type" value="followup" class="btn btn-outline">متابعة</button>
+      </div>
     </form>
     {% else %}
       <p style="font-size:13px;color:var(--ink-2);">{{ obj.note|default:"لا توجد ملاحظة بعد." }}</p>

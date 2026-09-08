@@ -1759,8 +1759,14 @@ class RodentControlVisit(models.Model):
 
 class CampaignRequest(models.Model):
     """A single site flagged for a campaign visit. An inspector marks it
-    handled simply by writing a note — no separate status field, no fixed
-    workflow. Presence of a note is the whole status model."""
+    handled by writing a note and/or picking an action type — no fixed
+    workflow beyond that."""
+    ACTION_TYPE_CHOICES = [
+        ('violation', 'مخالفة'),
+        ('warning',   'إنذار'),
+        ('followup',  'متابعة'),
+    ]
+
     company_name    = models.CharField(max_length=200, verbose_name='اسم الشركة')
     photo           = models.ImageField(upload_to='campaign/photos/', null=True, blank=True, verbose_name='صورة')
     building_number = models.CharField(max_length=50, blank=True, verbose_name='رقم البناية')
@@ -1769,6 +1775,9 @@ class CampaignRequest(models.Model):
     google_maps_url = models.URLField(max_length=500, blank=True, verbose_name='رابط الموقع على خرائط قوقل')
 
     note      = models.TextField(blank=True, verbose_name='ملاحظة المفتش')
+    action_type = models.CharField(
+        max_length=20, blank=True, choices=ACTION_TYPE_CHOICES, verbose_name='نوع الإجراء',
+    )
     noted_by  = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='campaign_notes_written',
@@ -1791,4 +1800,4 @@ class CampaignRequest(models.Model):
 
     @property
     def is_done(self):
-        return bool(self.note.strip())
+        return bool(self.note.strip()) or bool(self.action_type)
