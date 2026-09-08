@@ -111,9 +111,11 @@ def campaign_detail(request, pk):
             obj.save(update_fields=update_fields)
         else:
             obj.note = (request.POST.get('note') or '').strip()
-            action_type = (request.POST.get('action_type') or '').strip()
-            valid_types = {c for c, _ in CampaignRequest.ACTION_TYPE_CHOICES}
-            obj.action_type = action_type if action_type in valid_types else ''
+            if 'action_type' in request.POST:
+                action_type = (request.POST.get('action_type') or '').strip()
+                valid_types = {c for c, _ in CampaignRequest.ACTION_TYPE_CHOICES}
+                if action_type in valid_types:
+                    obj.action_type = action_type
             obj.noted_by = request.user
             obj.noted_at = timezone.now()
             obj.save(update_fields=['note', 'action_type', 'noted_by', 'noted_at'])
