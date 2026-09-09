@@ -45,7 +45,8 @@ urlpatterns = [
     path('weed-removal/<int:pk>/delete/', views.weed_delete, name='weed_delete'),
     path('weed-removal/<int:pk>/photos/<int:ppk>/delete/', views.weed_photo_delete, name='weed_photo_delete'),
 
-    path('rodent-control/', views.rodent_control_list, name='rodent_control_list'),
+    path('rodent-control/', views.rodent_control_home, name='rodent_control_home'),
+    path('rodent-control/buildings/', views.rodent_control_list, name='rodent_control_list'),
     path('rodent-control/add/', views.rodent_control_building_create, name='rodent_control_building_create'),
     path('rodent-control/report/excel/', views.rodent_control_monthly_excel, name='rodent_control_monthly_excel'),
     path('rodent-control/<int:pk>/', views.rodent_control_building_detail, name='rodent_control_building_detail'),

@@ -84,6 +84,15 @@ body.app-shell {
 .nav-brand-name { font-size: 14px; font-weight: 700; color: var(--ink); }
 .nav-brand-sub  { font-size: 10.5px; font-weight: 500; color: var(--ink-4); }
 
+.nav-links { display: flex; align-items: center; gap: 4px; }
+.nav-link {
+  display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 7px;
+  font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.nav-link:hover  { background: var(--surface-2); color: var(--ink); }
+.nav-link.active { background: var(--accent-bg); color: var(--accent); }
+
 .nav-spacer { flex: 1; }
 
 .nav-end { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -131,13 +140,17 @@ body.app-shell {
 
 <div class="app-chrome">
   <nav class="navbar">
-    <a href="{% url 'rodent_control_list' %}" class="nav-brand">
+    <a href="{% url 'rodent_control_home' %}" class="nav-brand">
       <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="">
       <span class="nav-brand-label">
         <span class="nav-brand-name">متابعة حالة المصائد</span>
         <span class="nav-brand-sub">قسم البيئة — بلدية الشارقة</span>
       </span>
     </a>
+
+    <div class="nav-links">
+      <a href="{% url 'rodent_control_list' %}" class="nav-link {% if request.resolver_match.url_name == 'rodent_control_list' %}active{% endif %}">قائمة البنايات</a>
+    </div>
 
     <div class="nav-spacer"></div>
 

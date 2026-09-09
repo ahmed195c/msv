@@ -46,6 +46,11 @@ def _get_or_create_current_visit(building, today=None):
 
 
 @login_required
+def rodent_control_home(request):
+    return render(request, 'hcsd/rodent_control_home.html', {})
+
+
+@login_required
 def rodent_control_list(request):
     query = (request.GET.get('q') or '').strip()
 
