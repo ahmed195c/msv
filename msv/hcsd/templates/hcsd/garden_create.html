@@ -1,0 +1,120 @@
+{% extends "hcsd/garden_base.html" %}
+{% block title %}إضافة موقع جديد{% endblock %}
+{% block content %}
+<style>
+.gv-form-page { max-width: 560px; margin: 0 auto; }
+.gv-form-page h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0 0 20px; }
+
+.gv-alert {
+  background: #fef2f2; border: 1.5px solid #fca5a5; color: #991b1b;
+  border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.field-wrap { display: grid; gap: 6px; margin-bottom: 14px; }
+.field-wrap label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.field-wrap input, .field-wrap textarea {
+  border: 1.5px solid var(--line); border-radius: 8px; background: #fff;
+  padding: 9px 12px; font-size: 14px; font-family: inherit; color: var(--ink);
+  box-sizing: border-box; width: 100%;
+}
+.field-wrap input:focus, .field-wrap textarea:focus { outline: none; border-color: var(--accent); }
+.two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 480px) { .two-col, .three-col { grid-template-columns: 1fr; } }
+
+.gv-loc-box {
+  padding: 14px; background: var(--surface); border: 1.5px solid var(--line);
+  border-radius: 8px; margin-bottom: 14px;
+}
+.gv-loc-box .gv-loc-title { font-size: 12px; font-weight: 700; color: var(--ink-2); margin-bottom: 10px; }
+.gv-loc-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; cursor: pointer; border: 1.5px solid var(--line);
+  background: var(--paper); color: var(--ink-2); font-family: inherit;
+}
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+</style>
+
+<div class="gv-form-page">
+  <h1>إضافة موقع جديد</h1>
+
+  {% if errors %}
+    {% for e in errors %}<div class="gv-alert">{{ e }}</div>{% endfor %}
+  {% endif %}
+
+  <form method="post" id="gv-form">
+    {% csrf_token %}
+    <div class="two-col">
+      <div class="field-wrap"><label>التاريخ *</label><input type="date" name="visit_date" value="{{ post.visit_date }}" required></div>
+      <div class="field-wrap"><label>اسم المنطقة *</label><input type="text" name="area_name" value="{{ post.area_name }}" required></div>
+    </div>
+
+    <div class="gv-loc-box">
+      <div class="gv-loc-title">الموقع</div>
+      <div class="field-wrap" style="margin-bottom:10px;">
+        <label>رابط خرائط قوقل (اختياري)</label>
+        <input type="url" name="google_maps_url" id="gv-maps-url-inp" value="{{ post.google_maps_url }}" placeholder="https://maps.app.goo.gl/…">
+      </div>
+      <input type="hidden" name="latitude"  id="gv-lat-inp">
+      <input type="hidden" name="longitude" id="gv-lng-inp">
+      <div class="gv-loc-row">
+        <button type="button" id="gv-gps-btn" class="btn btn-outline" onclick="captureGardenLocation()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          تحديد الموقع الحالي عبر GPS
+        </button>
+        <span id="gv-gps-status" style="font-size:13px;font-weight:600;"></span>
+      </div>
+    </div>
+
+    <div class="three-col">
+      <div class="field-wrap"><label>مناهيل مصابة</label><input type="number" name="infested_manholes" value="{{ post.infested_manholes }}"></div>
+      <div class="field-wrap"><label>إصابة خارجية</label><input type="number" name="infested_outside" value="{{ post.infested_outside }}"></div>
+      <div class="field-wrap"><label>إجمالي مباني مصابة</label><input type="number" name="total_infested_bldg" value="{{ post.total_infested_bldg }}"></div>
+    </div>
+
+    <div class="field-wrap"><label>ملاحظات</label><textarea name="notes" rows="3">{{ post.notes }}</textarea></div>
+
+    <button type="submit" class="btn btn-primary">إضافة الموقع</button>
+  </form>
+</div>
+
+<script>
+function captureGardenLocation() {
+  var btn    = document.getElementById('gv-gps-btn');
+  var status = document.getElementById('gv-gps-status');
+  var latInp = document.getElementById('gv-lat-inp');
+  var lngInp = document.getElementById('gv-lng-inp');
+  if (!btn) return;
+
+  if (!navigator.geolocation) {
+    status.textContent = 'المتصفح لا يدعم تحديد الموقع.';
+    status.style.color = '#8c2f2f';
+    return;
+  }
+  btn.disabled = true;
+  status.textContent = 'جارٍ تحديد الموقع…';
+  status.style.color = '#374151';
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      latInp.value = pos.coords.latitude.toFixed(6);
+      lngInp.value = pos.coords.longitude.toFixed(6);
+      status.textContent = '✓ تم تحديد الموقع (' + latInp.value + ', ' + lngInp.value + ')';
+      status.style.color = '#116430';
+      btn.disabled = false;
+    },
+    function() {
+      status.textContent = 'تعذّر الحصول على الموقع — تأكد من منح صلاحية الموقع.';
+      status.style.color = '#8c2f2f';
+      btn.disabled = false;
+    },
+    { enableHighAccuracy: true, timeout: 12000 }
+  );
+}
+</script>
+{% endblock %}

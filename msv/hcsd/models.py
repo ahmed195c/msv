@@ -1828,3 +1828,42 @@ class CampaignActionLog(models.Model):
 
     def __str__(self):
         return f"{self.request.company_name} — {self.get_action_type_display() or 'ملاحظة'}"
+
+
+# ══════════════════════════════════════════
+#  Garden Follow-up — independent, standalone tracking
+# ══════════════════════════════════════════
+
+class GardenVisit(models.Model):
+    """A single site review under the parks/gardens rodent-follow-up
+    program ("متابعة الحدائق") — one row per site visit."""
+    visit_date      = models.DateField(verbose_name='التاريخ')
+    area_name       = models.CharField(max_length=150, blank=True, verbose_name='اسم المنطقة')
+
+    google_maps_url = models.URLField(max_length=500, blank=True, verbose_name='رابط خرائط قوقل')
+    latitude        = models.FloatField(null=True, blank=True, verbose_name='خط العرض')
+    longitude       = models.FloatField(null=True, blank=True, verbose_name='خط الطول')
+
+    infested_manholes   = models.PositiveIntegerField(null=True, blank=True, verbose_name='مناهيل مصابة')
+    infested_outside    = models.PositiveIntegerField(null=True, blank=True, verbose_name='إصابة خارجية')
+    total_infested_bldg = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي المباني المصابة')
+
+    notes = models.TextField(blank=True, verbose_name='ملاحظات')
+
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='garden_visits_created',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-visit_date', '-created_at']
+        verbose_name        = 'زيارة متابعة الحدائق'
+        verbose_name_plural = 'زيارات متابعة الحدائق'
+
+    def __str__(self):
+        return f"{self.area_name or 'بدون منطقة'} — {self.visit_date}"
+
+    @property
+    def has_location(self):
+        return bool(self.google_maps_url) or (self.latitude is not None and self.longitude is not None)
