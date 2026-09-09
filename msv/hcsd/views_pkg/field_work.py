@@ -255,6 +255,18 @@ def field_work_list(request):
             | Q(received_by=request.user)
         ).distinct()
 
+    # Simple dashboard counts — computed from the same base queryset (so a
+    # supervisor's numbers reflect only what they can see) before any of the
+    # quick/status/search/date filters below narrow it down.
+    dashboard_stats = orders.aggregate(
+        total=Count('id'),
+        new_count=Count('id', filter=Q(status='new')),
+        received_count=Count('id', filter=Q(status__in=['supervisor_assigned', 'order_received', 'gov_dept'])),
+        completed_count=Count('id', filter=Q(status='completed')),
+        postponed_count=Count('id', filter=Q(status='postponed_client')),
+        closed_count=Count('id', filter=Q(status__in=_FW_TRULY_CLOSED)),
+    )
+
     # Quick filter overrides the status dropdown
     if quick_filter == 'today':
         _today = timezone.localdate()
@@ -395,6 +407,7 @@ def field_work_list(request):
     return render(request, 'hcsd/field_work_list.html', {
         'page_obj':        page_obj,
         'page_start':      page_obj.start_index,
+        'dashboard_stats': dashboard_stats,
         'can_admin':       can_admin,
         'can_data_entry':  can_data_entry,
         'can_assign':      can_assign,
