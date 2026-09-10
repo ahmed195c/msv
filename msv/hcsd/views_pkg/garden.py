@@ -9,8 +9,6 @@ Templates  : hcsd/garden_*.html
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
-from django.utils.http import urlencode
 from django.views.decorators.http import require_POST
 
 from ..models import GardenVisit
@@ -97,29 +95,32 @@ def garden_create(request):
 
 
 @login_required
-@require_POST
-def garden_update(request, pk):
+def garden_detail(request, pk):
     obj = get_object_or_404(GardenVisit, pk=pk)
-    if not _can_manage(request.user):
-        return HttpResponseForbidden()
+    can_manage = _can_manage(request.user)
 
-    def _int(name):
-        raw = (request.POST.get(name) or '').strip()
-        try:
-            return int(raw) if raw else None
-        except ValueError:
-            return None
+    if request.method == 'POST':
+        if not can_manage:
+            return HttpResponseForbidden()
 
-    obj.infested_manholes    = _int('infested_manholes')
-    obj.infested_outside     = _int('infested_outside')
-    obj.total_infested_bldg  = _int('total_infested_bldg')
-    obj.save(update_fields=['infested_manholes', 'infested_outside', 'total_infested_bldg'])
+        def _int(name):
+            raw = (request.POST.get(name) or '').strip()
+            try:
+                return int(raw) if raw else None
+            except ValueError:
+                return None
 
-    query = (request.POST.get('q') or '').strip()
-    url = reverse('garden_list')
-    if query:
-        url = f"{url}?{urlencode({'q': query})}"
-    return redirect(url)
+        obj.infested_manholes    = _int('infested_manholes')
+        obj.infested_outside     = _int('infested_outside')
+        obj.total_infested_bldg  = _int('total_infested_bldg')
+        obj.save(update_fields=['infested_manholes', 'infested_outside', 'total_infested_bldg'])
+        return redirect('garden_detail', pk=pk)
+
+    return render(request, 'hcsd/garden_detail.html', {
+        'obj': obj,
+        'can_manage': can_manage,
+        'can_admin': _can_admin(request.user),
+    })
 
 
 @login_required

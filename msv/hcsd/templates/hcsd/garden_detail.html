@@ -1,0 +1,127 @@
+{% extends "hcsd/garden_base.html" %}
+{% block title %}{{ obj.area_name|default:"موقع" }}{% endblock %}
+{% block content %}
+<style>
+.gv-page { max-width: 700px; margin: 0 auto; }
+
+.gv-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 18px;
+}
+.gv-header h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0; }
+.gv-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+
+.gv-section {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 18px; margin-bottom: 16px;
+}
+.gv-section h2 { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0 0 14px; }
+
+.gv-map { width: 100%; height: 260px; border: none; display: block; border-radius: 8px; background: var(--surface-2); }
+.gv-map--empty {
+  width: 100%; height: 140px; background: var(--surface-2); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; color: var(--ink-4); font-size: 13px;
+}
+
+.field-wrap { display: grid; gap: 6px; margin-bottom: 12px; }
+.field-wrap label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.field-wrap input, .field-wrap textarea {
+  border: 1.5px solid var(--line); border-radius: 8px; background: #fff;
+  padding: 9px 12px; font-size: 14px; font-family: inherit; color: var(--ink);
+  box-sizing: border-box; width: 100%;
+}
+.field-wrap input:focus, .field-wrap textarea:focus { outline: none; border-color: var(--accent); }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 480px) { .three-col { grid-template-columns: 1fr; } }
+
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 18px 24px; }
+.info-grid .lbl { color: var(--ink-3); font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.info-grid .val { color: var(--ink); font-weight: 700; font-size: 19px; line-height: 1.4; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; cursor: pointer; border: 1.5px solid var(--line);
+  background: var(--paper); color: var(--ink-2); font-family: inherit;
+}
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+.btn-outline:hover { background: var(--surface); }
+.btn-danger { background: #b03a1a; color: #fff; border-color: #b03a1a; }
+.btn-danger:hover { background: #8c2f14; border-color: #8c2f14; }
+</style>
+
+<div class="gv-page">
+  <div class="gv-header">
+    <div>
+      <h1>{{ obj.area_name|default:"—" }}</h1>
+      <p>{{ obj.visit_date|date:"d/m/Y" }}</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="{% url 'garden_list' %}" class="btn btn-outline">العودة للقائمة</a>
+      {% if can_admin %}
+      <form method="post" action="{% url 'garden_delete' obj.pk %}" onsubmit="return confirm('هل أنت متأكد من حذف هذا الموقع؟ لا يمكن التراجع عن هذا الإجراء.');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">حذف الموقع</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="gv-section">
+    <h2>الموقع</h2>
+    {% if obj.latitude is not None and obj.longitude is not None %}
+      <iframe class="gv-map" loading="lazy"
+              src="https://www.google.com/maps?q={{ obj.latitude }},{{ obj.longitude }}&output=embed"></iframe>
+    {% else %}
+      <div class="gv-map--empty">لا يوجد موقع محفوظ</div>
+    {% endif %}
+    {% if obj.google_maps_url %}
+      <div style="margin-top:12px;">
+        <a href="{{ obj.google_maps_url }}" target="_blank" rel="noopener" class="btn btn-outline">فتح في خرائط قوقل</a>
+      </div>
+    {% elif obj.latitude is not None and obj.longitude is not None %}
+      <div style="margin-top:12px;">
+        <a href="https://www.google.com/maps?q={{ obj.latitude }},{{ obj.longitude }}" target="_blank" rel="noopener" class="btn btn-outline">فتح في خرائط قوقل</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="gv-section">
+    <h2>بيانات الإصابة</h2>
+    {% if can_manage %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="three-col">
+        <div class="field-wrap">
+          <label>مناهيل مصابة</label>
+          <input type="number" name="infested_manholes" value="{{ obj.infested_manholes|default_if_none:'' }}">
+        </div>
+        <div class="field-wrap">
+          <label>إصابة خارجية</label>
+          <input type="number" name="infested_outside" value="{{ obj.infested_outside|default_if_none:'' }}">
+        </div>
+        <div class="field-wrap">
+          <label>إجمالي مباني مصابة</label>
+          <input type="number" name="total_infested_bldg" value="{{ obj.total_infested_bldg|default_if_none:'' }}">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">حفظ التحديث</button>
+    </form>
+    {% else %}
+    <div class="info-grid">
+      <div><div class="lbl">مناهيل مصابة</div><div class="val">{{ obj.infested_manholes|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">إصابة خارجية</div><div class="val">{{ obj.infested_outside|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">إجمالي مباني مصابة</div><div class="val">{{ obj.total_infested_bldg|default_if_none:"—" }}</div></div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if obj.notes %}
+  <div class="gv-section">
+    <h2>ملاحظات</h2>
+    <p style="font-size:13.5px;color:var(--ink-2);white-space:pre-wrap;">{{ obj.notes }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
