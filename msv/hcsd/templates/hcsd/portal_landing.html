@@ -29,9 +29,6 @@
       --campaign-color:   #4338ca;
       --campaign-dk:      #3730a3;
       --campaign-lt:      #eef2ff;
-      --garden-color:     #15803d;
-      --garden-dk:        #116430;
-      --garden-lt:        #eafbf1;
       --ink:   #1f2937;
       --ink-2: #4b5563;
       --ink-3: #9ca3af;
@@ -135,7 +132,6 @@
     .portal-card--fieldwork::before  { background: var(--fieldwork-color); }
     .portal-card--rodent::before     { background: var(--rodent-color); }
     .portal-card--campaign::before   { background: var(--campaign-color); }
-    .portal-card--garden::before     { background: var(--garden-color); }
 
     .portal-card:hover {
       transform: translateY(-4px);
@@ -147,7 +143,6 @@
     .portal-card--fieldwork:hover  { border-color: var(--fieldwork-color); }
     .portal-card--rodent:hover     { border-color: var(--rodent-color); }
     .portal-card--campaign:hover   { border-color: var(--campaign-color); }
-    .portal-card--garden:hover     { border-color: var(--garden-color); }
 
     .portal-card-icon {
       width: 64px;
@@ -184,11 +179,6 @@
       color: var(--campaign-color);
     }
 
-    .portal-card--garden .portal-card-icon {
-      background: var(--garden-lt);
-      color: var(--garden-color);
-    }
-
     .portal-card-icon svg {
       width: 32px;
       height: 32px;
@@ -205,7 +195,6 @@
     .portal-card--fieldwork  .portal-card-name { color: var(--fieldwork-color); }
     .portal-card--rodent     .portal-card-name { color: var(--rodent-color); }
     .portal-card--campaign   .portal-card-name { color: var(--campaign-color); }
-    .portal-card--garden     .portal-card-name { color: var(--garden-color); }
 
     .portal-card-desc {
       font-size: 13px;
@@ -238,8 +227,6 @@
     .portal-card--rodent     .portal-card-btn:hover { background: var(--rodent-dk); }
     .portal-card--campaign   .portal-card-btn { background: var(--campaign-color); }
     .portal-card--campaign   .portal-card-btn:hover { background: var(--campaign-dk); }
-    .portal-card--garden     .portal-card-btn { background: var(--garden-color); }
-    .portal-card--garden     .portal-card-btn:hover { background: var(--garden-dk); }
 
     /* ── Footer ── */
     .portal-footer {
@@ -256,20 +243,16 @@
 
     /* ── Auth bar ── */
     .portal-auth-bar {
-      position: fixed;
-      top: 0;
-      right: 0;
-      left: 0;
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: flex-end;
       gap: 10px;
       padding: 12px 20px;
+      margin-bottom: 8px;
       background: rgba(255,255,255,0.9);
-      backdrop-filter: blur(6px);
       border-bottom: 1px solid var(--line);
       font-size: 13px;
-      z-index: 10;
     }
 
     .portal-auth-bar a, .portal-auth-bar button {
@@ -379,7 +362,7 @@
         </svg>
       </div>
       <div class="portal-card-name">نظام التصاريح</div>
-      <span class="portal-card-btn">الدخول للنظام</span>
+    
     </a>
 
     <!-- Weed Removal / Container Transfer Tracking -->
@@ -391,7 +374,7 @@
         </svg>
       </div>
       <div class="portal-card-name">متابعة الطلبات</div>
-      <span class="portal-card-btn">الدخول للنظام</span>
+      
     </a>
 
     <!-- Field Work System -->
@@ -403,7 +386,7 @@
         </svg>
       </div>
       <div class="portal-card-name">العمل الميداني</div>
-      <span class="portal-card-btn">الدخول للنظام</span>
+      
     </a>
 
     <!-- Rodent Control Building Tracking -->
@@ -415,7 +398,7 @@
         </svg>
       </div>
       <div class="portal-card-name">متابعة حالة المصائد</div>
-      <span class="portal-card-btn">الدخول للنظام</span>
+     
     </a> 
 
     <!-- Campaign Follow-up -->
@@ -427,19 +410,7 @@
         </svg>
       </div>
       <div class="portal-card-name">متابعة حملة القوارض </div>
-      <span class="portal-card-btn">الدخول للنظام</span>
-    </a>
-
-    <!-- Garden Follow-up -->
-    <a href="{% url 'garden_list' %}" class="portal-card portal-card--garden">
-      <div class="portal-card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4.5 8-11.8A8 8 0 0 0 4 10.2C4 17.5 12 22 12 22z"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
-      </div>
-      <div class="portal-card-name">متابعة الحدائق</div>
-      <span class="portal-card-btn">الدخول للنظام</span>
+      
     </a>
 
   </div>

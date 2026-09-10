@@ -113,7 +113,8 @@ def garden_detail(request, pk):
         obj.infested_manholes    = _int('infested_manholes')
         obj.infested_outside     = _int('infested_outside')
         obj.total_infested_bldg  = _int('total_infested_bldg')
-        obj.save(update_fields=['infested_manholes', 'infested_outside', 'total_infested_bldg'])
+        obj.notes                = (request.POST.get('notes') or '').strip()
+        obj.save(update_fields=['infested_manholes', 'infested_outside', 'total_infested_bldg', 'notes'])
         return redirect('garden_detail', pk=pk)
 
     return render(request, 'hcsd/garden_detail.html', {

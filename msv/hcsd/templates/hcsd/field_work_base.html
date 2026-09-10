@@ -17,6 +17,7 @@
   --ink-2:     #475569;
   --ink-3:     #64748b;
   --ink-4:     #94a3b8;
+  --paper:     #ffffff;
   --surface:   #f8fafc;
   --surface-2: #f1f5f9;
   --line:      #e2e8f0;
@@ -25,232 +26,681 @@
   --accent-dk: #1d4ed8;
   --accent-lt: #3b82f6;
   --accent-bg: #eff6ff;
-  --nav-h:     58px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { font-family: 'IBM Plex Sans Arabic', sans-serif; color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: var(--surface); overflow-x: hidden; max-width: 100vw; }
+body { margin: 0; min-height: 100vh; background: var(--surface); overflow-x: hidden; max-width: 100vw; }
 
-/* ── Navbar ── */
-.app-chrome {
-  position: sticky; top: 0; z-index: 100;
-  background: #0f172a;
-  border-bottom: 1px solid rgba(255,255,255,.07);
-  box-shadow: 0 1px 24px rgba(0,0,0,.35);
+.app-frame { display: flex; align-items: flex-start; min-height: 100vh; }
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  margin: 12px;
+  padding: 16px 14px;
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
 }
-.navbar {
-  max-width: 1280px; margin: 0 auto;
-  height: var(--nav-h); padding: 0 24px;
-  display: flex; align-items: center; gap: 0;
-}
-.nav-brand {
+
+.sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 16px; text-decoration: none; }
+.sidebar-brand img { height: 30px; border-radius: 6px; }
+.sidebar-brand-label { display: flex; flex-direction: column; line-height: 1.25; }
+.sidebar-brand-name { font-size: 14px; font-weight: 700; color: var(--ink); }
+.sidebar-brand-sub  { font-size: 10.5px; font-weight: 500; color: var(--ink-4); }
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+
+.sidebar-link {
   display: flex; align-items: center; gap: 10px;
-  text-decoration: none; color: #fff;
-  font-weight: 700; font-size: 14px;
-  flex-shrink: 0; margin-inline-start: 20px;
+  padding: 9px 10px; border-radius: 8px;
+  font-size: 13.5px; font-weight: 600; color: var(--ink-2); text-decoration: none;
+  transition: background .15s, color .15s;
+  width: 100%; border: none; background: none; cursor: pointer; font-family: inherit; text-align: start;
 }
-.nav-brand img { height: 30px; border-radius: 4px; opacity: .95; }
-.nav-brand-label { display: flex; flex-direction: column; line-height: 1.25; }
-.nav-brand-name  { font-size: 14px; font-weight: 700; color: #fff; }
-.nav-brand-sub   { font-size: 10.5px; font-weight: 400; color: rgba(255,255,255,.45); letter-spacing: .02em; }
-
-.nav-divider { width: 1px; height: 22px; background: rgba(255,255,255,.12); flex-shrink: 0; margin-inline-start: 20px; }
-
-.nav-links { display: flex; align-items: center; gap: 2px; flex: 1; height: 100%; }
-.nav-link {
-  position: relative; display: inline-flex; align-items: center; gap: 6px;
-  padding: 0 14px; height: 100%;
-  font-size: 13px; font-weight: 500;
-  color: rgba(255,255,255,.55); text-decoration: none;
-  transition: color .15s; white-space: nowrap;
+.sidebar-link svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--ink-3); transition: color .15s; }
+.sidebar-link:hover { background: var(--surface-2); color: var(--ink); }
+.sidebar-link:hover svg { color: var(--ink-2); }
+.sidebar-link.active { background: var(--accent-bg); color: var(--accent); }
+.sidebar-link.active svg { color: var(--accent); }
+.sidebar-link:focus-visible {
+  outline: 2px solid var(--accent-lt); outline-offset: 1px;
 }
-.nav-link::after {
-  content: ''; position: absolute; bottom: 0; right: 10px; left: 10px;
-  height: 2px; background: var(--accent-lt); border-radius: 2px 2px 0 0;
-  opacity: 0; transform: scaleX(0); transition: opacity .2s, transform .2s;
+
+.sidebar-group { margin: 2px 0; }
+.sidebar-group__toggle {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px; border: none; background: none; cursor: pointer;
+  font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink-2);
 }
-.nav-link:hover { color: rgba(255,255,255,.85); }
-.nav-link.active { color: #fff; font-weight: 600; }
-.nav-link.active::after { opacity: 1; transform: scaleX(1); }
+.sidebar-group__toggle:hover { background: var(--surface-2); color: var(--ink); }
+.sidebar-group__toggle svg.folder-icon { width: 16px; height: 16px; color: var(--ink-3); flex-shrink: 0; }
+.sidebar-group__toggle .chev { width: 14px; height: 14px; margin-inline-start: auto; color: var(--ink-4); transition: transform .15s; flex-shrink: 0; }
+.sidebar-group.collapsed .chev { transform: rotate(-90deg); }
+.sidebar-group__items { display: flex; flex-direction: column; gap: 2px; padding-inline-start: 26px; margin-top: 2px; }
+.sidebar-group.collapsed .sidebar-group__items { display: none; }
+.sidebar-link--sub { padding: 8px 10px; font-weight: 500; }
 
-.nav-end { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.sidebar-divider { height: 1px; background: var(--line); margin: 10px 4px; }
 
-.nav-switch {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 12px;
-  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
-  color: rgba(255,255,255,.7); border-radius: 6px;
-  font-size: 12px; font-weight: 500; text-decoration: none;
-  transition: background .15s, color .15s, border-color .15s; white-space: nowrap;
+.sidebar-spacer { flex: 1; }
+
+.sidebar-link--muted { color: var(--ink-3); }
+.sidebar-link--muted svg { color: var(--ink-4); }
+
+.sidebar-section-label {
+  font-size: 11px; font-weight: 700; color: var(--ink-4);
+  letter-spacing: .03em; padding: 4px 10px 2px;
 }
-.nav-switch:hover { background: rgba(255,255,255,.13); color: #fff; border-color: rgba(255,255,255,.22); }
 
-.nav-user-chip { display: inline-flex; align-items: center; gap: 7px; }
-.nav-avatar {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);
+.sidebar-user {
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px; border-radius: 10px; border: 1.5px solid var(--line);
+  margin-top: 10px;
+}
+.sidebar-user__avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent-bg); color: var(--accent);
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+  font-size: 13px; font-weight: 700;
 }
-.nav-username { font-size: 12.5px; font-weight: 500; color: rgba(255,255,255,.7); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.nav-logout {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
-  color: rgba(255,255,255,.45); background: none; border: 1px solid transparent;
-  cursor: pointer; font-family: inherit; transition: color .15s, border-color .15s, background .15s;
+.sidebar-user__info { flex: 1; min-width: 0; }
+.sidebar-user__name  { font-size: 12.5px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-user__email { font-size: 11px; color: var(--ink-4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-logout {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
+  color: var(--ink-3); background: none; border: 1.5px solid transparent; cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
 }
-.nav-logout:hover { color: #f87171; border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.07); }
+.sidebar-logout:hover { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+.sidebar-logout svg { width: 14px; height: 14px; }
 
-/* ── Main ── */
-.app-main { flex: 1; padding: 28px 20px; max-width: 1280px; margin: 0 auto; width: 100%; }
+.app-main { flex: 1; min-width: 0; padding: 24px 24px 48px; }
 .page-title    { font-size: 20px; font-weight: 700; color: var(--ink); }
 .page-subtitle { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
 
-/* ── Mobile ── */
-.nav-toggle {
-  display: none;
-  align-items: center; justify-content: center;
-  width: 36px; height: 36px;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.15);
-  border-radius: 6px; color: rgba(255,255,255,.8);
-  cursor: pointer; padding: 0; flex-shrink: 0;
+/* ── Report modals ── */
+.fw-modal-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5);
+  align-items: center; justify-content: center; z-index: 1000; padding: 16px;
 }
-.nav-toggle svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+.fw-modal-backdrop.open { display: flex; }
+.fw-modal {
+  background: var(--paper); border-radius: 14px; padding: 22px;
+  max-width: 480px; width: 100%;
+  box-shadow: 0 20px 50px rgba(0,0,0,.3);
+}
+.fw-modal__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.fw-modal__title { font-size: 15.5px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+.fw-modal__title svg { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
+.fw-modal__close {
+  width: 28px; height: 28px; border-radius: 7px; border: none; background: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: var(--ink-3);
+  transition: background .15s, color .15s;
+}
+.fw-modal__close:hover { background: var(--surface-2); color: var(--ink); }
+.fw-modal__close svg { width: 16px; height: 16px; }
 
-/* Desktop: nav-panel takes remaining space between brand and nav-end */
-.nav-panel { display: flex; align-items: center; gap: 0; flex: 1; height: 100%; }
+.fw-modal__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+@media (max-width: 420px) { .fw-modal__row { grid-template-columns: 1fr; } }
+.fw-modal__field label { font-size: 12px; font-weight: 700; color: var(--ink-2); display: block; margin-bottom: 6px; }
+.fw-modal__field .fw-datefield { min-width: 0; }
 
-@media (max-width: 768px) {
-  /* Row 1: logo (flex:1) + hamburger */
-  .navbar {
-    height: auto; min-height: var(--nav-h);
-    padding: 10px 16px; flex-wrap: wrap; align-items: center; gap: 0;
-  }
-  .nav-brand  { flex: 1; margin-inline-start: 0; }
-  .nav-toggle { display: inline-flex; }
-  .nav-divider { display: none; }
-  .nav-brand-sub { display: none; }
+.fw-modal__statuses { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
+.fw-modal__statuses label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); cursor: pointer; user-select: none; }
+.fw-modal__statuses input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
 
-  /* Row 2: nav-panel as full-width column (hidden until open) */
-  .nav-panel {
-    display: none; width: 100%; flex: none;
-    flex-direction: column; align-items: stretch; gap: 6px;
-    padding: 12px 0 6px;
-    border-top: 1px solid rgba(255,255,255,.1);
-    margin-top: 8px;
-  }
-  .navbar.is-open .nav-panel { display: flex; }
+.fw-modal__submit {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 16px; border-radius: 9px; border: none; cursor: pointer;
+  background: var(--accent); color: #fff; font-size: 13.5px; font-weight: 700; font-family: inherit;
+  transition: background .15s;
+}
+.fw-modal__submit:hover { background: var(--accent-dk); }
 
-  /* Nav links as column */
-  .nav-links { display: flex; flex-direction: column; gap: 4px; width: 100%; height: auto; }
-  .nav-link {
-    width: 100%; height: auto; padding: 11px 14px; border-radius: 6px;
-    border: 1px solid rgba(255,255,255,.1);
-    background: rgba(255,255,255,.05);
-    justify-content: center;
-  }
-  .nav-link::after { display: none; }
-  .nav-link.active { background: rgba(37,99,235,.2); border-color: rgba(37,99,235,.4); color: #fff; }
+/* ── Modern date picker ── */
+.fw-datefield { position: relative; min-width: 160px; }
+.fw-datefield__btn {
+  height: 40px; width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px;
+  padding: 0 12px; border: 1.5px solid var(--border); border-radius: 9px;
+  background: #fff; font-family: inherit; font-size: 14px; color: var(--ink-1); cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+}
+.fw-datefield__btn:hover { border-color: var(--ink-4); }
+.fw-datefield.open .fw-datefield__btn { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.fw-datefield__btn svg.fw-datefield__icon { width: 15px; height: 15px; color: var(--ink-4); flex-shrink: 0; }
+.fw-datefield__text { flex: 1; text-align: start; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fw-datefield__text.is-placeholder { color: var(--ink-4); font-weight: 400; }
+.fw-datefield__clear {
+  display: none; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px;
+  color: var(--ink-4); flex-shrink: 0;
+}
+.fw-datefield__clear:hover { color: #dc2626; background: #fef2f2; }
+.fw-datefield.has-value .fw-datefield__clear { display: flex; }
+.fw-datefield__clear svg { width: 12px; height: 12px; }
 
-  /* Nav-end: always visible below the brand row on mobile */
-  .nav-end {
-    display: flex; flex-wrap: wrap; gap: 6px;
-    width: 100%; align-items: center;
-    padding: 8px 0 4px;
-    border-top: 1px solid rgba(255,255,255,.08);
-    margin-top: 4px;
-  }
-  .nav-username { display: none; }
+.fw-cal {
+  display: none; position: absolute; z-index: 500; top: calc(100% + 6px); inset-inline-start: 0;
+  background: #fff; border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,.14);
+  padding: 16px; width: 268px;
+}
+.fw-datefield.open .fw-cal { display: block; }
+.fw-cal__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.fw-cal__selects { display: flex; align-items: center; gap: 10px; }
 
-  .app-main { padding: 16px 12px; }
+.fw-cal__dd { position: relative; }
+.fw-cal__dd-btn {
+  display: flex; align-items: center; gap: 4px; border: none; background: none; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 800; color: var(--ink-1); padding: 2px 0;
+  transition: color .15s;
+}
+.fw-cal__dd-btn:hover { color: var(--accent); }
+.fw-cal__dd.open .fw-cal__dd-btn { color: var(--accent); }
+.fw-cal__dd-caret { width: 11px; height: 11px; flex-shrink: 0; transition: transform .15s; }
+.fw-cal__dd.open .fw-cal__dd-caret { transform: rotate(180deg); }
+
+.fw-cal__dd-list {
+  display: none; position: absolute; z-index: 10; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 14px 32px rgba(0,0,0,.16); padding: 6px; width: 122px; max-height: 220px;
+  overflow-y: auto; scrollbar-width: thin;
+}
+.fw-cal__dd.open .fw-cal__dd-list { display: block; }
+.fw-cal__dd-list::-webkit-scrollbar { width: 6px; }
+.fw-cal__dd-list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.fw-cal__dd-item {
+  display: block; width: 100%; padding: 7px 10px; border: none; background: none; border-radius: 7px;
+  font-family: inherit; font-size: 13px; font-weight: 600; color: var(--ink-1); text-align: center; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.fw-cal__dd-item:hover { background: var(--surface-2); }
+.fw-cal__dd-item.is-selected { background: var(--accent); color: #fff; }
+.fw-cal__nav {
+  display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;
+  flex-shrink: 0; border: none; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  cursor: pointer; color: var(--ink-2); transition: box-shadow .15s, color .15s;
+}
+.fw-cal__nav:hover { box-shadow: 0 4px 12px rgba(0,0,0,.16); color: var(--ink-1); }
+.fw-cal__nav svg { width: 14px; height: 14px; }
+/* mirror the chevrons in RTL so "prev" points toward the earlier-in-time side and "next" toward the later side */
+html[dir="rtl"] .fw-cal__nav svg { transform: scaleX(-1); }
+.fw-cal__grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+.fw-cal__dow { font-size: 10.5px; font-weight: 700; color: var(--ink-4); text-align: center; padding: 4px 0 8px; }
+.fw-cal__day {
+  display: flex; align-items: center; justify-content: center; height: 30px; width: 30px; margin: 0 auto;
+  border-radius: 50%; box-sizing: border-box; border: 1.5px solid transparent;
+  font-size: 12.5px; font-weight: 500; color: var(--ink-1); cursor: pointer; background: none;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.fw-cal__day:hover { background: var(--surface-2); }
+.fw-cal__day.is-muted { color: var(--ink-4); }
+.fw-cal__day.is-today { font-weight: 700; color: var(--accent); border-color: var(--accent); }
+.fw-cal__day.is-selected { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+
+.fw-cal__foot { display: flex; justify-content: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.fw-cal__today-btn {
+  font-size: 12px; font-weight: 600; color: var(--accent); background: none; border: none; cursor: pointer;
+  padding: 4px 10px; border-radius: 6px;
+}
+.fw-cal__today-btn:hover { background: var(--accent-bg); }
+
+@media (max-width: 780px) {
+  .app-frame { flex-direction: column; }
+  .sidebar { width: auto; position: relative; top: 0; max-height: none; margin: 12px 12px 0; }
+  .app-main { padding: 16px 14px 40px; }
 }
 
 /* ── Translation ── */
 html[data-lang="en"] .t-ar { display: none !important; }
 html[data-lang="ar"] .t-en { display: none !important; }
-
-.nav-lang {
-  display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px;
-  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
-  color: rgba(255,255,255,.65); font-size: 12px; font-weight: 700;
-  cursor: pointer; font-family: 'JetBrains Mono', monospace; letter-spacing: .03em;
-  transition: background .15s, color .15s;
-}
-.nav-lang:hover { background: rgba(255,255,255,.13); color: #fff; }
 </style>
 {% block extra_head %}{% endblock %}
 </head>
 <body>
 
-<div class="app-chrome">
-  <nav class="navbar">
-
-    <a href="{% url 'field_work_list' %}" class="nav-brand">
+<div class="app-frame">
+  <aside class="sidebar">
+    <a href="{% url 'field_work_list' %}" class="sidebar-brand">
       <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="">
-      <span class="nav-brand-label">
-        <span class="nav-brand-name"><span class="t-ar">متابعة الشكاوى</span><span class="t-en">Complaint Tracking</span></span>
-        <span class="nav-brand-sub"><span class="t-ar">قسم البيئة — بلدية الشارقة</span><span class="t-en">Environment Dept. — Sharjah Municipality</span></span>
+      <span class="sidebar-brand-label">
+        <span class="sidebar-brand-name"><span class="t-ar">متابعة الشكاوى</span><span class="t-en">Complaint Tracking</span></span>
+        <span class="sidebar-brand-sub"><span class="t-ar">قسم البيئة — بلدية الشارقة</span><span class="t-en">Environment Dept. — Sharjah Municipality</span></span>
       </span>
     </a>
 
-    <div class="nav-divider"></div>
+    <nav class="sidebar-nav">
+      <a href="{% url 'portal_landing' %}" class="sidebar-link sidebar-link--muted">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        <span class="t-ar">الصفحة الرئيسية للنظام</span><span class="t-en">System Home</span>
+      </a>
 
-    <!-- Hamburger (mobile only, always visible) -->
-    <button class="nav-toggle" id="navToggle" aria-label="القائمة">
-      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
+      <a href="{% url 'field_work_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'field_work_list' %}active{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span class="t-ar">أوامر العمل</span><span class="t-en">Work Orders</span>
+      </a>
 
-    <!-- Nav panel: links only (desktop: row, mobile: collapsible column) -->
-    <div class="nav-panel" id="navPanel">
-      <div class="nav-links">
-        <a class="nav-link {% if request.resolver_match.url_name == 'field_work_list' %}active{% endif %}"
-           href="{% url 'field_work_list' %}"><span class="t-ar">أوامر العمل</span><span class="t-en">Work Orders</span></a>
-      </div>
-    </div>
+      <a href="{% url 'field_work_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'field_work_dashboard' %}active{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        <span class="t-ar">لوحة التحكم</span><span class="t-en">Dashboard</span>
+      </a>
 
-    <!-- Nav-end: always visible on all screen sizes -->
-    <div class="nav-end">
-      <button id="langToggle" class="nav-lang" title="Toggle Language / تغيير اللغة">
-        <span class="t-ar">EN</span><span class="t-en">ع</span>
+      <button type="button" id="langToggle" class="sidebar-link sidebar-link--muted" title="Toggle Language / تغيير اللغة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span class="t-ar">English</span><span class="t-en">العربية</span>
       </button>
-      <a href="{% url 'portal_landing' %}" class="nav-switch">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-        <span class="t-ar">الرئيسية</span><span class="t-en">Home</span>
-      </a>
-      {% if request.user.is_authenticated %}
-      <div class="nav-user-chip">
-        <div class="nav-avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</div>
-        <span class="nav-username">{{ request.user.get_full_name|default:request.user.username }}</span>
+
+      <div class="sidebar-group">
+        <button type="button" class="sidebar-group__toggle" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+          <span class="t-ar">الإجراءات</span><span class="t-en">Actions</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="sidebar-group__items">
+          <a href="{% url 'field_work_create' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'field_work_create' %}active{% endif %}">
+            <span class="t-ar">إنشاء أمر جديد</span><span class="t-en">New Order</span>
+          </a>
+          <a href="{% url 'field_work_excel_import' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'field_work_excel_import' or request.resolver_match.url_name == 'field_work_excel_review' %}active{% endif %}">
+            <span class="t-ar">استيراد Excel</span><span class="t-en">Import Excel</span>
+          </a>
+          <a href="{% url 'field_work_supervisors' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'field_work_supervisors' or request.resolver_match.url_name == 'field_work_supervisor_orders' %}active{% endif %}">
+            <span class="t-ar">إدارة المراقبين</span><span class="t-en">Supervisors</span>
+          </a>
+          <a href="{% url 'field_work_recurring_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'field_work_recurring_list' or request.resolver_match.url_name == 'field_work_recurring_edit' %}active{% endif %}">
+            <span class="t-ar">الطلبات الدورية</span><span class="t-en">Recurring Orders</span>
+          </a>
+        </div>
       </div>
-      <a href="{% url 'fw_change_password' %}" class="nav-switch" title="تغيير كلمة المرور">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span class="t-ar">كلمة المرور</span><span class="t-en">Password</span>
-      </a>
-      <form method="post" action="{% url 'logout' %}" style="display:contents;">
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-label"><span class="t-ar">التقارير</span><span class="t-en">Reports</span></div>
+      <button type="button" class="sidebar-link" onclick="fwOpenModal('fwMonthlyModal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="t-ar">التقرير الشهري</span><span class="t-en">Monthly Report</span>
+      </button>
+      <button type="button" class="sidebar-link" onclick="fwOpenModal('fwMaterialsModal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.5L4.5 19a1 1 0 0 0 .9 1.5h13.2a1 1 0 0 0 .9-1.5L14 9.5V3"/><path d="M6.5 15h11"/></svg>
+        <span class="t-ar">تقرير المواد</span><span class="t-en">Materials Report</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    {% if request.user.is_authenticated %}
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label"><span class="t-ar">الحساب</span><span class="t-en">Account</span></div>
+    <a href="{% url 'fw_change_password' %}" class="sidebar-link {% if request.resolver_match.url_name == 'fw_change_password' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span class="t-ar">تغيير كلمة المرور</span><span class="t-en">Change Password</span>
+    </a>
+    {% endif %}
+
+    {% if request.user.is_authenticated %}
+    <div class="sidebar-user">
+      <div class="sidebar-user__avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</div>
+      <div class="sidebar-user__info">
+        <div class="sidebar-user__name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="sidebar-user__email">{{ request.user.email|default:request.user.username }}</div>
+      </div>
+      <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
-        <button type="submit" class="nav-logout" title="تسجيل الخروج">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          <span class="t-ar">خروج</span><span class="t-en">Logout</span>
+        <button type="submit" class="sidebar-logout" title="تسجيل الخروج">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
       </form>
-      {% endif %}
     </div>
-  </nav>
+    {% endif %}
+  </aside>
+
+  <main class="app-main">
+    {% block content %}{% endblock %}
+  </main>
 </div>
 
-<main class="app-main">
-  {% block content %}{% endblock %}
-</main>
+<div class="fw-modal-backdrop" id="fwMonthlyModal" onclick="fwCloseModal(event,'fwMonthlyModal')">
+  <div class="fw-modal" role="dialog" aria-modal="true" onclick="event.stopPropagation();">
+    <div class="fw-modal__header">
+      <div class="fw-modal__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="t-ar">التقرير الشهري</span><span class="t-en">Monthly Report</span>
+      </div>
+      <button type="button" class="fw-modal__close" onclick="fwCloseModal(null,'fwMonthlyModal')" aria-label="إغلاق">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form method="get" action="{% url 'field_work_monthly_excel' %}">
+      <div class="fw-modal__row">
+        <div class="fw-modal__field">
+          <label><span class="t-ar">من تاريخ</span><span class="t-en">From Date</span></label>
+          {% include "hcsd/_fw_datefield.html" with field_id="fw-exp-from" name="date_from" value="" placeholder_ar="اختر تاريخ" placeholder_en="Select date" %}
+        </div>
+        <div class="fw-modal__field">
+          <label><span class="t-ar">إلى تاريخ</span><span class="t-en">To Date</span></label>
+          {% include "hcsd/_fw_datefield.html" with field_id="fw-exp-to" name="date_to" value="" placeholder_ar="اختر تاريخ" placeholder_en="Select date" %}
+        </div>
+      </div>
+      <div class="fw-modal__statuses">
+        <label><input type="checkbox" name="status_filter" value="completed" checked><span class="t-ar">مكتمل</span><span class="t-en">Completed</span></label>
+        <label><input type="checkbox" name="status_filter" value="closed" checked><span class="t-ar">مغلق</span><span class="t-en">Closed</span></label>
+        <label><input type="checkbox" name="status_filter" value="postponed" checked><span class="t-ar">مؤجل</span><span class="t-en">Rescheduled</span></label>
+        <label><input type="checkbox" name="status_filter" value="all"><span class="t-ar">الكل</span><span class="t-en">All</span></label>
+      </div>
+      <button type="submit" class="fw-modal__submit">
+        ⬇ <span class="t-ar">تحميل التقرير</span><span class="t-en">Download Report</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="fw-modal-backdrop" id="fwMaterialsModal" onclick="fwCloseModal(event,'fwMaterialsModal')">
+  <div class="fw-modal" role="dialog" aria-modal="true" onclick="event.stopPropagation();">
+    <div class="fw-modal__header">
+      <div class="fw-modal__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.5L4.5 19a1 1 0 0 0 .9 1.5h13.2a1 1 0 0 0 .9-1.5L14 9.5V3"/><path d="M6.5 15h11"/></svg>
+        <span class="t-ar">تقرير المواد</span><span class="t-en">Materials Report</span>
+      </div>
+      <button type="button" class="fw-modal__close" onclick="fwCloseModal(null,'fwMaterialsModal')" aria-label="إغلاق">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form method="get" action="{% url 'field_work_materials_excel' %}">
+      <div class="fw-modal__row">
+        <div class="fw-modal__field">
+          <label><span class="t-ar">من تاريخ</span><span class="t-en">From Date</span></label>
+          {% include "hcsd/_fw_datefield.html" with field_id="fw-mat-from" name="date_from" value="" placeholder_ar="اختر تاريخ" placeholder_en="Select date" %}
+        </div>
+        <div class="fw-modal__field">
+          <label><span class="t-ar">إلى تاريخ</span><span class="t-en">To Date</span></label>
+          {% include "hcsd/_fw_datefield.html" with field_id="fw-mat-to" name="date_to" value="" placeholder_ar="اختر تاريخ" placeholder_en="Select date" %}
+        </div>
+      </div>
+      <div class="fw-modal__statuses">
+        <label><input type="checkbox" name="status_filter" value="completed" checked><span class="t-ar">مكتمل</span><span class="t-en">Completed</span></label>
+        <label><input type="checkbox" name="status_filter" value="closed" checked><span class="t-ar">مغلق</span><span class="t-en">Closed</span></label>
+        <label><input type="checkbox" name="status_filter" value="postponed" checked><span class="t-ar">مؤجل</span><span class="t-en">Rescheduled</span></label>
+        <label><input type="checkbox" name="status_filter" value="all"><span class="t-ar">الكل</span><span class="t-en">All</span></label>
+      </div>
+      <button type="submit" class="fw-modal__submit" style="background:#155e75;">
+        ⬇ <span class="t-ar">تحميل تقرير المواد</span><span class="t-en">Download Materials Report</span>
+      </button>
+    </form>
+  </div>
+</div>
 
 {% block extra_js %}{% endblock %}
 <script>
+function fwOpenModal(id) {
+  document.getElementById(id).classList.add('open');
+  var now = new Date();
+  var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
+  var today = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+  var jan1  = now.getFullYear() + '-01-01';
+  if (window.fwSetDate) {
+    if (id === 'fwMonthlyModal') {
+      fwSetDate('fw-exp-from', jan1, true);
+      fwSetDate('fw-exp-to', today, true);
+    } else if (id === 'fwMaterialsModal') {
+      fwSetDate('fw-mat-from', jan1, true);
+      fwSetDate('fw-mat-to', today, true);
+    }
+  }
+}
+function fwCloseModal(evt, id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+/* ── Modern date picker ── */
 (function(){
-  var btn = document.getElementById('navToggle');
-  var nav = btn && btn.closest('nav');
-  if(btn && nav) btn.addEventListener('click', function(){ nav.classList.toggle('is-open'); });
+  var MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  var MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DOW_AR = ['أحد','إثن','ثلا','أرب','خمي','جمعة','سبت'];
+  var DOW_EN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  var FW_MAX_YEAR = 2040;
+  var refreshers = [];
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+  function toISO(y, m, d){ return y + '-' + pad(m + 1) + '-' + pad(d); }
+  function lang(){ return document.documentElement.getAttribute('data-lang') || 'ar'; }
+  function fmt(y, m, d){
+    var months = lang() === 'en' ? MONTHS_EN : MONTHS_AR;
+    return d + ' ' + months[m] + ' ' + y;
+  }
+  function placeholderOf(textEl){
+    return lang() === 'en' ? textEl.getAttribute('data-en-placeholder') : textEl.getAttribute('data-ar-placeholder');
+  }
+
+  var registry = {};
+
+  function makeDropdown(ddEl){
+    var listEl = ddEl.querySelector('.fw-cal__dd-list');
+    var labelEl = ddEl.querySelector('.fw-cal__dd-label');
+    var btnEl = ddEl.querySelector('.fw-cal__dd-btn');
+
+    function closeThis(){ ddEl.classList.remove('open'); }
+    function toggle(){
+      var willOpen = !ddEl.classList.contains('open');
+      document.querySelectorAll('.fw-cal__dd.open').forEach(function(o){ o.classList.remove('open'); });
+      if (willOpen) {
+        ddEl.classList.add('open');
+        var sel = listEl.querySelector('.is-selected');
+        if (sel) sel.scrollIntoView({ block: 'center' });
+      }
+    }
+    btnEl.addEventListener('click', function(e){ e.stopPropagation(); toggle(); });
+    listEl.addEventListener('click', function(e){ e.stopPropagation(); });
+
+    return {
+      el: ddEl,
+      btn: btnEl,
+      setLabel: function(text){ labelEl.textContent = text; },
+      setItems: function(items, selectedValue, onPick){
+        listEl.innerHTML = '';
+        items.forEach(function(item){
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'fw-cal__dd-item';
+          if (item.value === selectedValue) b.classList.add('is-selected');
+          b.textContent = item.label;
+          b.addEventListener('click', function(){
+            closeThis();
+            onPick(item.value);
+          });
+          listEl.appendChild(b);
+        });
+      },
+      close: closeThis
+    };
+  }
+
+  function initDateField(el){
+    var hidden = el.querySelector('input[type=hidden]');
+    var btn = el.querySelector('.fw-datefield__btn');
+    var text = el.querySelector('.fw-datefield__text');
+    var clearBtn = el.querySelector('.fw-datefield__clear');
+    var cal = el.querySelector('.fw-cal');
+    var gridEl = cal.querySelector('.fw-cal__grid');
+    var monthDD = makeDropdown(cal.querySelector('.fw-cal__dd--month'));
+    var yearDD = makeDropdown(cal.querySelector('.fw-cal__dd--year'));
+
+    var today = new Date();
+    var selected = hidden.value ? hidden.value.split('-').map(Number) : null; // [y, m(1-12), d]
+    var viewY = selected ? selected[0] : today.getFullYear();
+    var viewM = selected ? selected[1] - 1 : today.getMonth();
+
+    function applySelection(y, m, d){
+      selected = [y, m + 1, d];
+      hidden.value = toISO(y, m, d);
+      text.textContent = fmt(y, m, d);
+      text.classList.remove('is-placeholder');
+      el.classList.add('has-value');
+      viewY = y; viewM = m;
+    }
+
+    function renderText(){
+      if (selected) {
+        text.textContent = fmt(selected[0], selected[1] - 1, selected[2]);
+      } else {
+        text.textContent = placeholderOf(text);
+      }
+    }
+
+    function render(){
+      var months = lang() === 'en' ? MONTHS_EN : MONTHS_AR;
+      monthDD.setLabel(months[viewM]);
+      monthDD.setItems(
+        months.map(function(name, idx){ return { value: idx, label: name }; }),
+        viewM,
+        function(v){ viewM = v; render(); }
+      );
+
+      var startY = today.getFullYear() - 10, endY = FW_MAX_YEAR;
+      var yearItems = [];
+      for (var y = startY; y <= endY; y++) yearItems.push({ value: y, label: y });
+      yearDD.setLabel(viewY);
+      yearDD.setItems(yearItems, viewY, function(v){ viewY = v; render(); });
+
+      var dowNames = lang() === 'en' ? DOW_EN : DOW_AR;
+      gridEl.innerHTML = '';
+      dowNames.forEach(function(n){
+        var d = document.createElement('div');
+        d.className = 'fw-cal__dow'; d.textContent = n;
+        gridEl.appendChild(d);
+      });
+      var firstDow = new Date(viewY, viewM, 1).getDay();
+      var daysInMonth = new Date(viewY, viewM + 1, 0).getDate();
+      var daysInPrevMonth = new Date(viewY, viewM, 0).getDate();
+      var cells = [];
+      for (var i = 0; i < firstDow; i++) {
+        cells.push({ d: daysInPrevMonth - firstDow + 1 + i, muted: true, y: viewM === 0 ? viewY - 1 : viewY, m: viewM === 0 ? 11 : viewM - 1 });
+      }
+      for (var d = 1; d <= daysInMonth; d++) {
+        cells.push({ d: d, muted: false, y: viewY, m: viewM });
+      }
+      var remain = (7 - (cells.length % 7)) % 7;
+      for (var j = 1; j <= remain; j++) {
+        cells.push({ d: j, muted: true, y: viewM === 11 ? viewY + 1 : viewY, m: viewM === 11 ? 0 : viewM + 1 });
+      }
+      cells.forEach(function(c){
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'fw-cal__day';
+        if (c.muted) b.classList.add('is-muted');
+        if (c.y === today.getFullYear() && c.m === today.getMonth() && c.d === today.getDate()) b.classList.add('is-today');
+        if (selected && c.y === selected[0] && (c.m + 1) === selected[1] && c.d === selected[2]) b.classList.add('is-selected');
+        b.textContent = c.d;
+        b.addEventListener('click', function(){
+          applySelection(c.y, c.m, c.d);
+          render();
+          close();
+        });
+        gridEl.appendChild(b);
+      });
+    }
+
+    function positionCal(){
+      cal.style.insetInlineStart = '0';
+      cal.style.insetInlineEnd = 'auto';
+      var rect = cal.getBoundingClientRect();
+      if (rect.left < 4) {
+        cal.style.insetInlineStart = 'auto';
+        cal.style.insetInlineEnd = '0';
+      } else if (rect.right > window.innerWidth - 4) {
+        cal.style.insetInlineStart = '0';
+        cal.style.insetInlineEnd = 'auto';
+      }
+    }
+
+    function open(){
+      document.querySelectorAll('.fw-datefield.open').forEach(function(o){ if (o !== el) o.classList.remove('open'); });
+      el.classList.add('open');
+      render();
+      positionCal();
+    }
+    function close(){ el.classList.remove('open'); monthDD.close(); yearDD.close(); }
+
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      if (el.classList.contains('open')) close(); else open();
+    });
+    cal.addEventListener('click', function(e){ e.stopPropagation(); });
+    monthDD.btn.addEventListener('wheel', function(e){
+      e.preventDefault();
+      var dir = e.deltaY < 0 ? -1 : 1;
+      viewM += dir;
+      if (viewM > 11) { viewM = 0; viewY++; }
+      if (viewM < 0) { viewM = 11; viewY--; }
+      render();
+    }, { passive: false });
+    yearDD.btn.addEventListener('wheel', function(e){
+      e.preventDefault();
+      var dir = e.deltaY < 0 ? -1 : 1;
+      var minY = today.getFullYear() - 10, maxY = FW_MAX_YEAR;
+      viewY = Math.min(maxY, Math.max(minY, viewY + dir));
+      render();
+    }, { passive: false });
+    cal.querySelector('.fw-cal__prev').addEventListener('click', function(){
+      viewM--; if (viewM < 0) { viewM = 11; viewY--; } render();
+    });
+    cal.querySelector('.fw-cal__next').addEventListener('click', function(){
+      viewM++; if (viewM > 11) { viewM = 0; viewY++; } render();
+    });
+    cal.querySelector('.fw-cal__today-btn').addEventListener('click', function(){
+      applySelection(today.getFullYear(), today.getMonth(), today.getDate());
+      render();
+      close();
+    });
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        selected = null; hidden.value = '';
+        text.textContent = placeholderOf(text);
+        text.classList.add('is-placeholder');
+        el.classList.remove('has-value');
+      });
+    }
+
+    if (selected) {
+      text.textContent = fmt(selected[0], selected[1] - 1, selected[2]);
+      text.classList.remove('is-placeholder');
+      el.classList.add('has-value');
+    }
+
+    refreshers.push(renderText);
+    if (el.id) {
+      registry[el.id] = {
+        setIfEmpty: function(iso){
+          if (hidden.value || !iso) return;
+          var p = iso.split('-').map(Number);
+          applySelection(p[0], p[1] - 1, p[2]);
+        },
+        set: function(iso){
+          if (!iso) return;
+          var p = iso.split('-').map(Number);
+          applySelection(p[0], p[1] - 1, p[2]);
+        }
+      };
+    }
+  }
+
+  document.querySelectorAll('.fw-datefield').forEach(initDateField);
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.fw-datefield.open').forEach(function(el){ el.classList.remove('open'); });
+    document.querySelectorAll('.fw-cal__dd.open').forEach(function(dd){ dd.classList.remove('open'); });
+  });
+  window.fwRefreshDateFields = function(){ refreshers.forEach(function(fn){ fn(); }); };
+  window.fwSetDate = function(fieldId, iso, onlyIfEmpty){
+    var entry = registry[fieldId];
+    if (!entry) return;
+    if (onlyIfEmpty) entry.setIfEmpty(iso); else entry.set(iso);
+  };
 })();
+
 (function(){
   var html = document.documentElement;
   var saved = localStorage.getItem('fw_lang') || 'ar';
@@ -265,6 +715,7 @@ html[data-lang="ar"] .t-en { display: none !important; }
     document.querySelectorAll('[data-ar-txt]').forEach(function(el){
       el.textContent = lang === 'ar' ? el.getAttribute('data-ar-txt') : el.getAttribute('data-en-txt');
     });
+    if (window.fwRefreshDateFields) window.fwRefreshDateFields();
   }
 
   applyLang(saved);

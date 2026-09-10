@@ -18,31 +18,30 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from ..models import CampaignActionLog, CampaignRequest
-from .common import _can_admin, _can_data_entry
+from .common import _can_admin, _can_data_entry, _can_inspector
 
 
 def _can_manage(user):
-    return _can_admin(user) or _can_data_entry(user)
+    return _can_admin(user) or _can_data_entry(user) or _can_inspector(user)
 
 
 @login_required
 def campaign_list(request):
     query = (request.GET.get('q') or '').strip()
-    status_filter = (request.GET.get('status') or 'all').strip()
+    status_filter = (request.GET.get('status') or 'ongoing').strip()
 
     requests_qs = CampaignRequest.objects.all()
     if query:
         requests_qs = requests_qs.filter(company_name__icontains=query)
     if status_filter == 'ongoing':
         requests_qs = requests_qs.filter(note='', action_type='')
-    elif status_filter in ('violation', 'warning', 'followup'):
+    elif status_filter in ('violation', 'followup'):
         requests_qs = requests_qs.filter(action_type=status_filter)
 
     requests_list = list(requests_qs)
     all_qs = CampaignRequest.objects.all()
     ongoing_count   = all_qs.filter(note='', action_type='').count()
     violation_count = all_qs.filter(action_type='violation').count()
-    warning_count   = all_qs.filter(action_type='warning').count()
     followup_count  = all_qs.filter(action_type='followup').count()
     total_count     = all_qs.count()
 
@@ -52,7 +51,6 @@ def campaign_list(request):
         'status_filter': status_filter,
         'ongoing_count': ongoing_count,
         'violation_count': violation_count,
-        'warning_count': warning_count,
         'followup_count': followup_count,
         'total_count': total_count,
         'can_manage': _can_manage(request.user),
@@ -92,14 +90,31 @@ def campaign_create(request):
     })
 
 
+def _is_assigned_to(user, obj):
+    return obj.assigned_inspector_id == user.id
+
+
 @login_required
 def campaign_detail(request, pk):
     obj = get_object_or_404(CampaignRequest, pk=pk)
     can_manage = _can_manage(request.user)
+    can_admin = _can_admin(request.user)
+    is_owner = _is_assigned_to(request.user, obj)
+    can_act = can_admin or (obj.assigned_inspector_id is None) or is_owner
 
     if request.method == 'POST' and can_manage:
         action = request.POST.get('action', 'note')
-        if action == 'update_request':
+        if action == 'claim':
+            if obj.assigned_inspector_id is None:
+                obj.assigned_inspector = request.user
+                obj.assigned_at = timezone.now()
+                obj.save(update_fields=['assigned_inspector', 'assigned_at'])
+        elif action == 'release':
+            if can_admin or is_owner:
+                obj.assigned_inspector = None
+                obj.assigned_at = None
+                obj.save(update_fields=['assigned_inspector', 'assigned_at'])
+        elif action == 'update_request':
             obj.company_name    = (request.POST.get('company_name') or obj.company_name).strip()
             obj.building_number = (request.POST.get('building_number') or '').strip()
             obj.area            = (request.POST.get('area') or '').strip()
@@ -111,7 +126,7 @@ def campaign_detail(request, pk):
                 obj.photo = new_photo
                 update_fields.append('photo')
             obj.save(update_fields=update_fields)
-        else:
+        elif can_act:
             note = (request.POST.get('note') or '').strip()
             obj.note = note
             if 'action_type' in request.POST:
@@ -132,7 +147,9 @@ def campaign_detail(request, pk):
     return render(request, 'hcsd/campaign_detail.html', {
         'obj': obj,
         'can_manage': can_manage,
-        'can_admin': _can_admin(request.user),
+        'can_admin': can_admin,
+        'is_owner': is_owner,
+        'can_act': can_act,
         'action_logs': obj.action_logs.select_related('created_by').all(),
     })
 

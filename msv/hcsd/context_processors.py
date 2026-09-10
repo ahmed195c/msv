@@ -1,4 +1,5 @@
 _ADMIN_GROUPS = {'admin', 'Administration'}
+_RODENT_SIDEBAR_PREFIXES = ('/rodent-control/', '/garden/')
 
 
 def nav_context(request):
@@ -6,6 +7,13 @@ def nav_context(request):
     if not user.is_authenticated:
         return {'nav_is_admin': False}
     if user.is_superuser:
-        return {'nav_is_admin': True}
-    is_admin = user.groups.filter(name__in=_ADMIN_GROUPS).exists()
-    return {'nav_is_admin': is_admin}
+        ctx = {'nav_is_admin': True}
+    else:
+        ctx = {'nav_is_admin': user.groups.filter(name__in=_ADMIN_GROUPS).exists()}
+
+    if request.path.startswith(_RODENT_SIDEBAR_PREFIXES):
+        from .models import GardenVisit, RodentControlBuilding
+        ctx['nav_building_count'] = RodentControlBuilding.objects.count()
+        ctx['nav_area_count'] = GardenVisit.objects.count()
+
+    return ctx

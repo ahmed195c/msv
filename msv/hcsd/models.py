@@ -1763,7 +1763,6 @@ class CampaignRequest(models.Model):
     workflow beyond that."""
     ACTION_TYPE_CHOICES = [
         ('violation', 'مخالفة'),
-        ('warning',   'إنذار'),
         ('followup',  'متابعة'),
     ]
 
@@ -1783,6 +1782,12 @@ class CampaignRequest(models.Model):
         related_name='campaign_notes_written',
     )
     noted_at  = models.DateTimeField(null=True, blank=True)
+
+    assigned_inspector = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='campaign_requests_assigned', verbose_name='المفتش المستلم',
+    )
+    assigned_at = models.DateTimeField(null=True, blank=True, verbose_name='تاريخ الاستلام')
 
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -1835,8 +1840,8 @@ class CampaignActionLog(models.Model):
 # ══════════════════════════════════════════
 
 class GardenVisit(models.Model):
-    """A single site review under the parks/gardens rodent-follow-up
-    program ("متابعة الحدائق") — one row per site visit."""
+    """A single site review under the manhole/area rodent-follow-up
+    program ("متابعة المناطق") — one row per site visit."""
     visit_date      = models.DateField(verbose_name='التاريخ')
     area_name       = models.CharField(max_length=150, blank=True, verbose_name='اسم المنطقة')
 
@@ -1858,8 +1863,8 @@ class GardenVisit(models.Model):
 
     class Meta:
         ordering = ['-visit_date', '-created_at']
-        verbose_name        = 'زيارة متابعة الحدائق'
-        verbose_name_plural = 'زيارات متابعة الحدائق'
+        verbose_name        = 'زيارة متابعة المناطق'
+        verbose_name_plural = 'زيارات متابعة المناطق'
 
     def __str__(self):
         return f"{self.area_name or 'بدون منطقة'} — {self.visit_date}"

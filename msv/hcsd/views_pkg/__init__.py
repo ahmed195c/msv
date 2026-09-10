@@ -31,7 +31,7 @@ from .pest_control import (
 from .pest_control_word import pest_control_permit_word
 from .misc import register, vehicle_permit_print, waste_disposal_permit_print, printer
 from .engineer_addition import engineer_addition_create, engineer_addition_detail
-from .field_work import field_work_list, field_work_create, field_work_detail, field_work_report, field_work_report_print, field_work_excel_import, field_work_excel_review, field_work_supervisors, field_work_supervisor_orders, field_work_excel_report, field_work_monthly_excel, field_work_materials_excel, field_work_recurring_list, field_work_recurring_edit, field_work_recurring_toggle, field_work_recurring_delete
+from .field_work import field_work_dashboard, field_work_list, field_work_create, field_work_detail, field_work_report, field_work_report_print, field_work_excel_import, field_work_excel_review, field_work_supervisors, field_work_supervisor_orders, field_work_excel_report, field_work_monthly_excel, field_work_materials_excel, field_work_recurring_list, field_work_recurring_edit, field_work_recurring_toggle, field_work_recurring_delete
 from .weed_removal import (
     weed_list, weed_create, weed_detail,
     weed_assign_inspector, weed_take_inspection, weed_inspector_done,
@@ -68,6 +68,7 @@ __all__ = [
     'pest_control_permit_print', 'pest_control_permit_view', 'pest_control_permit_word',
     'register', 'vehicle_permit_print', 'waste_disposal_permit_print', 'printer',
     'engineer_addition_create', 'engineer_addition_detail',
+    'field_work_dashboard',
     'field_work_list', 'field_work_create', 'field_work_detail', 'field_work_report',
     'field_work_report_print', 'field_work_excel_import', 'field_work_excel_review', 'field_work_supervisors',
     'field_work_supervisor_orders', 'field_work_excel_report', 'field_work_monthly_excel', 'field_work_materials_excel',

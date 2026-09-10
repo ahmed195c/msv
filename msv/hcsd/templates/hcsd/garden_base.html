@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}متابعة الحدائق{% endblock %} — بلدية الشارقة</title>
+  <title>{% block title %}متابعة المناطق{% endblock %} — بلدية الشارقة</title>
   <link rel="icon" type="image/png" href="{% static 'hcsd/shjmun-logo-website.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,7 +28,6 @@
   --accent-lt:   #22a355;
   --accent-bg:   #eafbf1;
   --sans: 'IBM Plex Sans Arabic', sans-serif;
-  --nav-h: 58px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 8px;
@@ -47,81 +46,122 @@ body.app-shell {
   direction: rtl;
   text-align: right;
   min-height: 100vh;
+}
+
+.app-frame { display: flex; align-items: flex-start; min-height: 100vh; }
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-}
-
-.app-chrome {
-  position: sticky;
-  top: 0;
-  z-index: 100;
   background: var(--paper);
-  border-bottom: 1.5px solid var(--line);
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  margin: 12px;
+  padding: 16px 14px;
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
 }
 
-.navbar {
-  max-width: 1100px;
-  margin: 0 auto;
-  height: var(--nav-h);
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 16px; text-decoration: none; }
+.sidebar-brand img { height: 30px; border-radius: 6px; }
+.sidebar-brand-label { display: flex; flex-direction: column; line-height: 1.25; }
+.sidebar-brand-name { font-size: 14px; font-weight: 700; color: var(--ink); }
+.sidebar-brand-sub  { font-size: 10.5px; font-weight: 500; color: var(--ink-4); }
+
+.sidebar-search {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 9px;
+  padding: 8px 10px; margin-bottom: 16px;
+}
+.sidebar-search svg { width: 15px; height: 15px; color: var(--ink-4); flex-shrink: 0; }
+.sidebar-search input {
+  border: none; background: none; outline: none; flex: 1; min-width: 0;
+  font-family: inherit; font-size: 13px; color: var(--ink); direction: rtl;
+}
+.sidebar-search input::placeholder { color: var(--ink-4); }
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+
+.sidebar-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px;
+  font-size: 13.5px; font-weight: 600; color: var(--ink-2); text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.sidebar-link svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--ink-3); transition: color .15s; }
+.sidebar-link:hover { background: var(--surface-2); color: var(--ink); }
+.sidebar-link:hover svg { color: var(--ink-2); }
+.sidebar-link.active { background: var(--accent-bg); color: var(--accent); }
+.sidebar-link.active svg { color: var(--accent); }
+.sidebar-link:focus-visible,
+.sidebar-group__toggle:focus-visible,
+.sidebar-logout:focus-visible,
+.sidebar-search input:focus-visible {
+  outline: 2px solid var(--accent-lt); outline-offset: 1px;
 }
 
-.nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 14px;
-  flex-shrink: 0;
+.sidebar-badge {
+  margin-inline-start: auto;
+  background: var(--surface-2); color: var(--ink-3);
+  font-size: 11px; font-weight: 700; border-radius: 999px;
+  padding: 1px 8px; min-width: 20px; text-align: center;
 }
-.nav-brand img { height: 28px; border-radius: 4px; }
-.nav-brand-label { display: flex; flex-direction: column; line-height: 1.25; }
-.nav-brand-name { font-size: 14px; font-weight: 700; color: var(--ink); }
-.nav-brand-sub  { font-size: 10.5px; font-weight: 500; color: var(--ink-4); }
+.sidebar-link.active .sidebar-badge { background: var(--paper); color: var(--accent); }
 
-.nav-spacer { flex: 1; }
-
-.nav-end { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-.nav-switch {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 7px;
-  background: var(--surface-2); border: 1.5px solid var(--line);
-  color: var(--ink-2); font-size: 12.5px; font-weight: 600; text-decoration: none;
-  transition: background .15s, border-color .15s;
+.sidebar-group { margin: 2px 0; }
+.sidebar-group__toggle {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px; border: none; background: none; cursor: pointer;
+  font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink-2);
 }
-.nav-switch:hover { background: var(--line); border-color: var(--line-2); }
+.sidebar-group__toggle:hover { background: var(--surface-2); color: var(--ink); }
+.sidebar-group__toggle svg.folder-icon { width: 16px; height: 16px; color: var(--ink-3); flex-shrink: 0; }
+.sidebar-group__toggle .chev { width: 14px; height: 14px; margin-inline-start: auto; color: var(--ink-4); transition: transform .15s; flex-shrink: 0; }
+.sidebar-group.collapsed .chev { transform: rotate(-90deg); }
+.sidebar-group__items { display: flex; flex-direction: column; gap: 2px; padding-inline-start: 26px; margin-top: 2px; }
+.sidebar-group.collapsed .sidebar-group__items { display: none; }
+.sidebar-link--sub { padding: 8px 10px; font-weight: 500; }
 
-.nav-user-chip { display: inline-flex; align-items: center; gap: 7px; }
-.nav-avatar {
-  width: 26px; height: 26px; border-radius: 50%;
+.sidebar-divider { height: 1px; background: var(--line); margin: 10px 4px; }
+
+.sidebar-spacer { flex: 1; }
+
+.sidebar-link--muted { color: var(--ink-3); }
+
+.sidebar-user {
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px; border-radius: 10px; border: 1.5px solid var(--line);
+  margin-top: 10px;
+}
+.sidebar-user__avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
   background: var(--accent-bg); color: var(--accent);
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700;
+  font-size: 13px; font-weight: 700;
 }
-.nav-username { font-size: 12.5px; font-weight: 600; color: var(--ink-2); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.nav-logout {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: 7px;
-  color: var(--ink-3); background: none; border: 1.5px solid transparent;
-  cursor: pointer; font-family: inherit;
+.sidebar-user__info { flex: 1; min-width: 0; }
+.sidebar-user__name  { font-size: 12.5px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-user__email { font-size: 11px; color: var(--ink-4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-logout {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
+  color: var(--ink-3); background: none; border: 1.5px solid transparent; cursor: pointer;
   transition: color .15s, border-color .15s, background .15s;
 }
-.nav-logout:hover { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
-.nav-logout svg { width: 14px; height: 14px; }
+.sidebar-logout:hover { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+.sidebar-logout svg { width: 14px; height: 14px; }
 
-.app-main { flex: 1; padding: 24px 20px 48px; max-width: 1100px; margin: 0 auto; width: 100%; }
+.app-main { flex: 1; min-width: 0; padding: 24px 24px 48px; }
 
-@media (max-width: 640px) {
-  .navbar { flex-wrap: wrap; height: auto; padding: 10px 14px; }
-  .nav-brand-sub { display: none; }
-  .nav-username { display: none; }
+@media (max-width: 780px) {
+  .app-frame { flex-direction: column; }
+  .sidebar { width: auto; position: relative; top: 0; max-height: none; margin: 12px 12px 0; }
+  .app-main { padding: 16px 14px 40px; }
 }
 </style>
 {% block extra_head %}{% endblock %}
@@ -129,42 +169,81 @@ body.app-shell {
 
 <body class="app-shell">
 
-<div class="app-chrome">
-  <nav class="navbar">
-    <a href="{% url 'garden_list' %}" class="nav-brand">
+<div class="app-frame">
+  <aside class="sidebar">
+    <a href="{% url 'rodent_control_home' %}" class="sidebar-brand">
       <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="">
-      <span class="nav-brand-label">
-        <span class="nav-brand-name">متابعة الحدائق</span>
-        <span class="nav-brand-sub">قسم البيئة — بلدية الشارقة</span>
+      <span class="sidebar-brand-label">
+        <span class="sidebar-brand-name">متابعة حالة المصائد</span>
+        <span class="sidebar-brand-sub">قسم البيئة — بلدية الشارقة</span>
       </span>
     </a>
 
-    <div class="nav-spacer"></div>
+    <form method="get" action="{% url 'garden_list' %}" class="sidebar-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" name="q" placeholder="بحث في المناطق…">
+    </form>
 
-    <div class="nav-end">
-      <a href="{% url 'portal_landing' %}" class="nav-switch">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    <nav class="sidebar-nav">
+      <a href="{% url 'portal_landing' %}" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>
         الرئيسية
       </a>
-      {% if request.user.is_authenticated %}
-      <div class="nav-user-chip">
-        <div class="nav-avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1" }}</div>
-        <span class="nav-username">{{ request.user.get_full_name|default:request.user.username }}</span>
+
+      <div class="sidebar-group">
+        <button type="button" class="sidebar-group__toggle" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+          الأقسام
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="sidebar-group__items">
+          <a href="{% url 'rodent_control_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'rodent_control_list' or request.resolver_match.url_name == 'rodent_control_building_detail' or request.resolver_match.url_name == 'rodent_control_building_create' %}active{% endif %}">
+            قائمة البنايات
+            <span class="sidebar-badge">{{ nav_building_count|default:"" }}</span>
+          </a>
+          <a href="{% url 'garden_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_list' or request.resolver_match.url_name == 'garden_create' or request.resolver_match.url_name == 'garden_detail' %}active{% endif %}">
+            متابعة المناطق
+            <span class="sidebar-badge">{{ nav_area_count|default:"" }}</span>
+          </a>
+        </div>
       </div>
-      <form method="post" action="{% url 'logout' %}" style="display:contents;">
+
+      <div class="sidebar-divider"></div>
+
+      <a href="{% url 'rodent_control_monthly_excel' %}" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        تقرير الشهر (Excel)
+      </a>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <a href="{% url 'rodent_control_home' %}" class="sidebar-link sidebar-link--muted {% if request.resolver_match.url_name == 'rodent_control_home' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      الصفحة الرئيسية لمتابعة المصائد
+    </a>
+
+    {% if request.user.is_authenticated %}
+    <div class="sidebar-user">
+      <div class="sidebar-user__avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1" }}</div>
+      <div class="sidebar-user__info">
+        <div class="sidebar-user__name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="sidebar-user__email">{{ request.user.email|default:request.user.username }}</div>
+      </div>
+      <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
-        <button type="submit" class="nav-logout" title="تسجيل الخروج">
+        <button type="submit" class="sidebar-logout" title="تسجيل الخروج">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
       </form>
-      {% endif %}
     </div>
-  </nav>
-</div>
+    {% endif %}
+  </aside>
 
-<main class="app-main">
-  {% block content %}{% endblock %}
-</main>
+  <main class="app-main">
+    {% block content %}{% endblock %}
+  </main>
+</div>
 
 </body>
 </html>

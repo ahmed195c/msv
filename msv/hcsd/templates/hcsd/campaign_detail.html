@@ -44,6 +44,12 @@
 .cp-edit-cancel:hover { color: var(--ink); }
 .cp-edit-actions { display: flex; gap: 8px; margin-top: 6px; }
 
+.cp-action-check { display: none; }
+.cp-action-panel { display: none; margin-top: 14px; }
+.cp-action-check:checked ~ .cp-action-panel { display: block; }
+.cp-action-check:checked ~ label.cp-action-toggle { display: none; }
+.cp-closed-note { font-size: 13.5px; color: var(--ink-2); white-space: pre-wrap; margin-bottom: 12px; }
+
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 9px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
@@ -66,7 +72,6 @@
 .cp-badge--ongoing   { background: #fff4e0; color: #92400e; }
 .cp-badge--done      { background: #e8f5ee; color: #1a7a3a; }
 .cp-badge--violation { background: #fdeaea; color: #b03a1a; }
-.cp-badge--warning   { background: #fff4e0; color: #92400e; }
 .cp-badge--followup  { background: #e6f2f4; color: #0e7490; }
 
 .cp-note-meta { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
@@ -157,12 +162,36 @@
   </div>
 
   <div class="cp-section">
+    <h2>الاستلام</h2>
+    {% if obj.assigned_inspector %}
+      <p style="font-size:13.5px;color:var(--ink-2);margin-bottom:10px;">
+        تم الاستلام بواسطة: <strong>{{ obj.assigned_inspector.get_full_name|default:obj.assigned_inspector.username }}</strong>
+        — {{ obj.assigned_at|date:"d/m/Y H:i" }}
+      </p>
+      {% if is_owner or can_admin %}
+      <form method="post" onsubmit="return confirm('هل أنت متأكد من إلغاء استلام هذا الطلب؟');">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="release">
+        <button type="submit" class="btn btn-outline">إلغاء الاستلام</button>
+      </form>
+      {% endif %}
+    {% elif can_manage %}
+      <p style="font-size:13.5px;color:var(--ink-3);margin-bottom:10px;">هذا الطلب غير مستلم بعد.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="claim">
+        <button type="submit" class="btn btn-primary">استلام الطلب</button>
+      </form>
+    {% else %}
+      <p style="font-size:13.5px;color:var(--ink-3);">هذا الطلب غير مستلم بعد.</p>
+    {% endif %}
+  </div>
+
+  <div class="cp-section">
     <h2>
       الحالة —
       {% if obj.action_type == 'violation' %}
         <span class="cp-badge cp-badge--violation">مخالفة</span>
-      {% elif obj.action_type == 'warning' %}
-        <span class="cp-badge cp-badge--warning">إنذار</span>
       {% elif obj.action_type == 'followup' %}
         <span class="cp-badge cp-badge--followup">متابعة</span>
       {% elif obj.is_done %}
@@ -171,20 +200,41 @@
         <span class="cp-badge cp-badge--ongoing">جارية</span>
       {% endif %}
     </h2>
-    {% if can_manage %}
-    <form method="post">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="note">
-      <div class="field-wrap">
-        <label>ادخال تقرير بسيط عن الاجراء المتخذ  </label>
-        <textarea name="note" placeholder=" مثال تم تحرير مخالفة للشركة المعنيه ">{{ obj.note }}</textarea>
-      </div>
-      <div class="cp-action-buttons">
-        <button type="submit" name="action_type" value="violation" class="btn btn-primary">مخالفة الشركة</button>
-        <button type="submit" name="action_type" value="warning" class="btn btn-primary">إنذار</button>
-        <button type="submit" name="action_type" value="followup" class="btn btn-primary">متابعة</button>
-      </div>
-    </form>
+    {% if can_manage and can_act %}
+      {% if obj.action_type %}
+        {% if obj.note %}<p class="cp-closed-note">{{ obj.note }}</p>{% endif %}
+        <input type="checkbox" id="action-toggle" class="cp-action-check">
+        <label for="action-toggle" class="btn btn-primary cp-action-toggle">اتخاذ إجراء آخر</label>
+        <div class="cp-action-panel">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="note">
+            <div class="field-wrap">
+              <label>ادخال تقرير بسيط عن الاجراء المتخذ  </label>
+              <textarea name="note" placeholder=" مثال تم تحرير مخالفة للشركة المعنيه "></textarea>
+            </div>
+            <div class="cp-action-buttons">
+              <button type="submit" name="action_type" value="violation" class="btn btn-primary">مخالفة الشركة</button>
+              <button type="submit" name="action_type" value="followup" class="btn btn-primary">متابعة</button>
+            </div>
+          </form>
+        </div>
+      {% else %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="note">
+          <div class="field-wrap">
+            <label>ادخال تقرير بسيط عن الاجراء المتخذ  </label>
+            <textarea name="note" placeholder=" مثال تم تحرير مخالفة للشركة المعنيه ">{{ obj.note }}</textarea>
+          </div>
+          <div class="cp-action-buttons">
+            <button type="submit" name="action_type" value="violation" class="btn btn-primary">مخالفة الشركة</button>
+            <button type="submit" name="action_type" value="followup" class="btn btn-primary">متابعة</button>
+          </div>
+        </form>
+      {% endif %}
+    {% elif can_manage %}
+      <p style="font-size:13px;color:var(--ink-3);">هذا الطلب مستلم بواسطة مفتش آخر، لا يمكنك اتخاذ إجراء عليه.</p>
     {% else %}
       <p style="font-size:13px;color:var(--ink-2);">{{ obj.note|default:"لا توجد ملاحظة بعد." }}</p>
     {% endif %}
@@ -204,8 +254,6 @@
         <div class="cp-log-head">
           {% if log.action_type == 'violation' %}
             <span class="cp-badge cp-badge--violation">مخالفة</span>
-          {% elif log.action_type == 'warning' %}
-            <span class="cp-badge cp-badge--warning">إنذار</span>
           {% elif log.action_type == 'followup' %}
             <span class="cp-badge cp-badge--followup">متابعة</span>
           {% else %}

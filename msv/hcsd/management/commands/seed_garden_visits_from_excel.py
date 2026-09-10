@@ -1,6 +1,6 @@
 """
 One-time historical import of "Follow up map.xlsx" — the source spreadsheet
-behind the "متابعة الحدائق" (garden follow-up) tracking. The sheet format
+behind the "متابعة المناطق" (area/manhole follow-up) tracking. The sheet format
 evolved over the year: Jan-July only recorded free-text "Activities"/"Qyt"
 pairs, while Aug/SEP switched to the current Infested Manholes / Infested
 Outside / Total Infested Bldg. breakdown. Older months are imported with

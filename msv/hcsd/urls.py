@@ -140,6 +140,7 @@ urlpatterns = [
         name='password_reset_complete',
     ),
     path('field-work/', views.field_work_list, name='field_work_list'),
+    path('field-work/dashboard/', views.field_work_dashboard, name='field_work_dashboard'),
     path('field-work/create/', views.field_work_create, name='field_work_create'),
     path('field-work/recurring/', views.field_work_recurring_list, name='field_work_recurring_list'),
     path('field-work/recurring/<int:pk>/edit/', views.field_work_recurring_edit, name='field_work_recurring_edit'),

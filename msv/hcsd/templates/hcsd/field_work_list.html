@@ -12,13 +12,41 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
 .btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#14487a;}
 .btn-outline{background:#fff;color:var(--ink-2);border:1.5px solid var(--border);}.btn-outline:hover{background:var(--surface-2);}
 
+/* Quick filter bar */
+.fw-quickbar{display:inline-flex;flex-wrap:wrap;gap:3px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:5px;margin-bottom:18px;}
+.fw-quick{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;color:var(--ink-2);white-space:nowrap;transition:background .15s,color .15s;}
+.fw-quick:hover{background:var(--surface-2);color:var(--ink-1);}
+.fw-quick.is-active{background:var(--accent);color:#fff;box-shadow:0 1px 6px rgba(37,99,235,.35);}
+.fw-quick .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:currentColor;}
+.fw-quick-clear{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--ink-4);text-decoration:none;transition:background .15s,color .15s;}
+.fw-quick-clear:hover{color:#dc2626;background:#fef2f2;}
+
 /* Filters bar */
-.fw-filters{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;max-width:100%;}
-.fw-filter-group{display:flex;flex-direction:column;gap:4px;min-width:0;}
-.fw-filter-label{font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.04em;}
-.fw-filter-select{padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;color:var(--ink-1);background:#fff;max-width:100%;}
-.fw-search{flex:1 1 200px;min-width:0;}
-.fw-search input{width:100%;min-width:0;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;}
+.fw-filters{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;max-width:100%;}
+.fw-filter-group{display:flex;flex-direction:column;gap:6px;min-width:0;}
+.fw-filter-label{font-size:12.5px;font-weight:700;color:var(--ink-2);letter-spacing:.01em;}
+
+.fw-filter-select, .fw-search input{
+  height:40px;box-sizing:border-box;padding:0 12px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:14px;font-weight:500;font-family:inherit;color:var(--ink-1);background:#fff;max-width:100%;
+  transition:border-color .15s,box-shadow .15s;
+}
+.fw-filter-select:focus, .fw-search input:focus{
+  outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12);
+}
+
+/* Custom select chevron (native arrow varies too much across browsers) */
+select.fw-filter-select{
+  appearance:none;-webkit-appearance:none;-moz-appearance:none;cursor:pointer;
+  padding-inline-end:32px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:left 10px center;background-size:15px;
+}
+html[dir="ltr"] select.fw-filter-select{ background-position:right 10px center; }
+
+.fw-search{flex:1 1 220px;min-width:0;position:relative;}
+.fw-search input{width:100%;min-width:0;padding-inline-start:36px;}
+.fw-search svg{position:absolute;inset-inline-start:12px;bottom:12.5px;width:15px;height:15px;color:var(--ink-4);pointer-events:none;}
 
 /* Table */
 .fw-table-wrap{background:#fff;border-radius:12px;border:1.5px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -132,121 +160,7 @@ tr.row-selected{background:#eff6ff !important;}
 
   <div class="fw-header">
     <h1 class="fw-title"><span class="t-ar">متابعة الشكاوى</span><span class="t-en">Complaint Tracking</span></h1>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      {% if can_admin or can_data_entry %}
-      <a href="{% url 'field_work_create' %}" class="btn btn-primary">+ <span class="t-ar">إنشاء أمر جديد</span><span class="t-en">New Order</span></a>
-
-      <a href="{% url 'field_work_excel_import' %}" class="btn btn-outline">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
-        <span class="t-ar">استيراد Excel</span><span class="t-en">Import Excel</span>
-      </a>
-            <a href="{% url 'field_work_supervisors' %}" class="btn btn-outline">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span class="t-ar">إدارة المراقبين</span><span class="t-en">Supervisors</span>
-      </a>
-      <a href="{% url 'field_work_recurring_list' %}" class="btn btn-outline">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        <span class="t-ar">الطلبات الدورية</span><span class="t-en">Recurring Orders</span>
-      </a>
-      <button class="btn btn-outline"  onclick="document.getElementById('fw-export-panel').style.display=document.getElementById('fw-export-panel').style.display==='none'?'flex':'none'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-         <span class="t-ar">التقرير الشهري</span><span class="t-en">Monthly Report</span>
-      </button>
-      <button class="btn btn-outline" onclick="document.getElementById('fw-mat-panel').style.display=document.getElementById('fw-mat-panel').style.display==='none'?'flex':'none'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-         <span class="t-ar">تقرير المواد</span><span class="t-en">Materials Report</span>
-      </button>
-      {% endif %}
-    </div>
   </div>
-
-  {% if can_admin or can_data_entry %}
-  <form id="fw-export-panel" method="get" action="{% url 'field_work_monthly_excel' %}" class="fw-filters" style="display:none;">
-    <div class="fw-filter-group">
-      <label class="fw-filter-label"><span class="t-ar">من تاريخ</span><span class="t-en">From Date</span></label>
-      <input type="date" name="date_from" id="exp-from" class="fw-filter-select" required>
-    </div>
-    <div class="fw-filter-group">
-      <label class="fw-filter-label"><span class="t-ar">إلى تاريخ</span><span class="t-en">To Date</span></label>
-      <input type="date" name="date_to" id="exp-to" class="fw-filter-select" required>
-    </div>
-    <div class="fw-filter-group">
-      <label class="fw-filter-label"><span class="t-ar">الحالات</span><span class="t-en">Statuses</span></label>
-      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:6px 0;">
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
-          <input type="checkbox" name="status_filter" value="completed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
-          <span class="t-ar">مكتمل</span><span class="t-en">Completed</span>
-        </label>
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
-          <input type="checkbox" name="status_filter" value="closed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
-          <span class="t-ar">مغلق</span><span class="t-en">Closed</span>
-        </label>
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
-          <input type="checkbox" name="status_filter" value="postponed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
-          <span class="t-ar">مؤجل</span><span class="t-en">Rescheduled</span>
-        </label>
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
-          <input type="checkbox" name="status_filter" value="all" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
-          <span class="t-ar">الكل</span><span class="t-en">All</span>
-        </label>
-      </div>
-    </div>
-    <button type="submit" class="btn btn-primary">
-      ⬇ <span class="t-ar">تحميل التقرير</span><span class="t-en">Download Report</span>
-    </button>
-    <script>
-      (function(){
-        var today = new Date().toISOString().slice(0,10);
-        var jan1  = new Date(new Date().getFullYear(),0,1).toISOString().slice(0,10);
-        document.getElementById('exp-from').value = jan1;
-        document.getElementById('exp-to').value   = today;
-      })();
-    </script>
-  </form>
-
-  <form id="fw-mat-panel" method="get" action="{% url 'field_work_materials_excel' %}" class="fw-filters" style="display:none;">
-    <div class="fw-filter-group">
-      <label class="fw-filter-label"><span class="t-ar">من تاريخ</span><span class="t-en">From Date</span></label>
-      <input type="date" name="date_from" id="mat-from" class="fw-filter-select" required>
-    </div>
-    <div class="fw-filter-group">
-      <label class="fw-filter-label"><span class="t-ar">إلى تاريخ</span><span class="t-en">To Date</span></label>
-      <input type="date" name="date_to" id="mat-to" class="fw-filter-select" required>
-    </div>
-    <div class="fw-filter-group">
-      <label class="fw-filter-label"><span class="t-ar">الحالات</span><span class="t-en">Statuses</span></label>
-      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:6px 0;">
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
-          <input type="checkbox" name="status_filter" value="completed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
-          <span class="t-ar">مكتمل</span><span class="t-en">Completed</span>
-        </label>
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
-          <input type="checkbox" name="status_filter" value="closed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
-          <span class="t-ar">مغلق</span><span class="t-en">Closed</span>
-        </label>
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
-          <input type="checkbox" name="status_filter" value="postponed" checked style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
-          <span class="t-ar">مؤجل</span><span class="t-en">Rescheduled</span>
-        </label>
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-1);cursor:pointer;user-select:none;">
-          <input type="checkbox" name="status_filter" value="all" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
-          <span class="t-ar">الكل</span><span class="t-en">All</span>
-        </label>
-      </div>
-    </div>
-    <button type="submit" class="btn btn-primary" style="background:#155e75;border-color:#155e75;">
-      ⬇ <span class="t-ar">تحميل تقرير المواد</span><span class="t-en">Download Materials Report</span>
-    </button>
-    <script>
-      (function(){
-        var today = new Date().toISOString().slice(0,10);
-        var jan1  = new Date(new Date().getFullYear(),0,1).toISOString().slice(0,10);
-        document.getElementById('mat-from').value = jan1;
-        document.getElementById('mat-to').value   = today;
-      })();
-    </script>
-  </form>
-  {% endif %}
 
   {% if request.GET.imported %}
   <div style="background:#edf7f2;border:1.5px solid #1f6b3e;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#1a5233;font-size:13px;font-weight:700;">
@@ -254,63 +168,35 @@ tr.row-selected{background:#eff6ff !important;}
   </div>
   {% endif %}
 
-  <!-- Simple dashboard -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;">
-    <div style="background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;">
-      <div style="font-size:22px;font-weight:800;color:var(--ink);">{{ dashboard_stats.total }}</div>
-      <div style="font-size:12px;color:var(--ink-3);font-weight:600;">الإجمالي</div>
-    </div>
-    <a href="{% url 'field_work_list' %}?quick=new" style="text-decoration:none;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;display:block;">
-      <div style="font-size:22px;font-weight:800;color:#1a5c9a;">{{ dashboard_stats.new_count }}</div>
-      <div style="font-size:12px;color:var(--ink-3);font-weight:600;">الجديدة</div>
-    </a>
-    <a href="{% url 'field_work_list' %}?quick=received" style="text-decoration:none;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;display:block;">
-      <div style="font-size:22px;font-weight:800;color:#166534;">{{ dashboard_stats.received_count }}</div>
-      <div style="font-size:12px;color:var(--ink-3);font-weight:600;">طلبات مسلَّمة</div>
-    </a>
-    <a href="{% url 'field_work_list' %}?quick=completed" style="text-decoration:none;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;display:block;">
-      <div style="font-size:22px;font-weight:800;color:#166534;">{{ dashboard_stats.completed_count }}</div>
-      <div style="font-size:12px;color:var(--ink-3);font-weight:600;">منجزة</div>
-    </a>
-    <a href="{% url 'field_work_list' %}?quick=postponed" style="text-decoration:none;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;display:block;">
-      <div style="font-size:22px;font-weight:800;color:#854d0e;">{{ dashboard_stats.postponed_count }}</div>
-      <div style="font-size:12px;color:var(--ink-3);font-weight:600;">مؤجلة</div>
-    </a>
-    <a href="{% url 'field_work_list' %}?quick=closed" style="text-decoration:none;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;display:block;">
-      <div style="font-size:22px;font-weight:800;color:#5a6a7a;">{{ dashboard_stats.closed_count }}</div>
-      <div style="font-size:12px;color:var(--ink-3);font-weight:600;">مغلقة</div>
-    </a>
-  </div>
-
   <!-- Quick filters -->
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+  <div class="fw-quickbar">
     <a href="{% url 'field_work_list' %}?quick=new{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
-       class="btn {% if quick_filter == 'new' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
-      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'new' %}#fff{% else %}#1a5c9a{% endif %};margin-left:5px;"></span>
+       class="fw-quick {% if quick_filter == 'new' %}is-active{% endif %}">
+      <span class="dot" style="{% if quick_filter != 'new' %}color:#1a5c9a;{% endif %}"></span>
       <span class="t-ar">الجديدة</span><span class="t-en">New</span>
     </a>
     <a href="{% url 'field_work_list' %}?quick=received{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
-       class="btn {% if quick_filter == 'received' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
-      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'received' %}#fff{% else %}#166534{% endif %};margin-left:5px;"></span>
+       class="fw-quick {% if quick_filter == 'received' %}is-active{% endif %}">
+      <span class="dot" style="{% if quick_filter != 'received' %}color:#166534;{% endif %}"></span>
       <span class="t-ar">طلبات مسلَّمة</span><span class="t-en">Assigned Orders</span>
     </a>
     <a href="{% url 'field_work_list' %}?quick=completed{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
-       class="btn {% if quick_filter == 'completed' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
-      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'completed' %}#fff{% else %}#166534{% endif %};margin-left:5px;"></span>
+       class="fw-quick {% if quick_filter == 'completed' %}is-active{% endif %}">
+      <span class="dot" style="{% if quick_filter != 'completed' %}color:#166534;{% endif %}"></span>
       <span class="t-ar">منجزة</span><span class="t-en">Completed</span>
     </a>
     <a href="{% url 'field_work_list' %}?quick=closed{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
-       class="btn {% if quick_filter == 'closed' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
-      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'closed' %}#fff{% else %}#5a6a7a{% endif %};margin-left:5px;"></span>
+       class="fw-quick {% if quick_filter == 'closed' %}is-active{% endif %}">
+      <span class="dot" style="{% if quick_filter != 'closed' %}color:#5a6a7a;{% endif %}"></span>
       <span class="t-ar">المغلقة</span><span class="t-en">Closed</span>
     </a>
     <a href="{% url 'field_work_list' %}?quick=postponed{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
-       class="btn {% if quick_filter == 'postponed' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:13px;padding:7px 16px;">
-      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{% if quick_filter == 'postponed' %}#fff{% else %}#854d0e{% endif %};margin-left:5px;"></span>
+       class="fw-quick {% if quick_filter == 'postponed' %}is-active{% endif %}">
+      <span class="dot" style="{% if quick_filter != 'postponed' %}color:#854d0e;{% endif %}"></span>
       <span class="t-ar">المؤجلة</span><span class="t-en">Postponed</span>
     </a>
     {% if quick_filter %}
-    <a href="{% url 'field_work_list' %}{% if search %}?q={{ search }}{% endif %}" class="btn btn-outline" style="font-size:13px;padding:7px 14px;color:var(--ink-3);">
+    <a href="{% url 'field_work_list' %}{% if search %}?q={{ search }}{% endif %}" class="fw-quick-clear">
       ✕ <span class="t-ar">كل الطلبات</span><span class="t-en">All Orders</span>
     </a>
     {% endif %}
@@ -323,6 +209,7 @@ tr.row-selected{background:#eff6ff !important;}
 
       <div class="fw-filter-group fw-search">
         <label class="fw-filter-label"><span class="t-ar">بحث</span><span class="t-en">Search</span></label>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" name="q" value="{{ search }}"
           data-ar-ph="رقم الطلب / اسم / منطقة / مشرف / رقمه الإداري…"
           data-en-ph="Order# / Name / Area / Supervisor / Admin#…"
@@ -357,19 +244,19 @@ tr.row-selected{background:#eff6ff !important;}
 
       <div class="fw-filter-group">
         <label class="fw-filter-label"><span class="t-ar">من تاريخ</span><span class="t-en">From</span></label>
-        <input type="date" name="date_from" value="{{ date_from_req }}" class="fw-filter-select" style="padding:6px 8px;">
+        {% include "hcsd/_fw_datefield.html" with field_id="fw-filter-date-from" name="date_from" value=date_from_req placeholder_ar="اختر تاريخ" placeholder_en="Select date" %}
       </div>
 
       <div class="fw-filter-group">
         <label class="fw-filter-label"><span class="t-ar">إلى تاريخ</span><span class="t-en">To</span></label>
-        <input type="date" name="date_to" value="{{ date_to_req }}" class="fw-filter-select" style="padding:6px 8px;">
+        {% include "hcsd/_fw_datefield.html" with field_id="fw-filter-date-to" name="date_to" value=date_to_req placeholder_ar="اختر تاريخ" placeholder_en="Select date" %}
       </div>
 
-      <button type="submit" class="btn btn-primary" style="align-self:flex-end;">
+      <button type="submit" class="btn btn-primary" style="align-self:flex-end;height:40px;padding:0 18px;">
         <span class="t-ar">بحث</span><span class="t-en">Search</span>
       </button>
       {% if search or status_filter != 'all' or source_filter != 'all' or date_from_req or date_to_req %}
-      <a href="{% url 'field_work_list' %}{% if quick_filter %}?quick={{ quick_filter }}{% endif %}" class="btn btn-outline" style="align-self:flex-end;">
+      <a href="{% url 'field_work_list' %}{% if quick_filter %}?quick={{ quick_filter }}{% endif %}" class="btn btn-outline" style="align-self:flex-end;height:40px;padding:0 18px;">
         <span class="t-ar">مسح</span><span class="t-en">Clear</span>
       </a>
       {% endif %}
