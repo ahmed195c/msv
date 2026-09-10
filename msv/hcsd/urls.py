@@ -59,6 +59,7 @@ urlpatterns = [
 
     path('garden/', views.garden_list, name='garden_list'),
     path('garden/add/', views.garden_create, name='garden_create'),
+    path('garden/<int:pk>/update/', views.garden_update, name='garden_update'),
     path('garden/<int:pk>/delete/', views.garden_delete, name='garden_delete'),
 
     path('companies/', views.company_list, name='company_list'),

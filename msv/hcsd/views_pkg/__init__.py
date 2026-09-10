@@ -52,7 +52,7 @@ from .rodent_control import (
     rodent_control_monthly_excel,
 )
 from .campaign import campaign_list, campaign_create, campaign_detail, campaign_delete, campaign_report_excel
-from .garden import garden_list, garden_create, garden_delete
+from .garden import garden_list, garden_create, garden_update, garden_delete
 
 __all__ = [
     'portal_landing', 'home', 'set_app_language',
@@ -85,6 +85,6 @@ __all__ = [
     'rodent_control_home', 'rodent_control_list', 'rodent_control_building_create', 'rodent_control_building_detail',
     'rodent_control_monthly_excel',
     'campaign_list', 'campaign_create', 'campaign_detail', 'campaign_delete', 'campaign_report_excel',
-    'garden_list', 'garden_create', 'garden_delete',
+    'garden_list', 'garden_create', 'garden_update', 'garden_delete',
     'all_requests',
 ]
