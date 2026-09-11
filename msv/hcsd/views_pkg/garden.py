@@ -188,6 +188,17 @@ def garden_detail(request, pk):
                 'infested_manholes', 'infested_outside', 'total_infested_bldg',
                 'notes', 'infestation_type',
             ])
+
+            # Updating the infestation data for an area counts as reviewing
+            # it for this month — no need for a separate manual step.
+            review, _created = GardenAreaReview.objects.get_or_create(
+                area_name=obj.area_name, period_start=_current_period_start(),
+            )
+            if not review.is_reviewed:
+                review.is_reviewed = True
+                review.reviewed_by = request.user
+                review.reviewed_at = timezone.now()
+                review.save(update_fields=['is_reviewed', 'reviewed_by', 'reviewed_at'])
         return redirect('garden_detail', pk=pk)
 
     return render(request, 'hcsd/garden_detail.html', {
