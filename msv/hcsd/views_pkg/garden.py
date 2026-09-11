@@ -7,6 +7,7 @@ Templates  : hcsd/garden_*.html
 """
 
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -38,6 +39,7 @@ def _can_manage(user):
 @login_required
 def garden_list(request):
     query = (request.GET.get('q') or '').strip()
+    page_number = request.GET.get('page') or 1
 
     # Ordered to match the source Excel sheet's row order (its "No" column),
     # not the model's default newest-first ordering.
@@ -45,10 +47,14 @@ def garden_list(request):
     if query:
         visits_qs = visits_qs.filter(area_name__icontains=query)
 
+    paginator = Paginator(visits_qs, 20)
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'hcsd/garden_list.html', {
-        'rows': list(visits_qs),
+        'rows': page_obj,
+        'page_obj': page_obj,
         'query': query,
-        'total_count': GardenVisit.objects.count(),
+        'total_count': paginator.count,
         'can_manage': _can_manage(request.user),
         'can_admin': _can_admin(request.user),
     })

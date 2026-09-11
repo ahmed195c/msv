@@ -78,6 +78,17 @@
 
 .gv-empty { text-align: center; padding: 40px; color: var(--ink-3); font-size: 14px; }
 
+.gv-pagination { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 22px; }
+.gv-page-btn {
+  display: inline-flex; align-items: center; padding: 7px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; text-decoration: none; border: 1.5px solid var(--line);
+  background: var(--paper); color: var(--ink-2);
+}
+.gv-page-btn:hover { background: var(--surface); }
+.gv-page-btn--disabled { color: var(--ink-4); cursor: default; }
+.gv-page-btn--disabled:hover { background: var(--paper); }
+.gv-page-info { font-size: 13px; color: var(--ink-3); font-weight: 500; }
+
 .gv-modal-backdrop {
   display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45);
   align-items: center; justify-content: center; z-index: 1000; padding: 16px;
@@ -162,6 +173,22 @@
   </div>
   {% else %}
   <div class="gv-empty">لا توجد مواقع بعد.</div>
+  {% endif %}
+
+  {% if page_obj.has_other_pages %}
+  <div class="gv-pagination">
+    {% if page_obj.has_previous %}
+      <a class="gv-page-btn" href="?{% if query %}q={{ query }}&{% endif %}page={{ page_obj.previous_page_number }}">السابق</a>
+    {% else %}
+      <span class="gv-page-btn gv-page-btn--disabled">السابق</span>
+    {% endif %}
+    <span class="gv-page-info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a class="gv-page-btn" href="?{% if query %}q={{ query }}&{% endif %}page={{ page_obj.next_page_number }}">التالي</a>
+    {% else %}
+      <span class="gv-page-btn gv-page-btn--disabled">التالي</span>
+    {% endif %}
+  </div>
   {% endif %}
 </div>
 
