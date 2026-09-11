@@ -9,14 +9,15 @@ Templates  : hcsd/garden_*.html
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from ..models import GardenVisit
-from .common import _can_admin, _can_data_entry
+from .common import _can_admin, _can_data_entry, _can_garden_monitor
 
 
 def _can_manage(user):
-    return _can_admin(user) or _can_data_entry(user)
+    return _can_admin(user) or _can_data_entry(user) or _can_garden_monitor(user)
 
 
 @login_required
@@ -43,16 +44,9 @@ def garden_create(request):
 
     errors = []
     if request.method == 'POST':
-        import datetime as _dt
-
-        raw_date = (request.POST.get('visit_date') or '').strip()
-        try:
-            visit_date = _dt.date.fromisoformat(raw_date)
-        except ValueError:
-            visit_date = None
-        area_name       = (request.POST.get('area_name') or '').strip()
-        google_maps_url = (request.POST.get('google_maps_url') or '').strip()
-        notes           = (request.POST.get('notes') or '').strip()
+        area_name        = (request.POST.get('area_name') or '').strip()
+        location_details = (request.POST.get('location_details') or '').strip()
+        google_maps_url  = (request.POST.get('google_maps_url') or '').strip()
 
         def _int(name):
             raw = (request.POST.get(name) or '').strip()
@@ -68,22 +62,20 @@ def garden_create(request):
             except ValueError:
                 return None
 
-        if not visit_date:
-            errors.append('يرجى إدخال تاريخ صحيح.')
         if not area_name:
             errors.append('يرجى إدخال اسم المنطقة.')
 
         if not errors:
             obj = GardenVisit.objects.create(
-                visit_date=visit_date,
+                visit_date=timezone.localdate(),
                 area_name=area_name,
+                location_details=location_details,
                 google_maps_url=google_maps_url,
                 latitude=_float('latitude'),
                 longitude=_float('longitude'),
                 infested_manholes=_int('infested_manholes'),
                 infested_outside=_int('infested_outside'),
                 total_infested_bldg=_int('total_infested_bldg'),
-                notes=notes,
                 created_by=request.user,
             )
             return redirect('garden_list')
@@ -110,11 +102,25 @@ def garden_detail(request, pk):
             except ValueError:
                 return None
 
-        obj.infested_manholes    = _int('infested_manholes')
-        obj.infested_outside     = _int('infested_outside')
-        obj.total_infested_bldg  = _int('total_infested_bldg')
-        obj.notes                = (request.POST.get('notes') or '').strip()
-        obj.save(update_fields=['infested_manholes', 'infested_outside', 'total_infested_bldg', 'notes'])
+        def _float(name):
+            raw = (request.POST.get(name) or '').strip()
+            try:
+                return float(raw) if raw else None
+            except ValueError:
+                return None
+
+        if request.POST.get('action') == 'save_location':
+            obj.latitude         = _float('latitude')
+            obj.longitude        = _float('longitude')
+            obj.google_maps_url  = (request.POST.get('google_maps_url') or '').strip()
+            obj.location_details = (request.POST.get('location_details') or '').strip()
+            obj.save(update_fields=['latitude', 'longitude', 'google_maps_url', 'location_details'])
+        else:
+            obj.infested_manholes    = _int('infested_manholes')
+            obj.infested_outside     = _int('infested_outside')
+            obj.total_infested_bldg  = _int('total_infested_bldg')
+            obj.notes                = (request.POST.get('notes') or '').strip()
+            obj.save(update_fields=['infested_manholes', 'infested_outside', 'total_infested_bldg', 'notes'])
         return redirect('garden_detail', pk=pk)
 
     return render(request, 'hcsd/garden_detail.html', {

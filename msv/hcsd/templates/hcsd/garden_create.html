@@ -19,16 +19,8 @@
   box-sizing: border-box; width: 100%;
 }
 .field-wrap input:focus, .field-wrap textarea:focus { outline: none; border-color: var(--accent); }
-.two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-@media (max-width: 480px) { .two-col, .three-col { grid-template-columns: 1fr; } }
-
-.gv-loc-box {
-  padding: 14px; background: var(--surface); border: 1.5px solid var(--line);
-  border-radius: 8px; margin-bottom: 14px;
-}
-.gv-loc-box .gv-loc-title { font-size: 12px; font-weight: 700; color: var(--ink-2); margin-bottom: 10px; }
-.gv-loc-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 480px) { .three-col { grid-template-columns: 1fr; } }
 
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -36,8 +28,36 @@
   text-decoration: none; cursor: pointer; border: 1.5px solid var(--line);
   background: var(--paper); color: var(--ink-2); font-family: inherit;
 }
+.btn-outline:hover { background: var(--surface); }
 .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
 .btn-primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+
+.gv-gps-status { font-size: 12.5px; font-weight: 600; }
+
+/* Modern stepper for the infestation-count fields */
+.stepper {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px;
+  padding: 6px; direction: ltr;
+}
+.stepper__btn {
+  width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; border: none;
+  background: var(--paper); color: var(--accent); font-size: 20px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08); transition: background .15s, color .15s;
+  line-height: 1;
+}
+.stepper__btn:hover { background: var(--accent); color: #fff; }
+.stepper__btn:active { transform: scale(0.94); }
+.stepper__val {
+  border: none !important; background: transparent !important; text-align: center;
+  font-size: 19px; font-weight: 800; color: var(--ink); width: 100%;
+  padding: 0 !important;
+}
+.stepper__val::-webkit-outer-spin-button, .stepper__val::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.stepper__val { -moz-appearance: textfield; }
 </style>
 
 <div class="gv-form-page">
@@ -49,47 +69,81 @@
 
   <form method="post" id="gv-form">
     {% csrf_token %}
-    <div class="two-col">
-      <div class="field-wrap"><label>التاريخ *</label><input type="date" name="visit_date" value="{{ post.visit_date }}" required></div>
-      <div class="field-wrap"><label>اسم المنطقة *</label><input type="text" name="area_name" value="{{ post.area_name }}" required></div>
+
+    <div class="field-wrap">
+      <label>اسم المنطقة *</label>
+      <input type="text" name="area_name" value="{{ post.area_name }}" required>
     </div>
 
-    <div class="gv-loc-box">
-      <div class="gv-loc-title">الموقع</div>
-      <div class="field-wrap" style="margin-bottom:10px;">
-        <label>رابط خرائط قوقل (اختياري)</label>
-        <input type="url" name="google_maps_url" id="gv-maps-url-inp" value="{{ post.google_maps_url }}" placeholder="https://maps.app.goo.gl/…">
-      </div>
-      <input type="hidden" name="latitude"  id="gv-lat-inp">
-      <input type="hidden" name="longitude" id="gv-lng-inp">
-      <div class="gv-loc-row">
-        <button type="button" id="gv-gps-btn" class="btn btn-outline" onclick="captureGardenLocation()">
+    <div class="field-wrap">
+      <label>تفاصيل الموقع (لتمييزه عن مواقع بنفس اسم المنطقة)</label>
+      <input type="text" name="location_details" value="{{ post.location_details }}" placeholder="مثال: بجانب مسجد كذا، رقم المبنى 12">
+    </div>
+
+    <div class="field-wrap">
+      <label>الموقع الحالي</label>
+      <input type="hidden" name="latitude" id="gv-lat-inp" value="{{ post.latitude }}">
+      <input type="hidden" name="longitude" id="gv-lng-inp" value="{{ post.longitude }}">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button type="button" id="gv-gps-btn" class="btn btn-outline" onclick="gvCaptureLocation()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          تحديد الموقع الحالي عبر GPS
+          تحديد موقعي الحالي عبر GPS
         </button>
-        <span id="gv-gps-status" style="font-size:13px;font-weight:600;"></span>
+        <span id="gv-gps-status" class="gv-gps-status"></span>
       </div>
+    </div>
+
+    <div class="field-wrap">
+      <label>رابط خرائط قوقل (اختياري)</label>
+      <input type="url" name="google_maps_url" value="{{ post.google_maps_url }}" placeholder="https://maps.app.goo.gl/…">
     </div>
 
     <div class="three-col">
-      <div class="field-wrap"><label>مناهيل مصابة</label><input type="number" name="infested_manholes" value="{{ post.infested_manholes }}"></div>
-      <div class="field-wrap"><label>إصابة خارجية</label><input type="number" name="infested_outside" value="{{ post.infested_outside }}"></div>
-      <div class="field-wrap"><label>إجمالي مباني مصابة</label><input type="number" name="total_infested_bldg" value="{{ post.total_infested_bldg }}"></div>
+      <div class="field-wrap">
+        <label>مناهيل مصابة</label>
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gvStep('infested_manholes', -1)">−</button>
+          <input type="number" inputmode="numeric" name="infested_manholes" id="gv-num-infested_manholes" class="stepper__val" min="0" value="{{ post.infested_manholes|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gvStep('infested_manholes', 1)">+</button>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label>إصابة خارجية</label>
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gvStep('infested_outside', -1)">−</button>
+          <input type="number" inputmode="numeric" name="infested_outside" id="gv-num-infested_outside" class="stepper__val" min="0" value="{{ post.infested_outside|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gvStep('infested_outside', 1)">+</button>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label>إجمالي مباني مصابة</label>
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gvStep('total_infested_bldg', -1)">−</button>
+          <input type="number" inputmode="numeric" name="total_infested_bldg" id="gv-num-total_infested_bldg" class="stepper__val" min="0" value="{{ post.total_infested_bldg|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gvStep('total_infested_bldg', 1)">+</button>
+        </div>
+      </div>
     </div>
-
-    <div class="field-wrap"><label>ملاحظات</label><textarea name="notes" rows="3">{{ post.notes }}</textarea></div>
 
     <button type="submit" class="btn btn-primary">إضافة الموقع</button>
   </form>
 </div>
 
 <script>
-function captureGardenLocation() {
+function gvStep(name, delta) {
+  var inp = document.getElementById('gv-num-' + name);
+  if (!inp) return;
+  var val = parseInt(inp.value, 10);
+  if (isNaN(val)) val = 0;
+  val = Math.max(0, val + delta);
+  inp.value = val;
+}
+
+function gvCaptureLocation() {
   var btn    = document.getElementById('gv-gps-btn');
   var status = document.getElementById('gv-gps-status');
   var latInp = document.getElementById('gv-lat-inp');
   var lngInp = document.getElementById('gv-lng-inp');
-  if (!btn) return;
 
   if (!navigator.geolocation) {
     status.textContent = 'المتصفح لا يدعم تحديد الموقع.';
@@ -104,13 +158,22 @@ function captureGardenLocation() {
     function(pos) {
       latInp.value = pos.coords.latitude.toFixed(6);
       lngInp.value = pos.coords.longitude.toFixed(6);
-      status.textContent = '✓ تم تحديد الموقع (' + latInp.value + ', ' + lngInp.value + ')';
+      status.textContent = '✓ تم تحديد الموقع';
       status.style.color = '#116430';
       btn.disabled = false;
     },
-    function() {
-      status.textContent = 'تعذّر الحصول على الموقع — تأكد من منح صلاحية الموقع.';
+    function(err) {
       status.style.color = '#8c2f2f';
+      if (err && err.code === err.PERMISSION_DENIED) {
+        status.textContent = 'تم رفض صلاحية الموقع سابقًا على هذا الجهاز، لذلك لن يظهر طلب الإذن مرة أخرى تلقائيًا. '
+          + 'على الآيفون: افتح "الإعدادات" ← "الخصوصية والأمان" ← "خدمات الموقع" وتأكد أنها مفعّلة، '
+          + 'ثم من نفس الصفحة افتح "Safari" واختر "أثناء استخدام التطبيق". '
+          + 'أو داخل Safari اضغط على "aA" بجانب شريط العنوان ← "إعدادات الموقع لهذا الموقع" ← "اسمح"، ثم أعد المحاولة.';
+      } else if (err && err.code === err.TIMEOUT) {
+        status.textContent = 'انتهت المهلة قبل تحديد الموقع — تأكد من تفعيل GPS وحاول مرة أخرى في مكان مفتوح.';
+      } else {
+        status.textContent = 'تعذّر الحصول على الموقع — تأكد من منح صلاحية الموقع.';
+      }
       btn.disabled = false;
     },
     { enableHighAccuracy: true, timeout: 12000 }

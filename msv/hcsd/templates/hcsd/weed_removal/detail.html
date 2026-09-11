@@ -370,6 +370,16 @@
           </div>
         </div>
       </form>
+
+      <!-- TEMP PREVIEW ONLY — remove after review -->
+      <div style="margin-top:10px;padding:10px 14px;background:#fffbea;border:1.5px dashed #d4b106;border-radius:8px;">
+        <div style="font-size:11px;font-weight:700;color:#8a6d00;margin-bottom:8px;">معاينة رسائل الخطأ (مؤقت للتجربة فقط)</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-action btn-action--ghost" onclick="previewWeedLocationMessage('denied')">رسالة: رفض الصلاحية</button>
+          <button type="button" class="btn-action btn-action--ghost" onclick="previewWeedLocationMessage('timeout')">رسالة: انتهاء المهلة</button>
+          <button type="button" class="btn-action btn-action--ghost" onclick="previewWeedLocationMessage('other')">رسالة: خطأ عام</button>
+        </div>
+      </div>
     </div>
   </div>
   {% endif %}
@@ -901,13 +911,39 @@ function captureWeedLocation() {
       if (typeof form.requestSubmit === 'function') { form.requestSubmit(); }
       else { form.submit(); }
     },
-    function() {
-      status.textContent = 'تعذّر الحصول على الموقع — تأكد من منح صلاحية الموقع.';
+    function(err) {
+      if (err && err.code === err.PERMISSION_DENIED) {
+        status.textContent = 'تم رفض صلاحية الموقع سابقًا على هذا الجهاز، لذلك لن يظهر طلب الإذن مرة أخرى تلقائيًا. '
+          + 'على الآيفون: افتح "الإعدادات" ← "الخصوصية والأمان" ← "خدمات الموقع" وتأكد أنها مفعّلة، '
+          + 'ثم من نفس الصفحة افتح "Safari" واختر "أثناء استخدام التطبيق". '
+          + 'أو داخل Safari اضغط على "aA" بجانب شريط العنوان ← "إعدادات الموقع لهذا الموقع" ← "اسمح"، ثم أعد المحاولة.';
+      } else if (err && err.code === err.TIMEOUT) {
+        status.textContent = 'انتهت المهلة قبل تحديد الموقع — تأكد من تفعيل GPS وحاول مرة أخرى في مكان مفتوح.';
+      } else {
+        status.textContent = 'تعذّر الحصول على الموقع — تأكد من منح صلاحية الموقع.';
+      }
       status.style.color = '#8c2f2f';
       btn.disabled = false;
     },
     { enableHighAccuracy: true, timeout: 12000 }
   );
+}
+
+// TEMP PREVIEW ONLY — remove after review
+function previewWeedLocationMessage(kind) {
+  var status = document.getElementById('wr-loc-status');
+  if (!status) return;
+  status.style.color = '#8c2f2f';
+  if (kind === 'denied') {
+    status.textContent = 'تم رفض صلاحية الموقع سابقًا على هذا الجهاز، لذلك لن يظهر طلب الإذن مرة أخرى تلقائيًا. '
+      + 'على الآيفون: افتح "الإعدادات" ← "الخصوصية والأمان" ← "خدمات الموقع" وتأكد أنها مفعّلة، '
+      + 'ثم من نفس الصفحة افتح "Safari" واختر "أثناء استخدام التطبيق". '
+      + 'أو داخل Safari اضغط على "aA" بجانب شريط العنوان ← "إعدادات الموقع لهذا الموقع" ← "اسمح"، ثم أعد المحاولة.';
+  } else if (kind === 'timeout') {
+    status.textContent = 'انتهت المهلة قبل تحديد الموقع — تأكد من تفعيل GPS وحاول مرة أخرى في مكان مفتوح.';
+  } else {
+    status.textContent = 'تعذّر الحصول على الموقع — تأكد من منح صلاحية الموقع.';
+  }
 }
 </script>
 {% endblock %}

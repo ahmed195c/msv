@@ -150,7 +150,10 @@
   </div>
 
   <!-- Permit cards -->
-  <div class="pt-section">
+  
+
+    {% if can_create_pirmet %}
+  <div class="pt-section">  
     <p class="pt-section__label">إنشاء طلب جديد</p>
 
     <div class="permit-types__skeleton" aria-hidden="true">
@@ -163,10 +166,8 @@
       </div>
       {% endfor %}
     </div>
-
-    {% if can_create_pirmet %}
     <div class="permit-grid">
-
+      
       <div class="permit-card">
         <p class="permit-card__title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</p>
         <p class="permit-card__desc">انشاء طلب لتجديد تصريح مزاولة النشاط لشركات مكافحة الحشرات و النظافه</p>
@@ -200,10 +201,10 @@
       {% endif %}
 
     </div>
-    {% else %}
-    <p style="text-align:center;padding:24px;color:#6f8194;font-size:14px;border:1.5px dashed #d7dfe8;border-radius:9px;">ليس لديك صلاحية إنشاء تصاريح.</p>
-    {% endif %}
   </div>
+    {% else %}
+    {% endif %}
+  
 
   <!-- Expiring permits -->
   {% if expiring_permits %}

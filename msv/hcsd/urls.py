@@ -7,6 +7,7 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     path('set-language/', views.set_app_language, name='set_app_language'),
     path('all-requests/', views.all_requests, name='all_requests'),
+    path('all-requests/bulk-assign/', views.bulk_assign_requests, name='bulk_assign_requests'),
 
     # Container transfer requests
     path('container-transfers/', views.container_list, name='container_list'),

@@ -67,7 +67,10 @@
   <div class="gv-header">
     <div>
       <h1>{{ obj.area_name|default:"—" }}</h1>
-      <p>{{ obj.visit_date|date:"d/m/Y" }}</p>
+      <p>
+        {{ obj.visit_date|date:"d/m/Y" }}
+        {% if obj.location_details %} — {{ obj.location_details }}{% endif %}
+      </p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <a href="{% url 'garden_list' %}" class="btn btn-outline">العودة للقائمة</a>
@@ -85,17 +88,43 @@
     {% if obj.latitude is not None and obj.longitude is not None %}
       <iframe class="gv-map" loading="lazy"
               src="https://www.google.com/maps?q={{ obj.latitude }},{{ obj.longitude }}&output=embed"></iframe>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;">
+        {% if obj.google_maps_url %}
+          <a href="{{ obj.google_maps_url }}" target="_blank" rel="noopener" class="btn btn-outline">فتح في خرائط قوقل</a>
+        {% else %}
+          <a href="https://www.google.com/maps?q={{ obj.latitude }},{{ obj.longitude }}" target="_blank" rel="noopener" class="btn btn-outline">فتح في خرائط قوقل</a>
+        {% endif %}
+        {% if can_manage %}
+        <button type="button" id="gv-loc-toggle-btn" class="btn btn-outline" onclick="toggleGardenLocationForm()">تغيير الموقع</button>
+        {% endif %}
+      </div>
     {% else %}
       <div class="gv-map--empty">لا يوجد موقع محفوظ</div>
     {% endif %}
-    {% if obj.google_maps_url %}
-      <div style="margin-top:12px;">
-        <a href="{{ obj.google_maps_url }}" target="_blank" rel="noopener" class="btn btn-outline">فتح في خرائط قوقل</a>
+
+    {% if can_manage %}
+    <form method="post" id="gv-loc-form"
+          {% if obj.latitude is not None and obj.longitude is not None %}style="display:none;margin-top:14px;"{% else %}style="margin-top:14px;"{% endif %}>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_location">
+      <input type="hidden" name="latitude"  id="gv-loc-lat-inp"  value="{{ obj.latitude|default_if_none:'' }}">
+      <input type="hidden" name="longitude" id="gv-loc-lng-inp" value="{{ obj.longitude|default_if_none:'' }}">
+      <div class="field-wrap" style="margin-bottom:10px;">
+        <label>تفاصيل الموقع (لتمييزه عن مواقع بنفس اسم المنطقة)</label>
+        <input type="text" name="location_details" value="{{ obj.location_details }}" placeholder="مثال: بجانب مسجد كذا، رقم المبنى 12">
       </div>
-    {% elif obj.latitude is not None and obj.longitude is not None %}
-      <div style="margin-top:12px;">
-        <a href="https://www.google.com/maps?q={{ obj.latitude }},{{ obj.longitude }}" target="_blank" rel="noopener" class="btn btn-outline">فتح في خرائط قوقل</a>
+      <div class="field-wrap" style="margin-bottom:10px;">
+        <label>رابط خرائط قوقل (اختياري)</label>
+        <input type="url" name="google_maps_url" id="gv-loc-maps-url-inp" value="{{ obj.google_maps_url }}" placeholder="https://maps.app.goo.gl/…">
       </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button type="button" id="gv-loc-gps-btn" class="btn btn-outline" onclick="captureGardenDetailLocation()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          تحديد الموقع الحالي عبر GPS
+        </button>
+        <span id="gv-loc-gps-status" style="font-size:13px;font-weight:600;"></span>
+      </div>
+    </form>
     {% endif %}
   </div>
 
@@ -146,4 +175,59 @@
     {% endif %}
   </div>
 </div>
+
+<script>
+function toggleGardenLocationForm() {
+  var form = document.getElementById('gv-loc-form');
+  var btn  = document.getElementById('gv-loc-toggle-btn');
+  if (!form) return;
+  var showing = form.style.display !== 'none';
+  form.style.display = showing ? 'none' : 'block';
+  if (btn) btn.textContent = showing ? 'تغيير الموقع' : 'إلغاء';
+}
+
+function captureGardenDetailLocation() {
+  var btn    = document.getElementById('gv-loc-gps-btn');
+  var status = document.getElementById('gv-loc-gps-status');
+  var latInp = document.getElementById('gv-loc-lat-inp');
+  var lngInp = document.getElementById('gv-loc-lng-inp');
+  var form   = document.getElementById('gv-loc-form');
+  if (!btn) return;
+
+  if (!navigator.geolocation) {
+    status.textContent = 'المتصفح لا يدعم تحديد الموقع.';
+    status.style.color = '#8c2f2f';
+    return;
+  }
+  btn.disabled = true;
+  status.textContent = 'جارٍ تحديد الموقع…';
+  status.style.color = '#374151';
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      latInp.value = pos.coords.latitude.toFixed(6);
+      lngInp.value = pos.coords.longitude.toFixed(6);
+      status.textContent = '✓ تم تحديد الموقع — جارٍ الحفظ…';
+      status.style.color = '#116430';
+      if (typeof form.requestSubmit === 'function') { form.requestSubmit(); }
+      else { form.submit(); }
+    },
+    function(err) {
+      status.style.color = '#8c2f2f';
+      if (err && err.code === err.PERMISSION_DENIED) {
+        status.textContent = 'تم رفض صلاحية الموقع سابقًا على هذا الجهاز، لذلك لن يظهر طلب الإذن مرة أخرى تلقائيًا. '
+          + 'على الآيفون: افتح "الإعدادات" ← "الخصوصية والأمان" ← "خدمات الموقع" وتأكد أنها مفعّلة، '
+          + 'ثم من نفس الصفحة افتح "Safari" واختر "أثناء استخدام التطبيق". '
+          + 'أو داخل Safari اضغط على "aA" بجانب شريط العنوان ← "إعدادات الموقع لهذا الموقع" ← "اسمح"، ثم أعد المحاولة.';
+      } else if (err && err.code === err.TIMEOUT) {
+        status.textContent = 'انتهت المهلة قبل تحديد الموقع — تأكد من تفعيل GPS وحاول مرة أخرى في مكان مفتوح.';
+      } else {
+        status.textContent = 'تعذّر الحصول على الموقع — تأكد من منح صلاحية الموقع.';
+      }
+      btn.disabled = false;
+    },
+    { enableHighAccuracy: true, timeout: 12000 }
+  );
+}
+</script>
 {% endblock %}

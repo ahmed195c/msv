@@ -60,11 +60,69 @@
   justify-content: center;
 }
 .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.requests-cards { display: none; }
+
+.request-card {
+  display: block;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+.request-card__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.request-card__number { font-weight: 700; font-family: monospace; color: var(--ink); font-size: 13px; }
+.request-card__name { font-weight: 700; color: var(--ink); font-size: 14.5px; }
+.request-card__area { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.request-card__bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+.request-card__date { font-size: 12px; color: var(--ink-3); }
+.request-card__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+  font-size: 12px; color: var(--ink-3);
+}
+.request-card__view { color: var(--accent); font-weight: 700; text-decoration: none; }
+.request-card__head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.item-checkbox { width: 17px; height: 17px; cursor: pointer; flex-shrink: 0; }
+
+.bulk-bar {
+  display: none;
+  position: sticky; top: 0; z-index: 5;
+  align-items: center; gap: 12px; flex-wrap: wrap;
+  background: #111827; color: #fff;
+  border-radius: 10px; padding: 10px 16px; margin-bottom: 14px;
+}
+.bulk-bar.is-active { display: flex; }
+.bulk-bar__count { font-size: 13px; font-weight: 700; white-space: nowrap; }
+.bulk-bar__roles { display: flex; gap: 12px; font-size: 13px; }
+.bulk-bar__roles label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+.bulk-bar__roles label.is-disabled { opacity: .4; cursor: not-allowed; }
+.bulk-bar select {
+  padding: 6px 10px; border-radius: 7px; border: 1.5px solid #374151;
+  background: #1f2937; color: #fff; font-size: 13px; font-family: inherit; min-width: 160px;
+}
+.bulk-bar button[type="submit"] {
+  padding: 7px 18px; background: var(--accent); color: #fff; border: none;
+  border-radius: 7px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+}
+.bulk-bar button[type="submit"]:disabled { opacity: .5; cursor: not-allowed; }
+.bulk-bar__warning { font-size: 12px; color: #fca5a5; font-weight: 600; }
+.select-all-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12.5px;
+  color: var(--ink-3); font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .filters-grid { grid-template-columns: 1fr 1fr; }
   .filters-grid .filter-field.search { grid-column: 1 / -1; }
   .filters-grid .filter-actions { grid-column: 1 / -1; display: flex; gap: 10px; }
   .filters-grid .filter-actions > * { flex: 1; }
+
+  .requests-table-wrap { display: none; }
+  .requests-cards { display: block; }
 }
 </style>
 {% endblock %}
@@ -135,17 +193,48 @@
   </form>
 </div>
 
+{% if assigned_count %}
+<div style="background:#f0fdf4;border:1.5px solid #bbf7d0;color:#15803d;border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:13px;font-weight:700;">
+  {% if lang == 'en' %}{{ assigned_count }} request(s) assigned successfully.{% else %}تم تسليم {{ assigned_count }} طلب بنجاح.{% endif %}
+</div>
+{% endif %}
+
 <!-- Count -->
 <div style="margin-bottom:12px;font-size:12px;color:var(--ink-3);font-weight:600;">
   {{ items|length }} {% if lang == 'en' %}results{% else %}نتيجة{% endif %}
 </div>
 
 {% if items %}
-<div style="background:#fff;border-radius:12px;border:1.5px solid var(--line);overflow:hidden;box-shadow:var(--shadow-sm);">
+{% if can_manage %}
+  {{ weed_inspectors|json_script:"weed-inspectors-data" }}
+  {{ weed_supervisors|json_script:"weed-supervisors-data" }}
+  {{ container_inspectors|json_script:"container-inspectors-data" }}
+<form method="post" action="{% url 'bulk_assign_requests' %}" id="bulk-form">
+  {% csrf_token %}
+  <div class="bulk-bar" id="bulk-bar">
+    <span class="bulk-bar__count" id="bulk-count">0 محدد</span>
+    <div class="bulk-bar__roles">
+      <label id="role-label-inspector"><input type="radio" name="role" value="inspector" checked onchange="onRoleChange()"> مفتش</label>
+      <label id="role-label-supervisor"><input type="radio" name="role" value="supervisor" onchange="onRoleChange()"> مراقب</label>
+    </div>
+    <select name="person_id" id="bulk-person-select" onchange="updateBulkBar()">
+      <option value="">اختر الشخص…</option>
+    </select>
+    <button type="submit" id="bulk-submit-btn" disabled>تسليم المحدد</button>
+    <span class="bulk-bar__warning" id="bulk-warning" style="display:none;">طلبات الحاويات لا تدعم تعيين مراقب — أزل تحديدها أو اختر مفتش</span>
+  </div>
+
+  <div class="select-all-row">
+    <input type="checkbox" class="item-checkbox" id="select-all-checkbox" onchange="onSelectAll(this)">
+    <label for="select-all-checkbox">تحديد الكل</label>
+  </div>
+{% endif %}
+<div class="requests-table-wrap" style="background:#fff;border-radius:12px;border:1.5px solid var(--line);overflow:hidden;box-shadow:var(--shadow-sm);">
   <div class="table-scroll">
   <table style="width:100%;min-width:760px;border-collapse:collapse;font-size:13px;">
     <thead>
       <tr style="background:var(--surface-2);border-bottom:1.5px solid var(--line);">
+        {% if can_manage %}<th style="padding:11px 14px;width:1%;"></th>{% endif %}
         <th style="padding:11px 14px;text-align:right;font-weight:600;color:var(--ink-3);white-space:nowrap;">النوع</th>
         <th style="padding:11px 14px;text-align:right;font-weight:600;color:var(--ink-3);white-space:nowrap;">رقم الطلب</th>
         <th style="padding:11px 14px;text-align:right;font-weight:600;color:var(--ink-3);">الاسم / المنطقة</th>
@@ -160,19 +249,16 @@
       <tr style="border-bottom:1px solid var(--line);transition:background .12s;"
           onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
 
+        {% if can_manage %}
+        <td style="padding:12px 14px;">
+          <input type="checkbox" class="item-checkbox" name="items" value="{{ item.item_key }}"
+                 data-key="{{ item.item_key }}" data-kind="{{ item.kind }}" onchange="onItemToggle(this)">
+        </td>
+        {% endif %}
+
         <!-- Type badge -->
         <td style="padding:12px 14px;">
-          {% if item.kind == 'weed' %}
-            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;white-space:nowrap;">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M7 12s1.5-2 5-2 5 2 5 2"/></svg>
-              حشائش
-            </span>
-          {% else %}
-            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;white-space:nowrap;">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-              حاوية
-            </span>
-          {% endif %}
+          {% include "hcsd/complaints/_request_type_badge.html" %}
         </td>
 
         <!-- Number -->
@@ -186,47 +272,7 @@
 
         <!-- Status -->
         <td style="padding:12px 14px;">
-          {% if item.kind == 'weed' %}
-            {% if item.status == 'new' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;white-space:nowrap;">جديد</span>
-            {% elif item.status == 'inspector_assigned' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;white-space:nowrap;">بانتظار المفتش</span>
-            {% elif item.status == 'inspection_done' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;white-space:nowrap;">اكتمل التفتيش</span>
-            {% elif item.status == 'supervisor_assigned' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;white-space:nowrap;">بانتظار المراقب</span>
-            {% elif item.status == 'work_in_progress' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;white-space:nowrap;">العمل جارٍ</span>
-            {% elif item.status == 'work_paused' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#fefce8;color:#854d0e;font-size:11px;font-weight:700;white-space:nowrap;">العمل متوقف مؤقتاً</span>
-            {% elif item.status == 'work_done' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;white-space:nowrap;">تم إنهاء العمل</span>
-            {% elif item.status == 'closed' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;white-space:nowrap;">مغلق</span>
-            {% elif item.status == 'rejected' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#fef2f2;color:#dc2626;font-size:11px;font-weight:700;white-space:nowrap;">مرفوض</span>
-            {% else %}
-              <span style="padding:3px 9px;border-radius:10px;background:var(--surface-2);color:var(--ink-3);font-size:11px;font-weight:700;white-space:nowrap;">{{ item.status|default:"—" }}</span>
-            {% endif %}
-          {% else %}
-            {% if item.status == 'new' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;white-space:nowrap;">جديد</span>
-            {% elif item.status == 'assigned' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;white-space:nowrap;">بانتظار المفتش</span>
-            {% elif item.status == 'location_saved' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#faf5ff;color:#7c3aed;font-size:11px;font-weight:700;white-space:nowrap;">تم حفظ الموقع</span>
-            {% elif item.status == 'biaa_contacted' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;white-space:nowrap;">تم التواصل مع بيئة</span>
-            {% elif item.status == 'biaa_transferred' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#ecfdf5;color:#065f46;font-size:11px;font-weight:700;white-space:nowrap;">تم نقل الحاوية</span>
-            {% elif item.status == 'report_submitted' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;white-space:nowrap;">تم تقديم التقرير</span>
-            {% elif item.status == 'closed' %}
-              <span style="padding:3px 9px;border-radius:10px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;white-space:nowrap;">مغلق</span>
-            {% else %}
-              <span style="padding:3px 9px;border-radius:10px;background:var(--surface-2);color:var(--ink-3);font-size:11px;font-weight:700;white-space:nowrap;">{{ item.status|default:"—" }}</span>
-            {% endif %}
-          {% endif %}
+          {% include "hcsd/complaints/_request_status_badge.html" %}
         </td>
 
         <!-- Date -->
@@ -234,7 +280,7 @@
 
         <!-- Added by -->
         <td style="padding:12px 14px;color:var(--ink-3);font-size:12px;">
-          {{ item.created_by.get_full_name|default:item.created_by.username|default:"—" }}
+          {% if item.created_by %}{{ item.created_by.get_full_name|default:item.created_by.username }}{% else %}—{% endif %}
         </td>
 
         <!-- Link -->
@@ -250,6 +296,33 @@
   </div>
 </div>
 
+<div class="requests-cards">
+  {% for item in items %}
+  <div class="request-card">
+    <div class="request-card__head">
+      {% if can_manage %}
+      <input type="checkbox" class="item-checkbox" name="items" value="{{ item.item_key }}"
+             data-key="{{ item.item_key }}" data-kind="{{ item.kind }}" onchange="onItemToggle(this)">
+      {% endif %}
+      {% include "hcsd/complaints/_request_type_badge.html" %}
+      <span class="request-card__number">{{ item.number }}</span>
+    </div>
+    <div class="request-card__name">{{ item.name|default:"—" }}</div>
+    {% if item.area %}<div class="request-card__area">{{ item.area }}</div>{% endif %}
+    <div class="request-card__bottom">
+      {% include "hcsd/complaints/_request_status_badge.html" %}
+      <span class="request-card__date">{{ item.created_at|date:"d/m/Y" }}</span>
+    </div>
+    <div class="request-card__foot">
+      <span>{% if lang == 'en' %}Added by{% else %}أضيف بواسطة{% endif %}: {% if item.created_by %}{{ item.created_by.get_full_name|default:item.created_by.username }}{% else %}—{% endif %}</span>
+      <a href="{{ item.detail_url }}" class="request-card__view">{% if lang == 'en' %}View{% else %}عرض{% endif %} ←</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if can_manage %}</form>{% endif %}
+
 {% else %}
 <div style="text-align:center;padding:64px 24px;color:var(--ink-3);">
   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;">
@@ -260,4 +333,102 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+{% if can_manage %}
+<script>
+(function() {
+  function getOptionsData(id) {
+    var el = document.getElementById(id);
+    if (!el) return [];
+    try { return JSON.parse(el.textContent); } catch (e) { return []; }
+  }
+  var WEED_INSPECTORS      = getOptionsData('weed-inspectors-data');
+  var WEED_SUPERVISORS     = getOptionsData('weed-supervisors-data');
+  var CONTAINER_INSPECTORS = getOptionsData('container-inspectors-data');
+
+  window.onItemToggle = function(checkbox) {
+    var key = checkbox.dataset.key;
+    document.querySelectorAll('.item-checkbox[data-key="' + key + '"]').forEach(function(cb) {
+      cb.checked = checkbox.checked;
+    });
+    updateBulkBar();
+  };
+
+  window.onSelectAll = function(masterCheckbox) {
+    document.querySelectorAll('.item-checkbox[data-key]').forEach(function(cb) {
+      cb.checked = masterCheckbox.checked;
+    });
+    updateBulkBar();
+  };
+
+  window.onRoleChange = function() {
+    updateBulkBar();
+  };
+
+  window.updateBulkBar = function() {
+    var checked = Array.prototype.slice.call(document.querySelectorAll('.item-checkbox[data-key]:checked'));
+    var keys = {};
+    var hasWeed = false, hasContainer = false;
+    checked.forEach(function(cb) {
+      keys[cb.dataset.key] = true;
+      if (cb.dataset.kind === 'weed') hasWeed = true;
+      if (cb.dataset.kind === 'container') hasContainer = true;
+    });
+    var count = Object.keys(keys).length;
+
+    var bar          = document.getElementById('bulk-bar');
+    var countEl      = document.getElementById('bulk-count');
+    var submitBtn    = document.getElementById('bulk-submit-btn');
+    var personSelect = document.getElementById('bulk-person-select');
+    var warning      = document.getElementById('bulk-warning');
+    var supervisorRadio = document.querySelector('input[name="role"][value="supervisor"]');
+    var supervisorLabel = document.getElementById('role-label-supervisor');
+
+    bar.classList.toggle('is-active', count > 0);
+    countEl.textContent = count + ' محدد';
+
+    var supervisorDisabled = hasContainer;
+    supervisorRadio.disabled = supervisorDisabled;
+    supervisorLabel.classList.toggle('is-disabled', supervisorDisabled);
+    if (supervisorDisabled && supervisorRadio.checked) {
+      supervisorRadio.checked = false;
+      document.querySelector('input[name="role"][value="inspector"]').checked = true;
+    }
+
+    var role = document.querySelector('input[name="role"]:checked').value;
+    warning.style.display = (hasContainer && role === 'supervisor') ? 'inline' : 'none';
+
+    var options;
+    if (role === 'supervisor') {
+      options = WEED_SUPERVISORS;
+    } else {
+      options = (hasContainer && !hasWeed) ? CONTAINER_INSPECTORS : WEED_INSPECTORS;
+    }
+
+    var currentValue = personSelect.value;
+    personSelect.innerHTML = '';
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'اختر الشخص…';
+    personSelect.appendChild(placeholder);
+    options.forEach(function(opt) {
+      var o = document.createElement('option');
+      o.value = opt.id;
+      o.textContent = opt.label;
+      personSelect.appendChild(o);
+    });
+    if (options.some(function(o) { return String(o.id) === currentValue; })) {
+      personSelect.value = currentValue;
+    }
+
+    var valid = count > 0 && personSelect.value && !(hasContainer && role === 'supervisor');
+    submitBtn.disabled = !valid;
+  };
+
+  document.addEventListener('DOMContentLoaded', updateBulkBar);
+})();
+</script>
+{% endif %}
 {% endblock %}

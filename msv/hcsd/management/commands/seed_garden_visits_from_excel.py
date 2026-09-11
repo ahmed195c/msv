@@ -18,7 +18,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from hcsd.models import GardenVisit
 
-DEFAULT_PATH = 'hcsd/static/hcsd/excl/buldings/Follow up map.xlsx'
+DEFAULT_PATH = 'hcsd/static/hcsd/excl/Follow up map.xlsx'
 
 # sheet name -> (year, month). No 'April' sheet exists in the source file.
 MONTH_SHEETS = {

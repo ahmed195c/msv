@@ -126,7 +126,7 @@ def campaign_detail(request, pk):
                 obj.photo = new_photo
                 update_fields.append('photo')
             obj.save(update_fields=update_fields)
-        elif can_act:
+        elif can_act and (request.POST.get('note') or '').strip():
             note = (request.POST.get('note') or '').strip()
             obj.note = note
             if 'action_type' in request.POST:

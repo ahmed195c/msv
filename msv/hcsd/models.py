@@ -1844,6 +1844,10 @@ class GardenVisit(models.Model):
     program ("متابعة المناطق") — one row per site visit."""
     visit_date      = models.DateField(verbose_name='التاريخ')
     area_name       = models.CharField(max_length=150, blank=True, verbose_name='اسم المنطقة')
+    location_details = models.CharField(
+        max_length=200, blank=True, verbose_name='تفاصيل الموقع',
+        help_text='لتمييز المواقع التي تشترك في نفس اسم المنطقة، مثال: بجانب مسجد كذا، رقم المبنى 12',
+    )
 
     google_maps_url = models.URLField(max_length=500, blank=True, verbose_name='رابط خرائط قوقل')
     latitude        = models.FloatField(null=True, blank=True, verbose_name='خط العرض')

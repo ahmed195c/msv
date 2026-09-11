@@ -1,7 +1,7 @@
 from .portal import portal_landing
 from .dashboard import home
 from .common import set_app_language
-from .tracker import all_requests
+from .tracker import all_requests, bulk_assign_requests
 from .company import (
     company_list,
     extension_followup,
@@ -87,5 +87,5 @@ __all__ = [
     'rodent_control_monthly_excel',
     'campaign_list', 'campaign_create', 'campaign_detail', 'campaign_delete', 'campaign_report_excel',
     'garden_list', 'garden_create', 'garden_detail', 'garden_delete',
-    'all_requests',
+    'all_requests', 'bulk_assign_requests',
 ]

@@ -28,13 +28,15 @@ GROUP_NAME_ALIASES = {
     'data_entry': ['data_entry', 'Data Entry'],
     'head': ['head', 'Head'],
     'fw_supervisor': ['fw_supervisor', 'Field Work Supervisor'],
+    'garden_monitor': ['garden_monitor', 'مراقب القوارض'],
 }
 ROLE_CAPABILITIES = {
-    'admin': {'admin', 'inspect', 'data_entry', 'head_approve', 'fw_supervise'},
+    'admin': {'admin', 'inspect', 'data_entry', 'head_approve', 'fw_supervise', 'garden_monitor'},
     'inspector': {'inspect'},
     'data_entry': {'data_entry'},
     'head': {'head_approve'},
     'fw_supervisor': {'fw_supervise'},
+    'garden_monitor': {'garden_monitor'},
 }
 INSPECTION_REPORT_PHOTO_PREFIX = 'inspection_report_photo_'
 VEHICLE_INSPECTION_REPORT_PHOTO_PREFIX = 'vehicle_inspection_report_photo_'
@@ -163,6 +165,14 @@ def _redirect_if_fw_supervisor(user):
     return redirect('field_work_list')
 
 
+def _is_garden_monitor_only(user):
+    """True if the user's sole role is 'مراقب القوارض' (garden_monitor) — used to
+    confine such accounts to the garden follow-up section and nowhere else."""
+    if not getattr(user, 'is_authenticated', False) or user.is_superuser:
+        return False
+    return _user_roles(user) == {'garden_monitor'}
+
+
 def _user_roles(user):
     if not getattr(user, 'is_authenticated', False):
         return set()
@@ -181,6 +191,8 @@ def _user_roles(user):
         roles.add('head')
     if group_names & set(GROUP_NAME_ALIASES['fw_supervisor']):
         roles.add('fw_supervisor')
+    if group_names & set(GROUP_NAME_ALIASES['garden_monitor']):
+        roles.add('garden_monitor')
     setattr(user, '_hcsd_roles_cache', roles)
     return roles
 
@@ -210,6 +222,10 @@ def _can_head(user):
 
 def _can_fw_supervise(user):
     return _has_capability(user, 'fw_supervise')
+
+
+def _can_garden_monitor(user):
+    return _has_capability(user, 'garden_monitor')
 
 
 def _fw_supervisor_users_qs():

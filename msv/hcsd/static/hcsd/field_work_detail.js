@@ -691,9 +691,24 @@ function serializeEntries() {
         status.textContent = T('تم تحديد الموقع — جاري الحفظ…','Location found — saving…');
         document.getElementById('location-form').submit();
       },
-      function(){
+      function(err){
         status.style.color = '#b91c1c';
-        status.textContent = T('تعذّر تحديد الموقع. تأكد من منح صلاحية الموقع.','Could not get location. Please allow location access.');
+        if (err && err.code === err.PERMISSION_DENIED) {
+          status.textContent = T(
+            'تم رفض صلاحية الموقع سابقًا على هذا الجهاز، لذلك لن يظهر طلب الإذن مرة أخرى تلقائيًا. '
+              + 'على الآيفون: افتح "الإعدادات" ← "الخصوصية والأمان" ← "خدمات الموقع" وتأكد أنها مفعّلة، '
+              + 'ثم من نفس الصفحة افتح "Safari" واختر "أثناء استخدام التطبيق". '
+              + 'أو داخل Safari اضغط على "aA" بجانب شريط العنوان ← "إعدادات الموقع لهذا الموقع" ← "اسمح"، ثم أعد المحاولة.',
+            'Location access was previously denied on this device, so the permission prompt will not appear again automatically. '
+              + 'On iPhone: open Settings → Privacy & Security → Location Services (make sure it\'s on), '
+              + 'then on the same screen open Safari and choose "While Using the App". '
+              + 'Or inside Safari tap "aA" next to the address bar → Website Settings → Location → Allow, then try again.'
+          );
+        } else if (err && err.code === err.TIMEOUT) {
+          status.textContent = T('انتهت المهلة قبل تحديد الموقع — تأكد من تفعيل GPS وحاول مرة أخرى في مكان مفتوح.','Location request timed out — make sure GPS is on and try again in an open area.');
+        } else {
+          status.textContent = T('تعذّر تحديد الموقع. تأكد من منح صلاحية الموقع.','Could not get location. Please allow location access.');
+        }
         btn.disabled = false;
       },
       {enableHighAccuracy: true, timeout: 10000}
