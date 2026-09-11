@@ -15,6 +15,12 @@ from django.views.decorators.http import require_POST
 from ..models import GardenVisit
 from .common import _can_admin, _can_data_entry, _can_garden_monitor
 
+GARDEN_NOTE_CHOICES = [
+    'إصابة خارجية / Outside Infestation',
+    'منهول مصاب / Infested Manhole',
+    'عدد المباني المصاب / Number of Infested Buildings',
+]
+
 
 def _can_manage(user):
     return _can_admin(user) or _can_data_entry(user) or _can_garden_monitor(user)
@@ -127,6 +133,7 @@ def garden_detail(request, pk):
         'obj': obj,
         'can_manage': can_manage,
         'can_admin': _can_admin(request.user),
+        'note_choices': GARDEN_NOTE_CHOICES,
     })
 
 

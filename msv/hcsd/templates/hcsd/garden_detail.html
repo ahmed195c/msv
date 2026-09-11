@@ -36,12 +36,12 @@
 
 .notes-field { margin-bottom: 18px; }
 .notes-field label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); display: block; margin-bottom: 8px; }
-.notes-field textarea {
-  width: 100%; min-height: 90px; border: 1.5px solid var(--line); border-radius: 8px;
+.notes-field select {
+  width: 100%; border: 1.5px solid var(--line); border-radius: 8px;
   padding: 10px 12px; font-size: 13.5px; font-family: inherit; color: var(--ink);
-  resize: vertical; box-sizing: border-box;
+  box-sizing: border-box; background: #fff;
 }
-.notes-field textarea:focus { outline: none; border-color: var(--accent); }
+.notes-field select:focus { outline: none; border-color: var(--accent); }
 
 .stat-view-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 @media (max-width: 480px) { .stat-view-grid { grid-template-columns: 1fr; gap: 14px; } }
@@ -153,7 +153,15 @@
 
       <div class="notes-field">
         <label for="gv-notes">ملاحظات</label>
-        <textarea id="gv-notes" name="notes" placeholder="أدخل ملاحظاتك هنا…">{{ obj.notes }}</textarea>
+        <select id="gv-notes" name="notes">
+          <option value="" {% if not obj.notes %}selected{% endif %}>— بدون ملاحظة —</option>
+          {% if obj.notes and obj.notes not in note_choices %}
+            <option value="{{ obj.notes }}" selected>{{ obj.notes }}</option>
+          {% endif %}
+          {% for choice in note_choices %}
+            <option value="{{ choice }}" {% if obj.notes == choice %}selected{% endif %}>{{ choice }}</option>
+          {% endfor %}
+        </select>
       </div>
 
       <div class="gv-form-actions">
