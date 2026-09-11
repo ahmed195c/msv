@@ -39,7 +39,9 @@ def _can_manage(user):
 def garden_list(request):
     query = (request.GET.get('q') or '').strip()
 
-    visits_qs = GardenVisit.objects.all()
+    # Ordered to match the source Excel sheet's row order (its "No" column),
+    # not the model's default newest-first ordering.
+    visits_qs = GardenVisit.objects.order_by('id')
     if query:
         visits_qs = visits_qs.filter(area_name__icontains=query)
 
