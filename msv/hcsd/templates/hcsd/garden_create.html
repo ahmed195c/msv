@@ -20,6 +20,7 @@
 }
 .field-wrap input:focus, .field-wrap textarea:focus { outline: none; border-color: var(--accent); }
 .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.three-col > .field-wrap { min-width: 0; }
 @media (max-width: 480px) { .three-col { grid-template-columns: 1fr; } }
 
 .btn {
@@ -36,7 +37,7 @@
 
 /* Modern pill stepper for the infestation-count fields */
 .stepper {
-  display: flex; align-items: stretch; height: 44px;
+  display: flex; align-items: stretch; height: 44px; min-width: 0;
   border-radius: 999px; overflow: hidden; border: 1.5px solid var(--line);
   direction: ltr;
 }

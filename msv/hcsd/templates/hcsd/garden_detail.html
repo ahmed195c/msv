@@ -24,12 +24,13 @@
 }
 
 .stat-edit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+.stat-edit-grid > div { min-width: 0; }
 @media (max-width: 480px) { .stat-edit-grid { grid-template-columns: 1fr; } }
 .stat-edit__label { font-size: 12px; font-weight: 700; color: var(--ink-3); letter-spacing: .01em; display: block; margin-bottom: 8px; }
 
 /* Modern pill stepper for the infestation-count fields */
 .stepper {
-  display: flex; align-items: stretch; height: 44px;
+  display: flex; align-items: stretch; height: 44px; min-width: 0;
   border-radius: 999px; overflow: hidden; border: 1.5px solid var(--line);
   direction: ltr;
 }
