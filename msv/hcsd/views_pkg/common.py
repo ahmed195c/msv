@@ -29,14 +29,19 @@ GROUP_NAME_ALIASES = {
     'head': ['head', 'Head'],
     'fw_supervisor': ['fw_supervisor', 'Field Work Supervisor'],
     'garden_monitor': ['garden_monitor', 'مراقب القوارض'],
+    'rodent_control_monitor': ['rodent_control_monitor', 'مراقب المصائد'],
 }
 ROLE_CAPABILITIES = {
-    'admin': {'admin', 'inspect', 'data_entry', 'head_approve', 'fw_supervise', 'garden_monitor'},
+    'admin': {
+        'admin', 'inspect', 'data_entry', 'head_approve', 'fw_supervise',
+        'garden_monitor', 'rodent_control_monitor',
+    },
     'inspector': {'inspect'},
     'data_entry': {'data_entry'},
     'head': {'head_approve'},
     'fw_supervisor': {'fw_supervise'},
     'garden_monitor': {'garden_monitor'},
+    'rodent_control_monitor': {'rodent_control_monitor'},
 }
 INSPECTION_REPORT_PHOTO_PREFIX = 'inspection_report_photo_'
 VEHICLE_INSPECTION_REPORT_PHOTO_PREFIX = 'vehicle_inspection_report_photo_'
@@ -165,12 +170,30 @@ def _redirect_if_fw_supervisor(user):
     return redirect('field_work_list')
 
 
-def _is_garden_monitor_only(user):
-    """True if the user's sole role is 'مراقب القوارض' (garden_monitor) — used to
-    confine such accounts to the garden follow-up section and nowhere else."""
+# Section-confined "monitor" roles: an account whose *only* role is one of
+# these gets locked to the listed URL prefixes (see hcsd/middleware.py) and
+# nowhere else, no matter what URL they type.
+CONFINED_ROLE_PATH_PREFIXES = {
+    'garden_monitor': ('/garden/',),
+    'rodent_control_monitor': ('/rodent-control/',),
+}
+CONFINED_ROLE_HOME_URL = {
+    'garden_monitor': 'garden_list',
+    'rodent_control_monitor': 'rodent_control_list',
+}
+
+
+def _confined_role_for(user):
+    """Return the user's sole confined-monitor role name, or None if they
+    have any other role (or none), or are an admin/superuser."""
     if not getattr(user, 'is_authenticated', False) or user.is_superuser:
-        return False
-    return _user_roles(user) == {'garden_monitor'}
+        return None
+    roles = _user_roles(user)
+    if len(roles) == 1:
+        role = next(iter(roles))
+        if role in CONFINED_ROLE_PATH_PREFIXES:
+            return role
+    return None
 
 
 def _user_roles(user):
@@ -193,6 +216,8 @@ def _user_roles(user):
         roles.add('fw_supervisor')
     if group_names & set(GROUP_NAME_ALIASES['garden_monitor']):
         roles.add('garden_monitor')
+    if group_names & set(GROUP_NAME_ALIASES['rodent_control_monitor']):
+        roles.add('rodent_control_monitor')
     setattr(user, '_hcsd_roles_cache', roles)
     return roles
 
@@ -226,6 +251,10 @@ def _can_fw_supervise(user):
 
 def _can_garden_monitor(user):
     return _has_capability(user, 'garden_monitor')
+
+
+def _can_rodent_control_monitor(user):
+    return _has_capability(user, 'rodent_control_monitor')
 
 
 def _fw_supervisor_users_qs():

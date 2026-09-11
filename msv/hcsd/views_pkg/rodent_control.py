@@ -20,11 +20,11 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from ..models import RodentControlBuilding, RodentControlVisit
-from .common import _can_admin, _can_data_entry
+from .common import _can_admin, _can_data_entry, _can_rodent_control_monitor
 
 
 def _can_manage(user):
-    return _can_admin(user) or _can_data_entry(user)
+    return _can_admin(user) or _can_data_entry(user) or _can_rodent_control_monitor(user)
 
 
 def _current_period_start(today=None):
