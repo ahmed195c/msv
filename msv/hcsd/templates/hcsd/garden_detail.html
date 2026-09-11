@@ -34,6 +34,17 @@
 }
 .stat-edit__input:focus { outline: none; border-color: var(--accent); background: #fff; }
 
+.checkbox-field { margin-bottom: 18px; }
+.checkbox-field > label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); display: block; margin-bottom: 8px; }
+.checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+.checkbox-option {
+  display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink);
+  border: 1.5px solid var(--line); border-radius: 8px; padding: 9px 12px; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.checkbox-option:hover { background: var(--surface); }
+.checkbox-option input { width: 16px; height: 16px; accent-color: var(--accent); flex-shrink: 0; }
+
 .notes-field { margin-bottom: 18px; }
 .notes-field label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); display: block; margin-bottom: 8px; }
 .notes-field select {
@@ -151,6 +162,19 @@
         </div>
       </div>
 
+      <div class="checkbox-field">
+        <label>نوع الإصابة (اختياري)</label>
+        <div class="checkbox-group">
+          {% for code, label in infestation_type_choices %}
+          <label class="checkbox-option">
+            <input type="checkbox" name="infestation_type" value="{{ code }}"
+                   {% if code in obj.infestation_type_list %}checked{% endif %}>
+            {{ label }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
       <div class="notes-field">
         <label for="gv-notes">ملاحظات</label>
         <select id="gv-notes" name="notes">
@@ -174,6 +198,12 @@
       <div><div class="stat-view__label">إصابة خارجية</div><div class="stat-view__val">{{ obj.infested_outside|default_if_none:"—" }}</div></div>
       <div><div class="stat-view__label">إجمالي مباني مصابة</div><div class="stat-view__val">{{ obj.total_infested_bldg|default_if_none:"—" }}</div></div>
     </div>
+    {% if obj.infestation_type %}
+    <div style="margin-top:18px;">
+      <div class="stat-view__label" style="margin-bottom:6px;">نوع الإصابة</div>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0;">{{ obj.infestation_type_display }}</p>
+    </div>
+    {% endif %}
     {% if obj.notes %}
     <div style="margin-top:18px;">
       <div class="stat-view__label" style="margin-bottom:6px;">ملاحظات</div>

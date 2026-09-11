@@ -58,6 +58,15 @@
   -webkit-appearance: none; margin: 0;
 }
 .stepper__val { -moz-appearance: textfield; }
+
+.checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+.checkbox-option {
+  display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink);
+  border: 1.5px solid var(--line); border-radius: 8px; padding: 9px 12px; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.checkbox-option:hover { background: var(--surface); }
+.checkbox-option input { width: 16px; height: 16px; accent-color: var(--accent); flex-shrink: 0; }
 </style>
 
 <div class="gv-form-page">
@@ -122,6 +131,19 @@
           <input type="number" inputmode="numeric" name="total_infested_bldg" id="gv-num-total_infested_bldg" class="stepper__val" min="0" value="{{ post.total_infested_bldg|default:'0' }}">
           <button type="button" class="stepper__btn" onclick="gvStep('total_infested_bldg', 1)">+</button>
         </div>
+      </div>
+    </div>
+
+    <div class="field-wrap">
+      <label>نوع الإصابة (اختياري)</label>
+      <div class="checkbox-group">
+        {% for code, label in infestation_type_choices %}
+        <label class="checkbox-option">
+          <input type="checkbox" name="infestation_type" value="{{ code }}"
+                 {% if code in selected_infestation_types %}checked{% endif %}>
+          {{ label }}
+        </label>
+        {% endfor %}
       </div>
     </div>
 

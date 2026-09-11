@@ -1839,6 +1839,13 @@ class CampaignActionLog(models.Model):
 #  Garden Follow-up — independent, standalone tracking
 # ══════════════════════════════════════════
 
+GARDEN_INFESTATION_TYPE_CHOICES = [
+    ('norway_rat', 'جرذ النرويج / Norway Rat'),
+    ('roof_rat', 'جرذ السطح / Roof Rat'),
+    ('house_mouse', 'فأر المنزل / House Mouse'),
+]
+
+
 class GardenVisit(models.Model):
     """A single site review under the manhole/area rodent-follow-up
     program ("متابعة المناطق") — one row per site visit."""
@@ -1856,6 +1863,11 @@ class GardenVisit(models.Model):
     infested_manholes   = models.PositiveIntegerField(null=True, blank=True, verbose_name='مناهيل مصابة')
     infested_outside    = models.PositiveIntegerField(null=True, blank=True, verbose_name='إصابة خارجية')
     total_infested_bldg = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي المباني المصابة')
+
+    infestation_type = models.CharField(
+        max_length=100, blank=True, verbose_name='نوع الإصابة',
+        help_text='قيم مفصولة بفاصلة من: ' + ', '.join(c for c, _ in GARDEN_INFESTATION_TYPE_CHOICES),
+    )
 
     notes = models.TextField(blank=True, verbose_name='ملاحظات')
 
@@ -1876,3 +1888,20 @@ class GardenVisit(models.Model):
     @property
     def has_location(self):
         return bool(self.google_maps_url) or (self.latitude is not None and self.longitude is not None)
+
+    def infestation_type_list(self):
+        if not self.infestation_type:
+            return []
+        return [
+            item.strip()
+            for item in self.infestation_type.split(',')
+            if item.strip()
+        ]
+
+    @property
+    def infestation_type_display(self):
+        labels = []
+        lookup = dict(GARDEN_INFESTATION_TYPE_CHOICES)
+        for item in self.infestation_type_list():
+            labels.append(lookup.get(item, item))
+        return '، '.join(labels)

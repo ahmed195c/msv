@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from ..models import GardenVisit
+from ..models import GARDEN_INFESTATION_TYPE_CHOICES, GardenVisit
 from .common import _can_admin, _can_data_entry, _can_garden_monitor
 
 GARDEN_NOTE_CHOICES = [
@@ -20,6 +20,12 @@ GARDEN_NOTE_CHOICES = [
     'منهول مصاب / Infested Manhole',
     'عدد المباني المصاب / Number of Infested Buildings',
 ]
+
+
+def _infestation_type_from_post(request):
+    valid_codes = {code for code, _ in GARDEN_INFESTATION_TYPE_CHOICES}
+    selected = [code for code in request.POST.getlist('infestation_type') if code in valid_codes]
+    return ','.join(selected)
 
 
 def _can_manage(user):
@@ -82,6 +88,7 @@ def garden_create(request):
                 infested_manholes=_int('infested_manholes'),
                 infested_outside=_int('infested_outside'),
                 total_infested_bldg=_int('total_infested_bldg'),
+                infestation_type=_infestation_type_from_post(request),
                 created_by=request.user,
             )
             return redirect('garden_list')
@@ -89,6 +96,8 @@ def garden_create(request):
     return render(request, 'hcsd/garden_create.html', {
         'errors': errors,
         'post': request.POST,
+        'infestation_type_choices': GARDEN_INFESTATION_TYPE_CHOICES,
+        'selected_infestation_types': request.POST.getlist('infestation_type'),
     })
 
 
@@ -126,7 +135,11 @@ def garden_detail(request, pk):
             obj.infested_outside     = _int('infested_outside')
             obj.total_infested_bldg  = _int('total_infested_bldg')
             obj.notes                = (request.POST.get('notes') or '').strip()
-            obj.save(update_fields=['infested_manholes', 'infested_outside', 'total_infested_bldg', 'notes'])
+            obj.infestation_type     = _infestation_type_from_post(request)
+            obj.save(update_fields=[
+                'infested_manholes', 'infested_outside', 'total_infested_bldg',
+                'notes', 'infestation_type',
+            ])
         return redirect('garden_detail', pk=pk)
 
     return render(request, 'hcsd/garden_detail.html', {
@@ -134,6 +147,7 @@ def garden_detail(request, pk):
         'can_manage': can_manage,
         'can_admin': _can_admin(request.user),
         'note_choices': GARDEN_NOTE_CHOICES,
+        'infestation_type_choices': GARDEN_INFESTATION_TYPE_CHOICES,
     })
 
 
