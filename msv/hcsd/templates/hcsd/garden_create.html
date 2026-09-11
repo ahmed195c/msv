@@ -34,24 +34,24 @@
 
 .gv-gps-status { font-size: 12.5px; font-weight: 600; }
 
-/* Modern stepper for the infestation-count fields */
+/* Modern pill stepper for the infestation-count fields */
 .stepper {
-  display: flex; align-items: center; justify-content: space-between;
-  background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px;
-  padding: 6px; direction: ltr;
+  display: flex; align-items: stretch; height: 44px;
+  border-radius: 999px; overflow: hidden; border: 1.5px solid var(--line);
+  direction: ltr;
 }
 .stepper__btn {
-  width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; border: none;
-  background: var(--paper); color: var(--accent); font-size: 20px; font-weight: 700;
+  width: 44px; flex-shrink: 0; border: none; font-size: 20px; font-weight: 700;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 1px 2px rgba(0,0,0,.08); transition: background .15s, color .15s;
-  line-height: 1;
+  transition: filter .15s; line-height: 1;
 }
-.stepper__btn:hover { background: var(--accent); color: #fff; }
-.stepper__btn:active { transform: scale(0.94); }
+.stepper__btn:first-child { background: var(--accent-bg); color: var(--accent-dk); }
+.stepper__btn:last-child  { background: var(--accent); color: #fff; }
+.stepper__btn:hover { filter: brightness(0.95); }
+.stepper__btn:active { transform: scale(0.96); }
 .stepper__val {
-  border: none !important; background: transparent !important; text-align: center;
-  font-size: 19px; font-weight: 800; color: var(--ink); width: 100%;
+  flex: 1; border: none !important; background: #fff !important; text-align: center;
+  font-size: 18px; font-weight: 800; color: var(--ink); min-width: 0;
   padding: 0 !important;
 }
 .stepper__val::-webkit-outer-spin-button, .stepper__val::-webkit-inner-spin-button {

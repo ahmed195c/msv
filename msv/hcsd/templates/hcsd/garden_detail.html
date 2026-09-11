@@ -26,13 +26,31 @@
 .stat-edit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
 @media (max-width: 480px) { .stat-edit-grid { grid-template-columns: 1fr; } }
 .stat-edit__label { font-size: 12px; font-weight: 700; color: var(--ink-3); letter-spacing: .01em; display: block; margin-bottom: 8px; }
-.stat-edit__input {
-  width: 100%; text-align: center; border: 1.5px solid var(--line-2); border-radius: 8px;
-  background: var(--surface); padding: 10px 10px; font-size: 17px; font-weight: 700; color: var(--ink);
-  font-family: inherit; box-sizing: border-box;
-  transition: border-color .15s, background .15s;
+
+/* Modern pill stepper for the infestation-count fields */
+.stepper {
+  display: flex; align-items: stretch; height: 44px;
+  border-radius: 999px; overflow: hidden; border: 1.5px solid var(--line);
+  direction: ltr;
 }
-.stat-edit__input:focus { outline: none; border-color: var(--accent); background: #fff; }
+.stepper__btn {
+  width: 44px; flex-shrink: 0; border: none; font-size: 20px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: filter .15s; line-height: 1;
+}
+.stepper__btn:first-child { background: var(--accent-bg); color: var(--accent-dk); }
+.stepper__btn:last-child  { background: var(--accent); color: #fff; }
+.stepper__btn:hover { filter: brightness(0.95); }
+.stepper__btn:active { transform: scale(0.96); }
+.stepper__val {
+  flex: 1; border: none !important; background: #fff !important; text-align: center;
+  font-size: 18px; font-weight: 800; color: var(--ink); min-width: 0;
+  padding: 0 !important; font-family: inherit;
+}
+.stepper__val::-webkit-outer-spin-button, .stepper__val::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.stepper__val { -moz-appearance: textfield; }
 
 .checkbox-field { margin-bottom: 18px; }
 .checkbox-field > label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); display: block; margin-bottom: 8px; }
@@ -147,18 +165,30 @@
       <div class="stat-edit-grid">
         <div>
           <label class="stat-edit__label">مناهيل مصابة</label>
-          <input type="number" name="infested_manholes" class="stat-edit__input" min="0"
-                 value="{{ obj.infested_manholes|default_if_none:'0' }}">
+          <div class="stepper">
+            <button type="button" class="stepper__btn" onclick="gvStep('infested_manholes', -1)">−</button>
+            <input type="number" inputmode="numeric" name="infested_manholes" id="gv-num-infested_manholes" class="stepper__val" min="0"
+                   value="{{ obj.infested_manholes|default_if_none:'0' }}">
+            <button type="button" class="stepper__btn" onclick="gvStep('infested_manholes', 1)">+</button>
+          </div>
         </div>
         <div>
           <label class="stat-edit__label">إصابة خارجية</label>
-          <input type="number" name="infested_outside" class="stat-edit__input" min="0"
-                 value="{{ obj.infested_outside|default_if_none:'0' }}">
+          <div class="stepper">
+            <button type="button" class="stepper__btn" onclick="gvStep('infested_outside', -1)">−</button>
+            <input type="number" inputmode="numeric" name="infested_outside" id="gv-num-infested_outside" class="stepper__val" min="0"
+                   value="{{ obj.infested_outside|default_if_none:'0' }}">
+            <button type="button" class="stepper__btn" onclick="gvStep('infested_outside', 1)">+</button>
+          </div>
         </div>
         <div>
           <label class="stat-edit__label">إجمالي مباني مصابة</label>
-          <input type="number" name="total_infested_bldg" class="stat-edit__input" min="0"
-                 value="{{ obj.total_infested_bldg|default_if_none:'0' }}">
+          <div class="stepper">
+            <button type="button" class="stepper__btn" onclick="gvStep('total_infested_bldg', -1)">−</button>
+            <input type="number" inputmode="numeric" name="total_infested_bldg" id="gv-num-total_infested_bldg" class="stepper__val" min="0"
+                   value="{{ obj.total_infested_bldg|default_if_none:'0' }}">
+            <button type="button" class="stepper__btn" onclick="gvStep('total_infested_bldg', 1)">+</button>
+          </div>
         </div>
       </div>
 
@@ -215,6 +245,15 @@
 </div>
 
 <script>
+function gvStep(name, delta) {
+  var inp = document.getElementById('gv-num-' + name);
+  if (!inp) return;
+  var val = parseInt(inp.value, 10);
+  if (isNaN(val)) val = 0;
+  val = Math.max(0, val + delta);
+  inp.value = val;
+}
+
 function toggleGardenLocationForm() {
   var form = document.getElementById('gv-loc-form');
   var btn  = document.getElementById('gv-loc-toggle-btn');
