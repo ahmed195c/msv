@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from ..models import GARDEN_INFESTATION_TYPE_CHOICES, GardenVisit
+from ..models import GARDEN_INFESTATION_TYPE_CHOICES, GardenAreaReview, GardenVisit
 from .common import _can_admin, _can_data_entry, _can_garden_monitor, _can_rodent_control_monitor
 
 GARDEN_NOTE_CHOICES = [
@@ -36,9 +36,29 @@ def _can_manage(user):
     )
 
 
+def _current_period_start():
+    return timezone.localdate().replace(day=1)
+
+
+def _garden_area_reviews_map(area_names, period_start):
+    """Return {area_name: GardenAreaReview} for this month, creating any
+    missing rows (defaulting to not-reviewed) so every area always has one."""
+    reviews = {
+        r.area_name: r
+        for r in GardenAreaReview.objects.filter(area_name__in=area_names, period_start=period_start)
+    }
+    for name in area_names:
+        if name not in reviews:
+            reviews[name], _ = GardenAreaReview.objects.get_or_create(
+                area_name=name, period_start=period_start,
+            )
+    return reviews
+
+
 @login_required
 def garden_list(request):
     query = (request.GET.get('q') or '').strip()
+    show_reviewed = request.GET.get('reviewed') == '1'
     page_number = request.GET.get('page') or 1
 
     # Ordered to match the source Excel sheet's row order (its "No" column),
@@ -47,13 +67,30 @@ def garden_list(request):
     if query:
         visits_qs = visits_qs.filter(area_name__icontains=query)
 
+    period_start = _current_period_start()
+    area_names = list(visits_qs.values_list('area_name', flat=True).distinct())
+    area_reviews = _garden_area_reviews_map(area_names, period_start)
+
+    reviewed_areas = {name for name, r in area_reviews.items() if r.is_reviewed}
+    pending_count  = len(area_reviews) - len(reviewed_areas)
+
+    if show_reviewed:
+        visits_qs = visits_qs.filter(area_name__in=reviewed_areas)
+    else:
+        visits_qs = visits_qs.exclude(area_name__in=reviewed_areas)
+
     paginator = Paginator(visits_qs, 20)
     page_obj = paginator.get_page(page_number)
+    for row in page_obj:
+        row.review = area_reviews.get(row.area_name)
 
     return render(request, 'hcsd/garden_list.html', {
         'rows': page_obj,
         'page_obj': page_obj,
         'query': query,
+        'show_reviewed': show_reviewed,
+        'pending_count': pending_count,
+        'reviewed_count': len(reviewed_areas),
         'total_count': paginator.count,
         'can_manage': _can_manage(request.user),
         'can_admin': _can_admin(request.user),
@@ -170,4 +207,22 @@ def garden_delete(request, pk):
         return HttpResponseForbidden()
 
     obj.delete()
+    return redirect('garden_list')
+
+
+@login_required
+@require_POST
+def garden_area_review_toggle(request, pk):
+    review = get_object_or_404(GardenAreaReview, pk=pk)
+    if not _can_manage(request.user):
+        return HttpResponseForbidden()
+
+    review.is_reviewed = not review.is_reviewed
+    review.reviewed_by = request.user if review.is_reviewed else None
+    review.reviewed_at = timezone.now() if review.is_reviewed else None
+    review.save(update_fields=['is_reviewed', 'reviewed_by', 'reviewed_at'])
+
+    next_url = request.POST.get('next') or ''
+    if next_url.startswith('/garden/'):
+        return redirect(next_url)
     return redirect('garden_list')

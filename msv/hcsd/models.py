@@ -1905,3 +1905,27 @@ class GardenVisit(models.Model):
         for item in self.infestation_type_list():
             labels.append(lookup.get(item, item))
         return '، '.join(labels)
+
+
+class GardenAreaReview(models.Model):
+    """Whether an area's data has been reviewed for a given month — tracked
+    per area_name, independent of individual GardenVisit rows, since one
+    area can have many visit rows (one per manhole) in the same month."""
+    area_name    = models.CharField(max_length=150)
+    period_start = models.DateField(verbose_name='الشهر')
+
+    is_reviewed  = models.BooleanField(default=False, verbose_name='تمت المراجعة هذا الشهر')
+    reviewed_by  = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='garden_area_reviews',
+    )
+    reviewed_at  = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = [('area_name', 'period_start')]
+        ordering = ['area_name']
+        verbose_name        = 'مراجعة منطقة'
+        verbose_name_plural = 'مراجعات المناطق'
+
+    def __str__(self):
+        return f"{self.area_name} — {self.period_start:%Y-%m}"
