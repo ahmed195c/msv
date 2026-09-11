@@ -60,8 +60,6 @@ urlpatterns = [
 
     path('garden/', views.garden_list, name='garden_list'),
     path('garden/add/', views.garden_create, name='garden_create'),
-    path('garden/area-review/<int:pk>/toggle/', views.garden_area_review_toggle, name='garden_area_review_toggle'),
-    path('garden/area/<str:area_name>/log/', views.garden_area_review_log, name='garden_area_review_log'),
     path('garden/<int:pk>/', views.garden_detail, name='garden_detail'),
     path('garden/<int:pk>/delete/', views.garden_delete, name='garden_delete'),
 
