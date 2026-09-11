@@ -1905,3 +1905,51 @@ class GardenVisit(models.Model):
         for item in self.infestation_type_list():
             labels.append(lookup.get(item, item))
         return '، '.join(labels)
+
+
+class GardenAreaReview(models.Model):
+    """Whether an area's data has been reviewed for a given month — tracked
+    per area_name, independent of individual GardenVisit rows, since one
+    area can have many visit rows (one per manhole) in the same month."""
+    area_name    = models.CharField(max_length=150)
+    period_start = models.DateField(verbose_name='الشهر')
+
+    is_reviewed  = models.BooleanField(default=False, verbose_name='تمت المراجعة')
+    reviewed_by  = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='garden_area_reviews',
+    )
+    reviewed_at  = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = [('area_name', 'period_start')]
+        ordering = ['area_name']
+        verbose_name        = 'مراجعة منطقة'
+        verbose_name_plural = 'مراجعات المناطق'
+
+    def __str__(self):
+        return f"{self.area_name} — {self.period_start:%Y-%m}"
+
+
+class GardenAreaReviewLog(models.Model):
+    """History log of review/un-review actions on a GardenAreaReview."""
+    ACTION_CHOICES = [
+        ('reviewed', 'تمت المراجعة'),
+        ('unreviewed', 'إلغاء المراجعة'),
+    ]
+    area_name    = models.CharField(max_length=150)
+    period_start = models.DateField()
+    action       = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    created_by   = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='garden_area_review_logs',
+    )
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name        = 'سجل مراجعة منطقة'
+        verbose_name_plural = 'سجلات مراجعة المناطق'
+
+    def __str__(self):
+        return f"{self.area_name} — {self.get_action_display()} — {self.created_at:%Y-%m-%d %H:%M}"
