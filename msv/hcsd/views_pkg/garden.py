@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from ..models import GARDEN_INFESTATION_TYPE_CHOICES, GardenVisit
-from .common import _can_admin, _can_data_entry, _can_garden_monitor
+from .common import _can_admin, _can_data_entry, _can_garden_monitor, _can_rodent_control_monitor
 
 GARDEN_NOTE_CHOICES = [
     'إصابة خارجية / Outside Infestation',
@@ -29,7 +29,10 @@ def _infestation_type_from_post(request):
 
 
 def _can_manage(user):
-    return _can_admin(user) or _can_data_entry(user) or _can_garden_monitor(user)
+    return (
+        _can_admin(user) or _can_data_entry(user)
+        or _can_garden_monitor(user) or _can_rodent_control_monitor(user)
+    )
 
 
 @login_required

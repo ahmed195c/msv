@@ -175,7 +175,7 @@ def _redirect_if_fw_supervisor(user):
 # nowhere else, no matter what URL they type.
 CONFINED_ROLE_PATH_PREFIXES = {
     'garden_monitor': ('/garden/',),
-    'rodent_control_monitor': ('/rodent-control/',),
+    'rodent_control_monitor': ('/rodent-control/', '/garden/'),
 }
 CONFINED_ROLE_HOME_URL = {
     'garden_monitor': 'garden_list',

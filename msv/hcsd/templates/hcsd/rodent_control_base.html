@@ -205,7 +205,7 @@ body.app-shell {
             <span class="sidebar-badge">{{ nav_building_count|default:"" }}</span>
           </a>
           {% endif %}
-          {% if not nav_confined_role or nav_confined_role == 'garden_monitor' %}
+          {% if not nav_confined_role or nav_confined_role == 'garden_monitor' or nav_confined_role == 'rodent_control_monitor' %}
           <a href="{% url 'garden_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_list' or request.resolver_match.url_name == 'garden_create' or request.resolver_match.url_name == 'garden_detail' %}active{% endif %}">
             متابعة المناطق
             <span class="sidebar-badge">{{ nav_area_count|default:"" }}</span>
