@@ -13,7 +13,9 @@ def nav_context(request):
 
     if request.path.startswith(_RODENT_SIDEBAR_PREFIXES):
         from .models import GardenVisit, RodentControlBuilding
+        from .views_pkg.common import _confined_role_for
         ctx['nav_building_count'] = RodentControlBuilding.objects.count()
         ctx['nav_area_count'] = GardenVisit.objects.count()
+        ctx['nav_confined_role'] = _confined_role_for(user)
 
     return ctx

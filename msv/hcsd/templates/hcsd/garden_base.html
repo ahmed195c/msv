@@ -185,10 +185,12 @@ body.app-shell {
     </form>
 
     <nav class="sidebar-nav">
+      {% if not nav_confined_role %}
       <a href="{% url 'portal_landing' %}" class="sidebar-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>
         الرئيسية
       </a>
+      {% endif %}
 
       <div class="sidebar-group">
         <button type="button" class="sidebar-group__toggle" onclick="this.parentElement.classList.toggle('collapsed')">
@@ -197,31 +199,39 @@ body.app-shell {
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="sidebar-group__items">
+          {% if not nav_confined_role or nav_confined_role == 'rodent_control_monitor' %}
           <a href="{% url 'rodent_control_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'rodent_control_list' or request.resolver_match.url_name == 'rodent_control_building_detail' or request.resolver_match.url_name == 'rodent_control_building_create' %}active{% endif %}">
             قائمة البنايات
             <span class="sidebar-badge">{{ nav_building_count|default:"" }}</span>
           </a>
+          {% endif %}
+          {% if not nav_confined_role or nav_confined_role == 'garden_monitor' %}
           <a href="{% url 'garden_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_list' or request.resolver_match.url_name == 'garden_create' or request.resolver_match.url_name == 'garden_detail' %}active{% endif %}">
             متابعة المناطق
             <span class="sidebar-badge">{{ nav_area_count|default:"" }}</span>
           </a>
+          {% endif %}
         </div>
       </div>
 
+      {% if not nav_confined_role or nav_confined_role == 'rodent_control_monitor' %}
       <div class="sidebar-divider"></div>
 
       <a href="{% url 'rodent_control_monthly_excel' %}" class="sidebar-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         تقرير الشهر (Excel)
       </a>
+      {% endif %}
     </nav>
 
     <div class="sidebar-spacer"></div>
 
+    {% if not nav_confined_role or nav_confined_role == 'rodent_control_monitor' %}
     <a href="{% url 'rodent_control_home' %}" class="sidebar-link sidebar-link--muted {% if request.resolver_match.url_name == 'rodent_control_home' %}active{% endif %}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
       الصفحة الرئيسية لمتابعة المصائد
     </a>
+    {% endif %}
 
     {% if request.user.is_authenticated %}
     <div class="sidebar-user">
