@@ -1929,3 +1929,28 @@ class GardenAreaReview(models.Model):
 
     def __str__(self):
         return f"{self.area_name} — {self.period_start:%Y-%m}"
+
+
+class GardenVisitPhoto(models.Model):
+    """A photo for one infestation spot within a GardenVisit — a visit can
+    have several spots (spot_number), each with its own photos and an
+    optional short shared description."""
+    garden_visit = models.ForeignKey(
+        GardenVisit, on_delete=models.CASCADE, related_name='photos',
+    )
+    spot_number  = models.PositiveIntegerField(verbose_name='رقم مكان الإصابة')
+    description  = models.CharField(max_length=255, blank=True, verbose_name='وصف مكان الإصابة')
+    file         = models.ImageField(upload_to='garden_visits/photos/', verbose_name='الصورة')
+    uploaded_by  = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='garden_visit_photos',
+    )
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['spot_number', 'id']
+        verbose_name        = 'صورة مكان إصابة'
+        verbose_name_plural = 'صور أماكن الإصابة'
+
+    def __str__(self):
+        return f"{self.garden_visit} — مكان {self.spot_number}"

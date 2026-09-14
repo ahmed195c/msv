@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from ..models import GARDEN_INFESTATION_TYPE_CHOICES, GardenAreaReview, GardenVisit
+from ..models import GARDEN_INFESTATION_TYPE_CHOICES, GardenAreaReview, GardenVisit, GardenVisitPhoto
 from .common import _can_admin, _can_data_entry, _can_garden_monitor, _can_rodent_control_monitor
 
 GARDEN_NOTE_CHOICES = [
@@ -139,6 +139,29 @@ def garden_create(request):
                 infestation_type=_infestation_type_from_post(request),
                 created_by=request.user,
             )
+
+            # Each "spot_photos_<N>" / "spot_description_<N>" pair is one
+            # infestation spot — a visit can have several, each with its
+            # own set of photos and an optional shared description.
+            spot_indices = set()
+            for key in request.POST:
+                if key.startswith('spot_description_'):
+                    spot_indices.add(key[len('spot_description_'):])
+            for key in request.FILES:
+                if key.startswith('spot_photos_'):
+                    spot_indices.add(key[len('spot_photos_'):])
+
+            for idx in spot_indices:
+                try:
+                    spot_number = int(idx)
+                except ValueError:
+                    continue
+                description = (request.POST.get(f'spot_description_{idx}') or '').strip()
+                for photo in request.FILES.getlist(f'spot_photos_{idx}'):
+                    GardenVisitPhoto.objects.create(
+                        garden_visit=obj, spot_number=spot_number,
+                        description=description, file=photo, uploaded_by=request.user,
+                    )
             return redirect('garden_list')
 
     return render(request, 'hcsd/garden_create.html', {
