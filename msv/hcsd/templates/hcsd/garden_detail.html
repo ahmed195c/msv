@@ -115,6 +115,7 @@
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <a href="{% url 'garden_list' %}" class="btn btn-outline">العودة للقائمة</a>
+      <a href="{% url 'garden_visit_report' obj.pk %}" class="btn btn-outline">⭳ تحميل التقرير (Word)</a>
       {% if can_admin %}
       <form method="post" action="{% url 'garden_delete' obj.pk %}" onsubmit="return confirm('هل أنت متأكد من حذف هذا الموقع؟ لا يمكن التراجع عن هذا الإجراء.');">
         {% csrf_token %}

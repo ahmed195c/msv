@@ -62,6 +62,7 @@ urlpatterns = [
     path('garden/add/', views.garden_create, name='garden_create'),
     path('garden/area-review/<int:pk>/toggle/', views.garden_area_review_toggle, name='garden_area_review_toggle'),
     path('garden/<int:pk>/', views.garden_detail, name='garden_detail'),
+    path('garden/<int:pk>/report/', views.garden_visit_report, name='garden_visit_report'),
     path('garden/<int:pk>/delete/', views.garden_delete, name='garden_delete'),
 
     path('companies/', views.company_list, name='company_list'),
