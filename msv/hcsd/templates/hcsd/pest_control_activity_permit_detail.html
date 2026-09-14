@@ -1175,6 +1175,18 @@
           <span class="value">{{ pirmet.company.name|default:"-" }}</span>
         </div>
         <div class="detail-item">
+          <span class="label">عنوان الشركة</span>
+          <span class="value">{{ pirmet.company.address|default:"-" }}</span>
+        </div>
+        {% if pirmet.company.latitude and pirmet.company.longitude %}
+        <div class="detail-item">
+          <span class="label">الموقع الجغرافي</span>
+          <span class="value">
+            <a href="https://www.google.com/maps?q={{ pirmet.company.latitude }},{{ pirmet.company.longitude }}" target="_blank" rel="noopener" style="color:var(--accent);">◎ Google Maps</a>
+          </span>
+        </div>
+        {% endif %}
+        <div class="detail-item">
           <span class="label">تاريخ إنشاء الطلب</span>
           <span class="value">{{ pirmet.dateOfCreation|date:"d/m/Y" }}</span>
         </div>
