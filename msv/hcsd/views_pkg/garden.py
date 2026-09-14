@@ -6,6 +6,8 @@ URL prefix : /garden/
 Templates  : hcsd/garden_*.html
 """
 
+from itertools import groupby
+
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden
@@ -224,12 +226,22 @@ def garden_detail(request, pk):
                 review.save(update_fields=['is_reviewed', 'reviewed_by', 'reviewed_at'])
         return redirect('garden_detail', pk=pk)
 
+    photo_spots = []
+    for spot_number, group in groupby(obj.photos.all(), key=lambda p: p.spot_number):
+        group = list(group)
+        photo_spots.append({
+            'spot_number': spot_number,
+            'description': group[0].description,
+            'photos': group,
+        })
+
     return render(request, 'hcsd/garden_detail.html', {
         'obj': obj,
         'can_manage': can_manage,
         'can_admin': _can_admin(request.user),
         'note_choices': GARDEN_NOTE_CHOICES,
         'infestation_type_choices': GARDEN_INFESTATION_TYPE_CHOICES,
+        'photo_spots': photo_spots,
     })
 
 

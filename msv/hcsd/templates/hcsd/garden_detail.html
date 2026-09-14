@@ -91,6 +91,17 @@
 .btn-outline:hover { background: var(--surface); }
 .btn-danger { background: #b03a1a; color: #fff; border-color: #b03a1a; }
 .btn-danger:hover { background: #8c2f14; border-color: #8c2f14; }
+
+.gv-spot-list { display: grid; gap: 16px; }
+.gv-spot-view { border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; }
+.gv-spot-view__head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.gv-spot-view__title { font-size: 13px; font-weight: 700; color: var(--ink); }
+.gv-spot-view__desc { font-size: 12.5px; color: var(--ink-2); }
+.gv-spot-view__photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+.gv-spot-view__photos img {
+  width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px;
+  border: 1px solid var(--line); display: block;
+}
 </style>
 
 <div class="gv-page">
@@ -243,6 +254,29 @@
     {% endif %}
     {% endif %}
   </div>
+
+  {% if photo_spots %}
+  <div class="gv-section">
+    <h2>أماكن الإصابة</h2>
+    <div class="gv-spot-list">
+      {% for spot in photo_spots %}
+      <div class="gv-spot-view">
+        <div class="gv-spot-view__head">
+          <span class="gv-spot-view__title">مكان الإصابة {{ forloop.counter }}</span>
+          {% if spot.description %}<span class="gv-spot-view__desc">{{ spot.description }}</span>{% endif %}
+        </div>
+        <div class="gv-spot-view__photos">
+          {% for photo in spot.photos %}
+          <a href="{{ photo.file.url }}" target="_blank" rel="noopener">
+            <img src="{{ photo.file.url }}" alt="">
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <script>
