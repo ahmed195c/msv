@@ -114,44 +114,44 @@ details.rc-edit input, details.rc-edit textarea {
       <h1>{{ building.name }}</h1>
       <p>
         {% if building.area %}{{ building.area }}{% endif %}
-        {% if building.number %} — رقم {{ building.number }}{% endif %}
-        {% if not building.is_active %} — <strong style="color:#b03a1a;">متابعة موقوفة</strong>{% endif %}
+        {% if building.number %} — {% if lang == 'en' %}No.{% else %}رقم{% endif %} {{ building.number }}{% endif %}
+        {% if not building.is_active %} — <strong style="color:#b03a1a;">{% if lang == 'en' %}Follow-up Stopped{% else %}متابعة موقوفة{% endif %}</strong>{% endif %}
       </p>
     </div>
-    <a href="{% url 'rodent_control_list' %}" class="btn btn-outline">العودة للقائمة</a>
+    <a href="{% url 'rodent_control_list' %}" class="btn btn-outline">{% if lang == 'en' %}Back to List{% else %}العودة للقائمة{% endif %}</a>
   </div>
 
   <div class="rc-section">
-    <h2>بيانات البناية</h2>
+    <h2>{% if lang == 'en' %}Building Information{% else %}بيانات البناية{% endif %}</h2>
     <div class="info-grid">
-      <div><div class="lbl">المنطقة</div><div class="val">{{ building.area|default:"—" }}</div></div>
-      <div><div class="lbl">الرقم</div><div class="val">{{ building.number|default:"—" }}</div></div>
-      <div><div class="lbl">الموقع</div><div class="val">{{ building.location|default:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Area{% else %}المنطقة{% endif %}</div><div class="val">{{ building.area|default:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Number{% else %}الرقم{% endif %}</div><div class="val">{{ building.number|default:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Location{% else %}الموقع{% endif %}</div><div class="val">{{ building.location|default:"—" }}</div></div>
     </div>
     {% if building.notes %}
-      <div style="margin-top:12px;"><div class="lbl" style="font-size:11.5px;color:var(--ink-3);">ملاحظات</div><div style="font-size:13px;color:var(--ink);">{{ building.notes }}</div></div>
+      <div style="margin-top:12px;"><div class="lbl" style="font-size:11.5px;color:var(--ink-3);">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</div><div style="font-size:13px;color:var(--ink);">{{ building.notes }}</div></div>
     {% endif %}
 
     {% if can_manage %}
     <details class="rc-edit">
-      <summary>تعديل بيانات البناية</summary>
+      <summary>{% if lang == 'en' %}Edit Building Information{% else %}تعديل بيانات البناية{% endif %}</summary>
       <form method="post">
         {% csrf_token %}
         <input type="hidden" name="action" value="update_building">
-        <div class="field-wrap"><label>اسم البناية</label><input type="text" name="name" value="{{ building.name }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Building Name{% else %}اسم البناية{% endif %}</label><input type="text" name="name" value="{{ building.name }}"></div>
         <div class="two-col">
-          <div class="field-wrap"><label>الرقم</label><input type="text" name="number" value="{{ building.number }}"></div>
-          <div class="field-wrap"><label>المنطقة</label><input type="text" name="area" value="{{ building.area }}"></div>
+          <div class="field-wrap"><label>{% if lang == 'en' %}Number{% else %}الرقم{% endif %}</label><input type="text" name="number" value="{{ building.number }}"></div>
+          <div class="field-wrap"><label>{% if lang == 'en' %}Area{% else %}المنطقة{% endif %}</label><input type="text" name="area" value="{{ building.area }}"></div>
         </div>
-        <div class="field-wrap"><label>الموقع</label><input type="text" name="location" value="{{ building.location }}"></div>
-        <div class="field-wrap"><label>ملاحظات</label><textarea name="notes">{{ building.notes }}</textarea></div>
-        <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Location{% else %}الموقع{% endif %}</label><input type="text" name="location" value="{{ building.location }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</label><textarea name="notes">{{ building.notes }}</textarea></div>
+        <button type="submit" class="btn btn-primary">{% if lang == 'en' %}Save Changes{% else %}حفظ التعديلات{% endif %}</button>
       </form>
       <form method="post" style="margin-top:10px;">
         {% csrf_token %}
         <input type="hidden" name="action" value="toggle_active">
         <button type="submit" class="btn btn-outline">
-          {% if building.is_active %}إيقاف المتابعة{% else %}استئناف المتابعة{% endif %}
+          {% if building.is_active %}{% if lang == 'en' %}Stop Follow-up{% else %}إيقاف المتابعة{% endif %}{% else %}{% if lang == 'en' %}Resume Follow-up{% else %}استئناف المتابعة{% endif %}{% endif %}
         </button>
       </form>
     </details>
@@ -159,81 +159,81 @@ details.rc-edit input, details.rc-edit textarea {
   </div>
 
   <div class="rc-section">
-    <h2>زيارة شهر {{ current_visit.period_start|date:"m/Y" }}</h2>
+    <h2>{% if lang == 'en' %}Visit for {{ current_visit.period_start|date:"m/Y" }}{% else %}زيارة شهر {{ current_visit.period_start|date:"m/Y" }}{% endif %}</h2>
     {% if can_manage %}
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="action" value="record_visit">
       <div class="field-wrap" style="max-width:200px;">
-        <label>تاريخ الزيارة</label>
+        <label>{% if lang == 'en' %}Visit Date{% else %}تاريخ الزيارة{% endif %}</label>
         <input type="date" name="visit_date" value="{{ current_visit.visit_date|date:'Y-m-d' }}">
       </div>
 
-      <h3 class="rc-form-group">بيانات الفريق</h3>
+      <h3 class="rc-form-group">{% if lang == 'en' %}Team Information{% else %}بيانات الفريق{% endif %}</h3>
       <div class="two-col">
-        <div class="field-wrap"><label>اسم قائد الفريق</label><input type="text" name="team_leader_name" value="{{ current_visit.team_leader_name }}"></div>
-        <div class="field-wrap"><label>الرقم الوظيفي</label><input type="text" name="team_leader_id" value="{{ current_visit.team_leader_id }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Team Leader Name{% else %}اسم قائد الفريق{% endif %}</label><input type="text" name="team_leader_name" value="{{ current_visit.team_leader_name }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Employee ID{% else %}الرقم الوظيفي{% endif %}</label><input type="text" name="team_leader_id" value="{{ current_visit.team_leader_id }}"></div>
       </div>
       <div class="three-col">
-        <div class="field-wrap"><label>عدد الفنيين</label><input type="number" name="technicians_count" value="{{ current_visit.technicians_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>وقت الدخول</label><input type="time" name="time_in" value="{{ current_visit.time_in|time:'H:i' }}"></div>
-        <div class="field-wrap"><label>وقت الخروج</label><input type="time" name="time_out" value="{{ current_visit.time_out|time:'H:i' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Number of Technicians{% else %}عدد الفنيين{% endif %}</label><input type="number" name="technicians_count" value="{{ current_visit.technicians_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Time In{% else %}وقت الدخول{% endif %}</label><input type="time" name="time_in" value="{{ current_visit.time_in|time:'H:i' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Time Out{% else %}وقت الخروج{% endif %}</label><input type="time" name="time_out" value="{{ current_visit.time_out|time:'H:i' }}"></div>
       </div>
 
-      <h3 class="rc-form-group">المصايد (RBS)</h3>
+      <h3 class="rc-form-group">{% if lang == 'en' %}Traps (RBS){% else %}المصايد (RBS){% endif %}</h3>
       <div class="four-col">
-        <div class="field-wrap"><label>إجمالي المفتشة</label><input type="number" name="rbs_inspected_count" value="{{ current_visit.rbs_inspected_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>المصابة</label><input type="number" name="rbs_infested_count" value="{{ current_visit.rbs_infested_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>التالفة</label><input type="number" name="rbs_damaged_count" value="{{ current_visit.rbs_damaged_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>المركبة حديثاً</label><input type="number" name="rbs_new_installed_count" value="{{ current_visit.rbs_new_installed_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>المعاد تعبئتها</label><input type="number" name="rbs_replenished_count" value="{{ current_visit.rbs_replenished_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Total Inspected{% else %}إجمالي المفتشة{% endif %}</label><input type="number" name="rbs_inspected_count" value="{{ current_visit.rbs_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label><input type="number" name="rbs_infested_count" value="{{ current_visit.rbs_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Damaged{% else %}التالفة{% endif %}</label><input type="number" name="rbs_damaged_count" value="{{ current_visit.rbs_damaged_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Newly Installed{% else %}المركبة حديثاً{% endif %}</label><input type="number" name="rbs_new_installed_count" value="{{ current_visit.rbs_new_installed_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Replenished{% else %}المعاد تعبئتها{% endif %}</label><input type="number" name="rbs_replenished_count" value="{{ current_visit.rbs_replenished_count|default_if_none:'' }}"></div>
       </div>
       <div class="check-row">
-        <label><input type="checkbox" name="rbs_lock_ok" {% if current_visit.rbs_lock_ok %}checked{% endif %}> قفل المصيدة سليم</label>
-        <label><input type="checkbox" name="stick_change_ok" {% if current_visit.stick_change_ok %}checked{% endif %}> تم تغيير اللاصقة</label>
+        <label><input type="checkbox" name="rbs_lock_ok" {% if current_visit.rbs_lock_ok %}checked{% endif %}> {% if lang == 'en' %}Trap lock is intact{% else %}قفل المصيدة سليم{% endif %}</label>
+        <label><input type="checkbox" name="stick_change_ok" {% if current_visit.stick_change_ok %}checked{% endif %}> {% if lang == 'en' %}Sticker changed{% else %}تم تغيير اللاصقة{% endif %}</label>
       </div>
 
-      <h3 class="rc-form-group">المناهيل</h3>
+      <h3 class="rc-form-group">{% if lang == 'en' %}Manholes{% else %}المناهيل{% endif %}</h3>
       <div class="four-col">
-        <div class="field-wrap"><label>إجمالي المفتشة</label><input type="number" name="manholes_inspected_count" value="{{ current_visit.manholes_inspected_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>المعالجة (عدد)</label><input type="number" name="manholes_treated_count" value="{{ current_visit.manholes_treated_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>المعالجة (كمية)</label><input type="number" step="0.01" name="manholes_treated_qty" value="{{ current_visit.manholes_treated_qty|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>المصابة</label><input type="number" name="manholes_infested_count" value="{{ current_visit.manholes_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Total Inspected{% else %}إجمالي المفتشة{% endif %}</label><input type="number" name="manholes_inspected_count" value="{{ current_visit.manholes_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Treated (count){% else %}المعالجة (عدد){% endif %}</label><input type="number" name="manholes_treated_count" value="{{ current_visit.manholes_treated_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Treated (quantity){% else %}المعالجة (كمية){% endif %}</label><input type="number" step="0.01" name="manholes_treated_qty" value="{{ current_visit.manholes_treated_qty|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label><input type="number" name="manholes_infested_count" value="{{ current_visit.manholes_infested_count|default_if_none:'' }}"></div>
       </div>
 
-      <h3 class="rc-form-group">الجحور الخارجية</h3>
+      <h3 class="rc-form-group">{% if lang == 'en' %}Outside Burrows{% else %}الجحور الخارجية{% endif %}</h3>
       <div class="two-col">
-        <div class="field-wrap"><label>الجحور الخارجية</label><input type="number" name="burrows_outside_count" value="{{ current_visit.burrows_outside_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>المصابة</label><input type="number" name="burrows_infested_count" value="{{ current_visit.burrows_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Outside Burrows{% else %}الجحور الخارجية{% endif %}</label><input type="number" name="burrows_outside_count" value="{{ current_visit.burrows_outside_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label><input type="number" name="burrows_infested_count" value="{{ current_visit.burrows_infested_count|default_if_none:'' }}"></div>
       </div>
 
-      <h3 class="rc-form-group">النخيل</h3>
+      <h3 class="rc-form-group">{% if lang == 'en' %}Trees{% else %}النخيل{% endif %}</h3>
       <div class="three-col">
-        <div class="field-wrap"><label>إجمالي المفتش</label><input type="number" name="trees_inspected_count" value="{{ current_visit.trees_inspected_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>المعالج</label><input type="number" name="trees_treated_count" value="{{ current_visit.trees_treated_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>المصاب</label><input type="number" name="trees_infested_count" value="{{ current_visit.trees_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Total Inspected{% else %}إجمالي المفتش{% endif %}</label><input type="number" name="trees_inspected_count" value="{{ current_visit.trees_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Treated{% else %}المعالج{% endif %}</label><input type="number" name="trees_treated_count" value="{{ current_visit.trees_treated_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Infested{% else %}المصاب{% endif %}</label><input type="number" name="trees_infested_count" value="{{ current_visit.trees_infested_count|default_if_none:'' }}"></div>
       </div>
 
-      <h3 class="rc-form-group">مباني وفلل / إنشاءات / مساجد / غرف كهربائية</h3>
+      <h3 class="rc-form-group">{% if lang == 'en' %}Buildings/Villas / Construction / Mosques / Electrical Rooms{% else %}مباني وفلل / إنشاءات / مساجد / غرف كهربائية{% endif %}</h3>
       <div class="four-col">
-        <div class="field-wrap"><label>مباني/فلل مفتشة</label><input type="number" name="bldg_villa_inspected_count" value="{{ current_visit.bldg_villa_inspected_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>مباني/فلل مصابة</label><input type="number" name="bldg_villa_infested_count" value="{{ current_visit.bldg_villa_infested_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>إنشاءات مفتشة</label><input type="number" name="construction_inspected_count" value="{{ current_visit.construction_inspected_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>إنشاءات مصابة</label><input type="number" name="construction_infested_count" value="{{ current_visit.construction_infested_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>مساجد مفتشة</label><input type="number" name="masjed_inspected_count" value="{{ current_visit.masjed_inspected_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>مساجد مصابة</label><input type="number" name="masjed_infested_count" value="{{ current_visit.masjed_infested_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>غرف كهربائية مفتشة</label><input type="number" name="electrical_inspected_count" value="{{ current_visit.electrical_inspected_count|default_if_none:'' }}"></div>
-        <div class="field-wrap"><label>غرف كهربائية مصابة</label><input type="number" name="electrical_infested_count" value="{{ current_visit.electrical_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Buildings/Villas Inspected{% else %}مباني/فلل مفتشة{% endif %}</label><input type="number" name="bldg_villa_inspected_count" value="{{ current_visit.bldg_villa_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Buildings/Villas Infested{% else %}مباني/فلل مصابة{% endif %}</label><input type="number" name="bldg_villa_infested_count" value="{{ current_visit.bldg_villa_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Construction Inspected{% else %}إنشاءات مفتشة{% endif %}</label><input type="number" name="construction_inspected_count" value="{{ current_visit.construction_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Construction Infested{% else %}إنشاءات مصابة{% endif %}</label><input type="number" name="construction_infested_count" value="{{ current_visit.construction_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Mosques Inspected{% else %}مساجد مفتشة{% endif %}</label><input type="number" name="masjed_inspected_count" value="{{ current_visit.masjed_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Mosques Infested{% else %}مساجد مصابة{% endif %}</label><input type="number" name="masjed_infested_count" value="{{ current_visit.masjed_infested_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Electrical Rooms Inspected{% else %}غرف كهربائية مفتشة{% endif %}</label><input type="number" name="electrical_inspected_count" value="{{ current_visit.electrical_inspected_count|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Electrical Rooms Infested{% else %}غرف كهربائية مصابة{% endif %}</label><input type="number" name="electrical_infested_count" value="{{ current_visit.electrical_infested_count|default_if_none:'' }}"></div>
       </div>
-      <div class="field-wrap" style="max-width:200px;"><label>المكاتب الحكومية</label><input type="number" name="gov_offices_count" value="{{ current_visit.gov_offices_count|default_if_none:'' }}"></div>
+      <div class="field-wrap" style="max-width:200px;"><label>{% if lang == 'en' %}Government Offices{% else %}المكاتب الحكومية{% endif %}</label><input type="number" name="gov_offices_count" value="{{ current_visit.gov_offices_count|default_if_none:'' }}"></div>
 
-      <h3 class="rc-form-group">المادة المستخدمة</h3>
+      <h3 class="rc-form-group">{% if lang == 'en' %}Material Used{% else %}المادة المستخدمة{% endif %}</h3>
       <div class="two-col">
-        <div class="field-wrap"><label>نوع المادة</label><input type="text" name="rodenticide_type" value="{{ current_visit.rodenticide_type }}"></div>
-        <div class="field-wrap"><label>الكمية</label><input type="number" step="0.01" name="rodenticide_quantity" value="{{ current_visit.rodenticide_quantity|default_if_none:'' }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Material Type{% else %}نوع المادة{% endif %}</label><input type="text" name="rodenticide_type" value="{{ current_visit.rodenticide_type }}"></div>
+        <div class="field-wrap"><label>{% if lang == 'en' %}Quantity{% else %}الكمية{% endif %}</label><input type="number" step="0.01" name="rodenticide_quantity" value="{{ current_visit.rodenticide_quantity|default_if_none:'' }}"></div>
       </div>
 
-      <h3 class="rc-form-group">كميات المواد المستخدمة حسب النوع</h3>
+      <h3 class="rc-form-group">{% if lang == 'en' %}Material Quantities by Type{% else %}كميات المواد المستخدمة حسب النوع{% endif %}</h3>
       <div class="three-col">
         <div class="field-wrap"><label>SUREFIRE ALL WEATHER</label><input type="number" step="0.01" name="rodenticide_surefire_qty" value="{{ current_visit.rodenticide_surefire_qty|default_if_none:'' }}"></div>
         <div class="field-wrap"><label>FACORAT PELLETS</label><input type="number" step="0.01" name="rodenticide_facorat_qty" value="{{ current_visit.rodenticide_facorat_qty|default_if_none:'' }}"></div>
@@ -244,18 +244,18 @@ details.rc-edit input, details.rc-edit textarea {
         <div class="field-wrap"><label>NOCURAT PARAFFINATO</label><input type="number" step="0.01" name="rodenticide_nocurat_qty" value="{{ current_visit.rodenticide_nocurat_qty|default_if_none:'' }}"></div>
       </div>
 
-      <div class="field-wrap"><label>ملاحظات</label><textarea name="notes">{{ current_visit.notes }}</textarea></div>
-      <button type="submit" class="btn btn-primary">حفظ الزيارة</button>
+      <div class="field-wrap"><label>{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</label><textarea name="notes">{{ current_visit.notes }}</textarea></div>
+      <button type="submit" class="btn btn-primary">{% if lang == 'en' %}Save Visit{% else %}حفظ الزيارة{% endif %}</button>
     </form>
     {% else %}
       <div class="info-grid">
-        <div><div class="lbl">تاريخ الزيارة</div><div class="val">{{ current_visit.visit_date|date:"d/m/Y"|default:"لم تتم بعد" }}</div></div>
+        <div><div class="lbl">{% if lang == 'en' %}Visit Date{% else %}تاريخ الزيارة{% endif %}</div><div class="val">{% if current_visit.visit_date %}{{ current_visit.visit_date|date:"d/m/Y" }}{% else %}{% if lang == 'en' %}Not visited yet{% else %}لم تتم بعد{% endif %}{% endif %}</div></div>
       </div>
     {% endif %}
   </div>
 
   <div class="rc-section">
-    <h2>السجل الشهري</h2>
+    <h2>{% if lang == 'en' %}Monthly History{% else %}السجل الشهري{% endif %}</h2>
     {% if history %}
     <div class="timeline">
       {% for v in history %}
@@ -265,49 +265,49 @@ details.rc-edit input, details.rc-edit textarea {
         <div class="tl-card">
           <div class="tl-title">
             {% if not v.visit_date %}
-              <span class="rc-badge rc-badge--pending">لم تتم الزيارة</span>
+              <span class="rc-badge rc-badge--pending">{% if lang == 'en' %}Not Visited{% else %}لم تتم الزيارة{% endif %}</span>
             {% elif v.infested %}
-              <span class="rc-badge rc-badge--infested">بها إصابة</span>
+              <span class="rc-badge rc-badge--infested">{% if lang == 'en' %}Infested{% else %}بها إصابة{% endif %}</span>
             {% elif v.damaged %}
-              <span class="rc-badge rc-badge--damaged">مصيدة تالفة</span>
+              <span class="rc-badge rc-badge--damaged">{% if lang == 'en' %}Damaged Trap{% else %}مصيدة تالفة{% endif %}</span>
             {% else %}
-              <span class="rc-badge rc-badge--ok">سليمة</span>
+              <span class="rc-badge rc-badge--ok">{% if lang == 'en' %}Clear{% else %}سليمة{% endif %}</span>
             {% endif %}
           </div>
           {% if v.visit_date %}
           <div class="tl-meta">
-            تاريخ الزيارة: {{ v.visit_date|date:"d/m/Y" }}
-            {% if v.time_in %} — دخول: {{ v.time_in|time:"H:i" }}{% endif %}
-            {% if v.time_out %} — خروج: {{ v.time_out|time:"H:i" }}{% endif %}
-            {% if v.visited_by %} — بواسطة: {{ v.visited_by.get_full_name|default:v.visited_by.username }}{% endif %}
-            {% if v.team_leader_name %} — قائد الفريق: {{ v.team_leader_name }}{% if v.team_leader_id %} ({{ v.team_leader_id }}){% endif %}{% endif %}
+            {% if lang == 'en' %}Visit Date{% else %}تاريخ الزيارة{% endif %}: {{ v.visit_date|date:"d/m/Y" }}
+            {% if v.time_in %} — {% if lang == 'en' %}In{% else %}دخول{% endif %}: {{ v.time_in|time:"H:i" }}{% endif %}
+            {% if v.time_out %} — {% if lang == 'en' %}Out{% else %}خروج{% endif %}: {{ v.time_out|time:"H:i" }}{% endif %}
+            {% if v.visited_by %} — {% if lang == 'en' %}By{% else %}بواسطة{% endif %}: {{ v.visited_by.get_full_name|default:v.visited_by.username }}{% endif %}
+            {% if v.team_leader_name %} — {% if lang == 'en' %}Team Leader{% else %}قائد الفريق{% endif %}: {{ v.team_leader_name }}{% if v.team_leader_id %} ({{ v.team_leader_id }}){% endif %}{% endif %}
           </div>
           {% endif %}
           {% if v.rbs_inspected_count is not None %}
           <div class="tl-notes">
-            مصايد: {{ v.rbs_inspected_count|default:0 }} مفتشة
-            {% if v.rbs_infested_count %} — {{ v.rbs_infested_count }} مصابة{% endif %}
-            {% if v.rbs_damaged_count %} — {{ v.rbs_damaged_count }} تالفة{% endif %}
-            {% if v.rbs_new_installed_count %} — {{ v.rbs_new_installed_count }} تركيب جديد{% endif %}
-            {% if v.rbs_replenished_count %} — {{ v.rbs_replenished_count }} تعبئة{% endif %}
+            {% if lang == 'en' %}Traps{% else %}مصايد{% endif %}: {{ v.rbs_inspected_count|default:0 }} {% if lang == 'en' %}inspected{% else %}مفتشة{% endif %}
+            {% if v.rbs_infested_count %} — {{ v.rbs_infested_count }} {% if lang == 'en' %}infested{% else %}مصابة{% endif %}{% endif %}
+            {% if v.rbs_damaged_count %} — {{ v.rbs_damaged_count }} {% if lang == 'en' %}damaged{% else %}تالفة{% endif %}{% endif %}
+            {% if v.rbs_new_installed_count %} — {{ v.rbs_new_installed_count }} {% if lang == 'en' %}newly installed{% else %}تركيب جديد{% endif %}{% endif %}
+            {% if v.rbs_replenished_count %} — {{ v.rbs_replenished_count }} {% if lang == 'en' %}replenished{% else %}تعبئة{% endif %}{% endif %}
           </div>
           {% endif %}
           {% if v.manholes_inspected_count is not None %}
           <div class="tl-notes">
-            مناهيل: {{ v.manholes_inspected_count|default:0 }} مفتشة
-            {% if v.manholes_treated_count %} — {{ v.manholes_treated_count }} معالجة{% endif %}
-            {% if v.manholes_infested_count %} — {{ v.manholes_infested_count }} مصابة{% endif %}
+            {% if lang == 'en' %}Manholes{% else %}مناهيل{% endif %}: {{ v.manholes_inspected_count|default:0 }} {% if lang == 'en' %}inspected{% else %}مفتشة{% endif %}
+            {% if v.manholes_treated_count %} — {{ v.manholes_treated_count }} {% if lang == 'en' %}treated{% else %}معالجة{% endif %}{% endif %}
+            {% if v.manholes_infested_count %} — {{ v.manholes_infested_count }} {% if lang == 'en' %}infested{% else %}مصابة{% endif %}{% endif %}
           </div>
           {% endif %}
           {% if v.trees_inspected_count %}
           <div class="tl-notes">
-            نخيل: {{ v.trees_inspected_count }} مفتش
-            {% if v.trees_treated_count %} — {{ v.trees_treated_count }} معالج{% endif %}
-            {% if v.trees_infested_count %} — {{ v.trees_infested_count }} مصاب{% endif %}
+            {% if lang == 'en' %}Trees{% else %}نخيل{% endif %}: {{ v.trees_inspected_count }} {% if lang == 'en' %}inspected{% else %}مفتش{% endif %}
+            {% if v.trees_treated_count %} — {{ v.trees_treated_count }} {% if lang == 'en' %}treated{% else %}معالج{% endif %}{% endif %}
+            {% if v.trees_infested_count %} — {{ v.trees_infested_count }} {% if lang == 'en' %}infested{% else %}مصاب{% endif %}{% endif %}
           </div>
           {% endif %}
           {% if v.rodenticide_type %}
-          <div class="tl-notes">المادة: {{ v.rodenticide_type }}{% if v.rodenticide_quantity %} — الكمية: {{ v.rodenticide_quantity }}{% endif %}</div>
+          <div class="tl-notes">{% if lang == 'en' %}Material{% else %}المادة{% endif %}: {{ v.rodenticide_type }}{% if v.rodenticide_quantity %} — {% if lang == 'en' %}Quantity{% else %}الكمية{% endif %}: {{ v.rodenticide_quantity }}{% endif %}</div>
           {% endif %}
           {% if v.notes %}<div class="tl-notes">{{ v.notes }}</div>{% endif %}
         </div>
@@ -315,7 +315,7 @@ details.rc-edit input, details.rc-edit textarea {
       {% endfor %}
     </div>
     {% else %}
-    <div class="rc-empty">لا يوجد سجل سابق بعد.</div>
+    <div class="rc-empty">{% if lang == 'en' %}No previous history yet.{% else %}لا يوجد سجل سابق بعد.{% endif %}</div>
     {% endif %}
   </div>
 </div>
