@@ -9,8 +9,10 @@ Templates  : hcsd/garden_*.html
 import io
 import logging
 import os
+import re
 import zipfile
 from itertools import groupby
+from urllib.parse import quote
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -23,6 +25,14 @@ from ..models import GARDEN_INFESTATION_TYPE_CHOICES, GardenAreaReview, GardenVi
 from .common import _can_admin, _can_data_entry, _can_garden_monitor, _can_rodent_control_monitor
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_filename_part(text):
+    text = (text or '').strip()
+    text = re.sub(r'[\\/:*?"<>|]', '-', text)
+    text = re.sub(r'\s+', '_', text)
+    return text or 'بدون_اسم'
+
 
 GARDEN_NOTE_CHOICES = [
     'إصابة خارجية / Outside Infestation',
@@ -308,9 +318,14 @@ def garden_visit_report(request, pk):
                     logger.exception('Failed to add photo %s to garden visit archive', photo.pk)
     buffer.seek(0)
 
-    filename = f'garden_visit_{obj.pk}.zip'
+    area_part = _safe_filename_part(obj.area_name)
+    date_part = obj.visit_date.strftime('%Y-%m-%d') if obj.visit_date else 'بدون_تاريخ'
+    filename = f'{area_part}_{date_part}_{obj.pk}.zip'
+    ascii_fallback = filename.encode('ascii', 'ignore').decode('ascii') or f'garden_visit_{obj.pk}.zip'
     response = HttpResponse(buffer.getvalue(), content_type='application/zip')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response['Content-Disposition'] = (
+        f"attachment; filename=\"{ascii_fallback}\"; filename*=UTF-8''{quote(filename)}"
+    )
     return response
 
 
