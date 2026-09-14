@@ -9,6 +9,7 @@ Templates  : hcsd/garden_*.html
 import io
 import logging
 import os
+import zipfile
 from itertools import groupby
 
 from django.contrib.auth.decorators import login_required
@@ -252,130 +253,63 @@ def garden_detail(request, pk):
 
 @login_required
 def garden_visit_report(request, pk):
-    """Download a single Word document with a visit's full details and all
-    of its infestation-spot photos — for archiving one request at a time."""
+    """Download a ZIP archive with a visit's full details as a plain text
+    file plus every infestation-spot photo — for archiving one request."""
     obj = get_object_or_404(GardenVisit, pk=pk)
 
-    try:
-        from docx import Document
-        from docx.enum.text import WD_ALIGN_PARAGRAPH
-        from docx.oxml import OxmlElement
-        from docx.shared import Inches, Pt, RGBColor
-    except ImportError:
-        return HttpResponse('مكتبة python-docx غير مثبتة.', status=500)
-
-    doc = Document()
-
-    section = doc.sections[0]
-    section.page_width  = int(8.27 * 914400)
-    section.page_height = int(11.69 * 914400)
-    section.left_margin = section.right_margin = int(1 * 914400)
-    section.top_margin  = section.bottom_margin = int(1 * 914400)
-
-    def set_rtl(paragraph):
-        pPr = paragraph._p.get_or_add_pPr()
-        bidi = OxmlElement('w:bidi')
-        pPr.append(bidi)
-        paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-
-    def add_heading(text):
-        p = doc.add_paragraph()
-        set_rtl(p)
-        run = p.add_run(text)
-        run.bold = True
-        run.font.size = Pt(14)
-        run.font.color.rgb = RGBColor(0x1a, 0x3a, 0x5c)
-        return p
-
-    def add_field(label, value):
-        p = doc.add_paragraph()
-        set_rtl(p)
-        lbl = p.add_run(f'{label}: ')
-        lbl.bold = True
-        lbl.font.size = Pt(11)
-        val = p.add_run(str(value) if value not in (None, '') else '—')
-        val.font.size = Pt(11)
-
-    def add_section_title(text):
-        p = doc.add_paragraph()
-        set_rtl(p)
-        run = p.add_run(text)
-        run.bold = True
-        run.font.size = Pt(12)
-        run.font.color.rgb = RGBColor(0x2a, 0x6a, 0x9a)
-
-    title = doc.add_paragraph()
-    set_rtl(title)
-    t = title.add_run('تقرير زيارة متابعة المناطق')
-    t.bold = True
-    t.font.size = Pt(20)
-    t.font.color.rgb = RGBColor(0x1a, 0x3a, 0x5c)
-    doc.add_paragraph()
-
-    add_heading('بيانات الموقع')
-    add_field('اسم المنطقة', obj.area_name)
-    add_field('تفاصيل الموقع', obj.location_details)
-    add_field('تاريخ الزيارة', obj.visit_date.strftime('%d/%m/%Y') if obj.visit_date else None)
+    lines = [
+        'تقرير زيارة متابعة المناطق',
+        '=' * 30,
+        f'اسم المنطقة: {obj.area_name or "—"}',
+        f'تفاصيل الموقع: {obj.location_details or "—"}',
+        f'تاريخ الزيارة: {obj.visit_date.strftime("%d/%m/%Y") if obj.visit_date else "—"}',
+    ]
     if obj.latitude is not None and obj.longitude is not None:
-        add_field('الإحداثيات', f'{obj.latitude}, {obj.longitude}')
-        add_field(
-            'رابط خرائط قوقل',
-            obj.google_maps_url or f'https://www.google.com/maps?q={obj.latitude},{obj.longitude}',
-        )
+        lines.append(f'الإحداثيات: {obj.latitude}, {obj.longitude}')
+        maps_url = obj.google_maps_url or f'https://www.google.com/maps?q={obj.latitude},{obj.longitude}'
+        lines.append(f'رابط خرائط قوقل: {maps_url}')
     elif obj.google_maps_url:
-        add_field('رابط خرائط قوقل', obj.google_maps_url)
-    doc.add_paragraph()
+        lines.append(f'رابط خرائط قوقل: {obj.google_maps_url}')
 
-    add_heading('بيانات الإصابة')
-    add_field('مناهيل مصابة', obj.infested_manholes)
-    add_field('إصابة خارجية', obj.infested_outside)
-    add_field('إجمالي مباني مصابة', obj.total_infested_bldg)
+    lines += [
+        '',
+        'بيانات الإصابة',
+        '-' * 20,
+        f'مناهيل مصابة: {obj.infested_manholes if obj.infested_manholes is not None else "—"}',
+        f'إصابة خارجية: {obj.infested_outside if obj.infested_outside is not None else "—"}',
+        f'إجمالي مباني مصابة: {obj.total_infested_bldg if obj.total_infested_bldg is not None else "—"}',
+    ]
     if obj.infestation_type:
-        add_field('نوع الإصابة', obj.infestation_type_display)
+        lines.append(f'نوع الإصابة: {obj.infestation_type_display}')
     if obj.notes:
-        add_field('ملاحظات', obj.notes)
-    doc.add_paragraph()
-
-    # Photos are re-encoded to a capped resolution/quality before embedding —
-    # original phone-camera photos can be several MB each.
-    from PIL import Image, ImageOps
-    _PHOTO_MAX_DIM = 1000
-    _PHOTO_JPEG_QUALITY = 70
+        lines.append(f'ملاحظات: {obj.notes}')
 
     photos_qs = obj.photos.all()
+    spots = []
     if photos_qs:
-        add_heading('أماكن الإصابة')
+        lines += ['', 'أماكن الإصابة', '-' * 20]
         for spot_number, group in groupby(photos_qs, key=lambda p: p.spot_number):
             group = list(group)
-            add_section_title(f'مكان الإصابة {spot_number}')
-            if group[0].description:
-                desc = doc.add_paragraph(group[0].description)
-                set_rtl(desc)
-            for photo in group:
-                try:
-                    photo_path = photo.file.path
-                    if not os.path.exists(photo_path):
-                        continue
-                    with Image.open(photo_path) as img:
-                        img = ImageOps.exif_transpose(img).convert('RGB')
-                        img.thumbnail((_PHOTO_MAX_DIM, _PHOTO_MAX_DIM), Image.LANCZOS)
-                        photo_buf = io.BytesIO()
-                        img.save(photo_buf, format='JPEG', quality=_PHOTO_JPEG_QUALITY, optimize=True)
-                        photo_buf.seek(0)
-                    doc.add_picture(photo_buf, width=Inches(4.5))
-                except Exception:
-                    logger.exception('Failed to add photo %s to garden visit report', photo.pk)
-            doc.add_paragraph()
+            spots.append((spot_number, group))
+            desc = group[0].description or 'بدون وصف'
+            lines.append(f'مكان الإصابة {spot_number}: {desc} ({len(group)} صورة)')
 
     buffer = io.BytesIO()
-    doc.save(buffer)
+    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr('تفاصيل_الطلب.txt', ('\n'.join(lines)).encode('utf-8-sig'))
+        for spot_number, group in spots:
+            for i, photo in enumerate(group, start=1):
+                try:
+                    if not photo.file or not os.path.exists(photo.file.path):
+                        continue
+                    ext = os.path.splitext(photo.file.name)[1] or '.jpg'
+                    zf.write(photo.file.path, f'مكان الإصابة {spot_number}/صورة_{i}{ext}')
+                except Exception:
+                    logger.exception('Failed to add photo %s to garden visit archive', photo.pk)
     buffer.seek(0)
 
-    filename = f'garden_visit_{obj.pk}.docx'
-    response = HttpResponse(
-        buffer.getvalue(),
-        content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    )
+    filename = f'garden_visit_{obj.pk}.zip'
+    response = HttpResponse(buffer.getvalue(), content_type='application/zip')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
