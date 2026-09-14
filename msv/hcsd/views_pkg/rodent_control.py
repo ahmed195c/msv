@@ -20,7 +20,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from ..models import RodentControlBuilding, RodentControlVisit
-from .common import _can_admin, _can_data_entry, _can_rodent_control_monitor
+from .common import _can_admin, _can_data_entry, _can_rodent_control_monitor, _get_lang
 
 
 def _can_manage(user):
@@ -47,7 +47,7 @@ def _get_or_create_current_visit(building, today=None):
 
 @login_required
 def rodent_control_home(request):
-    return render(request, 'hcsd/rodent_control_home.html', {})
+    return render(request, 'hcsd/rodent_control_home.html', {'lang': _get_lang(request)})
 
 
 @login_required
@@ -78,6 +78,7 @@ def rodent_control_list(request):
         'period_start': period_start,
         'can_manage': _can_manage(request.user),
         'total_buildings': len(buildings),
+        'lang': _get_lang(request),
     })
 
 
@@ -86,6 +87,7 @@ def rodent_control_building_create(request):
     if not _can_manage(request.user):
         return redirect('rodent_control_list')
 
+    lang = _get_lang(request)
     errors = []
     if request.method == 'POST':
         name     = (request.POST.get('name') or '').strip()
@@ -95,7 +97,7 @@ def rodent_control_building_create(request):
         notes    = (request.POST.get('notes') or '').strip()
 
         if not name:
-            errors.append('يرجى إدخال اسم البناية.')
+            errors.append('Please enter the building name.' if lang == 'en' else 'يرجى إدخال اسم البناية.')
 
         if not errors:
             building = RodentControlBuilding.objects.create(
@@ -108,6 +110,7 @@ def rodent_control_building_create(request):
     return render(request, 'hcsd/rodent_control_building_create.html', {
         'errors': errors,
         'post': request.POST,
+        'lang': lang,
     })
 
 
@@ -242,6 +245,7 @@ def rodent_control_building_detail(request, pk):
         'current_visit': current_visit,
         'history': history,
         'can_manage': can_manage,
+        'lang': _get_lang(request),
     })
 
 

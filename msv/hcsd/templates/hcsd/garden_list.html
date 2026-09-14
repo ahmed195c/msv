@@ -1,5 +1,5 @@
 {% extends "hcsd/garden_base.html" %}
-{% block title %}متابعة المناطق{% endblock %}
+{% block title %}{% if lang == 'en' %}Area Follow-up{% else %}متابعة المناطق{% endif %}{% endblock %}
 {% block content %}
 <style>
 .gv-page { max-width: 1100px; margin: 0 auto; }
@@ -29,7 +29,7 @@
 .gv-search input {
   flex: 1; min-width: 0; max-width: 340px; padding: 8px 12px;
   border: 1.5px solid var(--line); border-radius: 8px;
-  font-family: inherit; font-size: 13.5px; direction: rtl;
+  font-family: inherit; font-size: 13.5px; direction: {% if lang == 'en' %}ltr{% else %}rtl{% endif %};
 }
 .gv-search input:focus { outline: none; border-color: var(--accent); }
 
@@ -136,34 +136,38 @@
 <div class="gv-page">
   <div class="gv-header">
     <div>
-      <h1>متابعة المناطق</h1>
-      <p>متابعة الإصابة بالقوارض في المناهيل والمناطق العامة</p>
+      <h1>{% if lang == 'en' %}Area Follow-up{% else %}متابعة المناطق{% endif %}</h1>
+      <p>{% if lang == 'en' %}Tracking rodent infestation in manholes and public areas{% else %}متابعة الإصابة بالقوارض في المناهيل والمناطق العامة{% endif %}</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       {% if can_add %}
-      <a href="{% url 'garden_create' %}" class="btn btn-primary">+ إضافة موقع جديد</a>
+      <a href="{% url 'garden_create' %}" class="btn btn-primary">+ {% if lang == 'en' %}Add New Location{% else %}إضافة موقع جديد{% endif %}</a>
       {% endif %}
     </div>
   </div>
 
   <form method="get" class="gv-search">
-    <input type="text" name="q" value="{{ query }}" placeholder="ابحث باسم المنطقة…">
+    <input type="text" name="q" value="{{ query }}" placeholder="{% if lang == 'en' %}Search by area name…{% else %}ابحث باسم المنطقة…{% endif %}">
     {% if show_reviewed %}<input type="hidden" name="reviewed" value="1">{% endif %}
-    <button type="submit" class="btn btn-outline">بحث</button>
+    <button type="submit" class="btn btn-outline">{% if lang == 'en' %}Search{% else %}بحث{% endif %}</button>
   </form>
 
   <div class="gv-review-tabs">
     <a href="?{% if query %}q={{ query }}&{% endif %}reviewed=0" class="gv-review-filter {% if not show_reviewed %}active{% endif %}">
-      لم تتم المراجعة ({{ pending_count }})
+      {% if lang == 'en' %}Not Reviewed{% else %}لم تتم المراجعة{% endif %} ({{ pending_count }})
     </a>
     <a href="?{% if query %}q={{ query }}&{% endif %}reviewed=1" class="gv-review-filter {% if show_reviewed %}active{% endif %}">
-      تمت المراجعة هذا الشهر ({{ reviewed_count }})
+      {% if lang == 'en' %}Reviewed This Month{% else %}تمت المراجعة هذا الشهر{% endif %} ({{ reviewed_count }})
     </a>
   </div>
 
   <div class="gv-count">
-    {{ total_count }} منطقة
-    {% if show_reviewed %}تمت مراجعتها هذا الشهر{% else %}بانتظار المراجعة هذا الشهر{% endif %}
+    {% if lang == 'en' %}
+      {{ total_count }} area{{ total_count|pluralize }} {% if show_reviewed %}reviewed this month{% else %}awaiting review this month{% endif %}
+    {% else %}
+      {{ total_count }} منطقة
+      {% if show_reviewed %}تمت مراجعتها هذا الشهر{% else %}بانتظار المراجعة هذا الشهر{% endif %}
+    {% endif %}
   </div>
 
   {% if rows %}
@@ -178,16 +182,16 @@
             <div class="gv-card__date">{{ row.visit_date|date:"d/m/Y" }}</div>
           </div>
           {% if row.infested_manholes or row.infested_outside or row.total_infested_bldg %}
-            <span class="gv-badge gv-badge--infested">بها إصابة</span>
+            <span class="gv-badge gv-badge--infested">{% if lang == 'en' %}Infested{% else %}بها إصابة{% endif %}</span>
           {% else %}
-            <span class="gv-badge gv-badge--ok">سليمة</span>
+            <span class="gv-badge gv-badge--ok">{% if lang == 'en' %}Clear{% else %}سليمة{% endif %}</span>
           {% endif %}
         </div>
 
         <div class="gv-card__stats">
-          <span>مناهيل مصابة: <b>{{ row.infested_manholes|default_if_none:"—" }}</b></span>
-          <span>إصابة خارجية: <b>{{ row.infested_outside|default_if_none:"—" }}</b></span>
-          <span>إجمالي مباني: <b>{{ row.total_infested_bldg|default_if_none:"—" }}</b></span>
+          <span>{% if lang == 'en' %}Infested Manholes{% else %}مناهيل مصابة{% endif %}: <b>{{ row.infested_manholes|default_if_none:"—" }}</b></span>
+          <span>{% if lang == 'en' %}Outside Infestation{% else %}إصابة خارجية{% endif %}: <b>{{ row.infested_outside|default_if_none:"—" }}</b></span>
+          <span>{% if lang == 'en' %}Total Buildings{% else %}إجمالي مباني{% endif %}: <b>{{ row.total_infested_bldg|default_if_none:"—" }}</b></span>
         </div>
 
         {% if row.notes %}<div class="gv-card__notes">{{ row.notes }}</div>{% endif %}
@@ -196,16 +200,16 @@
       <div class="gv-card__foot">
         <div class="gv-card__review">
           {% if row.review.is_reviewed %}
-            <span class="gv-review-badge gv-review-badge--yes">✓ تمت المراجعة</span>
+            <span class="gv-review-badge gv-review-badge--yes">✓ {% if lang == 'en' %}Reviewed{% else %}تمت المراجعة{% endif %}</span>
           {% else %}
-            <span class="gv-review-badge gv-review-badge--no">لم تتم المراجعة</span>
+            <span class="gv-review-badge gv-review-badge--no">{% if lang == 'en' %}Not Reviewed{% else %}لم تتم المراجعة{% endif %}</span>
           {% endif %}
           {% if can_manage and row.review %}
           <form method="post" action="{% url 'garden_area_review_toggle' row.review.pk %}">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <button type="submit" class="gv-review-btn">
-              {% if row.review.is_reviewed %}إلغاء{% else %}تحديد كمُراجَعة{% endif %}
+              {% if row.review.is_reviewed %}{% if lang == 'en' %}Undo{% else %}إلغاء{% endif %}{% else %}{% if lang == 'en' %}Mark Reviewed{% else %}تحديد كمُراجَعة{% endif %}{% endif %}
             </button>
           </form>
           {% endif %}
@@ -213,7 +217,7 @@
         {% if can_admin %}
         <form method="post" action="{% url 'garden_delete' row.pk %}" onsubmit="return false;">
           {% csrf_token %}
-          <button type="button" class="gv-delete-btn" title="حذف" aria-label="حذف" onclick="gvConfirmDelete(this)">
+          <button type="button" class="gv-delete-btn" title="{% if lang == 'en' %}Delete{% else %}حذف{% endif %}" aria-label="{% if lang == 'en' %}Delete{% else %}حذف{% endif %}" onclick="gvConfirmDelete(this)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
           </button>
         </form>
@@ -223,21 +227,21 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="gv-empty">لا توجد مواقع بعد.</div>
+  <div class="gv-empty">{% if lang == 'en' %}No locations yet.{% else %}لا توجد مواقع بعد.{% endif %}</div>
   {% endif %}
 
   {% if page_obj.has_other_pages %}
   <div class="gv-pagination">
     {% if page_obj.has_previous %}
-      <a class="gv-page-btn" href="?{% if query %}q={{ query }}&{% endif %}{% if show_reviewed %}reviewed=1&{% endif %}page={{ page_obj.previous_page_number }}">السابق</a>
+      <a class="gv-page-btn" href="?{% if query %}q={{ query }}&{% endif %}{% if show_reviewed %}reviewed=1&{% endif %}page={{ page_obj.previous_page_number }}">{% if lang == 'en' %}Previous{% else %}السابق{% endif %}</a>
     {% else %}
-      <span class="gv-page-btn gv-page-btn--disabled">السابق</span>
+      <span class="gv-page-btn gv-page-btn--disabled">{% if lang == 'en' %}Previous{% else %}السابق{% endif %}</span>
     {% endif %}
     <span class="gv-page-info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_next %}
-      <a class="gv-page-btn" href="?{% if query %}q={{ query }}&{% endif %}{% if show_reviewed %}reviewed=1&{% endif %}page={{ page_obj.next_page_number }}">التالي</a>
+      <a class="gv-page-btn" href="?{% if query %}q={{ query }}&{% endif %}{% if show_reviewed %}reviewed=1&{% endif %}page={{ page_obj.next_page_number }}">{% if lang == 'en' %}Next{% else %}التالي{% endif %}</a>
     {% else %}
-      <span class="gv-page-btn gv-page-btn--disabled">التالي</span>
+      <span class="gv-page-btn gv-page-btn--disabled">{% if lang == 'en' %}Next{% else %}التالي{% endif %}</span>
     {% endif %}
   </div>
   {% endif %}
@@ -248,11 +252,11 @@
     <div class="gv-modal__icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
     </div>
-    <div class="gv-modal__title" id="gvModalTitle">تأكيد الحذف</div>
-    <div class="gv-modal__text">هل أنت متأكد من حذف هذا الموقع؟ لا يمكن التراجع عن هذا الإجراء.</div>
+    <div class="gv-modal__title" id="gvModalTitle">{% if lang == 'en' %}Confirm Delete{% else %}تأكيد الحذف{% endif %}</div>
+    <div class="gv-modal__text">{% if lang == 'en' %}Are you sure you want to delete this location? This action cannot be undone.{% else %}هل أنت متأكد من حذف هذا الموقع؟ لا يمكن التراجع عن هذا الإجراء.{% endif %}</div>
     <div class="gv-modal__actions">
-      <button type="button" class="btn" onclick="gvCloseModal()">إلغاء</button>
-      <button type="button" class="btn btn-danger" onclick="gvDoDelete()">حذف</button>
+      <button type="button" class="btn" onclick="gvCloseModal()">{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+      <button type="button" class="btn btn-danger" onclick="gvDoDelete()">{% if lang == 'en' %}Delete{% else %}حذف{% endif %}</button>
     </div>
   </div>
 </div>

@@ -1,15 +1,15 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{% if lang == 'en' %}en{% else %}ar{% endif %}" dir="{% if lang == 'en' %}ltr{% else %}rtl{% endif %}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}متابعة المناطق{% endblock %} — بلدية الشارقة</title>
+  <title>{% block title %}{% if lang == 'en' %}Area Follow-up{% else %}متابعة المناطق{% endif %}{% endblock %} — {% if lang == 'en' %}Sharjah Municipality{% else %}بلدية الشارقة{% endif %}</title>
   <link rel="icon" type="image/png" href="{% static 'hcsd/shjmun-logo-website.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap"></noscript>
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap"></noscript>
   {% block extra_css %}{% endblock %}
 
 <style>
@@ -27,7 +27,8 @@
   --accent-dk:   #116430;
   --accent-lt:   #22a355;
   --accent-bg:   #eafbf1;
-  --sans: 'IBM Plex Sans Arabic', sans-serif;
+  --sans-ar: 'IBM Plex Sans Arabic', sans-serif;
+  --sans-en: 'IBM Plex Sans', sans-serif;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 8px;
@@ -36,15 +37,18 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { font-family: var(--sans); color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; }
+html {
+  font-family: {% if lang == 'en' %}var(--sans-en){% else %}var(--sans-ar){% endif %};
+  color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased;
+}
 
 body.app-shell {
   margin: 0;
-  font-family: var(--sans);
+  font-family: {% if lang == 'en' %}var(--sans-en){% else %}var(--sans-ar){% endif %};
   color: var(--ink);
   background: var(--surface);
-  direction: rtl;
-  text-align: right;
+  direction: {% if lang == 'en' %}ltr{% else %}rtl{% endif %};
+  text-align: {% if lang == 'en' %}left{% else %}right{% endif %};
   min-height: 100vh;
 }
 
@@ -67,11 +71,22 @@ body.app-shell {
   overflow-y: auto;
 }
 
-.sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 16px; text-decoration: none; }
+.sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 12px; text-decoration: none; }
 .sidebar-brand img { height: 30px; border-radius: 6px; }
 .sidebar-brand-label { display: flex; flex-direction: column; line-height: 1.25; }
 .sidebar-brand-name { font-size: 14px; font-weight: 700; color: var(--ink); }
 .sidebar-brand-sub  { font-size: 10.5px; font-weight: 500; color: var(--ink-4); }
+
+.lang-toggle {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 7px;
+  padding: 3px; margin-bottom: 14px; width: fit-content;
+}
+.lang-toggle__btn {
+  padding: 4px 12px; font-size: 11.5px; font-weight: 700; border-radius: 5px;
+  color: var(--ink-3); background: none; border: none; cursor: pointer; font-family: inherit;
+}
+.lang-toggle__btn.active { background: var(--accent); color: #fff; }
 
 .sidebar-search {
   display: flex; align-items: center; gap: 8px;
@@ -81,7 +96,8 @@ body.app-shell {
 .sidebar-search svg { width: 15px; height: 15px; color: var(--ink-4); flex-shrink: 0; }
 .sidebar-search input {
   border: none; background: none; outline: none; flex: 1; min-width: 0;
-  font-family: inherit; font-size: 13px; color: var(--ink); direction: rtl;
+  font-family: inherit; font-size: 13px; color: var(--ink);
+  direction: {% if lang == 'en' %}ltr{% else %}rtl{% endif %};
 }
 .sidebar-search input::placeholder { color: var(--ink-4); }
 
@@ -174,40 +190,55 @@ body.app-shell {
     <a href="{% url 'rodent_control_home' %}" class="sidebar-brand">
       <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="">
       <span class="sidebar-brand-label">
-        <span class="sidebar-brand-name">مكافحة القوارض بلدية الشارقة</span>
-        <span class="sidebar-brand-sub">قسم البيئة — بلدية الشارقة</span>
+        <span class="sidebar-brand-name">{% if lang == 'en' %}Rodent Control — Sharjah Municipality{% else %}مكافحة القوارض بلدية الشارقة{% endif %}</span>
+        <span class="sidebar-brand-sub">{% if lang == 'en' %}Environment Dept. — Sharjah Municipality{% else %}قسم البيئة — بلدية الشارقة{% endif %}</span>
       </span>
     </a>
 
+    <div class="lang-toggle">
+      <form method="post" action="{% url 'set_app_language' %}" style="display:contents;">
+        {% csrf_token %}
+        <input type="hidden" name="lang" value="ar">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="lang-toggle__btn {% if lang != 'en' %}active{% endif %}">عربي</button>
+      </form>
+      <form method="post" action="{% url 'set_app_language' %}" style="display:contents;">
+        {% csrf_token %}
+        <input type="hidden" name="lang" value="en">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="lang-toggle__btn {% if lang == 'en' %}active{% endif %}">EN</button>
+      </form>
+    </div>
+
     <form method="get" action="{% url 'garden_list' %}" class="sidebar-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" name="q" placeholder="بحث في المناطق…">
+      <input type="text" name="q" placeholder="{% if lang == 'en' %}Search areas…{% else %}بحث في المناطق…{% endif %}">
     </form>
 
     <nav class="sidebar-nav">
       {% if not nav_confined_role %}
       <a href="{% url 'portal_landing' %}" class="sidebar-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>
-        الرئيسية
+        {% if lang == 'en' %}Home{% else %}الرئيسية{% endif %}
       </a>
       {% endif %}
 
       <div class="sidebar-group">
         <button type="button" class="sidebar-group__toggle" onclick="this.parentElement.classList.toggle('collapsed')">
           <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
-          الأقسام
+          {% if lang == 'en' %}Sections{% else %}الأقسام{% endif %}
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="sidebar-group__items">
           {% if not nav_confined_role or nav_confined_role == 'rodent_control_monitor' %}
           <a href="{% url 'rodent_control_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'rodent_control_list' or request.resolver_match.url_name == 'rodent_control_building_detail' or request.resolver_match.url_name == 'rodent_control_building_create' %}active{% endif %}">
-            قائمة البنايات
+            {% if lang == 'en' %}Buildings{% else %}قائمة البنايات{% endif %}
             <span class="sidebar-badge">{{ nav_building_count|default:"" }}</span>
           </a>
           {% endif %}
           {% if not nav_confined_role or nav_confined_role == 'garden_monitor' or nav_confined_role == 'rodent_control_monitor' or nav_confined_role == 'garden_field_agent' %}
           <a href="{% url 'garden_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_list' or request.resolver_match.url_name == 'garden_create' or request.resolver_match.url_name == 'garden_detail' %}active{% endif %}">
-            متابعة المناطق
+            {% if lang == 'en' %}Area Follow-up{% else %}متابعة المناطق{% endif %}
             <span class="sidebar-badge">{{ nav_area_count|default:"" }}</span>
           </a>
           {% endif %}
@@ -219,7 +250,7 @@ body.app-shell {
 
       <a href="{% url 'rodent_control_monthly_excel' %}" class="sidebar-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        تقرير الشهر (Excel)
+        {% if lang == 'en' %}Monthly Report (Excel){% else %}تقرير الشهر (Excel){% endif %}
       </a>
       {% endif %}
     </nav>
@@ -229,7 +260,7 @@ body.app-shell {
     {% if not nav_confined_role %}
     <a href="{% url 'portal_landing' %}" class="sidebar-link sidebar-link--muted {% if request.resolver_match.url_name == 'portal_landing' %}active{% endif %}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-      الصفحة الرئيسية
+      {% if lang == 'en' %}Home Page{% else %}الصفحة الرئيسية{% endif %}
     </a>
     {% endif %}
 
@@ -242,7 +273,7 @@ body.app-shell {
       </div>
       <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
-        <button type="submit" class="sidebar-logout" title="تسجيل الخروج">
+        <button type="submit" class="sidebar-logout" title="{% if lang == 'en' %}Logout{% else %}تسجيل الخروج{% endif %}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
       </form>
