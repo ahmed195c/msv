@@ -1,5 +1,5 @@
 {% extends "hcsd/rodent_control_base.html" %}
-{% block title %}إضافة بناية جديدة{% endblock %}
+{% block title %}{% if lang == 'en' %}Add New Building{% else %}إضافة بناية جديدة{% endif %}{% endblock %}
 {% block content %}
 <style>
 .rc-form-page { max-width: 560px; margin: 0 auto; }
@@ -32,8 +32,8 @@
 </style>
 
 <div class="rc-form-page">
-  <h1>إضافة بناية جديدة</h1>
-  <p class="sub">ستبدأ متابعة المصيدة لهذه البناية من هذا الشهر.</p>
+  <h1>{% if lang == 'en' %}Add New Building{% else %}إضافة بناية جديدة{% endif %}</h1>
+  <p class="sub">{% if lang == 'en' %}Trap follow-up for this building will start this month.{% else %}ستبدأ متابعة المصيدة لهذه البناية من هذا الشهر.{% endif %}</p>
 
   {% if errors %}
     {% for e in errors %}<div class="rc-alert">{{ e }}</div>{% endfor %}
@@ -42,26 +42,26 @@
   <form method="post">
     {% csrf_token %}
     <div class="field-wrap">
-      <label>اسم البناية *</label>
+      <label>{% if lang == 'en' %}Building Name *{% else %}اسم البناية *{% endif %}</label>
       <input type="text" name="name" value="{{ post.name }}" required>
     </div>
     <div class="field-wrap">
-      <label>رقم البناية</label>
+      <label>{% if lang == 'en' %}Building Number{% else %}رقم البناية{% endif %}</label>
       <input type="text" name="number" value="{{ post.number }}">
     </div>
     <div class="field-wrap">
-      <label>المنطقة</label>
+      <label>{% if lang == 'en' %}Area{% else %}المنطقة{% endif %}</label>
       <input type="text" name="area" value="{{ post.area }}">
     </div>
     <div class="field-wrap">
-      <label>الموقع</label>
-      <input type="text" name="location" value="{{ post.location }}" placeholder="وصف الموقع…">
+      <label>{% if lang == 'en' %}Location{% else %}الموقع{% endif %}</label>
+      <input type="text" name="location" value="{{ post.location }}" placeholder="{% if lang == 'en' %}Location description…{% else %}وصف الموقع…{% endif %}">
     </div>
     <div class="field-wrap">
-      <label>ملاحظات</label>
+      <label>{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</label>
       <textarea name="notes">{{ post.notes }}</textarea>
     </div>
-    <button type="submit" class="btn btn-primary">إضافة البناية</button>
+    <button type="submit" class="btn btn-primary">{% if lang == 'en' %}Add Building{% else %}إضافة البناية{% endif %}</button>
   </form>
 </div>
 {% endblock %}

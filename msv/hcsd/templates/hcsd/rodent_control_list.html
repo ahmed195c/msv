@@ -1,5 +1,5 @@
 {% extends "hcsd/rodent_control_base.html" %}
-{% block title %}مكافحة القوارض{% endblock %}
+{% block title %}{% if lang == 'en' %}Rodent Control{% else %}مكافحة القوارض{% endif %}{% endblock %}
 {% block content %}
 <style>
 .rc-page { max-width: 1100px; margin: 0 auto; }
@@ -27,7 +27,7 @@
 .rc-search input {
   flex: 1; max-width: 340px; padding: 8px 12px;
   border: 1.5px solid var(--line); border-radius: 8px;
-  font-family: inherit; font-size: 13.5px; direction: rtl;
+  font-family: inherit; font-size: 13.5px; direction: {% if lang == 'en' %}ltr{% else %}rtl{% endif %};
 }
 .rc-search input:focus { outline: none; border-color: var(--accent); }
 
@@ -60,27 +60,27 @@
 <div class="rc-page">
   <div class="rc-header">
     <div>
-      <h1>مكافحة القوارض بلدية الشارقة</h1>
-      <p>متابعة مصايد القوارض داخل البنايات — شهر {{ period_start|date:"m/Y" }}</p>
+      <h1>{% if lang == 'en' %}Rodent Control — Sharjah Municipality{% else %}مكافحة القوارض بلدية الشارقة{% endif %}</h1>
+      <p>{% if lang == 'en' %}Tracking rodent traps inside buildings — {{ period_start|date:"m/Y" }}{% else %}متابعة مصايد القوارض داخل البنايات — شهر {{ period_start|date:"m/Y" }}{% endif %}</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <form method="get" action="{% url 'rodent_control_monthly_excel' %}" style="display:flex;gap:8px;">
         <input type="month" name="month" value="{{ period_start|date:'Y-m' }}"
                style="padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:13.5px;">
-        <button type="submit" class="btn btn-outline">تحميل تقرير الشهر</button>
+        <button type="submit" class="btn btn-outline">{% if lang == 'en' %}Download Monthly Report{% else %}تحميل تقرير الشهر{% endif %}</button>
       </form>
       {% if can_manage %}
-      <a href="{% url 'rodent_control_building_create' %}" class="btn btn-primary">+ إضافة بناية جديدة</a>
+      <a href="{% url 'rodent_control_building_create' %}" class="btn btn-primary">+ {% if lang == 'en' %}Add New Building{% else %}إضافة بناية جديدة{% endif %}</a>
       {% endif %}
     </div>
   </div>
 
   <form method="get" class="rc-search">
-    <input type="text" name="q" value="{{ query }}" placeholder="ابحث باسم البناية…">
-    <button type="submit" class="btn btn-outline">بحث</button>
+    <input type="text" name="q" value="{{ query }}" placeholder="{% if lang == 'en' %}Search by building name…{% else %}ابحث باسم البناية…{% endif %}">
+    <button type="submit" class="btn btn-outline">{% if lang == 'en' %}Search{% else %}بحث{% endif %}</button>
   </form>
 
-  <div class="rc-count">{{ total_buildings }} بناية قيد المتابعة</div>
+  <div class="rc-count">{{ total_buildings }} {% if lang == 'en' %}building{{ total_buildings|pluralize }} under follow-up{% else %}بناية قيد المتابعة{% endif %}</div>
 
   {% if rows %}
   <div class="rc-grid">
@@ -89,24 +89,24 @@
       <div class="rc-card__name">{{ row.building.name }}</div>
       <div class="rc-card__meta">
         {% if row.building.area %}{{ row.building.area }}{% endif %}
-        {% if row.building.number %} — رقم {{ row.building.number }}{% endif %}
+        {% if row.building.number %} — {% if lang == 'en' %}No.{% else %}رقم{% endif %} {{ row.building.number }}{% endif %}
       </div>
       {% with v=row.visit %}
         {% if not v or not v.visit_date %}
-          <span class="rc-badge rc-badge--pending">لم تتم الزيارة هذا الشهر</span>
+          <span class="rc-badge rc-badge--pending">{% if lang == 'en' %}Not Visited This Month{% else %}لم تتم الزيارة هذا الشهر{% endif %}</span>
         {% elif v.infested %}
-          <span class="rc-badge rc-badge--infested">بها إصابة</span>
+          <span class="rc-badge rc-badge--infested">{% if lang == 'en' %}Infested{% else %}بها إصابة{% endif %}</span>
         {% elif v.damaged %}
-          <span class="rc-badge rc-badge--damaged">مصيدة تالفة</span>
+          <span class="rc-badge rc-badge--damaged">{% if lang == 'en' %}Damaged Trap{% else %}مصيدة تالفة{% endif %}</span>
         {% else %}
-          <span class="rc-badge rc-badge--ok">سليمة</span>
+          <span class="rc-badge rc-badge--ok">{% if lang == 'en' %}Clear{% else %}سليمة{% endif %}</span>
         {% endif %}
       {% endwith %}
     </a>
     {% endfor %}
   </div>
   {% else %}
-  <div class="rc-empty">لا توجد بنايات قيد المتابعة حالياً.</div>
+  <div class="rc-empty">{% if lang == 'en' %}No buildings under follow-up currently.{% else %}لا توجد بنايات قيد المتابعة حالياً.{% endif %}</div>
   {% endif %}
 </div>
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends "hcsd/rodent_control_base.html" %}
-{% block title %}الرئيسية{% endblock %}
+{% block title %}{% if lang == 'en' %}Home{% else %}الرئيسية{% endif %}{% endblock %}
 {% block content %}
 <style>
 .rc-home-empty {
@@ -8,6 +8,6 @@
 .rc-home-empty p { font-size: 14px; margin-top: 8px; }
 </style>
 <div class="rc-home-empty">
-  <p>لا يوجد محتوى هنا بعد.</p>
+  <p>{% if lang == 'en' %}No content here yet.{% else %}لا يوجد محتوى هنا بعد.{% endif %}</p>
 </div>
 {% endblock %}
