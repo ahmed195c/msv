@@ -178,7 +178,7 @@ tr.row-selected{background:#eff6ff !important;}
     <a href="{% url 'field_work_list' %}?quick=received{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
        class="fw-quick {% if quick_filter == 'received' %}is-active{% endif %}">
       <span class="dot" style="{% if quick_filter != 'received' %}color:#166534;{% endif %}"></span>
-      <span class="t-ar">طلبات مسلَّمة</span><span class="t-en">Assigned Orders</span>
+      <span class="t-ar">قيد المتابعة</span><span class="t-en">In Progress</span>
     </a>
     <a href="{% url 'field_work_list' %}?quick=completed{% if search %}&q={{ search }}{% endif %}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}"
        class="fw-quick {% if quick_filter == 'completed' %}is-active{% endif %}">

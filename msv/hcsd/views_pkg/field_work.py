@@ -287,7 +287,7 @@ def field_work_list(request):
     elif status_filter != 'all':
         orders = orders.filter(status=status_filter)
     else:
-        # Orders with an assigned supervisor only appear under the "طلبات مسلَّمة" quick filter
+        # Orders with an assigned supervisor only appear under the "قيد المتابعة" quick filter
         orders = orders.exclude(status__in=['supervisor_assigned', 'order_received'])
 
     if source_filter != 'all':
