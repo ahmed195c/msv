@@ -2,14 +2,153 @@
 {% block title %}لوحة التحكم{% endblock %}
 {% block content %}
 <style>
-.fw-dash-empty {
-  text-align: center; padding: 80px 20px; color: var(--ink-3);
+.fw-dash { max-width: 1100px; margin: 0 auto; }
+.fw-dash-header { margin-bottom: 20px; }
+.fw-dash-header h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0; }
+.fw-dash-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+
+.fw-dash-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px; margin-bottom: 24px;
 }
-.fw-dash-empty svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: .5; }
-.fw-dash-empty p { font-size: 14px; margin-top: 8px; }
+.dash-tile {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 16px; border-top: 3px solid var(--tile-color, var(--accent));
+}
+.dash-tile__label { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-bottom: 6px; }
+.dash-tile__value { font-size: 28px; font-weight: 800; color: var(--ink); line-height: 1; margin-bottom: 8px; }
+.dash-tile__delta { font-size: 12px; font-weight: 700; color: var(--tile-color, var(--ink-3)); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.dash-tile__delta .arrow-up   { color: #1a7a3a; }
+.dash-tile__delta .arrow-down { color: #b03a1a; }
+.dash-tile__prev { font-size: 11px; font-weight: 500; color: var(--ink-4); }
+
+.dash-tile--new         { --tile-color: #1d4ed8; }
+.dash-tile--in_progress { --tile-color: #166534; }
+.dash-tile--completed   { --tile-color: #1a5c35; }
+.dash-tile--closed      { --tile-color: #6a6a6a; }
+.dash-tile--postponed   { --tile-color: #854d0e; }
+.dash-tile--total       { --tile-color: var(--accent); }
+
+.fw-dash-section {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 18px; margin-bottom: 16px;
+}
+.fw-dash-section h2 { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0 0 14px; }
+
+.area-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.area-bar-row:last-child { margin-bottom: 0; }
+.area-bar-row__label { font-size: 12.5px; font-weight: 600; color: var(--ink-2); width: 140px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.area-bar-row__track { flex: 1; height: 10px; background: var(--surface); border-radius: 6px; overflow: hidden; }
+.area-bar-row__fill { height: 100%; background: var(--accent); border-radius: 6px; }
+.area-bar-row__count { font-size: 12px; font-weight: 700; color: var(--ink); width: 28px; text-align: end; flex-shrink: 0; }
+
+.fw-dash-empty2 { text-align: center; padding: 20px; color: var(--ink-4); font-size: 13px; }
 </style>
-<div class="fw-dash-empty">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-  <p><span class="t-ar">قيد العمل</span><span class="t-en">Under Development</span></p>
+
+<div class="fw-dash">
+  <div class="fw-dash-header">
+    <h1><span class="t-ar">لوحة التحكم</span><span class="t-en">Dashboard</span></h1>
+    <p>
+      <span class="t-ar">شهر {{ this_month_start|date:"F Y" }} — مقارنة بشهر {{ last_month_start|date:"F Y" }}</span>
+      <span class="t-en">{{ this_month_start|date:"F Y" }} — compared to {{ last_month_start|date:"F Y" }}</span>
+    </p>
+  </div>
+
+  <div class="fw-dash-grid">
+    <div class="dash-tile dash-tile--total">
+      <div class="dash-tile__label"><span class="t-ar">إجمالي الطلبات</span><span class="t-en">Total Requests</span></div>
+      <div class="dash-tile__value">{{ this_counts.total }}</div>
+      <div class="dash-tile__delta">
+        {% if comparison.total.pct is not None %}
+          <span class="{% if comparison.total.diff > 0 %}arrow-up{% elif comparison.total.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.total.diff > 0 %}▲{% elif comparison.total.diff < 0 %}▼{% endif %} {{ comparison.total.pct|stringformat:"+d" }}%</span>
+        {% else %}
+          <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
+        {% endif %}
+        <span class="dash-tile__prev">(<span class="t-ar">الشهر الماضي: {{ last_counts.total }}</span><span class="t-en">last month: {{ last_counts.total }}</span>)</span>
+      </div>
+    </div>
+
+    <div class="dash-tile dash-tile--new">
+      <div class="dash-tile__label"><span class="t-ar">جديدة</span><span class="t-en">New</span></div>
+      <div class="dash-tile__value">{{ this_counts.new }}</div>
+      <div class="dash-tile__delta">
+        {% if comparison.new.pct is not None %}
+          <span class="{% if comparison.new.diff > 0 %}arrow-up{% elif comparison.new.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.new.diff > 0 %}▲{% elif comparison.new.diff < 0 %}▼{% endif %} {{ comparison.new.pct|stringformat:"+d" }}%</span>
+        {% else %}
+          <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
+        {% endif %}
+        <span class="dash-tile__prev">({{ last_counts.new }})</span>
+      </div>
+    </div>
+
+    <div class="dash-tile dash-tile--in_progress">
+      <div class="dash-tile__label"><span class="t-ar">قيد المتابعة</span><span class="t-en">In Progress</span></div>
+      <div class="dash-tile__value">{{ this_counts.in_progress }}</div>
+      <div class="dash-tile__delta">
+        {% if comparison.in_progress.pct is not None %}
+          <span class="{% if comparison.in_progress.diff > 0 %}arrow-up{% elif comparison.in_progress.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.in_progress.diff > 0 %}▲{% elif comparison.in_progress.diff < 0 %}▼{% endif %} {{ comparison.in_progress.pct|stringformat:"+d" }}%</span>
+        {% else %}
+          <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
+        {% endif %}
+        <span class="dash-tile__prev">({{ last_counts.in_progress }})</span>
+      </div>
+    </div>
+
+    <div class="dash-tile dash-tile--completed">
+      <div class="dash-tile__label"><span class="t-ar">منجزة</span><span class="t-en">Completed</span></div>
+      <div class="dash-tile__value">{{ this_counts.completed }}</div>
+      <div class="dash-tile__delta">
+        {% if comparison.completed.pct is not None %}
+          <span class="{% if comparison.completed.diff > 0 %}arrow-up{% elif comparison.completed.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.completed.diff > 0 %}▲{% elif comparison.completed.diff < 0 %}▼{% endif %} {{ comparison.completed.pct|stringformat:"+d" }}%</span>
+        {% else %}
+          <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
+        {% endif %}
+        <span class="dash-tile__prev">({{ last_counts.completed }})</span>
+      </div>
+    </div>
+
+    <div class="dash-tile dash-tile--closed">
+      <div class="dash-tile__label"><span class="t-ar">مغلقة</span><span class="t-en">Closed</span></div>
+      <div class="dash-tile__value">{{ this_counts.closed }}</div>
+      <div class="dash-tile__delta">
+        {% if comparison.closed.pct is not None %}
+          <span class="{% if comparison.closed.diff > 0 %}arrow-up{% elif comparison.closed.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.closed.diff > 0 %}▲{% elif comparison.closed.diff < 0 %}▼{% endif %} {{ comparison.closed.pct|stringformat:"+d" }}%</span>
+        {% else %}
+          <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
+        {% endif %}
+        <span class="dash-tile__prev">({{ last_counts.closed }})</span>
+      </div>
+    </div>
+
+    <div class="dash-tile dash-tile--postponed">
+      <div class="dash-tile__label"><span class="t-ar">مؤجلة</span><span class="t-en">Postponed</span></div>
+      <div class="dash-tile__value">{{ this_counts.postponed }}</div>
+      <div class="dash-tile__delta">
+        {% if comparison.postponed.pct is not None %}
+          <span class="{% if comparison.postponed.diff > 0 %}arrow-up{% elif comparison.postponed.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.postponed.diff > 0 %}▲{% elif comparison.postponed.diff < 0 %}▼{% endif %} {{ comparison.postponed.pct|stringformat:"+d" }}%</span>
+        {% else %}
+          <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
+        {% endif %}
+        <span class="dash-tile__prev">({{ last_counts.postponed }})</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="fw-dash-section">
+    <h2><span class="t-ar">الأكثر طلباً هذا الشهر (حسب المنطقة)</span><span class="t-en">Top Areas This Month</span></h2>
+    {% if top_areas %}
+      {% with max_n=top_areas.0.n %}
+      {% for row in top_areas %}
+      <div class="area-bar-row">
+        <div class="area-bar-row__label">{{ row.area }}</div>
+        <div class="area-bar-row__track"><div class="area-bar-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
+        <div class="area-bar-row__count">{{ row.n }}</div>
+      </div>
+      {% endfor %}
+      {% endwith %}
+    {% else %}
+      <div class="fw-dash-empty2"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

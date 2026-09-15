@@ -162,9 +162,69 @@ def _infer_status_from_excel(excel_status: str) -> str:
 # Dashboard
 # ---------------------------------------------------------------------------
 
+def _fw_status_counts(qs):
+    return {
+        'new':         qs.filter(status='new').count(),
+        'in_progress': qs.filter(status__in=['supervisor_assigned', 'order_received']).count(),
+        'completed':   qs.filter(status='completed').count(),
+        'closed':      qs.filter(status__in=_FW_TRULY_CLOSED).count(),
+        'postponed':   qs.filter(status='postponed_client').count(),
+    }
+
+
+def _fw_month_bounds(anchor):
+    start = anchor.replace(day=1)
+    end = anchor
+    return start, end
+
+
+def _fw_prev_month_bounds(this_month_start):
+    last_end = this_month_start - _dt.timedelta(days=1)
+    last_start = last_end.replace(day=1)
+    return last_start, last_end
+
+
+def _fw_delta(current, previous):
+    diff = current - previous
+    if previous == 0:
+        pct = None if diff == 0 else (100 if diff > 0 else -100)
+    else:
+        pct = round((diff / previous) * 100)
+    return {'diff': diff, 'pct': pct}
+
+
 @login_required
 def field_work_dashboard(request):
-    return render(request, 'hcsd/field_work_dashboard.html', {})
+    from django.db.models import Count
+
+    today = timezone.localdate()
+    this_start, this_end = _fw_month_bounds(today)
+    last_start, last_end = _fw_prev_month_bounds(this_start)
+
+    this_qs = FieldWorkOrder.objects.filter(created_at__date__gte=this_start, created_at__date__lte=this_end)
+    last_qs = FieldWorkOrder.objects.filter(created_at__date__gte=last_start, created_at__date__lte=last_end)
+
+    this_counts = _fw_status_counts(this_qs)
+    this_counts['total'] = this_qs.count()
+    last_counts = _fw_status_counts(last_qs)
+    last_counts['total'] = last_qs.count()
+
+    comparison = {key: _fw_delta(this_counts[key], last_counts[key]) for key in this_counts}
+
+    top_areas = list(
+        this_qs.exclude(area='').values('area')
+        .annotate(n=Count('id'))
+        .order_by('-n')[:5]
+    )
+
+    return render(request, 'hcsd/field_work_dashboard.html', {
+        'this_counts': this_counts,
+        'last_counts': last_counts,
+        'comparison': comparison,
+        'this_month_start': this_start,
+        'last_month_start': last_start,
+        'top_areas': top_areas,
+    })
 
 
 # ---------------------------------------------------------------------------
