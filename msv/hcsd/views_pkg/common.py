@@ -181,7 +181,7 @@ CONFINED_ROLE_PATH_PREFIXES = {
     'garden_monitor': ('/garden/',),
     'rodent_control_monitor': ('/rodent-control/', '/garden/'),
     'garden_field_agent': ('/garden/',),
-    'rodent_control_field_agent': ('/rodent-control/',),
+    'rodent_control_field_agent': ('/rodent-control/', '/garden/'),
 }
 CONFINED_ROLE_HOME_URL = {
     'garden_monitor': 'garden_list',

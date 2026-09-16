@@ -23,8 +23,8 @@ from django.views.decorators.http import require_POST
 
 from ..models import GARDEN_INFESTATION_TYPE_CHOICES, GardenAreaReview, GardenVisit, GardenVisitPhoto
 from .common import (
-    _can_admin, _can_data_entry, _can_field_agent, _can_garden_monitor, _can_rodent_control_monitor,
-    _get_lang,
+    _can_admin, _can_data_entry, _can_field_agent, _can_garden_monitor,
+    _can_rodent_control_field_agent, _can_rodent_control_monitor, _get_lang,
 )
 
 logger = logging.getLogger(__name__)
@@ -59,8 +59,8 @@ def _can_manage(user):
 
 def _can_add_garden(user):
     """Adding a new visit is allowed for everyone who can manage, plus the
-    field-agent role, which can ONLY add — not edit, delete, or review."""
-    return _can_manage(user) or _can_field_agent(user)
+    field-agent roles, which can ONLY add — not edit, delete, or review."""
+    return _can_manage(user) or _can_field_agent(user) or _can_rodent_control_field_agent(user)
 
 
 def _current_period_start():
