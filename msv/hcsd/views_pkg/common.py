@@ -31,7 +31,7 @@ GROUP_NAME_ALIASES = {
     'garden_monitor': ['garden_monitor', 'مراقب القوارض'],
     'rodent_control_monitor': ['rodent_control_monitor', 'مراقب المصائد'],
     'garden_field_agent': ['garden_field_agent', 'مصوّر ميداني'],
-    'rodent_control_field_agent': ['rodent_control_field_agent', 'مدخل بيانات المصائد'],
+    'rodent_control_field_agent': ['rodent_control_field_agent', 'مدخل بيانات مكافحة القوارض'],
 }
 ROLE_CAPABILITIES = {
     'admin': {
