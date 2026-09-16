@@ -20,11 +20,20 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from ..models import RodentControlBuilding, RodentControlVisit
-from .common import _can_admin, _can_data_entry, _can_rodent_control_monitor, _get_lang
+from .common import (
+    _can_admin, _can_data_entry, _can_rodent_control_field_agent,
+    _can_rodent_control_monitor, _get_lang,
+)
 
 
 def _can_manage(user):
     return _can_admin(user) or _can_data_entry(user) or _can_rodent_control_monitor(user)
+
+
+def _can_add_rodent_control(user):
+    """Data-entry-only role: can create buildings and record visits, but
+    cannot edit building info or toggle its active state."""
+    return _can_manage(user) or _can_rodent_control_field_agent(user)
 
 
 def _current_period_start(today=None):
@@ -77,6 +86,7 @@ def rodent_control_list(request):
         'query': query,
         'period_start': period_start,
         'can_manage': _can_manage(request.user),
+        'can_add': _can_add_rodent_control(request.user),
         'total_buildings': len(buildings),
         'lang': _get_lang(request),
     })
@@ -84,7 +94,7 @@ def rodent_control_list(request):
 
 @login_required
 def rodent_control_building_create(request):
-    if not _can_manage(request.user):
+    if not _can_add_rodent_control(request.user):
         return redirect('rodent_control_list')
 
     lang = _get_lang(request)
@@ -118,6 +128,7 @@ def rodent_control_building_create(request):
 def rodent_control_building_detail(request, pk):
     building = get_object_or_404(RodentControlBuilding, pk=pk)
     can_manage = _can_manage(request.user)
+    can_record_visit = can_manage or _can_rodent_control_field_agent(request.user)
 
     current_visit = _get_or_create_current_visit(building)
     history = list(
@@ -125,10 +136,12 @@ def rodent_control_building_detail(request, pk):
     )
 
     if request.method == 'POST':
-        if not can_manage:
-            return redirect('rodent_control_building_detail', pk=pk)
-
         action = request.POST.get('action', '')
+
+        if action == 'record_visit' and not can_record_visit:
+            return redirect('rodent_control_building_detail', pk=pk)
+        if action in ('update_building', 'toggle_active') and not can_manage:
+            return redirect('rodent_control_building_detail', pk=pk)
 
         if action == 'record_visit':
             def _int(name):
@@ -245,6 +258,7 @@ def rodent_control_building_detail(request, pk):
         'current_visit': current_visit,
         'history': history,
         'can_manage': can_manage,
+        'can_record_visit': can_record_visit,
         'lang': _get_lang(request),
     })
 

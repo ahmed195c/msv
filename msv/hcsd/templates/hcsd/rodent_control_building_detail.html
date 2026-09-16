@@ -160,7 +160,7 @@ details.rc-edit input, details.rc-edit textarea {
 
   <div class="rc-section">
     <h2>{% if lang == 'en' %}Visit for {{ current_visit.period_start|date:"m/Y" }}{% else %}زيارة شهر {{ current_visit.period_start|date:"m/Y" }}{% endif %}</h2>
-    {% if can_manage %}
+    {% if can_record_visit %}
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="action" value="record_visit">

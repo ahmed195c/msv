@@ -230,7 +230,7 @@ body.app-shell {
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="sidebar-group__items">
-          {% if not nav_confined_role or nav_confined_role == 'rodent_control_monitor' %}
+          {% if not nav_confined_role or nav_confined_role == 'rodent_control_monitor' or nav_confined_role == 'rodent_control_field_agent' %}
           <a href="{% url 'rodent_control_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'rodent_control_list' or request.resolver_match.url_name == 'rodent_control_building_detail' or request.resolver_match.url_name == 'rodent_control_building_create' %}active{% endif %}">
             {% if lang == 'en' %}Buildings{% else %}قائمة البنايات{% endif %}
             <span class="sidebar-badge">{{ nav_building_count|default:"" }}</span>
@@ -245,7 +245,7 @@ body.app-shell {
         </div>
       </div>
 
-      {% if not nav_confined_role or nav_confined_role == 'rodent_control_monitor' %}
+      {% if not nav_confined_role or nav_confined_role == 'rodent_control_monitor' or nav_confined_role == 'rodent_control_field_agent' %}
       <div class="sidebar-divider"></div>
 
       <a href="{% url 'rodent_control_monthly_excel' %}" class="sidebar-link">

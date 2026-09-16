@@ -31,6 +31,7 @@ GROUP_NAME_ALIASES = {
     'garden_monitor': ['garden_monitor', 'مراقب القوارض'],
     'rodent_control_monitor': ['rodent_control_monitor', 'مراقب المصائد'],
     'garden_field_agent': ['garden_field_agent', 'مصوّر ميداني'],
+    'rodent_control_field_agent': ['rodent_control_field_agent', 'مدخل بيانات المصائد'],
 }
 ROLE_CAPABILITIES = {
     'admin': {
@@ -44,6 +45,7 @@ ROLE_CAPABILITIES = {
     'garden_monitor': {'garden_monitor'},
     'rodent_control_monitor': {'rodent_control_monitor'},
     'garden_field_agent': {'garden_field_agent'},
+    'rodent_control_field_agent': {'rodent_control_field_agent'},
 }
 INSPECTION_REPORT_PHOTO_PREFIX = 'inspection_report_photo_'
 VEHICLE_INSPECTION_REPORT_PHOTO_PREFIX = 'vehicle_inspection_report_photo_'
@@ -179,11 +181,13 @@ CONFINED_ROLE_PATH_PREFIXES = {
     'garden_monitor': ('/garden/',),
     'rodent_control_monitor': ('/rodent-control/', '/garden/'),
     'garden_field_agent': ('/garden/',),
+    'rodent_control_field_agent': ('/rodent-control/',),
 }
 CONFINED_ROLE_HOME_URL = {
     'garden_monitor': 'garden_list',
     'rodent_control_monitor': 'rodent_control_list',
     'garden_field_agent': 'garden_list',
+    'rodent_control_field_agent': 'rodent_control_list',
 }
 
 
@@ -224,6 +228,8 @@ def _user_roles(user):
         roles.add('rodent_control_monitor')
     if group_names & set(GROUP_NAME_ALIASES['garden_field_agent']):
         roles.add('garden_field_agent')
+    if group_names & set(GROUP_NAME_ALIASES['rodent_control_field_agent']):
+        roles.add('rodent_control_field_agent')
     setattr(user, '_hcsd_roles_cache', roles)
     return roles
 
@@ -265,6 +271,10 @@ def _can_rodent_control_monitor(user):
 
 def _can_field_agent(user):
     return _has_capability(user, 'garden_field_agent')
+
+
+def _can_rodent_control_field_agent(user):
+    return _has_capability(user, 'rodent_control_field_agent')
 
 
 def _fw_supervisor_users_qs():

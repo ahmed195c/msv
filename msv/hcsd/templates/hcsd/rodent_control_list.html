@@ -69,7 +69,7 @@
                style="padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:13.5px;">
         <button type="submit" class="btn btn-outline">{% if lang == 'en' %}Download Monthly Report{% else %}تحميل تقرير الشهر{% endif %}</button>
       </form>
-      {% if can_manage %}
+      {% if can_add %}
       <a href="{% url 'rodent_control_building_create' %}" class="btn btn-primary">+ {% if lang == 'en' %}Add New Building{% else %}إضافة بناية جديدة{% endif %}</a>
       {% endif %}
     </div>
