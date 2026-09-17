@@ -136,6 +136,10 @@
     </div>
   </div>
 
+  {% if can_manage %}
+  <form method="post" id="gv-form">
+    {% csrf_token %}
+  {% endif %}
   <div class="gv-section">
     <h2>{% if lang == 'en' %}Location{% else %}الموقع{% endif %}</h2>
     {% if obj.latitude is not None and obj.longitude is not None %}
@@ -156,10 +160,8 @@
     {% endif %}
 
     {% if can_manage %}
-    <form method="post" id="gv-loc-form"
+    <div id="gv-loc-form"
           {% if obj.latitude is not None and obj.longitude is not None %}style="display:none;margin-top:14px;"{% else %}style="margin-top:14px;"{% endif %}>
-      {% csrf_token %}
-      <input type="hidden" name="action" value="save_location">
       <input type="hidden" name="latitude"  id="gv-loc-lat-inp"  value="{{ obj.latitude|default_if_none:'' }}">
       <input type="hidden" name="longitude" id="gv-loc-lng-inp" value="{{ obj.longitude|default_if_none:'' }}">
       <div class="field-wrap" style="margin-bottom:10px;">
@@ -177,15 +179,13 @@
         </button>
         <span id="gv-loc-gps-status" style="font-size:13px;font-weight:600;"></span>
       </div>
-    </form>
+    </div>
     {% endif %}
   </div>
 
   <div class="gv-section">
     <h2>{% if lang == 'en' %}Infestation Data{% else %}بيانات الإصابة{% endif %}</h2>
     {% if can_manage %}
-    <form method="post">
-      {% csrf_token %}
       <div class="stat-edit-grid">
         <div>
           <label class="stat-edit__label">{% if lang == 'en' %}Infested Manholes{% else %}مناهيل مصابة{% endif %}</label>
@@ -245,7 +245,6 @@
       <div class="gv-form-actions">
         <button type="submit" class="btn btn-primary">{% if lang == 'en' %}Save Update{% else %}حفظ التحديث{% endif %}</button>
       </div>
-    </form>
     {% else %}
     <div class="stat-view-grid">
       <div><div class="stat-view__label">{% if lang == 'en' %}Infested Manholes{% else %}مناهيل مصابة{% endif %}</div><div class="stat-view__val">{{ obj.infested_manholes|default_if_none:"—" }}</div></div>
@@ -266,6 +265,9 @@
     {% endif %}
     {% endif %}
   </div>
+  {% if can_manage %}
+  </form>
+  {% endif %}
 
   {% if photo_spots %}
   <div class="gv-section">
@@ -344,7 +346,7 @@ function captureGardenDetailLocation() {
   var status = document.getElementById('gv-loc-gps-status');
   var latInp = document.getElementById('gv-loc-lat-inp');
   var lngInp = document.getElementById('gv-loc-lng-inp');
-  var form   = document.getElementById('gv-loc-form');
+  var form   = document.getElementById('gv-form');
   if (!btn) return;
 
   if (!navigator.geolocation) {
