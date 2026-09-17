@@ -1,0 +1,81 @@
+{% extends "hcsd/garden_base.html" %}
+{% block title %}{% if lang == 'en' %}Change Log{% else %}سجل التغييرات{% endif %}{% endblock %}
+{% block content %}
+<style>
+.gcl-page { max-width: 760px; margin: 0 auto; }
+.gcl-header h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+.gcl-header p { font-size: 13px; color: var(--ink-3); margin: 0 0 18px; }
+
+.timeline { display: grid; gap: 0; }
+.tl-item { display: grid; grid-template-columns: 90px 20px 1fr; gap: 10px; }
+.tl-date { font-size: 11.5px; color: var(--ink-3); font-weight: 600; padding-top: 2px; text-align: end; }
+.tl-track { display: flex; justify-content: center; }
+.tl-track::before {
+  content: ''; width: 1.5px; background: var(--line); flex: 1;
+}
+.tl-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
+.tl-card { padding-bottom: 18px; }
+.tl-title { font-size: 13.5px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+.tl-meta { font-size: 12px; color: var(--ink-3); margin-bottom: 4px; }
+.tl-notes { font-size: 12.5px; color: var(--ink-2); }
+
+.gcl-badge {
+  display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px;
+  border-radius: 999px; margin-inline-start: 6px;
+}
+.gcl-badge--created { background: #eafbf1; color: #116430; }
+.gcl-badge--updated { background: #eef2ff; color: #1e3a8a; }
+.gcl-badge--location_updated { background: #fef9e7; color: #7a5b00; }
+.gcl-badge--review_toggled { background: #f3e8ff; color: #5b21b6; }
+.gcl-badge--deleted { background: #fef2f2; color: #991b1b; }
+
+.gcl-empty { text-align: center; padding: 40px; color: var(--ink-3); font-size: 14px; }
+
+.gcl-pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+.gcl-pagination a, .gcl-pagination span {
+  padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  border: 1.5px solid var(--line); color: var(--ink-2); text-decoration: none;
+}
+.gcl-pagination a:hover { background: var(--surface); }
+.gcl-pagination .current { background: var(--accent); color: #fff; border-color: var(--accent); }
+</style>
+
+<div class="gcl-page">
+  <div class="gcl-header">
+    <h1>{% if lang == 'en' %}Change Log{% else %}سجل التغييرات{% endif %}</h1>
+    <p>{% if lang == 'en' %}Every change made across areas and buildings — visible to admins only.{% else %}كل التغييرات اللي تصير على المناطق والبنايات — تظهر للإدمن فقط.{% endif %}</p>
+  </div>
+
+  {% if page_obj.object_list %}
+  <div class="timeline">
+    {% for log in page_obj.object_list %}
+    <div class="tl-item">
+      <div class="tl-date">{{ log.created_at|date:"d/m/Y" }}<br>{{ log.created_at|date:"H:i" }}</div>
+      <div class="tl-track"><div class="tl-dot"></div></div>
+      <div class="tl-card">
+        <div class="tl-title">
+          {% if log.visit %}<a href="{% url 'garden_detail' log.visit.pk %}">{{ log.area_name|default:"—" }}</a>{% else %}{{ log.area_name|default:"—" }}{% endif %}
+          <span class="gcl-badge gcl-badge--{{ log.action }}">{{ log.get_action_display }}</span>
+        </div>
+        <div class="tl-meta">
+          {% if log.changed_by %}{% if lang == 'en' %}By{% else %}بواسطة{% endif %} {{ log.changed_by.get_full_name|default:log.changed_by.username }}{% else %}{% if lang == 'en' %}By System{% else %}بواسطة النظام{% endif %}{% endif %}
+        </div>
+        {% if log.notes %}<div class="tl-notes">{{ log.notes }}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="gcl-pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">{% if lang == 'en' %}Previous{% else %}السابق{% endif %}</a>{% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">{% if lang == 'en' %}Next{% else %}التالي{% endif %}</a>{% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="gcl-empty">{% if lang == 'en' %}No changes recorded yet.{% else %}لا توجد تغييرات مسجّلة بعد.{% endif %}</div>
+  {% endif %}
+</div>
+{% endblock %}

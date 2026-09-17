@@ -1954,3 +1954,36 @@ class GardenVisitPhoto(models.Model):
 
     def __str__(self):
         return f"{self.garden_visit} — مكان {self.spot_number}"
+
+
+class GardenVisitChangeLog(models.Model):
+    """Audit trail for garden/area follow-up data — visible to admins only.
+    area_name is stored directly (not just via the FK) so the entry stays
+    meaningful even after its GardenVisit is deleted."""
+    ACTION_CHOICES = [
+        ('created', 'تمت الإضافة'),
+        ('updated', 'تحديث بيانات الإصابة'),
+        ('location_updated', 'تحديث الموقع'),
+        ('review_toggled', 'تغيير حالة المراجعة'),
+        ('deleted', 'تم الحذف'),
+    ]
+    visit = models.ForeignKey(
+        GardenVisit, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='change_logs',
+    )
+    area_name  = models.CharField(max_length=150, blank=True, verbose_name='اسم المنطقة')
+    action     = models.CharField(max_length=30, choices=ACTION_CHOICES, verbose_name='الإجراء')
+    notes      = models.TextField(blank=True, verbose_name='التفاصيل')
+    changed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='garden_change_logs',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='التاريخ')
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name        = 'سجل تغييرات المنطقة'
+        verbose_name_plural = 'سجل تغييرات المناطق'
+
+    def __str__(self):
+        return f"{self.area_name or 'بدون منطقة'} — {self.get_action_display()}"

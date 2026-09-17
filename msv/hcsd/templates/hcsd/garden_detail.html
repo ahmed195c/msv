@@ -102,6 +102,17 @@
   width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px;
   border: 1px solid var(--line); display: block;
 }
+
+.timeline { display: grid; gap: 0; }
+.tl-item { display: grid; grid-template-columns: 90px 20px 1fr; gap: 10px; }
+.tl-date { font-size: 11.5px; color: var(--ink-3); font-weight: 600; padding-top: 2px; text-align: end; }
+.tl-track { display: flex; justify-content: center; }
+.tl-track::before { content: ''; width: 1.5px; background: var(--line); flex: 1; }
+.tl-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
+.tl-card { padding-bottom: 16px; }
+.tl-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+.tl-meta { font-size: 11.5px; color: var(--ink-3); margin-bottom: 4px; }
+.tl-notes { font-size: 12.5px; color: var(--ink-2); }
 </style>
 
 <div class="gv-page">
@@ -276,6 +287,31 @@
       </div>
       {% endfor %}
     </div>
+  </div>
+  {% endif %}
+
+  {% if can_admin %}
+  <div class="gv-section">
+    <h2>{% if lang == 'en' %}Change Log{% else %}سجل التغييرات{% endif %}</h2>
+    {% if change_logs %}
+    <div class="timeline">
+      {% for log in change_logs %}
+      <div class="tl-item">
+        <div class="tl-date">{{ log.created_at|date:"d/m/Y" }}<br>{{ log.created_at|date:"H:i" }}</div>
+        <div class="tl-track"><div class="tl-dot"></div></div>
+        <div class="tl-card">
+          <div class="tl-title">{{ log.get_action_display }}</div>
+          <div class="tl-meta">
+            {% if log.changed_by %}{% if lang == 'en' %}By{% else %}بواسطة{% endif %} {{ log.changed_by.get_full_name|default:log.changed_by.username }}{% else %}{% if lang == 'en' %}By System{% else %}بواسطة النظام{% endif %}{% endif %}
+          </div>
+          {% if log.notes %}<div class="tl-notes">{{ log.notes }}</div>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:20px;color:var(--ink-4);font-size:13px;">{% if lang == 'en' %}No changes recorded yet.{% else %}لا توجد تغييرات مسجّلة بعد.{% endif %}</div>
+    {% endif %}
   </div>
   {% endif %}
 </div>

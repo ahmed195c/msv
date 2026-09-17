@@ -253,6 +253,12 @@ body.app-shell {
         {% if lang == 'en' %}Monthly Report (Excel){% else %}تقرير الشهر (Excel){% endif %}
       </a>
       {% endif %}
+      {% if nav_is_admin %}
+      <a href="{% url 'garden_change_log' %}" class="sidebar-link {% if request.resolver_match.url_name == 'garden_change_log' %}active{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+        {% if lang == 'en' %}Change Log{% else %}سجل التغييرات{% endif %}
+      </a>
+      {% endif %}
     </nav>
 
     <div class="sidebar-spacer"></div>

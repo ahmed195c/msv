@@ -21,7 +21,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from ..models import GARDEN_INFESTATION_TYPE_CHOICES, GardenAreaReview, GardenVisit, GardenVisitPhoto
+from ..models import (
+    GARDEN_INFESTATION_TYPE_CHOICES, GardenAreaReview, GardenVisit,
+    GardenVisitChangeLog, GardenVisitPhoto,
+)
 from .common import (
     _can_admin, _can_data_entry, _can_field_agent, _can_garden_monitor,
     _can_rodent_control_field_agent, _can_rodent_control_monitor, _get_lang,
@@ -61,6 +64,16 @@ def _can_add_garden(user):
     """Adding a new visit is allowed for everyone who can manage, plus the
     field-agent roles, which can ONLY add — not edit, delete, or review."""
     return _can_manage(user) or _can_field_agent(user) or _can_rodent_control_field_agent(user)
+
+
+def _log_garden_change(user, action, notes='', visit=None, area_name=''):
+    GardenVisitChangeLog.objects.create(
+        visit=visit,
+        area_name=area_name or (visit.area_name if visit else ''),
+        action=action,
+        notes=notes,
+        changed_by=user if user and user.is_authenticated else None,
+    )
 
 
 def _current_period_start():
@@ -169,6 +182,7 @@ def garden_create(request):
                 infestation_type=_infestation_type_from_post(request),
                 created_by=request.user,
             )
+            _log_garden_change(request.user, 'created', notes='تمت إضافة موقع جديد.', visit=obj)
 
             # Each "spot_photos_<N>" / "spot_description_<N>" pair is one
             # infestation spot — a visit can have several, each with its
@@ -227,12 +241,33 @@ def garden_detail(request, pk):
                 return None
 
         if request.POST.get('action') == 'save_location':
+            old_lat, old_lng = obj.latitude, obj.longitude
+            old_url, old_details = obj.google_maps_url, obj.location_details
+
             obj.latitude         = _float('latitude')
             obj.longitude        = _float('longitude')
             obj.google_maps_url  = (request.POST.get('google_maps_url') or '').strip()
             obj.location_details = (request.POST.get('location_details') or '').strip()
             obj.save(update_fields=['latitude', 'longitude', 'google_maps_url', 'location_details'])
+
+            changed_parts = []
+            if (old_lat, old_lng) != (obj.latitude, obj.longitude):
+                changed_parts.append('الإحداثيات')
+            if old_url != obj.google_maps_url:
+                changed_parts.append('رابط خرائط قوقل')
+            if old_details != obj.location_details:
+                changed_parts.append('تفاصيل الموقع')
+            if changed_parts:
+                _log_garden_change(
+                    request.user, 'location_updated', visit=obj,
+                    notes='تم تحديث: ' + '، '.join(changed_parts),
+                )
         else:
+            old_manholes, old_outside, old_bldg = (
+                obj.infested_manholes, obj.infested_outside, obj.total_infested_bldg,
+            )
+            old_notes, old_type = obj.notes, obj.infestation_type
+
             obj.infested_manholes    = _int('infested_manholes')
             obj.infested_outside     = _int('infested_outside')
             obj.total_infested_bldg  = _int('total_infested_bldg')
@@ -242,6 +277,23 @@ def garden_detail(request, pk):
                 'infested_manholes', 'infested_outside', 'total_infested_bldg',
                 'notes', 'infestation_type',
             ])
+
+            def _fmt(value):
+                return '—' if value is None else str(value)
+
+            diff_parts = []
+            if old_manholes != obj.infested_manholes:
+                diff_parts.append(f'مناهيل مصابة: {_fmt(old_manholes)} ← {_fmt(obj.infested_manholes)}')
+            if old_outside != obj.infested_outside:
+                diff_parts.append(f'إصابة خارجية: {_fmt(old_outside)} ← {_fmt(obj.infested_outside)}')
+            if old_bldg != obj.total_infested_bldg:
+                diff_parts.append(f'إجمالي مباني مصابة: {_fmt(old_bldg)} ← {_fmt(obj.total_infested_bldg)}')
+            if old_notes != obj.notes:
+                diff_parts.append('تم تعديل الملاحظات')
+            if old_type != obj.infestation_type:
+                diff_parts.append('تم تعديل نوع الإصابة')
+            if diff_parts:
+                _log_garden_change(request.user, 'updated', visit=obj, notes='، '.join(diff_parts))
 
             # Updating the infestation data for an area counts as reviewing
             # it for this month — no need for a separate manual step.
@@ -264,13 +316,20 @@ def garden_detail(request, pk):
             'photos': group,
         })
 
+    can_admin = _can_admin(request.user)
+    change_logs = (
+        list(obj.change_logs.select_related('changed_by').order_by('-created_at'))
+        if can_admin else []
+    )
+
     return render(request, 'hcsd/garden_detail.html', {
         'obj': obj,
         'can_manage': can_manage,
-        'can_admin': _can_admin(request.user),
+        'can_admin': can_admin,
         'note_choices': GARDEN_NOTE_CHOICES,
         'infestation_type_choices': GARDEN_INFESTATION_TYPE_CHOICES,
         'photo_spots': photo_spots,
+        'change_logs': change_logs,
         'lang': _get_lang(request),
     })
 
@@ -350,6 +409,7 @@ def garden_delete(request, pk):
     if not _can_admin(request.user):
         return HttpResponseForbidden()
 
+    _log_garden_change(request.user, 'deleted', notes='تم حذف الموقع.', visit=obj)
     obj.delete()
     return redirect('garden_list')
 
@@ -366,7 +426,27 @@ def garden_area_review_toggle(request, pk):
     review.reviewed_at = timezone.now() if review.is_reviewed else None
     review.save(update_fields=['is_reviewed', 'reviewed_by', 'reviewed_at'])
 
+    _log_garden_change(
+        request.user, 'review_toggled', area_name=review.area_name,
+        notes='تمت مراجعة المنطقة.' if review.is_reviewed else 'تم إلغاء تعليم المراجعة.',
+    )
+
     next_url = request.POST.get('next') or ''
     if next_url.startswith('/garden/'):
         return redirect(next_url)
     return redirect('garden_list')
+
+
+@login_required
+def garden_change_log(request):
+    if not _can_admin(request.user):
+        return redirect('garden_list')
+
+    logs_qs = GardenVisitChangeLog.objects.select_related('changed_by', 'visit').order_by('-created_at')
+    paginator = Paginator(logs_qs, 50)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'hcsd/garden_change_log.html', {
+        'page_obj': page_obj,
+        'lang': _get_lang(request),
+    })

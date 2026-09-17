@@ -54,7 +54,7 @@ from .rodent_control import (
 from .campaign import campaign_list, campaign_create, campaign_detail, campaign_delete, campaign_report_excel
 from .garden import (
     garden_list, garden_create, garden_detail, garden_delete,
-    garden_area_review_toggle, garden_visit_report,
+    garden_area_review_toggle, garden_visit_report, garden_change_log,
 )
 
 __all__ = [
@@ -90,6 +90,6 @@ __all__ = [
     'rodent_control_monthly_excel',
     'campaign_list', 'campaign_create', 'campaign_detail', 'campaign_delete', 'campaign_report_excel',
     'garden_list', 'garden_create', 'garden_detail', 'garden_delete',
-    'garden_area_review_toggle', 'garden_visit_report',
+    'garden_area_review_toggle', 'garden_visit_report', 'garden_change_log',
     'all_requests', 'bulk_assign_requests',
 ]
