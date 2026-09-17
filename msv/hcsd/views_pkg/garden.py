@@ -240,6 +240,9 @@ def garden_detail(request, pk):
             except ValueError:
                 return None
 
+        def _fmt_text(value):
+            return value if value else 'بدون'
+
         if request.POST.get('action') == 'save_location':
             old_lat, old_lng = obj.latitude, obj.longitude
             old_url, old_details = obj.google_maps_url, obj.location_details
@@ -250,18 +253,20 @@ def garden_detail(request, pk):
             obj.location_details = (request.POST.get('location_details') or '').strip()
             obj.save(update_fields=['latitude', 'longitude', 'google_maps_url', 'location_details'])
 
+            def _fmt_coord(lat, lng):
+                return f'{lat:.5f}, {lng:.5f}' if lat is not None and lng is not None else 'بدون'
+
             changed_parts = []
             if (old_lat, old_lng) != (obj.latitude, obj.longitude):
-                changed_parts.append('الإحداثيات')
-            if old_url != obj.google_maps_url:
-                changed_parts.append('رابط خرائط قوقل')
-            if old_details != obj.location_details:
-                changed_parts.append('تفاصيل الموقع')
-            if changed_parts:
-                _log_garden_change(
-                    request.user, 'location_updated', visit=obj,
-                    notes='تم تحديث: ' + '، '.join(changed_parts),
+                changed_parts.append(
+                    f'الإحداثيات: {_fmt_coord(old_lat, old_lng)} ← {_fmt_coord(obj.latitude, obj.longitude)}'
                 )
+            if old_url != obj.google_maps_url:
+                changed_parts.append(f'رابط خرائط قوقل: {_fmt_text(old_url)} ← {_fmt_text(obj.google_maps_url)}')
+            if old_details != obj.location_details:
+                changed_parts.append(f'تفاصيل الموقع: {_fmt_text(old_details)} ← {_fmt_text(obj.location_details)}')
+            if changed_parts:
+                _log_garden_change(request.user, 'location_updated', visit=obj, notes='\n'.join(changed_parts))
         else:
             old_manholes, old_outside, old_bldg = (
                 obj.infested_manholes, obj.infested_outside, obj.total_infested_bldg,
@@ -289,11 +294,20 @@ def garden_detail(request, pk):
             if old_bldg != obj.total_infested_bldg:
                 diff_parts.append(f'إجمالي مباني مصابة: {_fmt(old_bldg)} ← {_fmt(obj.total_infested_bldg)}')
             if old_notes != obj.notes:
-                diff_parts.append('تم تعديل الملاحظات')
+                diff_parts.append(f'الملاحظات: {_fmt_text(old_notes)} ← {_fmt_text(obj.notes)}')
             if old_type != obj.infestation_type:
-                diff_parts.append('تم تعديل نوع الإصابة')
+                type_lookup = dict(GARDEN_INFESTATION_TYPE_CHOICES)
+                old_codes = {c for c in (old_type or '').split(',') if c}
+                new_codes = {c for c in (obj.infestation_type or '').split(',') if c}
+                added, removed = new_codes - old_codes, old_codes - new_codes
+                type_bits = []
+                if added:
+                    type_bits.append('أُضيف: ' + '، '.join(type_lookup.get(c, c) for c in added))
+                if removed:
+                    type_bits.append('أُزيل: ' + '، '.join(type_lookup.get(c, c) for c in removed))
+                diff_parts.append('نوع الإصابة — ' + ' / '.join(type_bits))
             if diff_parts:
-                _log_garden_change(request.user, 'updated', visit=obj, notes='، '.join(diff_parts))
+                _log_garden_change(request.user, 'updated', visit=obj, notes='\n'.join(diff_parts))
 
             # Updating the infestation data for an area counts as reviewing
             # it for this month — no need for a separate manual step.
