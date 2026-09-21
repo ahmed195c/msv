@@ -164,7 +164,10 @@ def _infer_status_from_excel(excel_status: str) -> str:
 
 def _fw_status_counts(qs):
     return {
-        'new':         qs.filter(status='new').count(),
+        # "New" means newly created in the period, not "still sitting in the
+        # new/unassigned status" — a request created this month but already
+        # assigned or completed still counts as a new request this month.
+        'new':         qs.count(),
         'in_progress': qs.filter(status__in=['supervisor_assigned', 'order_received']).count(),
         'completed':   qs.filter(status='completed').count(),
         'closed':      qs.filter(status__in=_FW_TRULY_CLOSED).count(),
