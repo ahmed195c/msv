@@ -3,7 +3,7 @@
 {% block content %}
 <style>
 .fw-dash { max-width: 1100px; margin: 0 auto; }
-.fw-dash-header { margin-bottom: 20px; }
+.fw-dash-header { margin-bottom: 22px; }
 .fw-dash-header h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0; }
 .fw-dash-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
 
@@ -12,8 +12,9 @@
   gap: 12px; margin-bottom: 24px;
 }
 .dash-tile {
-  background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
   padding: 16px; border-top: 3px solid var(--tile-color, var(--accent));
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
 }
 .dash-tile__label { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-bottom: 6px; }
 .dash-tile__value { font-size: 28px; font-weight: 800; color: var(--ink); line-height: 1; margin-bottom: 8px; }
@@ -29,28 +30,41 @@
 .dash-tile--postponed   { --tile-color: #854d0e; }
 .dash-tile--total       { --tile-color: var(--accent); }
 
+/* --- Ranked-list panels (Top Areas / Pest Types / Pesticides) --- */
 .fw-dash-section {
-  background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px;
-  padding: 18px; margin-bottom: 16px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+  padding: 20px 22px; margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
 }
-.fw-dash-section h2 { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0 0 14px; }
+.fw-dash-section--areas      { --sec-color: var(--accent); --sec-bg: var(--accent-bg); }
+.fw-dash-section--pests      { --sec-color: #c2410c; --sec-bg: #fdf1e9; }
+.fw-dash-section--pesticides { --sec-color: #0f766e; --sec-bg: #eafaf7; }
 
-.area-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.area-bar-row:last-child { margin-bottom: 0; }
-.area-bar-row__label { font-size: 12.5px; font-weight: 600; color: var(--ink-2); width: 140px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.area-bar-row__track { flex: 1; height: 10px; background: var(--surface); border-radius: 6px; overflow: hidden; }
-.area-bar-row__fill { height: 100%; background: var(--accent); border-radius: 6px; }
-.area-bar-row__count { font-size: 12px; font-weight: 700; color: var(--ink); width: 28px; text-align: end; flex-shrink: 0; }
+.fw-dash-section__head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.fw-dash-section__icon {
+  width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--sec-bg); color: var(--sec-color);
+}
+.fw-dash-section__icon svg { width: 16px; height: 16px; }
+.fw-dash-section h2 { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0; }
+.fw-dash-section__sub { font-size: 11.5px; color: var(--ink-4); margin: 1px 0 0; font-weight: 500; }
+
+.rank-row { margin-bottom: 14px; }
+.rank-row:last-child { margin-bottom: 0; }
+.rank-row__top { display: flex; align-items: center; gap: 10px; }
+.rank-row__name { font-size: 13px; font-weight: 700; color: var(--ink); width: 160px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-row__track { flex: 1; height: 8px; border-radius: 999px; background: var(--surface); overflow: hidden; }
+.rank-row__fill { height: 100%; border-radius: 999px; background: var(--sec-color); }
+.rank-row__count { font-size: 13px; font-weight: 800; color: var(--sec-color); width: 24px; text-align: end; flex-shrink: 0; }
+.rank-row__area {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--ink-4); font-weight: 600;
+  margin-top: 6px; margin-inline-start: 170px;
+}
+.rank-row__area svg { width: 11px; height: 11px; flex-shrink: 0; }
 
 .fw-dash-empty2 { text-align: center; padding: 20px; color: var(--ink-4); font-size: 13px; }
-
-.class-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.class-bar-row:last-child { margin-bottom: 0; }
-.class-bar-row__label { font-size: 12.5px; font-weight: 600; color: var(--ink-2); width: 170px; flex-shrink: 0; }
-.class-bar-row__sub { font-size: 11px; font-weight: 500; color: var(--ink-4); margin-top: 2px; }
-.class-bar-row__track { flex: 1; height: 10px; background: var(--surface); border-radius: 6px; overflow: hidden; }
-.class-bar-row__fill { height: 100%; background: var(--accent); border-radius: 6px; }
-.class-bar-row__count { font-size: 12px; font-weight: 700; color: var(--ink); width: 28px; text-align: end; flex-shrink: 0; }
 </style>
 
 <div class="fw-dash">
@@ -142,15 +156,25 @@
     </div>
   </div>
 
-  <div class="fw-dash-section">
-    <h2><span class="t-ar">الأكثر طلباً هذا الشهر (حسب المنطقة)</span><span class="t-en">Top Areas This Month</span></h2>
+  <div class="fw-dash-section fw-dash-section--areas">
+    <div class="fw-dash-section__head">
+      <div class="fw-dash-section__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <div>
+        <h2><span class="t-ar">الأكثر طلباً هذا الشهر</span><span class="t-en">Top Areas This Month</span></h2>
+        <p class="fw-dash-section__sub"><span class="t-ar">حسب عدد الطلبات لكل منطقة</span><span class="t-en">By number of requests per area</span></p>
+      </div>
+    </div>
     {% if top_areas %}
       {% with max_n=top_areas.0.n %}
       {% for row in top_areas %}
-      <div class="area-bar-row">
-        <div class="area-bar-row__label">{{ row.area }}</div>
-        <div class="area-bar-row__track"><div class="area-bar-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
-        <div class="area-bar-row__count">{{ row.n }}</div>
+      <div class="rank-row">
+        <div class="rank-row__top">
+          <span class="rank-row__name">{{ row.area }}</span>
+          <div class="rank-row__track"><div class="rank-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
+          <span class="rank-row__count">{{ row.n }}</span>
+        </div>
       </div>
       {% endfor %}
       {% endwith %}
@@ -159,18 +183,29 @@
     {% endif %}
   </div>
 
-  <div class="fw-dash-section">
-    <h2><span class="t-ar">أكثر أنواع الآفات طلباً هذا الشهر</span><span class="t-en">Top Pest Types This Month</span></h2>
+  <div class="fw-dash-section fw-dash-section--pests">
+    <div class="fw-dash-section__head">
+      <div class="fw-dash-section__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4Z"/><path d="M6 9c0-1 1-2 2-2M18 9c0-1-1-2-2-2"/><path d="M8 10v9a4 4 0 0 0 8 0v-9"/><path d="M4 12h3M17 12h3M5 16h2.5M16.5 16H19M6 20l2-2M18 20l-2-2"/></svg>
+      </div>
+      <div>
+        <h2><span class="t-ar">أكثر أنواع الآفات طلباً</span><span class="t-en">Top Pest Types</span></h2>
+        <p class="fw-dash-section__sub"><span class="t-ar">هذا الشهر، مع المنطقة الأكثر تكراراً لكل نوع</span><span class="t-en">This month, with the most common area per type</span></p>
+      </div>
+    </div>
     {% if top_pests %}
       {% with max_n=top_pests.0.n %}
       {% for row in top_pests %}
-      <div class="class-bar-row">
-        <div class="class-bar-row__label">
-          {{ row.name }}
-          <div class="class-bar-row__sub"><span class="t-ar">الأكثر في: </span><span class="t-en">Most in: </span>{{ row.top_area }}</div>
+      <div class="rank-row">
+        <div class="rank-row__top">
+          <span class="rank-row__name">{{ row.name }}</span>
+          <div class="rank-row__track"><div class="rank-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
+          <span class="rank-row__count">{{ row.n }}</span>
         </div>
-        <div class="class-bar-row__track"><div class="class-bar-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
-        <div class="class-bar-row__count">{{ row.n }}</div>
+        <div class="rank-row__area">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>{{ row.top_area }}</span>
+        </div>
       </div>
       {% endfor %}
       {% endwith %}
@@ -179,18 +214,29 @@
     {% endif %}
   </div>
 
-  <div class="fw-dash-section">
-    <h2><span class="t-ar">أكثر المبيدات استخداماً هذا الشهر</span><span class="t-en">Top Pesticides Used This Month</span></h2>
+  <div class="fw-dash-section fw-dash-section--pesticides">
+    <div class="fw-dash-section__head">
+      <div class="fw-dash-section__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6M10 2v5.5L5.5 17a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 7.5V2"/><path d="M7.5 14h9"/></svg>
+      </div>
+      <div>
+        <h2><span class="t-ar">أكثر المبيدات استخداماً</span><span class="t-en">Top Pesticides Used</span></h2>
+        <p class="fw-dash-section__sub"><span class="t-ar">هذا الشهر، مع المنطقة الأكثر استخداماً فيها لكل مادة</span><span class="t-en">This month, with the area each material is used in most</span></p>
+      </div>
+    </div>
     {% if top_pesticides %}
       {% with max_n=top_pesticides.0.n %}
       {% for row in top_pesticides %}
-      <div class="class-bar-row">
-        <div class="class-bar-row__label">
-          {{ row.name }}
-          <div class="class-bar-row__sub"><span class="t-ar">الأكثر في: </span><span class="t-en">Most in: </span>{{ row.top_area }}</div>
+      <div class="rank-row">
+        <div class="rank-row__top">
+          <span class="rank-row__name">{{ row.name }}</span>
+          <div class="rank-row__track"><div class="rank-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
+          <span class="rank-row__count">{{ row.n }}</span>
         </div>
-        <div class="class-bar-row__track"><div class="class-bar-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
-        <div class="class-bar-row__count">{{ row.n }}</div>
+        <div class="rank-row__area">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>{{ row.top_area }}</span>
+        </div>
       </div>
       {% endfor %}
       {% endwith %}
