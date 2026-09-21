@@ -2,247 +2,249 @@
 {% block title %}لوحة التحكم{% endblock %}
 {% block content %}
 <style>
-.fw-dash { max-width: 1100px; margin: 0 auto; }
-.fw-dash-header { margin-bottom: 22px; }
-.fw-dash-header h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0; }
-.fw-dash-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+/* ── Styled to match the permits system's dashboard (hcsd/home.html) ── */
+.fwd { direction: rtl; }
 
-.fw-dash-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px; margin-bottom: 24px;
+.fwd-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 12px; padding-bottom: 20px; margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
 }
-.dash-tile {
-  background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
-  padding: 16px; border-top: 3px solid var(--tile-color, var(--accent));
-  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+.fwd-head__title { font-size: 17px; font-weight: 700; color: var(--ink); margin: 0 0 3px; }
+.fwd-head__sub   { font-size: 12.5px; color: var(--ink-3); margin: 0; }
+
+.fwd-sec {
+  font-size: 10.5px; font-weight: 700; color: var(--ink-4);
+  letter-spacing: .1em; text-transform: uppercase;
+  margin: 0 0 10px;
 }
-.dash-tile__label { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-bottom: 6px; }
-.dash-tile__value { font-size: 28px; font-weight: 800; color: var(--ink); line-height: 1; margin-bottom: 8px; }
-.dash-tile__delta { font-size: 12px; font-weight: 700; color: var(--tile-color, var(--ink-3)); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.dash-tile__delta .arrow-up   { color: #1a7a3a; }
-.dash-tile__delta .arrow-down { color: #b03a1a; }
-.dash-tile__prev { font-size: 11px; font-weight: 500; color: var(--ink-4); }
 
-.dash-tile--new         { --tile-color: #1d4ed8; }
-.dash-tile--in_progress { --tile-color: #166534; }
-.dash-tile--completed   { --tile-color: #1a5c35; }
-.dash-tile--closed      { --tile-color: #6a6a6a; }
-.dash-tile--postponed   { --tile-color: #854d0e; }
-.dash-tile--total       { --tile-color: var(--accent); }
-
-/* --- Ranked-list panels (Top Areas / Pest Types / Pesticides) --- */
-.fw-dash-section {
-  background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
-  padding: 20px 22px; margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
+.fwd-strip {
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  border: 1.5px solid var(--line-2, var(--line));
+  border-radius: 8px; overflow: hidden; margin-bottom: 24px;
+  background: var(--line); gap: 1px;
 }
-.fw-dash-section--areas      { --sec-color: var(--accent); --sec-bg: var(--accent-bg); }
-.fw-dash-section--pests      { --sec-color: #c2410c; --sec-bg: #fdf1e9; }
-.fw-dash-section--pesticides { --sec-color: #0f766e; --sec-bg: #eafaf7; }
-
-.fw-dash-section__head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
-.fw-dash-section__icon {
-  width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--sec-bg); color: var(--sec-color);
+.fwd-cell {
+  background: var(--paper); padding: 18px 14px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+  border-top: 3px solid transparent;
 }
-.fw-dash-section__icon svg { width: 16px; height: 16px; }
-.fw-dash-section h2 { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0; }
-.fw-dash-section__sub { font-size: 11.5px; color: var(--ink-4); margin: 1px 0 0; font-weight: 500; }
-
-.rank-row { margin-bottom: 14px; }
-.rank-row:last-child { margin-bottom: 0; }
-.rank-row__top { display: flex; align-items: center; gap: 10px; }
-.rank-row__name { font-size: 13px; font-weight: 700; color: var(--ink); width: 160px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rank-row__track { flex: 1; height: 8px; border-radius: 999px; background: var(--surface); overflow: hidden; }
-.rank-row__fill { height: 100%; border-radius: 999px; background: var(--sec-color); }
-.rank-row__count { font-size: 13px; font-weight: 800; color: var(--sec-color); width: 24px; text-align: end; flex-shrink: 0; }
-.rank-row__area {
-  display: flex; align-items: center; gap: 4px;
-  font-size: 11px; color: var(--ink-4); font-weight: 600;
-  margin-top: 6px; margin-inline-start: 170px;
+.fwd-cell--navy { border-top-color: var(--ink); }
+.fwd-cell--ac   { border-top-color: #0A6640; }
+.fwd-cell--warn { border-top-color: #B45309; }
+.fwd-cell__n {
+  font-size: 28px; font-weight: 800; line-height: 1;
+  color: var(--ink); letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
 }
-.rank-row__area svg { width: 11px; height: 11px; flex-shrink: 0; }
+.fwd-cell--ac   .fwd-cell__n { color: #0A6640; }
+.fwd-cell--warn .fwd-cell__n { color: #B45309; }
+.fwd-cell__l {
+  font-size: 10.5px; font-weight: 600; color: var(--ink-4);
+  letter-spacing: .03em; line-height: 1.3;
+}
+.fwd-cell__d { font-size: 10.5px; font-weight: 700; color: var(--ink-4); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+.fwd-up   { color: #0A6640; }
+.fwd-down { color: #b91c1c; }
 
-.fw-dash-empty2 { text-align: center; padding: 20px; color: var(--ink-4); font-size: 13px; }
+.fwd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.fwd-card {
+  background: var(--paper); border: 1.5px solid var(--line);
+  border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.fwd-card--wide { grid-column: 1 / -1; }
+.fwd-card__head {
+  padding: 11px 16px; border-bottom: 1px solid var(--line); background: var(--surface);
+  font-size: 10.5px; font-weight: 700; color: var(--ink-4);
+  letter-spacing: .06em; text-transform: uppercase;
+}
+.fwd-card__body { padding: 8px 10px; }
+
+.fwd-rows { list-style: none; margin: 0; padding: 0; }
+.fwd-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 8px; border-radius: 6px;
+  font-size: 13px; color: var(--ink-2); font-weight: 500;
+}
+.fwd-row--stacked { flex-direction: column; align-items: stretch; gap: 4px; }
+.fwd-row__main { display: flex; align-items: center; gap: 10px; }
+.fwd-row__lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fwd-row__bar { width: 60px; height: 3px; background: var(--line-2, var(--line)); border-radius: 99px; overflow: hidden; flex-shrink: 0; }
+.fwd-row__fill { height: 100%; background: #0A6640; border-radius: 99px; }
+.fwd-row__n {
+  font-size: 13px; font-weight: 700; color: var(--ink);
+  min-width: 24px; text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.fwd-row__area { font-size: 11px; color: var(--ink-4); font-weight: 500; padding-inline-start: 2px; }
+.fwd-empty { color: var(--ink-4); font-size: 13px; padding: 4px 8px; }
+
+@media (max-width: 900px) {
+  .fwd-strip { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 700px) {
+  .fwd-strip { grid-template-columns: repeat(2, 1fr); }
+  .fwd-grid  { grid-template-columns: 1fr; }
+}
 </style>
 
-<div class="fw-dash">
-  <div class="fw-dash-header">
-    <h1><span class="t-ar">لوحة التحكم</span><span class="t-en">Dashboard</span></h1>
-    <p>
-      <span class="t-ar">شهر {{ this_month_start|date:"F Y" }} — مقارنة بشهر {{ last_month_start|date:"F Y" }}</span>
-      <span class="t-en">{{ this_month_start|date:"F Y" }} — compared to {{ last_month_start|date:"F Y" }}</span>
-    </p>
+<div class="fwd" lang="ar" dir="rtl">
+  <div class="fwd-head">
+    <div>
+      <h1 class="fwd-head__title"><span class="t-ar">لوحة التحكم</span><span class="t-en">Dashboard</span></h1>
+      <p class="fwd-head__sub">
+        <span class="t-ar">شهر {{ this_month_start|date:"F Y" }} — مقارنة بشهر {{ last_month_start|date:"F Y" }}</span>
+        <span class="t-en">{{ this_month_start|date:"F Y" }} — compared to {{ last_month_start|date:"F Y" }}</span>
+      </p>
+    </div>
   </div>
 
-  <div class="fw-dash-grid">
-    <div class="dash-tile dash-tile--total">
-      <div class="dash-tile__label"><span class="t-ar">إجمالي الطلبات</span><span class="t-en">Total Requests</span></div>
-      <div class="dash-tile__value">{{ this_counts.total }}</div>
-      <div class="dash-tile__delta">
+  <p class="fwd-sec"><span class="t-ar">نظرة عامة</span><span class="t-en">Overview</span></p>
+  <div class="fwd-strip">
+    <div class="fwd-cell fwd-cell--navy">
+      <span class="fwd-cell__n">{{ this_counts.total }}</span>
+      <span class="fwd-cell__l"><span class="t-ar">إجمالي الطلبات</span><span class="t-en">Total Requests</span></span>
+      <span class="fwd-cell__d">
         {% if comparison.total.pct is not None %}
-          <span class="{% if comparison.total.diff > 0 %}arrow-up{% elif comparison.total.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.total.diff > 0 %}▲{% elif comparison.total.diff < 0 %}▼{% endif %} {{ comparison.total.pct|stringformat:"+d" }}%</span>
+          <span class="{% if comparison.total.diff > 0 %}fwd-up{% elif comparison.total.diff < 0 %}fwd-down{% endif %}" dir="ltr">{% if comparison.total.diff > 0 %}▲{% elif comparison.total.diff < 0 %}▼{% endif %} {{ comparison.total.pct|stringformat:"+d" }}%</span>
         {% else %}
           <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
         {% endif %}
-        <span class="dash-tile__prev">(<span class="t-ar">الشهر الماضي: {{ last_counts.total }}</span><span class="t-en">last month: {{ last_counts.total }}</span>)</span>
-      </div>
+      </span>
     </div>
 
-    <div class="dash-tile dash-tile--new">
-      <div class="dash-tile__label"><span class="t-ar">الواردة هذا الشهر</span><span class="t-en">New</span></div>
-      <div class="dash-tile__value">{{ this_counts.new }}</div>
-      <div class="dash-tile__delta">
+    <div class="fwd-cell">
+      <span class="fwd-cell__n">{{ this_counts.new }}</span>
+      <span class="fwd-cell__l"><span class="t-ar">الواردة هذا الشهر</span><span class="t-en">New</span></span>
+      <span class="fwd-cell__d">
         {% if comparison.new.pct is not None %}
-          <span class="{% if comparison.new.diff > 0 %}arrow-up{% elif comparison.new.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.new.diff > 0 %}▲{% elif comparison.new.diff < 0 %}▼{% endif %} {{ comparison.new.pct|stringformat:"+d" }}%</span>
+          <span class="{% if comparison.new.diff > 0 %}fwd-up{% elif comparison.new.diff < 0 %}fwd-down{% endif %}" dir="ltr">{% if comparison.new.diff > 0 %}▲{% elif comparison.new.diff < 0 %}▼{% endif %} {{ comparison.new.pct|stringformat:"+d" }}%</span>
         {% else %}
           <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
         {% endif %}
-        <span class="dash-tile__prev">({{ last_counts.new }})</span>
-      </div>
+      </span>
     </div>
 
-    <div class="dash-tile dash-tile--in_progress">
-      <div class="dash-tile__label"><span class="t-ar">قيد المتابعة</span><span class="t-en">In Progress</span></div>
-      <div class="dash-tile__value">{{ this_counts.in_progress }}</div>
-      <div class="dash-tile__delta">
+    <div class="fwd-cell fwd-cell--warn">
+      <span class="fwd-cell__n">{{ this_counts.in_progress }}</span>
+      <span class="fwd-cell__l"><span class="t-ar">قيد المتابعة</span><span class="t-en">In Progress</span></span>
+      <span class="fwd-cell__d">
         {% if comparison.in_progress.pct is not None %}
-          <span class="{% if comparison.in_progress.diff > 0 %}arrow-up{% elif comparison.in_progress.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.in_progress.diff > 0 %}▲{% elif comparison.in_progress.diff < 0 %}▼{% endif %} {{ comparison.in_progress.pct|stringformat:"+d" }}%</span>
+          <span class="{% if comparison.in_progress.diff > 0 %}fwd-up{% elif comparison.in_progress.diff < 0 %}fwd-down{% endif %}" dir="ltr">{% if comparison.in_progress.diff > 0 %}▲{% elif comparison.in_progress.diff < 0 %}▼{% endif %} {{ comparison.in_progress.pct|stringformat:"+d" }}%</span>
         {% else %}
           <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
         {% endif %}
-        <span class="dash-tile__prev">({{ last_counts.in_progress }})</span>
-      </div>
+      </span>
     </div>
 
-    <div class="dash-tile dash-tile--completed">
-      <div class="dash-tile__label"><span class="t-ar">منجزة</span><span class="t-en">Completed</span></div>
-      <div class="dash-tile__value">{{ this_counts.completed }}</div>
-      <div class="dash-tile__delta">
+    <div class="fwd-cell fwd-cell--ac">
+      <span class="fwd-cell__n">{{ this_counts.completed }}</span>
+      <span class="fwd-cell__l"><span class="t-ar">منجزة</span><span class="t-en">Completed</span></span>
+      <span class="fwd-cell__d">
         {% if comparison.completed.pct is not None %}
-          <span class="{% if comparison.completed.diff > 0 %}arrow-up{% elif comparison.completed.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.completed.diff > 0 %}▲{% elif comparison.completed.diff < 0 %}▼{% endif %} {{ comparison.completed.pct|stringformat:"+d" }}%</span>
+          <span class="{% if comparison.completed.diff > 0 %}fwd-up{% elif comparison.completed.diff < 0 %}fwd-down{% endif %}" dir="ltr">{% if comparison.completed.diff > 0 %}▲{% elif comparison.completed.diff < 0 %}▼{% endif %} {{ comparison.completed.pct|stringformat:"+d" }}%</span>
         {% else %}
           <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
         {% endif %}
-        <span class="dash-tile__prev">({{ last_counts.completed }})</span>
-      </div>
+      </span>
     </div>
 
-    <div class="dash-tile dash-tile--closed">
-      <div class="dash-tile__label"><span class="t-ar">مغلقة</span><span class="t-en">Closed</span></div>
-      <div class="dash-tile__value">{{ this_counts.closed }}</div>
-      <div class="dash-tile__delta">
+    <div class="fwd-cell">
+      <span class="fwd-cell__n">{{ this_counts.closed }}</span>
+      <span class="fwd-cell__l"><span class="t-ar">مغلقة</span><span class="t-en">Closed</span></span>
+      <span class="fwd-cell__d">
         {% if comparison.closed.pct is not None %}
-          <span class="{% if comparison.closed.diff > 0 %}arrow-up{% elif comparison.closed.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.closed.diff > 0 %}▲{% elif comparison.closed.diff < 0 %}▼{% endif %} {{ comparison.closed.pct|stringformat:"+d" }}%</span>
+          <span class="{% if comparison.closed.diff > 0 %}fwd-up{% elif comparison.closed.diff < 0 %}fwd-down{% endif %}" dir="ltr">{% if comparison.closed.diff > 0 %}▲{% elif comparison.closed.diff < 0 %}▼{% endif %} {{ comparison.closed.pct|stringformat:"+d" }}%</span>
         {% else %}
           <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
         {% endif %}
-        <span class="dash-tile__prev">({{ last_counts.closed }})</span>
-      </div>
+      </span>
     </div>
 
-    <div class="dash-tile dash-tile--postponed">
-      <div class="dash-tile__label"><span class="t-ar">مؤجلة</span><span class="t-en">Postponed</span></div>
-      <div class="dash-tile__value">{{ this_counts.postponed }}</div>
-      <div class="dash-tile__delta">
+    <div class="fwd-cell fwd-cell--warn">
+      <span class="fwd-cell__n">{{ this_counts.postponed }}</span>
+      <span class="fwd-cell__l"><span class="t-ar">مؤجلة</span><span class="t-en">Postponed</span></span>
+      <span class="fwd-cell__d">
         {% if comparison.postponed.pct is not None %}
-          <span class="{% if comparison.postponed.diff > 0 %}arrow-up{% elif comparison.postponed.diff < 0 %}arrow-down{% endif %}" dir="ltr">{% if comparison.postponed.diff > 0 %}▲{% elif comparison.postponed.diff < 0 %}▼{% endif %} {{ comparison.postponed.pct|stringformat:"+d" }}%</span>
+          <span class="{% if comparison.postponed.diff > 0 %}fwd-up{% elif comparison.postponed.diff < 0 %}fwd-down{% endif %}" dir="ltr">{% if comparison.postponed.diff > 0 %}▲{% elif comparison.postponed.diff < 0 %}▼{% endif %} {{ comparison.postponed.pct|stringformat:"+d" }}%</span>
         {% else %}
           <span><span class="t-ar">لا تغيير</span><span class="t-en">No change</span></span>
         {% endif %}
-        <span class="dash-tile__prev">({{ last_counts.postponed }})</span>
-      </div>
+      </span>
     </div>
   </div>
 
-  <div class="fw-dash-section fw-dash-section--areas">
-    <div class="fw-dash-section__head">
-      <div class="fw-dash-section__icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      </div>
-      <div>
-        <h2><span class="t-ar">أكثر المناطق التي تم تقديم شكوى منها</span><span class="t-en">Areas With the Most Complaints</span></h2>
-        <p class="fw-dash-section__sub"><span class="t-ar">حسب عدد الطلبات لكل منطقة</span><span class="t-en">By number of requests per area</span></p>
+  <p class="fwd-sec"><span class="t-ar">التفاصيل</span><span class="t-en">Details</span></p>
+  <div class="fwd-grid">
+    <div class="fwd-card fwd-card--wide">
+      <div class="fwd-card__head"><span class="t-ar">أكثر المناطق التي تم تقديم شكوى منها</span><span class="t-en">Areas With the Most Complaints</span></div>
+      <div class="fwd-card__body">
+        <ul class="fwd-rows">
+          {% if top_areas %}
+            {% with max_n=top_areas.0.n %}
+            {% for row in top_areas %}
+            <li class="fwd-row">
+              <span class="fwd-row__lbl">{{ row.area }}</span>
+              <div class="fwd-row__bar"><div class="fwd-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
+              <span class="fwd-row__n">{{ row.n }}</span>
+            </li>
+            {% endfor %}
+            {% endwith %}
+          {% else %}
+            <li class="fwd-empty"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></li>
+          {% endif %}
+        </ul>
       </div>
     </div>
-    {% if top_areas %}
-      {% with max_n=top_areas.0.n %}
-      {% for row in top_areas %}
-      <div class="rank-row">
-        <div class="rank-row__top">
-          <span class="rank-row__name">{{ row.area }}</span>
-          <div class="rank-row__track"><div class="rank-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
-          <span class="rank-row__count">{{ row.n }}</span>
-        </div>
-      </div>
-      {% endfor %}
-      {% endwith %}
-    {% else %}
-      <div class="fw-dash-empty2"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></div>
-    {% endif %}
-  </div>
 
-  <div class="fw-dash-section fw-dash-section--pests">
-    <div class="fw-dash-section__head">
-      <div class="fw-dash-section__icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4Z"/><path d="M6 9c0-1 1-2 2-2M18 9c0-1-1-2-2-2"/><path d="M8 10v9a4 4 0 0 0 8 0v-9"/><path d="M4 12h3M17 12h3M5 16h2.5M16.5 16H19M6 20l2-2M18 20l-2-2"/></svg>
-      </div>
-      <div>
-        <h2><span class="t-ar">نوع الإصابة الأكثر</span><span class="t-en">Most Common Infestation Type</span></h2>
-        <p class="fw-dash-section__sub"><span class="t-ar">هذا الشهر، مع المنطقة الأكثر تكراراً لكل نوع</span><span class="t-en">This month, with the most common area per type</span></p>
+    <div class="fwd-card">
+      <div class="fwd-card__head"><span class="t-ar">نوع الإصابة الأكثر</span><span class="t-en">Most Common Infestation Type</span></div>
+      <div class="fwd-card__body">
+        <ul class="fwd-rows">
+          {% if top_pests %}
+            {% with max_n=top_pests.0.n %}
+            {% for row in top_pests %}
+            <li class="fwd-row fwd-row--stacked">
+              <div class="fwd-row__main">
+                <span class="fwd-row__lbl">{{ row.name }}</span>
+                <div class="fwd-row__bar"><div class="fwd-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
+                <span class="fwd-row__n">{{ row.n }}</span>
+              </div>
+              <div class="fwd-row__area"><span class="t-ar">الأكثر في: </span><span class="t-en">Most in: </span>{{ row.top_area }}</div>
+            </li>
+            {% endfor %}
+            {% endwith %}
+          {% else %}
+            <li class="fwd-empty"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></li>
+          {% endif %}
+        </ul>
       </div>
     </div>
-    {% if top_pests %}
-      {% with max_n=top_pests.0.n %}
-      {% for row in top_pests %}
-      <div class="rank-row">
-        <div class="rank-row__top">
-          <span class="rank-row__name">{{ row.name }}</span>
-          <div class="rank-row__track"><div class="rank-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
-          <span class="rank-row__count">{{ row.n }}</span>
-        </div>
-        <div class="rank-row__area">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>{{ row.top_area }}</span>
-        </div>
-      </div>
-      {% endfor %}
-      {% endwith %}
-    {% else %}
-      <div class="fw-dash-empty2"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></div>
-    {% endif %}
-  </div>
 
-  <div class="fw-dash-section fw-dash-section--pesticides">
-    <div class="fw-dash-section__head">
-      <div class="fw-dash-section__icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6M10 2v5.5L5.5 17a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 7.5V2"/><path d="M7.5 14h9"/></svg>
-      </div>
-      <div>
-        <h2><span class="t-ar">أكثر المبيدات استخداماً</span><span class="t-en">Top Pesticides Used</span></h2>
-        <p class="fw-dash-section__sub"><span class="t-ar">هذا الشهر، مع المنطقة الأكثر استخداماً فيها لكل مادة</span><span class="t-en">This month, with the area each material is used in most</span></p>
+    <div class="fwd-card">
+      <div class="fwd-card__head"><span class="t-ar">أكثر المبيدات استخداماً</span><span class="t-en">Top Pesticides Used</span></div>
+      <div class="fwd-card__body">
+        <ul class="fwd-rows">
+          {% if top_pesticides %}
+            {% with max_n=top_pesticides.0.n %}
+            {% for row in top_pesticides %}
+            <li class="fwd-row fwd-row--stacked">
+              <div class="fwd-row__main">
+                <span class="fwd-row__lbl">{{ row.name }}</span>
+                <div class="fwd-row__bar"><div class="fwd-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
+                <span class="fwd-row__n">{{ row.n }}</span>
+              </div>
+              <div class="fwd-row__area"><span class="t-ar">الأكثر في: </span><span class="t-en">Most in: </span>{{ row.top_area }}</div>
+            </li>
+            {% endfor %}
+            {% endwith %}
+          {% else %}
+            <li class="fwd-empty"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></li>
+          {% endif %}
+        </ul>
       </div>
     </div>
-    {% if top_pesticides %}
-      {% with max_n=top_pesticides.0.n %}
-      {% for row in top_pesticides %}
-      <div class="rank-row">
-        <div class="rank-row__top">
-          <span class="rank-row__name">{{ row.name }}</span>
-          <div class="rank-row__track"><div class="rank-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
-          <span class="rank-row__count">{{ row.n }}</span>
-        </div>
-        <div class="rank-row__area">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>{{ row.top_area }}</span>
-        </div>
-      </div>
-      {% endfor %}
-      {% endwith %}
-    {% else %}
-      <div class="fw-dash-empty2"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></div>
-    {% endif %}
   </div>
 </div>
 {% endblock %}
