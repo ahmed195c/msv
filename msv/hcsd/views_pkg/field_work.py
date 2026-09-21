@@ -193,6 +193,43 @@ def _fw_delta(current, previous):
     return {'diff': diff, 'pct': pct}
 
 
+def _fw_top_classifications(qs, list_field, text_field, top_n=6):
+    """Rank the most common values of a spray_entries sub-list (list_field:
+    'pests' — plain strings, or 'pesticides' — dicts with a 'name' key)
+    across all orders in qs, falling back to a comma-separated text_field
+    when an order has no spray_entries. Each value is counted at most once
+    per order. Returns top_n as [{'name', 'n', 'top_area'}], where top_area
+    is the single area that value occurs in most often.
+    """
+    import collections
+
+    counts = collections.Counter()
+    area_counts = collections.defaultdict(collections.Counter)
+
+    for order in qs.only('area', text_field, 'spray_entries'):
+        entries = order.spray_entries or []
+        if entries:
+            names = []
+            for entry in entries:
+                for item in entry.get(list_field, []):
+                    name = (item.get('name', '') if isinstance(item, dict) else str(item)).strip()
+                    if name:
+                        names.append(name)
+        else:
+            raw_text = getattr(order, text_field) or ''
+            names = [n.strip() for n in raw_text.split(',') if n.strip()]
+
+        for name in set(names):
+            counts[name] += 1
+            area_counts[name][order.area or '—'] += 1
+
+    result = []
+    for name, n in counts.most_common(top_n):
+        top_area = area_counts[name].most_common(1)[0][0]
+        result.append({'name': name, 'n': n, 'top_area': top_area})
+    return result
+
+
 @login_required
 def field_work_dashboard(request):
     from django.db.models import Count
@@ -217,6 +254,9 @@ def field_work_dashboard(request):
         .order_by('-n')[:5]
     )
 
+    top_pests = _fw_top_classifications(this_qs, 'pests', 'pest_types')
+    top_pesticides = _fw_top_classifications(this_qs, 'pesticides', 'pesticides_used')
+
     return render(request, 'hcsd/field_work_dashboard.html', {
         'this_counts': this_counts,
         'last_counts': last_counts,
@@ -224,6 +264,8 @@ def field_work_dashboard(request):
         'this_month_start': this_start,
         'last_month_start': last_start,
         'top_areas': top_areas,
+        'top_pests': top_pests,
+        'top_pesticides': top_pesticides,
     })
 
 

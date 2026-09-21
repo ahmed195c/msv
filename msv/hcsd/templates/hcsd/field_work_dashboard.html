@@ -43,6 +43,14 @@
 .area-bar-row__count { font-size: 12px; font-weight: 700; color: var(--ink); width: 28px; text-align: end; flex-shrink: 0; }
 
 .fw-dash-empty2 { text-align: center; padding: 20px; color: var(--ink-4); font-size: 13px; }
+
+.class-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.class-bar-row:last-child { margin-bottom: 0; }
+.class-bar-row__label { font-size: 12.5px; font-weight: 600; color: var(--ink-2); width: 170px; flex-shrink: 0; }
+.class-bar-row__sub { font-size: 11px; font-weight: 500; color: var(--ink-4); margin-top: 2px; }
+.class-bar-row__track { flex: 1; height: 10px; background: var(--surface); border-radius: 6px; overflow: hidden; }
+.class-bar-row__fill { height: 100%; background: var(--accent); border-radius: 6px; }
+.class-bar-row__count { font-size: 12px; font-weight: 700; color: var(--ink); width: 28px; text-align: end; flex-shrink: 0; }
 </style>
 
 <div class="fw-dash">
@@ -143,6 +151,46 @@
         <div class="area-bar-row__label">{{ row.area }}</div>
         <div class="area-bar-row__track"><div class="area-bar-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
         <div class="area-bar-row__count">{{ row.n }}</div>
+      </div>
+      {% endfor %}
+      {% endwith %}
+    {% else %}
+      <div class="fw-dash-empty2"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></div>
+    {% endif %}
+  </div>
+
+  <div class="fw-dash-section">
+    <h2><span class="t-ar">أكثر أنواع الآفات طلباً هذا الشهر</span><span class="t-en">Top Pest Types This Month</span></h2>
+    {% if top_pests %}
+      {% with max_n=top_pests.0.n %}
+      {% for row in top_pests %}
+      <div class="class-bar-row">
+        <div class="class-bar-row__label">
+          {{ row.name }}
+          <div class="class-bar-row__sub"><span class="t-ar">الأكثر في: </span><span class="t-en">Most in: </span>{{ row.top_area }}</div>
+        </div>
+        <div class="class-bar-row__track"><div class="class-bar-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
+        <div class="class-bar-row__count">{{ row.n }}</div>
+      </div>
+      {% endfor %}
+      {% endwith %}
+    {% else %}
+      <div class="fw-dash-empty2"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></div>
+    {% endif %}
+  </div>
+
+  <div class="fw-dash-section">
+    <h2><span class="t-ar">أكثر المبيدات استخداماً هذا الشهر</span><span class="t-en">Top Pesticides Used This Month</span></h2>
+    {% if top_pesticides %}
+      {% with max_n=top_pesticides.0.n %}
+      {% for row in top_pesticides %}
+      <div class="class-bar-row">
+        <div class="class-bar-row__label">
+          {{ row.name }}
+          <div class="class-bar-row__sub"><span class="t-ar">الأكثر في: </span><span class="t-en">Most in: </span>{{ row.top_area }}</div>
+        </div>
+        <div class="class-bar-row__track"><div class="class-bar-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
+        <div class="class-bar-row__count">{{ row.n }}</div>
       </div>
       {% endfor %}
       {% endwith %}
