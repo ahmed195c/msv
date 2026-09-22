@@ -177,7 +177,7 @@
 
   <p class="fwd-sec"><span class="t-ar">التفاصيل</span><span class="t-en">Details</span></p>
   <div class="fwd-grid">
-    <div class="fwd-card fwd-card--wide">
+    <div class="fwd-card">
       <div class="fwd-card__head"><span class="t-ar">أكثر المناطق التي تم تقديم شكوى منها</span><span class="t-en">Areas With the Most Complaints</span></div>
       <div class="fwd-card__body">
         <ul class="fwd-rows">
@@ -188,6 +188,30 @@
               <span class="fwd-row__lbl">{{ row.area }}</span>
               <div class="fwd-row__bar"><div class="fwd-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
               <span class="fwd-row__n">{{ row.n }}</span>
+            </li>
+            {% endfor %}
+            {% endwith %}
+          {% else %}
+            <li class="fwd-empty"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="fwd-card">
+      <div class="fwd-card__head"><span class="t-ar">نوع الإصابة الأكثر</span><span class="t-en">Most Common Infestation Type</span></div>
+      <div class="fwd-card__body">
+        <ul class="fwd-rows">
+          {% if top_pests %}
+            {% with max_n=top_pests.0.n %}
+            {% for row in top_pests %}
+            <li class="fwd-row fwd-row--stacked">
+              <div class="fwd-row__main">
+                <span class="fwd-row__lbl">{{ row.name }}</span>
+                <div class="fwd-row__bar"><div class="fwd-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
+                <span class="fwd-row__n">{{ row.n }}</span>
+              </div>
+              <div class="fwd-row__area"><span class="t-ar">الأكثر في: </span><span class="t-en">Most in: </span>{{ row.top_area }}</div>
             </li>
             {% endfor %}
             {% endwith %}
@@ -218,30 +242,6 @@
     </div>
 
     <div class="fwd-card">
-      <div class="fwd-card__head"><span class="t-ar">نوع الإصابة الأكثر</span><span class="t-en">Most Common Infestation Type</span></div>
-      <div class="fwd-card__body">
-        <ul class="fwd-rows">
-          {% if top_pests %}
-            {% with max_n=top_pests.0.n %}
-            {% for row in top_pests %}
-            <li class="fwd-row fwd-row--stacked">
-              <div class="fwd-row__main">
-                <span class="fwd-row__lbl">{{ row.name }}</span>
-                <div class="fwd-row__bar"><div class="fwd-row__fill" style="width:{% widthratio row.n max_n 100 %}%;"></div></div>
-                <span class="fwd-row__n">{{ row.n }}</span>
-              </div>
-              <div class="fwd-row__area"><span class="t-ar">الأكثر في: </span><span class="t-en">Most in: </span>{{ row.top_area }}</div>
-            </li>
-            {% endfor %}
-            {% endwith %}
-          {% else %}
-            <li class="fwd-empty"><span class="t-ar">لا توجد بيانات هذا الشهر بعد.</span><span class="t-en">No data yet this month.</span></li>
-          {% endif %}
-        </ul>
-      </div>
-    </div>
-
-    <div class="fwd-card fwd-card--wide">
       <div class="fwd-card__head"><span class="t-ar">أكثر المبيدات استخداماً</span><span class="t-en">Top Pesticides Used</span></div>
       <div class="fwd-card__body">
         <ul class="fwd-rows">
