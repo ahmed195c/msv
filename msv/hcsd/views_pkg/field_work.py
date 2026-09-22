@@ -233,6 +233,55 @@ def _fw_top_classifications(qs, list_field, text_field, top_n=6):
     return result
 
 
+# Dashboard-only grouping of raw pest names into broad "dangerous infestation"
+# categories — independent of the Dangerous/Nuisance/Vector/Others split
+# used in the monthly Excel export (_pest_category), which groups pests
+# differently for a different purpose.
+_FW_DANGEROUS_INFESTATION_GROUPS = [
+    ('rodents',     'القوارض', 'Rodents',      ['rodent', 'rat', 'mouse', 'قوارض', 'جرذ', 'فأر']),
+    ('mosquitoes',  'بعوض',    'Mosquitoes',   ['mosquito', 'بعوض']),
+    ('cockroaches', 'صراصير',  'Cockroaches',  ['cockroach', 'صرصور', 'صراصير']),
+    ('flies',       'ذباب',    'Flies',        ['fly', 'flies', 'ذباب']),
+    ('snakes',      'أفاعي',   'Snakes',       ['snake', 'أفعى', 'أفاعي', 'ثعبان']),
+]
+
+
+def _fw_dangerous_infestation_counts(qs):
+    """Count this month's orders per dangerous-infestation category (rodents,
+    mosquitoes, cockroaches, flies, snakes), matching raw pest names by
+    keyword. An order counts once per category even if it has several
+    spray entries mentioning the same category."""
+    counts = {key: 0 for key, *_rest in _FW_DANGEROUS_INFESTATION_GROUPS}
+
+    for order in qs.only('pest_types', 'spray_entries'):
+        entries = order.spray_entries or []
+        if entries:
+            names = []
+            for entry in entries:
+                for p in entry.get('pests', []):
+                    if p:
+                        names.append(str(p))
+        else:
+            names = [n.strip() for n in (order.pest_types or '').split(',') if n.strip()]
+
+        matched = set()
+        for name in names:
+            lname = name.lower()
+            for key, _ar, _en, keywords in _FW_DANGEROUS_INFESTATION_GROUPS:
+                if key not in matched and any(kw.lower() in lname for kw in keywords):
+                    matched.add(key)
+
+        for key in matched:
+            counts[key] += 1
+
+    result = [
+        {'name_ar': ar, 'name_en': en, 'n': counts[key]}
+        for key, ar, en, _keywords in _FW_DANGEROUS_INFESTATION_GROUPS
+    ]
+    result.sort(key=lambda row: -row['n'])
+    return result
+
+
 @login_required
 def field_work_dashboard(request):
     from django.db.models import Count
@@ -259,6 +308,7 @@ def field_work_dashboard(request):
 
     top_pests = _fw_top_classifications(this_qs, 'pests', 'pest_types')
     top_pesticides = _fw_top_classifications(this_qs, 'pesticides', 'pesticides_used')
+    dangerous_infestations = _fw_dangerous_infestation_counts(this_qs)
 
     return render(request, 'hcsd/field_work_dashboard.html', {
         'this_counts': this_counts,
@@ -269,6 +319,7 @@ def field_work_dashboard(request):
         'top_areas': top_areas,
         'top_pests': top_pests,
         'top_pesticides': top_pesticides,
+        'dangerous_infestations': dangerous_infestations,
     })
 
 

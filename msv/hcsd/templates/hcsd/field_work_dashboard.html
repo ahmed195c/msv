@@ -199,6 +199,25 @@
     </div>
 
     <div class="fwd-card">
+      <div class="fwd-card__head"><span class="t-ar">أنواع الإصابات الخطيرة</span><span class="t-en">Dangerous Infestation Types</span></div>
+      <div class="fwd-card__body">
+        <ul class="fwd-rows">
+          {% if dangerous_infestations %}
+            {% with max_n=dangerous_infestations.0.n %}
+            {% for row in dangerous_infestations %}
+            <li class="fwd-row">
+              <span class="fwd-row__lbl"><span class="t-ar">{{ row.name_ar }}</span><span class="t-en">{{ row.name_en }}</span></span>
+              <div class="fwd-row__bar"><div class="fwd-row__fill" style="width:{% if max_n %}{% widthratio row.n max_n 100 %}{% else %}0{% endif %}%;"></div></div>
+              <span class="fwd-row__n">{{ row.n }}</span>
+            </li>
+            {% endfor %}
+            {% endwith %}
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="fwd-card">
       <div class="fwd-card__head"><span class="t-ar">نوع الإصابة الأكثر</span><span class="t-en">Most Common Infestation Type</span></div>
       <div class="fwd-card__body">
         <ul class="fwd-rows">
@@ -222,7 +241,7 @@
       </div>
     </div>
 
-    <div class="fwd-card">
+    <div class="fwd-card fwd-card--wide">
       <div class="fwd-card__head"><span class="t-ar">أكثر المبيدات استخداماً</span><span class="t-en">Top Pesticides Used</span></div>
       <div class="fwd-card__body">
         <ul class="fwd-rows">
