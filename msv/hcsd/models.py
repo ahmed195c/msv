@@ -1987,3 +1987,62 @@ class GardenVisitChangeLog(models.Model):
 
     def __str__(self):
         return f"{self.area_name or 'بدون منطقة'} — {self.get_action_display()}"
+
+
+class GardenDailyReport(models.Model):
+    """A field team's daily work summary for an entire area (aggregate
+    counts across many buildings/manholes for one day) — distinct from
+    GardenVisit (one location) and RodentControlVisit (one building/month)."""
+    report_date     = models.DateField(default=timezone.localdate, verbose_name='التاريخ')
+    area_name       = models.CharField(max_length=150, verbose_name='المنطقة')
+    team_leader_name = models.CharField(max_length=150, blank=True, verbose_name='قائد الفريق')
+    team_leader_id   = models.CharField(max_length=50, blank=True, verbose_name='الرقم الوظيفي')
+    start_from      = models.CharField(max_length=200, blank=True, verbose_name='بدأ من')
+    time_in         = models.TimeField(null=True, blank=True, verbose_name='وقت الدخول')
+    time_out        = models.TimeField(null=True, blank=True, verbose_name='وقت الخروج')
+
+    total_bldg_villa    = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي المباني/الفلل')
+    infested_bldg_villa = models.PositiveIntegerField(null=True, blank=True, verbose_name='مباني/فلل مصابة')
+
+    total_manholes    = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي المناهيل')
+    treated_manholes  = models.PositiveIntegerField(null=True, blank=True, verbose_name='مناهيل معالجة')
+    infested_manholes = models.PositiveIntegerField(null=True, blank=True, verbose_name='مناهيل مصابة')
+
+    total_outside    = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي الإصابة الخارجية')
+    infested_outside = models.PositiveIntegerField(null=True, blank=True, verbose_name='إصابة خارجية مصابة')
+
+    total_construction    = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي الإنشاءات')
+    infested_construction = models.PositiveIntegerField(null=True, blank=True, verbose_name='إنشاءات مصابة')
+
+    total_masjid    = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي المساجد')
+    infested_masjid = models.PositiveIntegerField(null=True, blank=True, verbose_name='مساجد مصابة')
+
+    total_tree    = models.PositiveIntegerField(null=True, blank=True, verbose_name='إجمالي النخيل/الأشجار')
+    treated_tree  = models.PositiveIntegerField(null=True, blank=True, verbose_name='أشجار معالجة')
+    infested_tree = models.PositiveIntegerField(null=True, blank=True, verbose_name='أشجار مصابة')
+
+    electrical_rooms  = models.PositiveIntegerField(null=True, blank=True, verbose_name='غرف كهربائية')
+    infested_ers      = models.PositiveIntegerField(null=True, blank=True, verbose_name='غرف كهربائية مصابة')
+
+    gov_office = models.PositiveIntegerField(null=True, blank=True, verbose_name='مكاتب حكومية')
+
+    rodenticide_1_name = models.CharField(max_length=150, blank=True, verbose_name='المبيد 1')
+    rodenticide_1_qty  = models.CharField(max_length=50, blank=True, verbose_name='كمية المبيد 1')
+    rodenticide_2_name = models.CharField(max_length=150, blank=True, verbose_name='المبيد 2')
+    rodenticide_2_qty  = models.CharField(max_length=50, blank=True, verbose_name='كمية المبيد 2')
+
+    notes = models.TextField(blank=True, verbose_name='ملاحظات')
+
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='garden_daily_reports',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-report_date', '-created_at']
+        verbose_name        = 'تقرير يومي - متابعة المناطق'
+        verbose_name_plural = 'تقارير يومية - متابعة المناطق'
+
+    def __str__(self):
+        return f"{self.area_name} — {self.report_date}"

@@ -1,0 +1,218 @@
+{% extends "hcsd/garden_base.html" %}
+{% block title %}{% if lang == 'en' %}New Daily Report{% else %}تقرير يومي جديد{% endif %}{% endblock %}
+{% block content %}
+<style>
+.gdr-page { max-width: 640px; margin: 0 auto; }
+.gdr-page h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+.gdr-page p.sub { font-size: 13px; color: var(--ink-3); margin: 0 0 20px; }
+
+.gdr-alert {
+  background: #fef2f2; border: 1.5px solid #fca5a5; color: #991b1b;
+  border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.gdr-group { font-size: 13px; font-weight: 700; color: var(--ink); margin: 22px 0 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.gdr-group:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+
+.field-wrap { display: grid; gap: 6px; margin-bottom: 14px; }
+.field-wrap label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.field-wrap input, .field-wrap textarea {
+  border: 1.5px solid var(--line); border-radius: 8px; background: #fff;
+  padding: 9px 12px; font-size: 14px; font-family: inherit; color: var(--ink);
+  box-sizing: border-box; width: 100%;
+}
+.field-wrap input:focus, .field-wrap textarea:focus { outline: none; border-color: var(--accent); }
+.field-wrap textarea { resize: vertical; min-height: 70px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 480px) { .two-col, .three-col { grid-template-columns: 1fr; } }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; cursor: pointer; border: none; font-family: inherit;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-dk); }
+</style>
+
+<div class="gdr-page">
+  <h1>{% if lang == 'en' %}New Daily Report{% else %}تقرير يومي جديد{% endif %}</h1>
+  <p class="sub">{% if lang == 'en' %}A day's field work summary for an entire area.{% else %}ملخص عمل الفريق الميداني لمنطقة كاملة في يوم واحد.{% endif %}</p>
+
+  {% if errors %}
+    {% for e in errors %}<div class="gdr-alert">{{ e }}</div>{% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Area *{% else %}المنطقة *{% endif %}</label>
+        <input type="text" name="area_name" value="{{ post.area_name }}" required>
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</label>
+        <input type="date" name="report_date" value="{{ post.report_date|default:today|date:'Y-m-d' }}">
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Team Leader Name{% else %}اسم قائد الفريق{% endif %}</label>
+        <input type="text" name="team_leader_name" value="{{ post.team_leader_name }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Employee ID{% else %}الرقم الوظيفي{% endif %}</label>
+        <input type="text" name="team_leader_id" value="{{ post.team_leader_id }}">
+      </div>
+    </div>
+
+    <div class="field-wrap">
+      <label>{% if lang == 'en' %}Start From{% else %}بدأ من{% endif %}</label>
+      <input type="text" name="start_from" value="{{ post.start_from }}">
+    </div>
+
+    <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Time In{% else %}وقت الدخول{% endif %}</label>
+        <input type="time" name="time_in" value="{{ post.time_in }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Time Out{% else %}وقت الخروج{% endif %}</label>
+        <input type="time" name="time_out" value="{{ post.time_out }}">
+      </div>
+    </div>
+
+    <div class="gdr-group">{% if lang == 'en' %}Buildings / Villas{% else %}المباني / الفلل{% endif %}</div>
+    <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
+        <input type="number" min="0" name="total_bldg_villa" value="{{ post.total_bldg_villa }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
+        <input type="number" min="0" name="infested_bldg_villa" value="{{ post.infested_bldg_villa }}">
+      </div>
+    </div>
+
+    <div class="gdr-group">{% if lang == 'en' %}Manholes{% else %}المناهيل{% endif %}</div>
+    <div class="three-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
+        <input type="number" min="0" name="total_manholes" value="{{ post.total_manholes }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Treated{% else %}المعالجة{% endif %}</label>
+        <input type="number" min="0" name="treated_manholes" value="{{ post.treated_manholes }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
+        <input type="number" min="0" name="infested_manholes" value="{{ post.infested_manholes }}">
+      </div>
+    </div>
+
+    <div class="gdr-group">{% if lang == 'en' %}Outside{% else %}الإصابة الخارجية{% endif %}</div>
+    <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
+        <input type="number" min="0" name="total_outside" value="{{ post.total_outside }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
+        <input type="number" min="0" name="infested_outside" value="{{ post.infested_outside }}">
+      </div>
+    </div>
+
+    <div class="gdr-group">{% if lang == 'en' %}Construction{% else %}الإنشاءات{% endif %}</div>
+    <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
+        <input type="number" min="0" name="total_construction" value="{{ post.total_construction }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
+        <input type="number" min="0" name="infested_construction" value="{{ post.infested_construction }}">
+      </div>
+    </div>
+
+    <div class="gdr-group">{% if lang == 'en' %}Mosques{% else %}المساجد{% endif %}</div>
+    <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
+        <input type="number" min="0" name="total_masjid" value="{{ post.total_masjid }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
+        <input type="number" min="0" name="infested_masjid" value="{{ post.infested_masjid }}">
+      </div>
+    </div>
+
+    <div class="gdr-group">{% if lang == 'en' %}Trees{% else %}النخيل / الأشجار{% endif %}</div>
+    <div class="three-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
+        <input type="number" min="0" name="total_tree" value="{{ post.total_tree }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Treated{% else %}المعالجة{% endif %}</label>
+        <input type="number" min="0" name="treated_tree" value="{{ post.treated_tree }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
+        <input type="number" min="0" name="infested_tree" value="{{ post.infested_tree }}">
+      </div>
+    </div>
+
+    <div class="gdr-group">{% if lang == 'en' %}Electrical Rooms{% else %}الغرف الكهربائية{% endif %}</div>
+    <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
+        <input type="number" min="0" name="electrical_rooms" value="{{ post.electrical_rooms }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
+        <input type="number" min="0" name="infested_ers" value="{{ post.infested_ers }}">
+      </div>
+    </div>
+
+    <div class="gdr-group">{% if lang == 'en' %}Other{% else %}أخرى{% endif %}</div>
+    <div class="field-wrap" style="max-width:200px;">
+      <label>{% if lang == 'en' %}Government Offices{% else %}المكاتب الحكومية{% endif %}</label>
+      <input type="number" min="0" name="gov_office" value="{{ post.gov_office }}">
+    </div>
+
+    <div class="gdr-group">{% if lang == 'en' %}Rodenticide Used{% else %}المبيد المستخدم{% endif %}</div>
+    <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Material 1{% else %}المبيد 1{% endif %}</label>
+        <input type="text" name="rodenticide_1_name" value="{{ post.rodenticide_1_name }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Quantity{% else %}الكمية{% endif %}</label>
+        <input type="text" name="rodenticide_1_qty" value="{{ post.rodenticide_1_qty }}" placeholder="{% if lang == 'en' %}e.g. 3 kg{% else %}مثال: 3 كجم{% endif %}">
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Material 2{% else %}المبيد 2{% endif %}</label>
+        <input type="text" name="rodenticide_2_name" value="{{ post.rodenticide_2_name }}">
+      </div>
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Quantity{% else %}الكمية{% endif %}</label>
+        <input type="text" name="rodenticide_2_qty" value="{{ post.rodenticide_2_qty }}">
+      </div>
+    </div>
+
+    <div class="gdr-group">{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</div>
+    <div class="field-wrap">
+      <textarea name="notes">{{ post.notes }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="margin-top:8px;">{% if lang == 'en' %}Save Report{% else %}حفظ التقرير{% endif %}</button>
+  </form>
+</div>
+{% endblock %}

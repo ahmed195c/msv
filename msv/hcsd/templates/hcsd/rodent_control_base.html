@@ -230,18 +230,22 @@ body.app-shell {
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="sidebar-group__items">
+          {% if not nav_confined_role or nav_confined_role == 'garden_monitor' or nav_confined_role == 'rodent_control_monitor' or nav_confined_role == 'garden_field_agent' or nav_confined_role == 'rodent_control_field_agent' %}
+          <a href="{% url 'garden_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_list' or request.resolver_match.url_name == 'garden_create' or request.resolver_match.url_name == 'garden_detail' %}active{% endif %}">
+            {% if lang == 'en' %}Area Follow-up{% else %}متابعة المناطق{% endif %}
+            <span class="sidebar-badge">{{ nav_area_count|default:"" }}</span>
+          </a>
+          <a href="{% url 'garden_daily_report_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_daily_report_list' or request.resolver_match.url_name == 'garden_daily_report_create' or request.resolver_match.url_name == 'garden_daily_report_detail' %}active{% endif %}">
+            {% if lang == 'en' %}Daily Reports{% else %}التقارير اليومية{% endif %}
+          </a>
+          {% endif %}
           {% if not nav_confined_role or nav_confined_role == 'rodent_control_monitor' or nav_confined_role == 'rodent_control_field_agent' %}
           <a href="{% url 'rodent_control_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'rodent_control_list' or request.resolver_match.url_name == 'rodent_control_building_detail' or request.resolver_match.url_name == 'rodent_control_building_create' %}active{% endif %}">
             {% if lang == 'en' %}Buildings{% else %}قائمة البنايات{% endif %}
             <span class="sidebar-badge">{{ nav_building_count|default:"" }}</span>
           </a>
           {% endif %}
-          {% if not nav_confined_role or nav_confined_role == 'garden_monitor' or nav_confined_role == 'rodent_control_monitor' or nav_confined_role == 'garden_field_agent' or nav_confined_role == 'rodent_control_field_agent' %}
-          <a href="{% url 'garden_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_list' or request.resolver_match.url_name == 'garden_create' or request.resolver_match.url_name == 'garden_detail' %}active{% endif %}">
-            {% if lang == 'en' %}Area Follow-up{% else %}متابعة المناطق{% endif %}
-            <span class="sidebar-badge">{{ nav_area_count|default:"" }}</span>
-          </a>
-          {% endif %}
+        
         </div>
       </div>
 

@@ -1,0 +1,86 @@
+{% extends "hcsd/garden_base.html" %}
+{% block title %}{% if lang == 'en' %}Daily Reports{% else %}التقارير اليومية{% endif %}{% endblock %}
+{% block content %}
+<style>
+.gdl-page { max-width: 1100px; margin: 0 auto; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600;
+  text-decoration: none; cursor: pointer; border: 1.5px solid var(--line);
+  background: var(--paper); color: var(--ink-2); font-family: inherit;
+}
+.btn:hover { background: var(--surface); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+
+.gdl-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 14px; margin-bottom: 22px;
+}
+.gdl-header h1 { font-size: 20px; font-weight: 700; color: var(--ink); margin: 0; }
+.gdl-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+
+.gdl-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.gdl-card {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 16px; text-decoration: none; color: inherit; display: grid; gap: 8px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.gdl-card:hover { border-color: var(--line-2); box-shadow: 0 4px 14px rgba(0,0,0,.06); }
+.gdl-card__area { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+.gdl-card__date { font-size: 12px; color: var(--ink-3); }
+.gdl-card__leader { font-size: 12.5px; color: var(--ink-2); }
+.gdl-card__stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
+.gdl-card__stats b { color: var(--ink); font-weight: 700; }
+
+.gdl-empty { text-align: center; padding: 60px 20px; color: var(--ink-4); font-size: 14px; }
+
+.gdl-pagination { display: flex; justify-content: center; gap: 8px; margin-top: 24px; }
+.gdl-pagination a, .gdl-pagination span {
+  padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  border: 1.5px solid var(--line); color: var(--ink-2); text-decoration: none;
+}
+.gdl-pagination .current { background: var(--accent); color: #fff; border-color: var(--accent); }
+</style>
+
+<div class="gdl-page">
+  <div class="gdl-header">
+    <div>
+      <h1>{% if lang == 'en' %}Daily Reports{% else %}التقارير اليومية{% endif %}</h1>
+      <p>{% if lang == 'en' %}A field team's daily work summary per area.{% else %}ملخص عمل الفريق الميداني اليومي لكل منطقة.{% endif %}</p>
+    </div>
+    {% if can_add %}
+    <a href="{% url 'garden_daily_report_create' %}" class="btn btn-primary">+ {% if lang == 'en' %}New Daily Report{% else %}تقرير يومي جديد{% endif %}</a>
+    {% endif %}
+  </div>
+
+  {% if page_obj.object_list %}
+  <div class="gdl-grid">
+    {% for report in page_obj.object_list %}
+    <a href="{% url 'garden_daily_report_detail' report.pk %}" class="gdl-card">
+      <div class="gdl-card__area">{{ report.area_name }}</div>
+      <div class="gdl-card__date">{{ report.report_date|date:"d/m/Y" }}</div>
+      {% if report.team_leader_name %}
+      <div class="gdl-card__leader">{% if lang == 'en' %}Team Leader{% else %}قائد الفريق{% endif %}: {{ report.team_leader_name }}{% if report.team_leader_id %} ({{ report.team_leader_id }}){% endif %}</div>
+      {% endif %}
+      <div class="gdl-card__stats">
+        <span>{% if lang == 'en' %}Buildings{% else %}مباني{% endif %}: <b>{{ report.total_bldg_villa|default_if_none:"—" }}</b></span>
+        <span>{% if lang == 'en' %}Manholes{% else %}مناهيل{% endif %}: <b>{{ report.total_manholes|default_if_none:"—" }}</b></span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="gdl-pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">{% if lang == 'en' %}Previous{% else %}السابق{% endif %}</a>{% endif %}
+    <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">{% if lang == 'en' %}Next{% else %}التالي{% endif %}</a>{% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="gdl-empty">{% if lang == 'en' %}No daily reports yet.{% else %}لا توجد تقارير يومية بعد.{% endif %}</div>
+  {% endif %}
+</div>
+{% endblock %}

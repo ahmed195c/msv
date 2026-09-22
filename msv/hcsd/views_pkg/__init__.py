@@ -55,6 +55,8 @@ from .campaign import campaign_list, campaign_create, campaign_detail, campaign_
 from .garden import (
     garden_list, garden_create, garden_detail, garden_delete,
     garden_area_review_toggle, garden_visit_report, garden_change_log,
+    garden_daily_report_create, garden_daily_report_list,
+    garden_daily_report_detail, garden_daily_report_delete,
 )
 
 __all__ = [
@@ -91,5 +93,7 @@ __all__ = [
     'campaign_list', 'campaign_create', 'campaign_detail', 'campaign_delete', 'campaign_report_excel',
     'garden_list', 'garden_create', 'garden_detail', 'garden_delete',
     'garden_area_review_toggle', 'garden_visit_report', 'garden_change_log',
+    'garden_daily_report_create', 'garden_daily_report_list',
+    'garden_daily_report_detail', 'garden_daily_report_delete',
     'all_requests', 'bulk_assign_requests',
 ]

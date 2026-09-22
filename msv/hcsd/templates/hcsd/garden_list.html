@@ -140,7 +140,9 @@
       <p>{% if lang == 'en' %}Tracking rodent infestation in manholes and public areas{% else %}متابعة الإصابة بالقوارض في المناهيل والمناطق العامة{% endif %}</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="{% url 'garden_daily_report_list' %}" class="btn btn-outline">{% if lang == 'en' %}Daily Reports{% else %}التقارير اليومية{% endif %}</a>
       {% if can_add %}
+      <a href="{% url 'garden_daily_report_create' %}" class="btn btn-primary">+ {% if lang == 'en' %}New Daily Report{% else %}تقرير يومي جديد{% endif %}</a>
       <a href="{% url 'garden_create' %}" class="btn btn-primary">+ {% if lang == 'en' %}Add New Location{% else %}إضافة موقع جديد{% endif %}</a>
       {% endif %}
     </div>

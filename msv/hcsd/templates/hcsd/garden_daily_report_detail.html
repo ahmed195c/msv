@@ -1,0 +1,149 @@
+{% extends "hcsd/garden_base.html" %}
+{% block title %}{{ report.area_name }} — {{ report.report_date|date:"d/m/Y" }}{% endblock %}
+{% block content %}
+<style>
+.gdd-page { max-width: 640px; margin: 0 auto; }
+.gdd-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 18px;
+}
+.gdd-header h1 { font-size: 19px; font-weight: 700; color: var(--ink); margin: 0; }
+.gdd-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; cursor: pointer; border: 1.5px solid var(--line);
+  background: var(--paper); color: var(--ink-2); font-family: inherit;
+}
+.btn-outline:hover { background: var(--surface); }
+.btn-danger { background: #b03a1a; color: #fff; border-color: #b03a1a; }
+.btn-danger:hover { background: #8c2f14; border-color: #8c2f14; }
+
+.gdd-section {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 18px; margin-bottom: 16px;
+}
+.gdd-section h2 { font-size: 13px; font-weight: 700; color: var(--ink); margin: 0 0 12px; }
+.info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 480px) { .info-grid { grid-template-columns: 1fr 1fr; } }
+.info-grid .lbl { font-size: 11.5px; font-weight: 600; color: var(--ink-3); margin-bottom: 4px; }
+.info-grid .val { font-size: 15px; font-weight: 700; color: var(--ink); }
+.info-grid .val--infested { color: #b03a1a; }
+</style>
+
+<div class="gdd-page">
+  <div class="gdd-header">
+    <div>
+      <h1>{{ report.area_name }}</h1>
+      <p>{{ report.report_date|date:"d/m/Y" }}</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="{% url 'garden_daily_report_list' %}" class="btn btn-outline">{% if lang == 'en' %}Back to List{% else %}العودة للقائمة{% endif %}</a>
+      {% if can_admin %}
+      <form method="post" action="{% url 'garden_daily_report_delete' report.pk %}" onsubmit="return confirm('{% if lang == 'en' %}Delete this report?{% else %}هل تريد حذف هذا التقرير؟{% endif %}');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">{% if lang == 'en' %}Delete{% else %}حذف{% endif %}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Team{% else %}الفريق{% endif %}</h2>
+    <div class="info-grid">
+      <div><div class="lbl">{% if lang == 'en' %}Team Leader{% else %}قائد الفريق{% endif %}</div><div class="val">{{ report.team_leader_name|default:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Employee ID{% else %}الرقم الوظيفي{% endif %}</div><div class="val">{{ report.team_leader_id|default:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Start From{% else %}بدأ من{% endif %}</div><div class="val">{{ report.start_from|default:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Time In{% else %}وقت الدخول{% endif %}</div><div class="val">{{ report.time_in|time:"H:i"|default:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Time Out{% else %}وقت الخروج{% endif %}</div><div class="val">{{ report.time_out|time:"H:i"|default:"—" }}</div></div>
+    </div>
+  </div>
+
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Buildings / Villas{% else %}المباني / الفلل{% endif %}</h2>
+    <div class="info-grid">
+      <div><div class="lbl">{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</div><div class="val">{{ report.total_bldg_villa|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</div><div class="val val--infested">{{ report.infested_bldg_villa|default_if_none:"—" }}</div></div>
+    </div>
+  </div>
+
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Manholes{% else %}المناهيل{% endif %}</h2>
+    <div class="info-grid">
+      <div><div class="lbl">{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</div><div class="val">{{ report.total_manholes|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Treated{% else %}المعالجة{% endif %}</div><div class="val">{{ report.treated_manholes|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</div><div class="val val--infested">{{ report.infested_manholes|default_if_none:"—" }}</div></div>
+    </div>
+  </div>
+
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Outside{% else %}الإصابة الخارجية{% endif %}</h2>
+    <div class="info-grid">
+      <div><div class="lbl">{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</div><div class="val">{{ report.total_outside|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</div><div class="val val--infested">{{ report.infested_outside|default_if_none:"—" }}</div></div>
+    </div>
+  </div>
+
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Construction{% else %}الإنشاءات{% endif %}</h2>
+    <div class="info-grid">
+      <div><div class="lbl">{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</div><div class="val">{{ report.total_construction|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</div><div class="val val--infested">{{ report.infested_construction|default_if_none:"—" }}</div></div>
+    </div>
+  </div>
+
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Mosques{% else %}المساجد{% endif %}</h2>
+    <div class="info-grid">
+      <div><div class="lbl">{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</div><div class="val">{{ report.total_masjid|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</div><div class="val val--infested">{{ report.infested_masjid|default_if_none:"—" }}</div></div>
+    </div>
+  </div>
+
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Trees{% else %}النخيل / الأشجار{% endif %}</h2>
+    <div class="info-grid">
+      <div><div class="lbl">{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</div><div class="val">{{ report.total_tree|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Treated{% else %}المعالجة{% endif %}</div><div class="val">{{ report.treated_tree|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</div><div class="val val--infested">{{ report.infested_tree|default_if_none:"—" }}</div></div>
+    </div>
+  </div>
+
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Electrical Rooms{% else %}الغرف الكهربائية{% endif %}</h2>
+    <div class="info-grid">
+      <div><div class="lbl">{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</div><div class="val">{{ report.electrical_rooms|default_if_none:"—" }}</div></div>
+      <div><div class="lbl">{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</div><div class="val val--infested">{{ report.infested_ers|default_if_none:"—" }}</div></div>
+    </div>
+  </div>
+
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Other{% else %}أخرى{% endif %}</h2>
+    <div class="info-grid">
+      <div><div class="lbl">{% if lang == 'en' %}Government Offices{% else %}المكاتب الحكومية{% endif %}</div><div class="val">{{ report.gov_office|default_if_none:"—" }}</div></div>
+    </div>
+  </div>
+
+  {% if report.rodenticide_1_name or report.rodenticide_2_name %}
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Rodenticide Used{% else %}المبيد المستخدم{% endif %}</h2>
+    <div class="info-grid">
+      {% if report.rodenticide_1_name %}
+      <div><div class="lbl">{{ report.rodenticide_1_name }}</div><div class="val">{{ report.rodenticide_1_qty|default:"—" }}</div></div>
+      {% endif %}
+      {% if report.rodenticide_2_name %}
+      <div><div class="lbl">{{ report.rodenticide_2_name }}</div><div class="val">{{ report.rodenticide_2_qty|default:"—" }}</div></div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if report.notes %}
+  <div class="gdd-section">
+    <h2>{% if lang == 'en' %}Notes{% else %}ملاحظات{% endif %}</h2>
+    <p style="font-size:13.5px;color:var(--ink-2);white-space:pre-wrap;margin:0;">{{ report.notes }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

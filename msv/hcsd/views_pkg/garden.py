@@ -6,6 +6,7 @@ URL prefix : /garden/
 Templates  : hcsd/garden_*.html
 """
 
+import datetime
 import io
 import logging
 import os
@@ -22,8 +23,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from ..models import (
-    GARDEN_INFESTATION_TYPE_CHOICES, GardenAreaReview, GardenVisit,
-    GardenVisitChangeLog, GardenVisitPhoto,
+    GARDEN_INFESTATION_TYPE_CHOICES, GardenAreaReview, GardenDailyReport,
+    GardenVisit, GardenVisitChangeLog, GardenVisitPhoto,
 )
 from .common import (
     _can_admin, _can_data_entry, _can_field_agent, _can_garden_monitor,
@@ -463,3 +464,108 @@ def garden_change_log(request):
         'page_obj': page_obj,
         'lang': _get_lang(request),
     })
+
+
+_GARDEN_DAILY_REPORT_INT_FIELDS = [
+    'total_bldg_villa', 'infested_bldg_villa',
+    'total_manholes', 'treated_manholes', 'infested_manholes',
+    'total_outside', 'infested_outside',
+    'total_construction', 'infested_construction',
+    'total_masjid', 'infested_masjid',
+    'total_tree', 'treated_tree', 'infested_tree',
+    'electrical_rooms', 'infested_ers',
+    'gov_office',
+]
+
+
+@login_required
+def garden_daily_report_create(request):
+    if not _can_add_garden(request.user):
+        return redirect('garden_list')
+
+    lang = _get_lang(request)
+    errors = []
+    if request.method == 'POST':
+        area_name = (request.POST.get('area_name') or '').strip()
+        if not area_name:
+            errors.append('Please enter the area name.' if lang == 'en' else 'يرجى إدخال اسم المنطقة.')
+
+        def _int(name):
+            raw = (request.POST.get(name) or '').strip()
+            try:
+                return int(raw) if raw else None
+            except ValueError:
+                return None
+
+        def _time(name):
+            raw = (request.POST.get(name) or '').strip()
+            try:
+                return datetime.time.fromisoformat(raw) if raw else None
+            except ValueError:
+                return None
+
+        report_date_raw = (request.POST.get('report_date') or '').strip()
+        try:
+            report_date = datetime.date.fromisoformat(report_date_raw)
+        except ValueError:
+            report_date = timezone.localdate()
+
+        if not errors:
+            report = GardenDailyReport.objects.create(
+                report_date=report_date,
+                area_name=area_name,
+                team_leader_name=(request.POST.get('team_leader_name') or '').strip(),
+                team_leader_id=(request.POST.get('team_leader_id') or '').strip(),
+                start_from=(request.POST.get('start_from') or '').strip(),
+                time_in=_time('time_in'),
+                time_out=_time('time_out'),
+                **{field: _int(field) for field in _GARDEN_DAILY_REPORT_INT_FIELDS},
+                rodenticide_1_name=(request.POST.get('rodenticide_1_name') or '').strip(),
+                rodenticide_1_qty=(request.POST.get('rodenticide_1_qty') or '').strip(),
+                rodenticide_2_name=(request.POST.get('rodenticide_2_name') or '').strip(),
+                rodenticide_2_qty=(request.POST.get('rodenticide_2_qty') or '').strip(),
+                notes=(request.POST.get('notes') or '').strip(),
+                created_by=request.user,
+            )
+            return redirect('garden_daily_report_detail', pk=report.pk)
+
+    return render(request, 'hcsd/garden_daily_report_create.html', {
+        'errors': errors,
+        'post': request.POST,
+        'today': timezone.localdate(),
+        'lang': lang,
+    })
+
+
+@login_required
+def garden_daily_report_list(request):
+    reports = GardenDailyReport.objects.select_related('created_by').order_by('-report_date', '-created_at')
+    paginator = Paginator(reports, 30)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'hcsd/garden_daily_report_list.html', {
+        'page_obj': page_obj,
+        'can_add': _can_add_garden(request.user),
+        'lang': _get_lang(request),
+    })
+
+
+@login_required
+def garden_daily_report_detail(request, pk):
+    report = get_object_or_404(GardenDailyReport, pk=pk)
+    return render(request, 'hcsd/garden_daily_report_detail.html', {
+        'report': report,
+        'can_admin': _can_admin(request.user),
+        'lang': _get_lang(request),
+    })
+
+
+@login_required
+@require_POST
+def garden_daily_report_delete(request, pk):
+    report = get_object_or_404(GardenDailyReport, pk=pk)
+    if not _can_admin(request.user):
+        return HttpResponseForbidden()
+
+    report.delete()
+    return redirect('garden_daily_report_list')
