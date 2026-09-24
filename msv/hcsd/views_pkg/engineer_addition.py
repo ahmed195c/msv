@@ -1,3 +1,4 @@
+import datetime
 import os
 
 from django.contrib.auth.decorators import login_required
@@ -163,9 +164,12 @@ def engineer_addition_detail(request, id):
         and assigned_inspector_user.id == request.user.id
         and inspection_receiver_name is not None
     )
-    can_record_payment_order = (
+    can_head_approve = (
         is_admin and pirmet.status == 'inspection_completed'
         and inspection_report_decision == 'approved'
+    )
+    can_record_payment_order = (
+        is_admin and pirmet.status == 'head_approved'
     )
     can_record_payment_receipt = (
         is_admin and pirmet.status == 'payment_pending'
@@ -277,9 +281,45 @@ def engineer_addition_detail(request, id):
                             notes=f'inspection_report_notes:{report_notes}')
                 return redirect('engineer_addition_detail', id=pirmet.id)
 
+        elif action == 'head_approve':
+            if not is_admin:
+                review_errors.append('ليس لديك صلاحية للاعتماد النهائي.')
+            if pirmet.status != 'inspection_completed':
+                review_errors.append('هذا الطلب ليس في مرحلة الاعتماد النهائي.')
+            if inspection_report_decision != 'approved':
+                review_errors.append('لا يمكن الاعتماد النهائي قبل اعتماد تقرير التفتيش.')
+            head_decision = (request.POST.get('head_decision') or '').strip()
+            if head_decision not in {'approved', 'rejected'}:
+                review_errors.append('يرجى اختيار قرار الاعتماد النهائي.')
+            head_remarks = (request.POST.get('head_remarks') or '').strip()
+            if head_decision == 'rejected' and not head_remarks:
+                review_errors.append('يرجى كتابة سبب الرفض.')
+
+            if not review_errors:
+                old_status = pirmet.status
+                if head_decision == 'approved':
+                    pirmet.head_approved_by = request.user
+                    pirmet.head_approved_date = datetime.date.today()
+                    pirmet.head_approved_notes = head_remarks or None
+                    pirmet.status = 'head_approved'
+                    pirmet.save(update_fields=['status', 'head_approved_by', 'head_approved_date', 'head_approved_notes'])
+                    _log_pirmet_change(pirmet, 'status_change', request.user,
+                        old_status=old_status, new_status=pirmet.status,
+                        notes='Head of section final approval.')
+                else:
+                    pirmet.status = 'cancelled_admin'
+                    pirmet.unapprovedReason = head_remarks
+                    pirmet.save(update_fields=['status', 'unapprovedReason'])
+                    _log_pirmet_change(pirmet, 'status_change', request.user,
+                        old_status=old_status, new_status=pirmet.status,
+                        notes='Head of section rejected - request closed.')
+                return redirect('engineer_addition_detail', id=pirmet.id)
+
         elif action == 'record_payment_order':
             if not is_admin:
                 review_errors.append('ليس لديك صلاحية.')
+            if pirmet.status != 'head_approved':
+                review_errors.append('يجب الاعتماد النهائي للطلب قبل إدخال رقم أمر الدفع.')
             order_no = request.POST.get('payment_order_number', '').strip()
             if not order_no:
                 review_errors.append('يرجى إدخال رقم أمر الدفع.')
@@ -376,6 +416,10 @@ def engineer_addition_detail(request, id):
         'can_record_inspection_receipt': can_record_inspection_receipt,
         'can_receive_inspection': can_receive_inspection,
         'can_submit_inspection_report': can_submit_inspection_report,
+        'can_head_approve': can_head_approve,
+        'head_approved_by': _display_user_name(pirmet.head_approved_by) if pirmet.head_approved_by else None,
+        'head_approved_date': pirmet.head_approved_date,
+        'head_approved_notes': pirmet.head_approved_notes,
         'can_record_payment_order': can_record_payment_order,
         'can_record_payment_receipt': can_record_payment_receipt,
         'can_complete': can_complete,

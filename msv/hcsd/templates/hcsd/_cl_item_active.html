@@ -38,7 +38,7 @@
         {% elif c.status == 'violation_payment_pending' %}بانتظار دفع المخالفة
         {% elif c.status == 'issued' %}تم إصدار التصريح
         {% elif c.status == 'inspection_pending' %}{% if c.inspection_receiver_name %}تم استلام الطلب — {{ c.inspection_receiver_name }}{% else %}جاهز للاستلام{% endif %}
-        {% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}{% if c.permit_type == 'pesticide_transport' %}بانتظار رابط دفع التصريح{% elif c.permit_type == 'engineer_addition' %}بانتظار إدخال رقم أمر الدفع{% else %}بانتظار الاعتماد النهائي{% endif %}
+        {% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}{% if c.permit_type == 'pesticide_transport' %}بانتظار رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
         {% elif c.status == 'inspection_completed' %}تم التفتيش
         {% elif c.status == 'head_approved' %}تم الاعتماد النهائي
         {% elif c.status == 'closed_requirements_pending' %}اشتراطات واجبة الاستيفاء
@@ -75,7 +75,7 @@
       {% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}
         <span class="cl-next">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-          {% if c.permit_type == 'pesticide_transport' %}أنشئ رابط دفع التصريح{% elif c.permit_type == 'engineer_addition' %}أدخل رقم أمر الدفع{% else %}بانتظار الاعتماد النهائي{% endif %}
+          {% if c.permit_type == 'pesticide_transport' %}أنشئ رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
         </span>
       {% elif c.status == 'head_approved' %}
         <span class="cl-next">

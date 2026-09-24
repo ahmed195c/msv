@@ -56,11 +56,7 @@ def _active_label(c):
         decision = getattr(c, 'inspection_report_decision', '')
         permit   = getattr(c, 'permit_type', '')
         if decision == 'approved':
-            if permit == 'pesticide_transport':
-                return 'بانتظار رابط دفع التصريح'
-            if permit == 'engineer_addition':
-                return 'بانتظار إدخال رقم أمر الدفع'
-            return 'بانتظار الاعتماد النهائي'
+            return 'بانتظار رابط دفع التصريح' if permit == 'pesticide_transport' else 'بانتظار الاعتماد النهائي'
         return 'تم التفتيش'
     return labels.get(s, c.get_status_display())
 
