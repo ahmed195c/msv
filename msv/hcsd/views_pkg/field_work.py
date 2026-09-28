@@ -247,7 +247,6 @@ _FW_DANGEROUS_INFESTATION_GROUPS = [
     ('mosquitoes',  'بعوض',    'Mosquitoes',   ['mosquito', 'بعوض']),
     ('cockroaches', 'صراصير',  'Cockroaches',  ['cockroach', 'صرصور', 'صراصير']),
     ('flies',       'ذباب',    'Flies',        ['fly', 'flies', 'ذباب']),
-    ('snakes',      'أفاعي',   'Snakes',       ['snake', 'أفعى', 'أفاعي', 'ثعبان']),
 ]
 
 
