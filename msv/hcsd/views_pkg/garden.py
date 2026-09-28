@@ -28,7 +28,8 @@ from ..models import (
 )
 from .common import (
     _can_admin, _can_data_entry, _can_field_agent, _can_garden_monitor,
-    _can_rodent_control_field_agent, _can_rodent_control_monitor, _get_lang,
+    _can_rodent_control_field_agent, _can_rodent_control_monitor,
+    _display_user_name, _get_lang,
 )
 
 logger = logging.getLogger(__name__)
@@ -514,11 +515,10 @@ def garden_daily_report_create(request):
             report = GardenDailyReport.objects.create(
                 report_date=report_date,
                 area_name=area_name,
-                team_leader_name=(request.POST.get('team_leader_name') or '').strip(),
-                team_leader_id=(request.POST.get('team_leader_id') or '').strip(),
+                team_leader_name=_display_user_name(request.user),
+                team_leader_id=request.user.username,
                 start_from=(request.POST.get('start_from') or '').strip(),
                 time_in=_time('time_in'),
-                time_out=_time('time_out'),
                 **{field: _int(field) for field in _GARDEN_DAILY_REPORT_INT_FIELDS},
                 rodenticide_1_name=(request.POST.get('rodenticide_1_name') or '').strip(),
                 rodenticide_1_qty=(request.POST.get('rodenticide_1_qty') or '').strip(),

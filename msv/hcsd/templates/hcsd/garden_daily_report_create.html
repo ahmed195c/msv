@@ -15,6 +15,12 @@
 .gdr-group { font-size: 13px; font-weight: 700; color: var(--ink); margin: 22px 0 12px; padding-top: 14px; border-top: 1px solid var(--line); }
 .gdr-group:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
 
+.gdr-note {
+  background: var(--accent-bg); border: 1.5px solid var(--accent-lt); color: var(--accent-dk);
+  border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 600;
+  margin-bottom: 14px;
+}
+
 .field-wrap { display: grid; gap: 6px; margin-bottom: 14px; }
 .field-wrap label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
 .field-wrap input, .field-wrap textarea {
@@ -85,30 +91,20 @@
       </div>
     </div>
 
-    <div class="two-col">
-      <div class="field-wrap">
-        <label>{% if lang == 'en' %}Team Leader Name{% else %}اسم قائد الفريق{% endif %}</label>
-        <input type="text" name="team_leader_name" value="{{ post.team_leader_name }}">
-      </div>
-      <div class="field-wrap">
-        <label>{% if lang == 'en' %}Employee ID{% else %}الرقم الوظيفي{% endif %}</label>
-        <input type="text" name="team_leader_id" value="{{ post.team_leader_id }}">
-      </div>
-    </div>
-
-    <div class="field-wrap">
-      <label>{% if lang == 'en' %}Start From{% else %}بدأ من{% endif %}</label>
-      <input type="text" name="start_from" value="{{ post.start_from }}">
+    <div class="gdr-note">
+      {% if lang == 'en' %}Team leader{% else %}قائد الفريق{% endif %}:
+      <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+      ({{ request.user.username }})
     </div>
 
     <div class="two-col">
+      <div class="field-wrap">
+        <label>{% if lang == 'en' %}Start From{% else %}بدأ من{% endif %}</label>
+        <input type="text" name="start_from" value="{{ post.start_from }}">
+      </div>
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Time In{% else %}وقت الدخول{% endif %}</label>
         <input type="time" name="time_in" value="{{ post.time_in }}">
-      </div>
-      <div class="field-wrap">
-        <label>{% if lang == 'en' %}Time Out{% else %}وقت الخروج{% endif %}</label>
-        <input type="time" name="time_out" value="{{ post.time_out }}">
       </div>
     </div>
 
