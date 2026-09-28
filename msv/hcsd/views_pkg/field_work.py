@@ -196,13 +196,15 @@ def _fw_delta(current, previous):
     return {'diff': diff, 'pct': pct}
 
 
-def _fw_top_classifications(qs, list_field, text_field, top_n=6):
+def _fw_top_classifications(qs, list_field, text_field, top_n=6, name_filter=None):
     """Rank the most common values of a spray_entries sub-list (list_field:
     'pests' — plain strings, or 'pesticides' — dicts with a 'name' key)
     across all orders in qs, falling back to a comma-separated text_field
     when an order has no spray_entries. Each value is counted at most once
-    per order. Returns top_n as [{'name', 'n', 'top_area'}], where top_area
-    is the single area that value occurs in most often.
+    per order. Pass name_filter to only count names it returns True for
+    (e.g. restrict pest names to the dangerous/disease-carrying set).
+    Returns top_n as [{'name', 'n', 'top_area'}], where top_area is the
+    single area that value occurs in most often.
     """
     import collections
 
@@ -221,6 +223,9 @@ def _fw_top_classifications(qs, list_field, text_field, top_n=6):
         else:
             raw_text = getattr(order, text_field) or ''
             names = [n.strip() for n in raw_text.split(',') if n.strip()]
+
+        if name_filter:
+            names = [n for n in names if name_filter(n)]
 
         for name in set(names):
             counts[name] += 1
@@ -244,6 +249,17 @@ _FW_DANGEROUS_INFESTATION_GROUPS = [
     ('flies',       'ذباب',    'Flies',        ['fly', 'flies', 'ذباب']),
     ('snakes',      'أفاعي',   'Snakes',       ['snake', 'أفعى', 'أفاعي', 'ثعبان']),
 ]
+
+
+def _fw_is_dangerous_pest_name(name):
+    """True if a raw pest name matches any of the disease-carrying/
+    dangerous-infestation keyword groups (rodents, mosquitoes,
+    cockroaches, flies, snakes)."""
+    lname = name.lower()
+    return any(
+        any(kw.lower() in lname for kw in keywords)
+        for _key, _ar, _en, keywords in _FW_DANGEROUS_INFESTATION_GROUPS
+    )
 
 
 def _fw_dangerous_infestation_counts(qs):
@@ -306,7 +322,9 @@ def field_work_dashboard(request):
         .order_by('-n')[:5]
     )
 
-    top_pests = _fw_top_classifications(this_qs, 'pests', 'pest_types')
+    top_pests = _fw_top_classifications(
+        this_qs, 'pests', 'pest_types', name_filter=_fw_is_dangerous_pest_name,
+    )
     top_pesticides = _fw_top_classifications(this_qs, 'pesticides', 'pesticides_used')
     dangerous_infestations = _fw_dangerous_infestation_counts(this_qs)
 
