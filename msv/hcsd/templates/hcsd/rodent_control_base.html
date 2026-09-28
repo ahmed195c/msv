@@ -143,6 +143,16 @@ body.app-shell {
 .sidebar-group.collapsed .sidebar-group__items { display: none; }
 .sidebar-link--sub { padding: 8px 10px; font-weight: 500; }
 
+.sidebar-nest-row { display: flex; align-items: center; gap: 2px; }
+.sidebar-nest-row .sidebar-link { flex: 1; min-width: 0; }
+.sidebar-nest-toggle {
+  width: 26px; height: 26px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 6px; background: none; cursor: pointer;
+}
+.sidebar-nest-toggle:hover { background: var(--surface-2); }
+.sidebar-nest-toggle .chev { width: 13px; height: 13px; color: var(--ink-4); transition: transform .15s; }
+.sidebar-group--nested .sidebar-group__items { padding-inline-start: 18px; }
+
 .sidebar-divider { height: 1px; background: var(--line); margin: 10px 4px; }
 
 .sidebar-spacer { flex: 1; }
@@ -230,15 +240,27 @@ body.app-shell {
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="sidebar-group__items">
-          {% if not nav_confined_role or nav_confined_role == 'garden_monitor' or nav_confined_role == 'rodent_control_monitor' or nav_confined_role == 'garden_field_agent' or nav_confined_role == 'rodent_control_field_agent' %}
+          {% if not nav_confined_role or nav_confined_role == 'garden_monitor' or nav_confined_role == 'rodent_control_monitor' %}
+          <div class="sidebar-group sidebar-group--nested">
+            <div class="sidebar-nest-row">
+              <a href="{% url 'garden_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_list' or request.resolver_match.url_name == 'garden_create' or request.resolver_match.url_name == 'garden_detail' %}active{% endif %}">
+                {% if lang == 'en' %}Area Follow-up{% else %}متابعة المناطق{% endif %}
+                <span class="sidebar-badge">{{ nav_area_count|default:"" }}</span>
+              </a>
+              <button type="button" class="sidebar-nest-toggle" onclick="this.closest('.sidebar-group--nested').classList.toggle('collapsed')" aria-label="{% if lang == 'en' %}Toggle{% else %}طي/فتح{% endif %}">
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+            </div>
+            <div class="sidebar-group__items">
+              <a href="{% url 'garden_daily_report_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_daily_report_list' or request.resolver_match.url_name == 'garden_daily_report_create' or request.resolver_match.url_name == 'garden_daily_report_detail' %}active{% endif %}">
+                {% if lang == 'en' %}Daily Reports{% else %}التقارير اليومية{% endif %}
+              </a>
+            </div>
+          </div>
+          {% elif nav_confined_role == 'garden_field_agent' or nav_confined_role == 'rodent_control_field_agent' %}
           <a href="{% url 'garden_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_list' or request.resolver_match.url_name == 'garden_create' or request.resolver_match.url_name == 'garden_detail' %}active{% endif %}">
             {% if lang == 'en' %}Area Follow-up{% else %}متابعة المناطق{% endif %}
             <span class="sidebar-badge">{{ nav_area_count|default:"" }}</span>
-          </a>
-          {% endif %}
-          {% if not nav_confined_role or nav_confined_role == 'garden_monitor' or nav_confined_role == 'rodent_control_monitor' %}
-          <a href="{% url 'garden_daily_report_list' %}" class="sidebar-link sidebar-link--sub {% if request.resolver_match.url_name == 'garden_daily_report_list' or request.resolver_match.url_name == 'garden_daily_report_create' or request.resolver_match.url_name == 'garden_daily_report_detail' %}active{% endif %}">
-            {% if lang == 'en' %}Daily Reports{% else %}التقارير اليومية{% endif %}
           </a>
           {% endif %}
           {% if not nav_confined_role or nav_confined_role == 'rodent_control_monitor' or nav_confined_role == 'rodent_control_field_agent' %}
