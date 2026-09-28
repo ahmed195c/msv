@@ -480,7 +480,7 @@ _GARDEN_DAILY_REPORT_INT_FIELDS = [
 
 @login_required
 def garden_daily_report_create(request):
-    if not _can_add_garden(request.user):
+    if not _can_manage(request.user):
         return redirect('garden_list')
 
     lang = _get_lang(request)
@@ -545,7 +545,7 @@ def garden_daily_report_list(request):
 
     return render(request, 'hcsd/garden_daily_report_list.html', {
         'page_obj': page_obj,
-        'can_add': _can_add_garden(request.user),
+        'can_add': _can_manage(request.user),
         'lang': _get_lang(request),
     })
 

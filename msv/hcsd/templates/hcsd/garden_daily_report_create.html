@@ -29,6 +29,31 @@
 .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 @media (max-width: 480px) { .two-col, .three-col { grid-template-columns: 1fr; } }
 
+/* Modern pill stepper for the count fields */
+.stepper {
+  display: flex; align-items: stretch; height: 44px; min-width: 0;
+  border-radius: 999px; overflow: hidden; border: 1.5px solid var(--line);
+  direction: ltr;
+}
+.stepper__btn {
+  width: 40px; flex-shrink: 0; border: none; font-size: 20px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: filter .15s; line-height: 1;
+}
+.stepper__btn:first-child { background: var(--accent-bg); color: var(--accent-dk); }
+.stepper__btn:last-child  { background: var(--accent); color: #fff; }
+.stepper__btn:hover { filter: brightness(0.95); }
+.stepper__btn:active { transform: scale(0.96); }
+.stepper__val {
+  flex: 1; border: none !important; background: #fff !important; text-align: center;
+  font-size: 17px; font-weight: 800; color: var(--ink); min-width: 0;
+  padding: 0 !important;
+}
+.stepper__val::-webkit-outer-spin-button, .stepper__val::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.stepper__val { -moz-appearance: textfield; }
+
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 9px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
@@ -91,11 +116,19 @@
     <div class="two-col">
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
-        <input type="number" min="0" name="total_bldg_villa" value="{{ post.total_bldg_villa }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_bldg_villa', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="total_bldg_villa" id="gdr-num-total_bldg_villa" class="stepper__val" value="{{ post.total_bldg_villa|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_bldg_villa', 1)">+</button>
+        </div>
       </div>
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
-        <input type="number" min="0" name="infested_bldg_villa" value="{{ post.infested_bldg_villa }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_bldg_villa', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="infested_bldg_villa" id="gdr-num-infested_bldg_villa" class="stepper__val" value="{{ post.infested_bldg_villa|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_bldg_villa', 1)">+</button>
+        </div>
       </div>
     </div>
 
@@ -103,15 +136,27 @@
     <div class="three-col">
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
-        <input type="number" min="0" name="total_manholes" value="{{ post.total_manholes }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_manholes', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="total_manholes" id="gdr-num-total_manholes" class="stepper__val" value="{{ post.total_manholes|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_manholes', 1)">+</button>
+        </div>
       </div>
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Treated{% else %}المعالجة{% endif %}</label>
-        <input type="number" min="0" name="treated_manholes" value="{{ post.treated_manholes }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('treated_manholes', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="treated_manholes" id="gdr-num-treated_manholes" class="stepper__val" value="{{ post.treated_manholes|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('treated_manholes', 1)">+</button>
+        </div>
       </div>
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
-        <input type="number" min="0" name="infested_manholes" value="{{ post.infested_manholes }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_manholes', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="infested_manholes" id="gdr-num-infested_manholes" class="stepper__val" value="{{ post.infested_manholes|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_manholes', 1)">+</button>
+        </div>
       </div>
     </div>
 
@@ -119,11 +164,19 @@
     <div class="two-col">
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
-        <input type="number" min="0" name="total_outside" value="{{ post.total_outside }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_outside', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="total_outside" id="gdr-num-total_outside" class="stepper__val" value="{{ post.total_outside|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_outside', 1)">+</button>
+        </div>
       </div>
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
-        <input type="number" min="0" name="infested_outside" value="{{ post.infested_outside }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_outside', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="infested_outside" id="gdr-num-infested_outside" class="stepper__val" value="{{ post.infested_outside|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_outside', 1)">+</button>
+        </div>
       </div>
     </div>
 
@@ -131,11 +184,19 @@
     <div class="two-col">
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
-        <input type="number" min="0" name="total_construction" value="{{ post.total_construction }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_construction', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="total_construction" id="gdr-num-total_construction" class="stepper__val" value="{{ post.total_construction|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_construction', 1)">+</button>
+        </div>
       </div>
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
-        <input type="number" min="0" name="infested_construction" value="{{ post.infested_construction }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_construction', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="infested_construction" id="gdr-num-infested_construction" class="stepper__val" value="{{ post.infested_construction|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_construction', 1)">+</button>
+        </div>
       </div>
     </div>
 
@@ -143,11 +204,19 @@
     <div class="two-col">
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
-        <input type="number" min="0" name="total_masjid" value="{{ post.total_masjid }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_masjid', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="total_masjid" id="gdr-num-total_masjid" class="stepper__val" value="{{ post.total_masjid|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_masjid', 1)">+</button>
+        </div>
       </div>
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
-        <input type="number" min="0" name="infested_masjid" value="{{ post.infested_masjid }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_masjid', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="infested_masjid" id="gdr-num-infested_masjid" class="stepper__val" value="{{ post.infested_masjid|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_masjid', 1)">+</button>
+        </div>
       </div>
     </div>
 
@@ -155,15 +224,27 @@
     <div class="three-col">
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
-        <input type="number" min="0" name="total_tree" value="{{ post.total_tree }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_tree', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="total_tree" id="gdr-num-total_tree" class="stepper__val" value="{{ post.total_tree|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('total_tree', 1)">+</button>
+        </div>
       </div>
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Treated{% else %}المعالجة{% endif %}</label>
-        <input type="number" min="0" name="treated_tree" value="{{ post.treated_tree }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('treated_tree', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="treated_tree" id="gdr-num-treated_tree" class="stepper__val" value="{{ post.treated_tree|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('treated_tree', 1)">+</button>
+        </div>
       </div>
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
-        <input type="number" min="0" name="infested_tree" value="{{ post.infested_tree }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_tree', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="infested_tree" id="gdr-num-infested_tree" class="stepper__val" value="{{ post.infested_tree|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_tree', 1)">+</button>
+        </div>
       </div>
     </div>
 
@@ -171,18 +252,30 @@
     <div class="two-col">
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Total{% else %}الإجمالي{% endif %}</label>
-        <input type="number" min="0" name="electrical_rooms" value="{{ post.electrical_rooms }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('electrical_rooms', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="electrical_rooms" id="gdr-num-electrical_rooms" class="stepper__val" value="{{ post.electrical_rooms|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('electrical_rooms', 1)">+</button>
+        </div>
       </div>
       <div class="field-wrap">
         <label>{% if lang == 'en' %}Infested{% else %}المصابة{% endif %}</label>
-        <input type="number" min="0" name="infested_ers" value="{{ post.infested_ers }}">
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_ers', -1)">−</button>
+          <input type="number" inputmode="numeric" min="0" name="infested_ers" id="gdr-num-infested_ers" class="stepper__val" value="{{ post.infested_ers|default:'0' }}">
+          <button type="button" class="stepper__btn" onclick="gdrStep('infested_ers', 1)">+</button>
+        </div>
       </div>
     </div>
 
     <div class="gdr-group">{% if lang == 'en' %}Other{% else %}أخرى{% endif %}</div>
     <div class="field-wrap" style="max-width:200px;">
       <label>{% if lang == 'en' %}Government Offices{% else %}المكاتب الحكومية{% endif %}</label>
-      <input type="number" min="0" name="gov_office" value="{{ post.gov_office }}">
+      <div class="stepper">
+        <button type="button" class="stepper__btn" onclick="gdrStep('gov_office', -1)">−</button>
+        <input type="number" inputmode="numeric" min="0" name="gov_office" id="gdr-num-gov_office" class="stepper__val" value="{{ post.gov_office|default:'0' }}">
+        <button type="button" class="stepper__btn" onclick="gdrStep('gov_office', 1)">+</button>
+      </div>
     </div>
 
     <div class="gdr-group">{% if lang == 'en' %}Rodenticide Used{% else %}المبيد المستخدم{% endif %}</div>
@@ -215,4 +308,15 @@
     <button type="submit" class="btn btn-primary" style="margin-top:8px;">{% if lang == 'en' %}Save Report{% else %}حفظ التقرير{% endif %}</button>
   </form>
 </div>
+
+<script>
+function gdrStep(name, delta) {
+  var inp = document.getElementById('gdr-num-' + name);
+  if (!inp) return;
+  var val = parseInt(inp.value, 10);
+  if (isNaN(val)) val = 0;
+  val = Math.max(0, val + delta);
+  inp.value = val;
+}
+</script>
 {% endblock %}
