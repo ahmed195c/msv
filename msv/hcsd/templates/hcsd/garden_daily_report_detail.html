@@ -41,6 +41,7 @@
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <a href="{% url 'garden_daily_report_list' %}" class="btn btn-outline">{% if lang == 'en' %}Back to List{% else %}العودة للقائمة{% endif %}</a>
       {% if can_admin %}
+      <a href="{% url 'garden_daily_report_edit' report.pk %}" class="btn btn-outline">{% if lang == 'en' %}Edit{% else %}تعديل{% endif %}</a>
       <form method="post" action="{% url 'garden_daily_report_delete' report.pk %}" onsubmit="return confirm('{% if lang == 'en' %}Delete this report?{% else %}هل تريد حذف هذا التقرير؟{% endif %}');">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">{% if lang == 'en' %}Delete{% else %}حذف{% endif %}</button>

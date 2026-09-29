@@ -57,6 +57,7 @@ from .garden import (
     garden_area_review_toggle, garden_visit_report, garden_change_log,
     garden_daily_report_create, garden_daily_report_list,
     garden_daily_report_detail, garden_daily_report_delete,
+    garden_daily_report_edit,
 )
 
 __all__ = [
@@ -95,5 +96,6 @@ __all__ = [
     'garden_area_review_toggle', 'garden_visit_report', 'garden_change_log',
     'garden_daily_report_create', 'garden_daily_report_list',
     'garden_daily_report_detail', 'garden_daily_report_delete',
+    'garden_daily_report_edit',
     'all_requests', 'bulk_assign_requests',
 ]

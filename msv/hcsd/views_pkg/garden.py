@@ -540,6 +540,75 @@ def garden_daily_report_create(request):
 
 
 @login_required
+def garden_daily_report_edit(request, pk):
+    if not _can_admin(request.user):
+        return redirect('garden_list')
+
+    report = get_object_or_404(GardenDailyReport, pk=pk)
+    lang = _get_lang(request)
+    errors = []
+
+    def _int(name):
+        raw = (request.POST.get(name) or '').strip()
+        try:
+            return int(raw) if raw else None
+        except ValueError:
+            return None
+
+    def _time(name):
+        raw = (request.POST.get(name) or '').strip()
+        try:
+            return datetime.time.fromisoformat(raw) if raw else None
+        except ValueError:
+            return None
+
+    if request.method == 'POST':
+        area_name = (request.POST.get('area_name') or '').strip()
+        if not area_name:
+            errors.append('Please enter the area name.' if lang == 'en' else 'يرجى إدخال اسم المنطقة.')
+
+        report_date_raw = (request.POST.get('report_date') or '').strip()
+        try:
+            report_date = datetime.date.fromisoformat(report_date_raw)
+        except ValueError:
+            report_date = report.report_date
+
+        if not errors:
+            report.report_date = report_date
+            report.area_name = area_name
+            report.start_from = (request.POST.get('start_from') or '').strip()
+            report.time_in = _time('time_in')
+            for field in _GARDEN_DAILY_REPORT_INT_FIELDS:
+                setattr(report, field, _int(field))
+            report.rodenticide_1_name = (request.POST.get('rodenticide_1_name') or '').strip()
+            report.rodenticide_1_qty = (request.POST.get('rodenticide_1_qty') or '').strip()
+            report.rodenticide_2_name = (request.POST.get('rodenticide_2_name') or '').strip()
+            report.rodenticide_2_qty = (request.POST.get('rodenticide_2_qty') or '').strip()
+            report.notes = (request.POST.get('notes') or '').strip()
+            report.save()
+            return redirect('garden_daily_report_detail', pk=report.pk)
+        post = request.POST
+    else:
+        post = {'area_name': report.area_name, 'report_date': report.report_date,
+                'start_from': report.start_from,
+                'time_in': report.time_in.strftime('%H:%M') if report.time_in else '',
+                'rodenticide_1_name': report.rodenticide_1_name, 'rodenticide_1_qty': report.rodenticide_1_qty,
+                'rodenticide_2_name': report.rodenticide_2_name, 'rodenticide_2_qty': report.rodenticide_2_qty,
+                'notes': report.notes}
+        for field in _GARDEN_DAILY_REPORT_INT_FIELDS:
+            post[field] = getattr(report, field)
+
+    return render(request, 'hcsd/garden_daily_report_create.html', {
+        'errors': errors,
+        'post': post,
+        'today': timezone.localdate(),
+        'lang': lang,
+        'report': report,
+        'is_edit': True,
+    })
+
+
+@login_required
 def garden_daily_report_list(request):
     if not _can_admin(request.user):
         return redirect('garden_list')

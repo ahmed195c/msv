@@ -70,7 +70,11 @@
 </style>
 
 <div class="gdr-page">
+  {% if is_edit %}
+  <h1>{% if lang == 'en' %}Edit Daily Report{% else %}تعديل التقرير اليومي{% endif %}</h1>
+  {% else %}
   <h1>{% if lang == 'en' %}New Daily Report{% else %}تقرير يومي جديد{% endif %}</h1>
+  {% endif %}
   <p class="sub">{% if lang == 'en' %}A day's field work summary for an entire area.{% else %}ملخص عمل الفريق الميداني لمنطقة كاملة في يوم واحد.{% endif %}</p>
 
   {% if errors %}
@@ -93,8 +97,12 @@
 
     <div class="gdr-note">
       {% if lang == 'en' %}Team leader{% else %}قائد الفريق{% endif %}:
+      {% if is_edit %}
+      <strong>{{ report.team_leader_name }}</strong> ({{ report.team_leader_id }})
+      {% else %}
       <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
       ({{ request.user.username }})
+      {% endif %}
     </div>
 
     <div class="two-col">
@@ -301,7 +309,7 @@
       <textarea name="notes">{{ post.notes }}</textarea>
     </div>
 
-    <button type="submit" class="btn btn-primary" style="margin-top:8px;">{% if lang == 'en' %}Save Report{% else %}حفظ التقرير{% endif %}</button>
+    <button type="submit" class="btn btn-primary" style="margin-top:8px;">{% if is_edit %}{% if lang == 'en' %}Save Changes{% else %}حفظ التعديلات{% endif %}{% else %}{% if lang == 'en' %}Save Report{% else %}حفظ التقرير{% endif %}{% endif %}</button>
   </form>
 </div>
 

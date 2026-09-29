@@ -65,6 +65,7 @@ urlpatterns = [
     path('garden/daily-reports/', views.garden_daily_report_list, name='garden_daily_report_list'),
     path('garden/daily-reports/add/', views.garden_daily_report_create, name='garden_daily_report_create'),
     path('garden/daily-reports/<int:pk>/', views.garden_daily_report_detail, name='garden_daily_report_detail'),
+    path('garden/daily-reports/<int:pk>/edit/', views.garden_daily_report_edit, name='garden_daily_report_edit'),
     path('garden/daily-reports/<int:pk>/delete/', views.garden_daily_report_delete, name='garden_daily_report_delete'),
     path('garden/<int:pk>/', views.garden_detail, name='garden_detail'),
     path('garden/<int:pk>/report/', views.garden_visit_report, name='garden_visit_report'),
