@@ -105,15 +105,9 @@
       {% endif %}
     </div>
 
-    <div class="two-col">
-      <div class="field-wrap">
-        <label>{% if lang == 'en' %}Start From{% else %}بدأ من{% endif %}</label>
-        <input type="text" name="start_from" value="{{ post.start_from }}">
-      </div>
-      <div class="field-wrap">
-        <label>{% if lang == 'en' %}Time In{% else %}وقت الدخول{% endif %}</label>
-        <input type="time" name="time_in" value="{{ post.time_in }}">
-      </div>
+    <div class="field-wrap" style="max-width:200px;">
+      <label>{% if lang == 'en' %}Time In{% else %}وقت الدخول{% endif %}</label>
+      <input type="time" name="time_in" value="{{ post.time_in }}">
     </div>
 
     <div class="gdr-group">{% if lang == 'en' %}Buildings / Villas{% else %}المباني / الفلل{% endif %}</div>

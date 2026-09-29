@@ -517,7 +517,6 @@ def garden_daily_report_create(request):
                 area_name=area_name,
                 team_leader_name=_display_user_name(request.user),
                 team_leader_id=request.user.username,
-                start_from=(request.POST.get('start_from') or '').strip(),
                 time_in=_time('time_in'),
                 **{field: _int(field) for field in _GARDEN_DAILY_REPORT_INT_FIELDS},
                 rodenticide_1_name=(request.POST.get('rodenticide_1_name') or '').strip(),
@@ -576,7 +575,6 @@ def garden_daily_report_edit(request, pk):
         if not errors:
             report.report_date = report_date
             report.area_name = area_name
-            report.start_from = (request.POST.get('start_from') or '').strip()
             report.time_in = _time('time_in')
             for field in _GARDEN_DAILY_REPORT_INT_FIELDS:
                 setattr(report, field, _int(field))
@@ -590,7 +588,6 @@ def garden_daily_report_edit(request, pk):
         post = request.POST
     else:
         post = {'area_name': report.area_name, 'report_date': report.report_date,
-                'start_from': report.start_from,
                 'time_in': report.time_in.strftime('%H:%M') if report.time_in else '',
                 'rodenticide_1_name': report.rodenticide_1_name, 'rodenticide_1_qty': report.rodenticide_1_qty,
                 'rodenticide_2_name': report.rodenticide_2_name, 'rodenticide_2_qty': report.rodenticide_2_qty,

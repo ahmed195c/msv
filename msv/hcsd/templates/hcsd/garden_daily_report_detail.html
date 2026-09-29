@@ -55,7 +55,6 @@
     <div class="info-grid">
       <div><div class="lbl">{% if lang == 'en' %}Team Leader{% else %}قائد الفريق{% endif %}</div><div class="val">{{ report.team_leader_name|default:"—" }}</div></div>
       <div><div class="lbl">{% if lang == 'en' %}Employee ID{% else %}الرقم الوظيفي{% endif %}</div><div class="val">{{ report.team_leader_id|default:"—" }}</div></div>
-      <div><div class="lbl">{% if lang == 'en' %}Start From{% else %}بدأ من{% endif %}</div><div class="val">{{ report.start_from|default:"—" }}</div></div>
       <div><div class="lbl">{% if lang == 'en' %}Time In{% else %}وقت الدخول{% endif %}</div><div class="val">{{ report.time_in|time:"H:i"|default:"—" }}</div></div>
     </div>
   </div>
