@@ -527,7 +527,9 @@ def garden_daily_report_create(request):
                 notes=(request.POST.get('notes') or '').strip(),
                 created_by=request.user,
             )
-            return redirect('garden_daily_report_detail', pk=report.pk)
+            if _can_admin(request.user):
+                return redirect('garden_daily_report_detail', pk=report.pk)
+            return redirect('garden_list')
 
     return render(request, 'hcsd/garden_daily_report_create.html', {
         'errors': errors,
@@ -539,6 +541,9 @@ def garden_daily_report_create(request):
 
 @login_required
 def garden_daily_report_list(request):
+    if not _can_admin(request.user):
+        return redirect('garden_list')
+
     reports = GardenDailyReport.objects.select_related('created_by').order_by('-report_date', '-created_at')
     paginator = Paginator(reports, 30)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -552,6 +557,9 @@ def garden_daily_report_list(request):
 
 @login_required
 def garden_daily_report_detail(request, pk):
+    if not _can_admin(request.user):
+        return redirect('garden_list')
+
     report = get_object_or_404(GardenDailyReport, pk=pk)
     return render(request, 'hcsd/garden_daily_report_detail.html', {
         'report': report,
