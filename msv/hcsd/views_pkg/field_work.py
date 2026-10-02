@@ -739,10 +739,17 @@ def field_work_recurring_list(request):
         .prefetch_related('generated_orders')
         .all()
     )
+    generated_orders = (
+        FieldWorkOrder.objects
+        .filter(recurring_template__isnull=False)
+        .select_related('recurring_template')
+        .order_by('-created_at')
+    )
     return render(request, 'hcsd/field_work_recurring_list.html', {
         'errors':            errors,
         'post':              request.POST,
         'templates':         templates,
+        'generated_orders':  generated_orders,
         'weekday_choices':   FieldWorkRecurringOrder.WEEKDAY_CHOICES,
         'complaint_sources': FieldWorkOrder.COMPLAINT_SOURCE_CHOICES,
         'can_manage':        True,

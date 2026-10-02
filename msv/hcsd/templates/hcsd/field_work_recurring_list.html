@@ -38,6 +38,15 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
 .tmpl-actions{display:flex;gap:8px;flex-shrink:0;}
 .empty-hint{font-size:13px;color:var(--ink-4);padding:16px 0;text-align:center;}
 
+.gen-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.gen-card{display:flex;flex-direction:column;gap:6px;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;background:#fff;text-decoration:none;color:inherit;transition:.15s;}
+.gen-card:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,92,154,.08);}
+.gen-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.gen-card-name{font-size:13.5px;font-weight:700;color:var(--ink-1);}
+.gen-card-meta{font-size:12px;color:var(--ink-4);}
+.gen-card-foot{font-size:11.5px;color:var(--ink-3);padding-top:6px;border-top:1px dashed var(--border);}
+@media(max-width:580px){.gen-grid{grid-template-columns:1fr;}}
+
 .tmpl-status-row{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);font-size:12.5px;color:var(--ink-3);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .tmpl-status-link{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);text-decoration:none;}
 .tmpl-status-link:hover{color:var(--accent);}
@@ -151,6 +160,47 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
       <span class="t-en">No recurring orders yet.</span>
     </div>
     {% endfor %}
+  </div>
+
+  <!-- All generated orders -->
+  <div class="card">
+    <div class="section-title">
+      <span class="t-ar">كل الطلبات المُنشأة</span><span class="t-en">All Created Orders</span>
+    </div>
+    <div class="gen-grid">
+      {% for o in generated_orders %}
+      <a href="{% url 'field_work_detail' o.pk %}" class="gen-card">
+        <div class="gen-card-top">
+          <span class="gen-card-name">{{ o.customer_name|default:o.site_name|default:"—" }}</span>
+          <span class="badge
+            {% if o.status == 'completed' %}s-completed
+            {% elif o.status == 'supervisor_assigned' %}s-assigned
+            {% elif o.status == 'order_received' %}s-received
+            {% elif o.status == 'private_company' %}s-private
+            {% elif o.status == 'cust_declined' %}s-declined
+            {% elif o.status == 'wrong_phone' or o.status == 'phone_off' or o.status == 'no_answer' %}s-phone
+            {% elif o.status == 'postponed_client' %}s-postponed
+            {% elif o.status == 'gov_dept' %}s-gov
+            {% elif o.status == 'other_municipal' %}s-other-mun
+            {% else %}s-pending{% endif %}">
+            <span class="t-ar">{{ o.get_status_display }}</span>
+            <span class="t-en">{{ o.status_en }}</span>
+          </span>
+        </div>
+        <div class="gen-card-meta">{{ o.location|default:o.area }}</div>
+        <div class="gen-card-foot">
+          <span class="t-ar">من:</span><span class="t-en">From:</span>
+          {{ o.recurring_template.customer_name|default:o.recurring_template.site_name|default:"—" }}
+          · {{ o.created_at|date:"d/m/Y" }}
+        </div>
+      </a>
+      {% empty %}
+      <div class="empty-hint">
+        <span class="t-ar">لا توجد طلبات مُنشأة بعد.</span>
+        <span class="t-en">No generated orders yet.</span>
+      </div>
+      {% endfor %}
+    </div>
   </div>
 
   <!-- Create new -->
