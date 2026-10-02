@@ -3,6 +3,7 @@
 {% block content %}
 <style>
 *{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
 body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);}
 .fw-page{max-width:900px;margin:0 auto;padding:24px 16px;}
 .fw-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
@@ -298,7 +299,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
           <span class="t-ar">لا توجد طلبات مُنشأة بعد.</span><span class="t-en">No orders generated yet.</span>
         </span>
         {% endif %}
-        <a href="{% url 'field_work_recurring_orders' t.pk %}" class="btn btn-sm">
+        <a href="#tmpl-orders-{{ t.pk }}" class="btn btn-sm">
           <span class="t-ar">عرض كل الطلبات</span><span class="t-en">View All</span>
           ({{ count }})
         </a>
@@ -312,6 +313,52 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
     </div>
     {% endfor %}
   </div>
+
+  <!-- Orders generated per building -->
+  {% for t in templates %}
+  <div class="card" id="tmpl-orders-{{ t.pk }}">
+    <div class="section-title">
+      <span class="t-ar">طلبات {{ t.customer_name|default:t.site_name|default:"—" }}</span>
+      <span class="t-en">Orders — {{ t.customer_name|default:t.site_name|default:"—" }}</span>
+      ({{ t.generated_orders.all|length }})
+    </div>
+    <div class="gen-grid">
+      {% for o in t.generated_orders.all %}
+      <a href="{% url 'field_work_detail' o.pk %}" class="gen-card">
+        <div class="gen-card-top">
+          <span class="gen-card-name">{{ o.created_at|date:"d/m/Y" }}</span>
+          <span class="badge
+            {% if o.status == 'completed' %}s-completed
+            {% elif o.status == 'supervisor_assigned' %}s-assigned
+            {% elif o.status == 'order_received' %}s-received
+            {% elif o.status == 'private_company' %}s-private
+            {% elif o.status == 'cust_declined' %}s-declined
+            {% elif o.status == 'wrong_phone' or o.status == 'phone_off' or o.status == 'no_answer' %}s-phone
+            {% elif o.status == 'postponed_client' %}s-postponed
+            {% elif o.status == 'gov_dept' %}s-gov
+            {% elif o.status == 'other_municipal' %}s-other-mun
+            {% else %}s-pending{% endif %}">
+            <span class="t-ar">{{ o.get_status_display }}</span>
+            <span class="t-en">{{ o.status_en }}</span>
+          </span>
+        </div>
+        <div class="gen-card-meta">{{ o.location|default:o.area }}</div>
+        {% if o.request_date %}
+        <div class="gen-card-foot">
+          <span class="t-ar">تاريخ الطلب:</span><span class="t-en">Request date:</span>
+          {{ o.request_date|date:"d/m/Y" }}
+        </div>
+        {% endif %}
+      </a>
+      {% empty %}
+      <div class="empty-hint">
+        <span class="t-ar">لا توجد طلبات مُنشأة بعد لهذا الطلب الدوري.</span>
+        <span class="t-en">No orders generated yet.</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
 
 </section>
 {% endblock %}
