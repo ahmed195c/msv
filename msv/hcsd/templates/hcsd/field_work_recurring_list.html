@@ -236,18 +236,20 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
     btn.querySelector('.t-en').textContent = showing ? 'Show' : 'Hide';
   }
 
-  function flashJumpTarget() {
-    var id = location.hash.slice(1);
-    if (!id) return;
+  function jumpTo(id, evt) {
+    if (evt) evt.preventDefault();
     var el = document.getElementById(id);
     if (!el) return;
+    el.scrollIntoView({behavior: 'smooth', block: 'center'});
+    history.replaceState(null, '', '#' + id);
     el.classList.remove('jump-flash');
     void el.offsetWidth;
     el.classList.add('jump-flash');
     setTimeout(function () { el.classList.remove('jump-flash'); }, 1800);
   }
-  window.addEventListener('hashchange', flashJumpTarget);
-  if (location.hash) flashJumpTarget();
+  document.addEventListener('DOMContentLoaded', function () {
+    if (location.hash) jumpTo(location.hash.slice(1));
+  });
   </script>
 
   <!-- Existing templates -->
@@ -317,7 +319,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
           <span class="t-ar">لا توجد طلبات مُنشأة بعد.</span><span class="t-en">No orders generated yet.</span>
         </span>
         {% endif %}
-        <a href="#tmpl-orders-{{ t.pk }}" class="btn btn-sm">
+        <a href="#tmpl-orders-{{ t.pk }}" class="btn btn-sm" onclick="jumpTo('tmpl-orders-{{ t.pk }}', event)">
           <span class="t-ar">عرض كل الطلبات</span><span class="t-en">View All</span>
           ({{ count }})
         </a>
@@ -341,7 +343,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
         <span class="t-en">Orders — {{ t.customer_name|default:t.site_name|default:"—" }}</span>
         ({{ t.generated_orders.all|length }})
       </span>
-      <a href="#tmpl-{{ t.pk }}" class="btn btn-sm">
+      <a href="#tmpl-{{ t.pk }}" class="btn btn-sm" onclick="jumpTo('tmpl-{{ t.pk }}', event)">
         ↑ <span class="t-ar">رجوع للطلب الدوري</span><span class="t-en">Back to Template</span>
       </a>
     </div>
