@@ -238,7 +238,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
       <span class="t-ar">الطلبات المجدولة الحالية</span><span class="t-en">Current Scheduled Orders</span>
     </div>
     {% for t in templates %}
-    <div class="tmpl-card {% if not t.is_active %}inactive{% endif %}">
+    <div class="tmpl-card {% if not t.is_active %}inactive{% endif %}" id="tmpl-{{ t.pk }}">
       <div class="tmpl-row">
         <div class="tmpl-main">
           <div class="tmpl-name">{{ t.customer_name|default:t.site_name|default:"—" }}</div>
@@ -317,10 +317,15 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
   <!-- Orders generated per building -->
   {% for t in templates %}
   <div class="card" id="tmpl-orders-{{ t.pk }}">
-    <div class="section-title">
-      <span class="t-ar">طلبات {{ t.customer_name|default:t.site_name|default:"—" }}</span>
-      <span class="t-en">Orders — {{ t.customer_name|default:t.site_name|default:"—" }}</span>
-      ({{ t.generated_orders.all|length }})
+    <div class="section-title section-title-flex">
+      <span>
+        <span class="t-ar">طلبات {{ t.customer_name|default:t.site_name|default:"—" }}</span>
+        <span class="t-en">Orders — {{ t.customer_name|default:t.site_name|default:"—" }}</span>
+        ({{ t.generated_orders.all|length }})
+      </span>
+      <a href="#tmpl-{{ t.pk }}" class="btn btn-sm">
+        ↑ <span class="t-ar">رجوع للطلب الدوري</span><span class="t-en">Back to Template</span>
+      </a>
     </div>
     <div class="gen-grid">
       {% for o in t.generated_orders.all %}
