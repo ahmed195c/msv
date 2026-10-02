@@ -739,17 +739,10 @@ def field_work_recurring_list(request):
         .prefetch_related('generated_orders')
         .all()
     )
-    generated_orders = (
-        FieldWorkOrder.objects
-        .filter(recurring_template__isnull=False)
-        .select_related('recurring_template')
-        .order_by('-created_at')
-    )
     return render(request, 'hcsd/field_work_recurring_list.html', {
         'errors':            errors,
         'post':              request.POST,
         'templates':         templates,
-        'generated_orders':  generated_orders,
         'weekday_choices':   FieldWorkRecurringOrder.WEEKDAY_CHOICES,
         'complaint_sources': FieldWorkOrder.COMPLAINT_SOURCE_CHOICES,
         'can_manage':        True,
@@ -839,6 +832,18 @@ def field_work_recurring_delete(request, pk):
     tmpl = get_object_or_404(FieldWorkRecurringOrder, pk=pk)
     tmpl.delete()
     return redirect('field_work_recurring_list')
+
+
+@login_required
+def field_work_recurring_orders(request, pk):
+    if not (_can_admin(request.user) or _can_data_entry(request.user)):
+        return redirect('field_work_list')
+    tmpl = get_object_or_404(FieldWorkRecurringOrder, pk=pk)
+    orders = tmpl.generated_orders.order_by('-created_at')
+    return render(request, 'hcsd/field_work_recurring_orders.html', {
+        'tmpl':   tmpl,
+        'orders': orders,
+    })
 
 
 # ---------------------------------------------------------------------------

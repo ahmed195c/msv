@@ -1,0 +1,113 @@
+{% extends "hcsd/field_work_base.html" %}
+{% block title %}طلبات دورية — {{ tmpl.customer_name|default:tmpl.site_name }}{% endblock %}
+{% block content %}
+<style>
+*{box-sizing:border-box;}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);color:var(--ink-1);}
+.fw-page{max-width:900px;margin:0 auto;padding:24px 16px;}
+.fw-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.fw-title{font-size:20px;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--ink-2);transition:.15s;font-family:inherit;}
+.btn:hover{background:var(--surface-2);}
+.card{background:#fff;border-radius:12px;border:1.5px solid var(--border);padding:22px;margin-bottom:16px;}
+.section-title{font-size:12px;font-weight:700;color:var(--ink-3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.empty-hint{font-size:13px;color:var(--ink-4);padding:16px 0;text-align:center;}
+
+.tmpl-summary{display:flex;flex-direction:column;gap:3px;}
+.tmpl-summary-name{font-size:15px;font-weight:700;color:var(--ink-1);}
+.tmpl-summary-meta{font-size:12.5px;color:var(--ink-4);}
+.tmpl-day{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:700;background:#eff6ff;color:#1a5c9a;margin-top:6px;width:fit-content;}
+
+.gen-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.gen-card{display:flex;flex-direction:column;gap:6px;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;background:#fff;text-decoration:none;color:inherit;transition:.15s;}
+.gen-card:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,92,154,.08);}
+.gen-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.gen-card-name{font-size:13.5px;font-weight:700;color:var(--ink-1);}
+.gen-card-meta{font-size:12px;color:var(--ink-4);}
+.gen-card-foot{font-size:11.5px;color:var(--ink-3);padding-top:6px;border-top:1px dashed var(--border);}
+@media(max-width:580px){.gen-grid{grid-template-columns:1fr;}}
+
+.badge{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;}
+.s-pending    {background:#fff8e0;color:#7a5500;}
+.s-completed  {background:#e8f5ee;color:#1a5c35;}
+.s-private    {background:#f5f3ff;color:#6d28d9;}
+.s-declined   {background:#fff1f2;color:#be123c;}
+.s-phone      {background:#fff7ed;color:#c2410c;}
+.s-postponed  {background:#fef9c3;color:#854d0e;}
+.s-gov        {background:#f0f9ff;color:#0369a1;}
+.s-other-mun  {background:#f1f5f9;color:#475569;}
+.s-assigned   {background:#eff6ff;color:#1d4ed8;}
+.s-received   {background:#dcfce7;color:#166534;}
+</style>
+
+<section class="fw-page">
+
+  <div class="fw-header">
+    <h1 class="fw-title">
+      <span class="t-ar">الطلبات المُنشأة من هذا الطلب الدوري</span>
+      <span class="t-en">Orders Generated From This Template</span>
+    </h1>
+    <a href="{% url 'field_work_recurring_list' %}" class="btn">
+      ← <span class="t-ar">رجوع للطلبات الدورية</span><span class="t-en">Back</span>
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="tmpl-summary">
+      <span class="tmpl-summary-name">{{ tmpl.customer_name|default:tmpl.site_name|default:"—" }}</span>
+      <span class="tmpl-summary-meta">
+        {{ tmpl.location|default:tmpl.area }}
+        {% if tmpl.mobile %} · {{ tmpl.mobile }}{% endif %}
+        {% if tmpl.pest_types %} · {{ tmpl.pest_types }}{% endif %}
+      </span>
+      <span class="tmpl-day">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        كل {{ tmpl.get_weekday_display }}
+      </span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">
+      <span class="t-ar">كل الطلبات المُنشأة لهذا المبنى</span><span class="t-en">All Orders For This Building</span>
+      ({{ orders|length }})
+    </div>
+    <div class="gen-grid">
+      {% for o in orders %}
+      <a href="{% url 'field_work_detail' o.pk %}" class="gen-card">
+        <div class="gen-card-top">
+          <span class="gen-card-name">{{ o.created_at|date:"d/m/Y" }}</span>
+          <span class="badge
+            {% if o.status == 'completed' %}s-completed
+            {% elif o.status == 'supervisor_assigned' %}s-assigned
+            {% elif o.status == 'order_received' %}s-received
+            {% elif o.status == 'private_company' %}s-private
+            {% elif o.status == 'cust_declined' %}s-declined
+            {% elif o.status == 'wrong_phone' or o.status == 'phone_off' or o.status == 'no_answer' %}s-phone
+            {% elif o.status == 'postponed_client' %}s-postponed
+            {% elif o.status == 'gov_dept' %}s-gov
+            {% elif o.status == 'other_municipal' %}s-other-mun
+            {% else %}s-pending{% endif %}">
+            <span class="t-ar">{{ o.get_status_display }}</span>
+            <span class="t-en">{{ o.status_en }}</span>
+          </span>
+        </div>
+        <div class="gen-card-meta">{{ o.location|default:o.area }}</div>
+        {% if o.request_date %}
+        <div class="gen-card-foot">
+          <span class="t-ar">تاريخ الطلب:</span><span class="t-en">Request date:</span>
+          {{ o.request_date|date:"d/m/Y" }}
+        </div>
+        {% endif %}
+      </a>
+      {% empty %}
+      <div class="empty-hint">
+        <span class="t-ar">لا توجد طلبات مُنشأة بعد لهذا الطلب الدوري.</span>
+        <span class="t-en">No orders generated yet for this template.</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</section>
+{% endblock %}

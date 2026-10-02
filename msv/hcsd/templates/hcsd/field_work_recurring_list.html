@@ -89,120 +89,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
   </div>
   {% endif %}
 
-  <!-- Existing templates -->
-  <div class="card">
-    <div class="section-title">
-      <span class="t-ar">الطلبات المجدولة الحالية</span><span class="t-en">Current Scheduled Orders</span>
-    </div>
-    {% for t in templates %}
-    <div class="tmpl-card {% if not t.is_active %}inactive{% endif %}">
-      <div class="tmpl-row">
-        <div class="tmpl-main">
-          <div class="tmpl-name">{{ t.customer_name|default:t.site_name|default:"—" }}</div>
-          <div class="tmpl-meta">
-            {{ t.location|default:t.area }}
-            {% if t.mobile %} · {{ t.mobile }}{% endif %}
-            {% if t.pest_types %} · {{ t.pest_types }}{% endif %}
-          </div>
-        </div>
-        <span class="tmpl-day">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          كل {{ t.get_weekday_display }}
-        </span>
-        <div class="tmpl-actions">
-          <a href="{% url 'field_work_recurring_edit' t.pk %}" class="btn btn-sm">
-            <span class="t-ar">تعديل</span><span class="t-en">Edit</span>
-          </a>
-          <form method="post" action="{% url 'field_work_recurring_toggle' t.pk %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm">
-              {% if t.is_active %}<span class="t-ar">إيقاف</span><span class="t-en">Pause</span>
-              {% else %}<span class="t-ar">تفعيل</span><span class="t-en">Resume</span>{% endif %}
-            </button>
-          </form>
-          <form method="post" action="{% url 'field_work_recurring_delete' t.pk %}" onsubmit="return confirm('حذف هذا الطلب الدوري نهائياً؟')">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-danger">
-              <span class="t-ar">حذف</span><span class="t-en">Delete</span>
-            </button>
-          </form>
-        </div>
-      </div>
-      {% with latest=t.generated_orders.all|first %}
-      {% if latest %}
-      <div class="tmpl-status-row">
-          <a href="{% url 'field_work_detail' latest.pk %}" class="tmpl-status-link">
-            <span class="t-ar">آخر طلب مُنشأ:</span><span class="t-en">Last generated:</span>
-            {{ latest.created_at|date:"d/m/Y" }} —
-            <span class="badge
-              {% if latest.status == 'completed' %}s-completed
-              {% elif latest.status == 'supervisor_assigned' %}s-assigned
-              {% elif latest.status == 'order_received' %}s-received
-              {% elif latest.status == 'private_company' %}s-private
-              {% elif latest.status == 'cust_declined' %}s-declined
-              {% elif latest.status == 'wrong_phone' or latest.status == 'phone_off' or latest.status == 'no_answer' %}s-phone
-              {% elif latest.status == 'postponed_client' %}s-postponed
-              {% elif latest.status == 'gov_dept' %}s-gov
-              {% elif latest.status == 'other_municipal' %}s-other-mun
-              {% else %}s-pending{% endif %}">
-              <span class="t-ar">{{ latest.get_status_display }}</span>
-              <span class="t-en">{{ latest.status_en }}</span>
-            </span>
-          </a>
-          <span class="tmpl-status-count">({{ t.generated_orders.all|length }} <span class="t-ar">طلب تم إنشاؤه</span><span class="t-en">generated</span>)</span>
-      </div>
-      {% endif %}
-      {% endwith %}
-    </div>
-    {% empty %}
-    <div class="empty-hint">
-      <span class="t-ar">لا توجد طلبات دورية حالياً.</span>
-      <span class="t-en">No recurring orders yet.</span>
-    </div>
-    {% endfor %}
-  </div>
-
-  <!-- All generated orders -->
-  <div class="card">
-    <div class="section-title">
-      <span class="t-ar">كل الطلبات المُنشأة</span><span class="t-en">All Created Orders</span>
-    </div>
-    <div class="gen-grid">
-      {% for o in generated_orders %}
-      <a href="{% url 'field_work_detail' o.pk %}" class="gen-card">
-        <div class="gen-card-top">
-          <span class="gen-card-name">{{ o.customer_name|default:o.site_name|default:"—" }}</span>
-          <span class="badge
-            {% if o.status == 'completed' %}s-completed
-            {% elif o.status == 'supervisor_assigned' %}s-assigned
-            {% elif o.status == 'order_received' %}s-received
-            {% elif o.status == 'private_company' %}s-private
-            {% elif o.status == 'cust_declined' %}s-declined
-            {% elif o.status == 'wrong_phone' or o.status == 'phone_off' or o.status == 'no_answer' %}s-phone
-            {% elif o.status == 'postponed_client' %}s-postponed
-            {% elif o.status == 'gov_dept' %}s-gov
-            {% elif o.status == 'other_municipal' %}s-other-mun
-            {% else %}s-pending{% endif %}">
-            <span class="t-ar">{{ o.get_status_display }}</span>
-            <span class="t-en">{{ o.status_en }}</span>
-          </span>
-        </div>
-        <div class="gen-card-meta">{{ o.location|default:o.area }}</div>
-        <div class="gen-card-foot">
-          <span class="t-ar">من:</span><span class="t-en">From:</span>
-          {{ o.recurring_template.customer_name|default:o.recurring_template.site_name|default:"—" }}
-          · {{ o.created_at|date:"d/m/Y" }}
-        </div>
-      </a>
-      {% empty %}
-      <div class="empty-hint">
-        <span class="t-ar">لا توجد طلبات مُنشأة بعد.</span>
-        <span class="t-en">No generated orders yet.</span>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-
   <!-- Create new -->
   <form method="post" novalidate>
   {% csrf_token %}
@@ -326,5 +212,88 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
   </div>
 
   </form>
+
+  <!-- Existing templates -->
+  <div class="card">
+    <div class="section-title">
+      <span class="t-ar">الطلبات المجدولة الحالية</span><span class="t-en">Current Scheduled Orders</span>
+    </div>
+    {% for t in templates %}
+    <div class="tmpl-card {% if not t.is_active %}inactive{% endif %}">
+      <div class="tmpl-row">
+        <div class="tmpl-main">
+          <div class="tmpl-name">{{ t.customer_name|default:t.site_name|default:"—" }}</div>
+          <div class="tmpl-meta">
+            {{ t.location|default:t.area }}
+            {% if t.mobile %} · {{ t.mobile }}{% endif %}
+            {% if t.pest_types %} · {{ t.pest_types }}{% endif %}
+          </div>
+        </div>
+        <span class="tmpl-day">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          كل {{ t.get_weekday_display }}
+        </span>
+        <div class="tmpl-actions">
+          <a href="{% url 'field_work_recurring_edit' t.pk %}" class="btn btn-sm">
+            <span class="t-ar">تعديل</span><span class="t-en">Edit</span>
+          </a>
+          <form method="post" action="{% url 'field_work_recurring_toggle' t.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm">
+              {% if t.is_active %}<span class="t-ar">إيقاف</span><span class="t-en">Pause</span>
+              {% else %}<span class="t-ar">تفعيل</span><span class="t-en">Resume</span>{% endif %}
+            </button>
+          </form>
+          <form method="post" action="{% url 'field_work_recurring_delete' t.pk %}" onsubmit="return confirm('حذف هذا الطلب الدوري نهائياً؟')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-danger">
+              <span class="t-ar">حذف</span><span class="t-en">Delete</span>
+            </button>
+          </form>
+        </div>
+      </div>
+      {% with count=t.generated_orders.all|length %}
+      <div class="tmpl-status-row">
+        {% if count %}
+        {% with latest=t.generated_orders.all|first %}
+          <span class="tmpl-status-link">
+            <span class="t-ar">آخر طلب مُنشأ:</span><span class="t-en">Last generated:</span>
+            {{ latest.created_at|date:"d/m/Y" }} —
+            <span class="badge
+              {% if latest.status == 'completed' %}s-completed
+              {% elif latest.status == 'supervisor_assigned' %}s-assigned
+              {% elif latest.status == 'order_received' %}s-received
+              {% elif latest.status == 'private_company' %}s-private
+              {% elif latest.status == 'cust_declined' %}s-declined
+              {% elif latest.status == 'wrong_phone' or latest.status == 'phone_off' or latest.status == 'no_answer' %}s-phone
+              {% elif latest.status == 'postponed_client' %}s-postponed
+              {% elif latest.status == 'gov_dept' %}s-gov
+              {% elif latest.status == 'other_municipal' %}s-other-mun
+              {% else %}s-pending{% endif %}">
+              <span class="t-ar">{{ latest.get_status_display }}</span>
+              <span class="t-en">{{ latest.status_en }}</span>
+            </span>
+          </span>
+        {% endwith %}
+        {% else %}
+        <span class="tmpl-status-count">
+          <span class="t-ar">لا توجد طلبات مُنشأة بعد.</span><span class="t-en">No orders generated yet.</span>
+        </span>
+        {% endif %}
+        <a href="{% url 'field_work_recurring_orders' t.pk %}" class="btn btn-sm">
+          <span class="t-ar">عرض كل الطلبات</span><span class="t-en">View All</span>
+          ({{ count }})
+        </a>
+      </div>
+      {% endwith %}
+    </div>
+    {% empty %}
+    <div class="empty-hint">
+      <span class="t-ar">لا توجد طلبات دورية حالياً.</span>
+      <span class="t-en">No recurring orders yet.</span>
+    </div>
+    {% endfor %}
+  </div>
+
 </section>
 {% endblock %}

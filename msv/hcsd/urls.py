@@ -152,6 +152,7 @@ urlpatterns = [
     path('field-work/dashboard/', views.field_work_dashboard, name='field_work_dashboard'),
     path('field-work/create/', views.field_work_create, name='field_work_create'),
     path('field-work/recurring/', views.field_work_recurring_list, name='field_work_recurring_list'),
+    path('field-work/recurring/<int:pk>/orders/', views.field_work_recurring_orders, name='field_work_recurring_orders'),
     path('field-work/recurring/<int:pk>/edit/', views.field_work_recurring_edit, name='field_work_recurring_edit'),
     path('field-work/recurring/<int:pk>/toggle/', views.field_work_recurring_toggle, name='field_work_recurring_toggle'),
     path('field-work/recurring/<int:pk>/delete/', views.field_work_recurring_delete, name='field_work_recurring_delete'),
