@@ -26,7 +26,8 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
 .form-control:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,92,154,.1);}
 .error-box{background:var(--danger-bg);border:1.5px solid #f5c0c0;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--danger);}
 .error-box ul{padding-inline-start:18px;margin-top:6px;}
-.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;margin-bottom:28px;}
+.section-title-flex{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 
 .tmpl-card{border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:#fff;}
 .tmpl-card.inactive{opacity:.55;}
@@ -94,10 +95,14 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
   {% csrf_token %}
 
   <div class="card">
-    <div class="section-title">
-      <span class="t-ar">إضافة طلب دوري جديد</span><span class="t-en">Add New Recurring Order</span>
+    <div class="section-title section-title-flex">
+      <span><span class="t-ar">إضافة طلب دوري جديد</span><span class="t-en">Add New Recurring Order</span></span>
+      <button type="button" class="btn btn-sm" id="createFormToggleBtn" onclick="toggleCreateForm()">
+        <span class="t-ar">{% if errors %}إخفاء{% else %}إظهار{% endif %}</span>
+        <span class="t-en">{% if errors %}Hide{% else %}Show{% endif %}</span>
+      </button>
     </div>
-    <div class="grid-2">
+    <div class="grid-2" id="createFormBody" style="display:{% if errors %}grid{% else %}none{% endif %};">
 
       <div class="form-group">
         <label class="form-label">
@@ -204,7 +209,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
     </div>
   </div>
 
-  <div class="form-actions">
+  <div class="form-actions" id="createFormActions" style="display:{% if errors %}flex{% else %}none{% endif %};">
     <button type="submit" class="btn btn-primary">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
       <span class="t-ar">إضافة الطلب الدوري</span><span class="t-en">Add Recurring Order</span>
@@ -212,6 +217,19 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
   </div>
 
   </form>
+
+  <script>
+  function toggleCreateForm() {
+    var body = document.getElementById('createFormBody');
+    var actions = document.getElementById('createFormActions');
+    var btn = document.getElementById('createFormToggleBtn');
+    var showing = body.style.display !== 'none';
+    body.style.display = showing ? 'none' : 'grid';
+    actions.style.display = showing ? 'none' : 'flex';
+    btn.querySelector('.t-ar').textContent = showing ? 'إظهار' : 'إخفاء';
+    btn.querySelector('.t-en').textContent = showing ? 'Show' : 'Hide';
+  }
+  </script>
 
   <!-- Existing templates -->
   <div class="card">
