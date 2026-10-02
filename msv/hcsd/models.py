@@ -1003,11 +1003,6 @@ class FieldWorkOrder(models.Model):
     used_difron        = models.BooleanField(default=False, verbose_name='DIFRON 25 SC')
     used_fly_attractant = models.BooleanField(default=False, verbose_name='FLY ATTRACTANT')
 
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'أمر عمل ميداني'
-        verbose_name_plural = 'أوامر العمل الميداني'
-
     def __str__(self):
         if self.order_number:
             return f"#{self.order_number} — {self.customer_name or self.area or ''}"
@@ -1042,6 +1037,9 @@ class FieldWorkOrder(models.Model):
     }
 
     class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'أمر عمل ميداني'
+        verbose_name_plural = 'أوامر العمل الميداني'
         indexes = [
             models.Index(fields=['status', 'created_at'], name='fw_status_created_idx'),
             models.Index(fields=['request_date'], name='fw_request_date_idx'),
