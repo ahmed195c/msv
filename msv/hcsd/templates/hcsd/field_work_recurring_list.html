@@ -36,7 +36,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
   0%   {background:#dbeafe;border-color:#1a5c9a;box-shadow:0 0 0 4px rgba(26,92,154,.25);}
   100% {background:#fff;border-color:var(--border);box-shadow:none;}
 }
-.jump-flash{animation:jumpFlash 1.8s ease-out;}
+.jump-flash{animation:jumpFlash 2.5s ease-out;}
 .tmpl-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
 .tmpl-main{display:flex;flex-direction:column;gap:3px;min-width:0;}
 .tmpl-name{font-size:14px;font-weight:700;color:var(--ink-1);}
@@ -245,7 +245,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--surface-1);c
     el.classList.remove('jump-flash');
     void el.offsetWidth;
     el.classList.add('jump-flash');
-    setTimeout(function () { el.classList.remove('jump-flash'); }, 1800);
+    setTimeout(function () { el.classList.remove('jump-flash'); }, 2500);
   }
   document.addEventListener('DOMContentLoaded', function () {
     if (location.hash) jumpTo(location.hash.slice(1));
