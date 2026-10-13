@@ -156,16 +156,16 @@ def campaign_detail(request, pk):
 
 @login_required
 def campaign_report_excel(request):
-    """Excel report of every logged action: company, action taken, note,
-    inspector, and date — one row per action, so the same company can
-    appear more than once if it was acted on more than once."""
+    """Excel report of every case's current status: company, latest action
+    taken, latest note, inspector, and date — one row per case, showing
+    only the most recent state (not the full action history)."""
     import openpyxl
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
-    logs = (
-        CampaignActionLog.objects
-        .select_related('request', 'created_by')
-        .order_by('request__company_name', 'created_at')
+    cases = (
+        CampaignRequest.objects
+        .select_related('noted_by')
+        .order_by('company_name', '-noted_at')
     )
 
     wb = openpyxl.Workbook()
@@ -187,16 +187,16 @@ def campaign_report_excel(request):
         c.border = border
     ws.row_dimensions[1].height = 26
 
-    for row_idx, log in enumerate(logs, start=2):
-        inspector = log.created_by.get_full_name() or log.created_by.username if log.created_by else ''
+    for row_idx, case in enumerate(cases, start=2):
+        inspector = (case.noted_by.get_full_name() or case.noted_by.username) if case.noted_by else ''
         values = [
-            log.request.company_name,
-            log.request.area,
-            log.request.building_number,
-            log.get_action_type_display() or 'ملاحظة',
-            log.note,
+            case.company_name,
+            case.area,
+            case.building_number,
+            case.get_action_type_display() or 'ملاحظة' if case.action_type else '—',
+            case.note,
             inspector,
-            timezone.localtime(log.created_at).strftime('%d/%m/%Y %H:%M'),
+            timezone.localtime(case.noted_at).strftime('%d/%m/%Y %H:%M') if case.noted_at else '—',
         ]
         for col, val in enumerate(values, start=1):
             c = ws.cell(row=row_idx, column=col, value=val)
