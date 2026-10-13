@@ -41,6 +41,26 @@ jobs:
         working-directory: desktop
         run: pyinstaller msv_desktop.spec --noconfirm --clean
 
+      - name: Smoke-test the frozen exe actually boots Django
+        run: |
+          cp -r staging/django_src desktop/dist/app/django_src
+          cd desktop/dist/app
+          # Runs the real frozen exe. It prints MSV_DESKTOP_SERVER_READY
+          # once Django/migrate/waitress have actually succeeded, right
+          # before it touches webview — whatever happens with webview
+          # after that (e.g. no interactive desktop session on this
+          # runner) doesn't matter to this check, only reaching that point
+          # does. If the marker never appears, this is a real startup
+          # failure (missing bundled module, migration error, etc).
+          timeout 25 ./msv-desktop-debug.exe > boot.log 2>&1 || true
+          cat boot.log
+          if ! grep -q "MSV_DESKTOP_SERVER_READY" boot.log; then
+            echo "::error::Frozen exe never reached a successful startup — see log above."
+            exit 1
+          fi
+          echo "Frozen exe booted Django successfully."
+          rm -rf data django_src boot.log
+
       - name: Assemble the portable app/ folder
         run: |
           mv staging/django_src desktop/dist/app/django_src
