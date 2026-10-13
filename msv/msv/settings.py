@@ -16,6 +16,13 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Desktop build (desktop/launcher.py) sets this so the portable app can store
+# its database/media/logs alongside itself instead of under the server's
+# BASE_DIR, and relax host/CSRF checks for LAN peer-to-peer access. Has no
+# effect on the server deployment, where this env var is never set.
+DESKTOP_MODE = os.getenv('MSV_DESKTOP_MODE', '0').strip().lower() in {'1', 'true'}
+DATA_DIR = Path(os.getenv('MSV_DESKTOP_DATA_DIR', BASE_DIR)) if DESKTOP_MODE else BASE_DIR
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -43,14 +50,21 @@ DEFAULT_ALLOWED_HOSTS = [
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv('DJANGO_ALLOWED_HOSTS', ','.join(DEFAULT_ALLOWED_HOSTS)).split(',')
-    if host.strip() 
+    if host.strip()
 ]
+if DESKTOP_MODE:
+    # Each install only ever binds to a private office LAN, never the
+    # public internet, and the peer's hostname/IP is whatever DHCP gave it
+    # that day — there's no fixed list to allow-list in advance.
+    ALLOWED_HOSTS = ['*']
 
 # Allow large Excel imports (2000 rows × ~12 fields)
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB
 
-_LOG_FILE = '/home/ahmed/msv/django_errors.log'
+_LOG_FILE = str(DATA_DIR / 'desktop_state' / 'django_errors.log') if DESKTOP_MODE else '/home/ahmed/msv/django_errors.log'
+if DESKTOP_MODE:
+    os.makedirs(os.path.dirname(_LOG_FILE), exist_ok=True)
 if os.path.isdir(os.path.dirname(_LOG_FILE)):
     LOGGING = {
         'version': 1,
@@ -78,6 +92,14 @@ CSRF_TRUSTED_ORIGINS = [
     'https://msvshjminc.com',
     'https://*.msvshjminc.com',
 ]
+if DESKTOP_MODE:
+    # The launcher computes this machine's real LAN-facing IP at startup
+    # (DHCP, so it's not knowable ahead of time) and passes it in here so
+    # CSRF checks accept POSTs made against that address by LAN peers.
+    _desktop_lan_origin = os.getenv('MSV_DESKTOP_LAN_ORIGIN', '').strip()
+    if _desktop_lan_origin:
+        CSRF_TRUSTED_ORIGINS.append(_desktop_lan_origin)
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SITE_URL = os.getenv('SITE_URL', 'https://www.msvshjminc.com')
 
@@ -147,7 +169,10 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': DATA_DIR / 'db.sqlite3',
+            # Network-share latency (the desktop build's shared folder) can
+            # easily exceed sqlite3's 5s default busy-timeout under load.
+            'OPTIONS': {'timeout': 20},
         }
     }
 
@@ -185,7 +210,7 @@ SHORT_DATE_FORMAT = 'd/m/Y'
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = DATA_DIR / 'media'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'

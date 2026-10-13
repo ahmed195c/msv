@@ -1,0 +1,64 @@
+name: Build desktop app (Windows)
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch: {}
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install desktop dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r desktop/requirements-desktop.txt
+
+      - name: Stage the Django project as plain source (not frozen by PyInstaller)
+        run: |
+          mkdir -p staging/django_src
+          cp -r msv/msv staging/django_src/msv
+          cp -r msv/hcsd staging/django_src/hcsd
+          find staging/django_src -name '__pycache__' -type d -exec rm -rf {} + || true
+
+      - name: Collect static files into the staged copy
+        env:
+          DJANGO_SETTINGS_MODULE: msv.settings
+          PYTHONPATH: staging/django_src
+        run: python -m django collectstatic --noinput
+
+      - name: Build with PyInstaller
+        working-directory: desktop
+        run: pyinstaller msv_desktop.spec --noconfirm --clean
+
+      - name: Assemble the portable app/ folder
+        run: |
+          mv staging/django_src desktop/dist/app/django_src
+          mkdir -p "MSV-Desktop/app"
+          cp -r desktop/dist/app/* "MSV-Desktop/app/"
+          cp desktop/README.md "MSV-Desktop/README.md"
+
+      - name: Zip the build
+        run: powershell -Command "Compress-Archive -Path 'MSV-Desktop' -DestinationPath 'MSV-Desktop-windows.zip'"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MSV-Desktop-windows
+          path: MSV-Desktop-windows.zip
+          retention-days: 30
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: MSV-Desktop-windows.zip

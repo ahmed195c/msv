@@ -33,3 +33,8 @@ msv/staticfiles/
 # Local tooling artifacts
 msv/tools/
 media_paths.txt
+
+# Desktop build artifacts (PyInstaller output, dev-only data folder)
+desktop/build/
+desktop/dist/
+desktop/dev_data/

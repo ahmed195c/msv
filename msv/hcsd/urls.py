@@ -1,8 +1,10 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
+from .desktop_views import desktop_ping
 
 urlpatterns = [
+    path('__desktop_ping__/', desktop_ping, name='desktop_ping'),
     path('', views.portal_landing, name='portal_landing'),
     path('home/', views.home, name='home'),
     path('set-language/', views.set_app_language, name='set_app_language'),
