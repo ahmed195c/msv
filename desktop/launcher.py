@@ -127,14 +127,17 @@ def run_as_host(django_src: Path, data_dir: Path, claim) -> None:
     stop_event = threading.Event()
     scheduler.start(stop_event)
 
-    # Printed once Django/waitress have actually booted successfully, before
-    # we touch webview at all — CI's smoke test (build-desktop.yml) greps
-    # for this exact marker so a real startup failure (a missing bundled
-    # module, a migration error) can't be masked by whatever webview does or
-    # doesn't manage to do on a given machine.
+    import webview
+
+    # Printed once Django/waitress/webview have all actually loaded
+    # successfully, right before we try to open a real window — CI's smoke
+    # test (build-desktop.yml) greps for this exact marker, so a real
+    # startup failure (a missing bundled module, a migration error, webview
+    # itself failing to import) can't be masked by whatever create_window/
+    # start() does or doesn't manage to do on a given machine (e.g. no
+    # interactive desktop session on a CI runner).
     print('MSV_DESKTOP_SERVER_READY', flush=True)
 
-    import webview
     webview.create_window('نظام المسح — MSV', f'http://127.0.0.1:{claim.port}/')
     try:
         webview.start()

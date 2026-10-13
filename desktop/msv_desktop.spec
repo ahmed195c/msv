@@ -26,7 +26,7 @@ What *does* need PyInstaller's help:
     they're listed explicitly below rather than solved by the sys.path
     trick.
 """
-from PyInstaller.utils.hooks import collect_submodules
+from PyInstaller.utils.hooks import collect_all, collect_submodules
 
 hidden_imports = []
 for pkg in (
@@ -46,11 +46,20 @@ for pkg in (
     hidden_imports += collect_submodules(pkg)
 hidden_imports += ['django_extensions']
 
+# webview picks a completely different backend submodule per OS at import
+# time (winforms/edgechromium on Windows, gtk/qt/cocoa elsewhere), decided
+# by runtime platform checks PyInstaller's static analysis can't follow —
+# collect_all pulls in every submodule, data file and binary the package
+# ships for whichever platform actually runs this build, not just what a
+# plain import-graph walk of launcher.py would find.
+webview_datas, webview_binaries, webview_hidden = collect_all('webview')
+hidden_imports += webview_hidden
+
 a = Analysis(
     ['launcher.py'],
     pathex=[],
-    binaries=[],
-    datas=[],
+    binaries=webview_binaries,
+    datas=webview_datas,
     hiddenimports=hidden_imports,
     hookspath=[],
     hooksconfig={},
