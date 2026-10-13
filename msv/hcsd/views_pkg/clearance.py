@@ -573,14 +573,21 @@ def permit_types(request):
         reverse=True,
     )[:50]
 
-    # Companies with a currently valid waste_disposal permit (for the quick-create modal)
-    active_disposal_permits = list(
-        PirmetClearance.objects
+    # Companies with a currently valid waste_disposal permit (for the quick-create modal).
+    # A waste permit's status moves on to 'disposal_approved'/'disposal_rejected'
+    # once a disposal request against it is decided — those are later stages of
+    # the same still-valid permit, not a sign it's no longer issued, so
+    # status='issued' alone was wrongly excluding every permit past its first
+    # disposal request. _is_effective_active_permit is the already-correct,
+    # permit_type-agnostic notion of "currently valid" used elsewhere.
+    active_disposal_permits = [
+        {'id': p.id, 'company__name': p.company.name, 'company__number': p.company.number}
+        for p in PirmetClearance.objects
         .select_related('company')
-        .filter(permit_type='waste_disposal', status='issued', dateOfExpiry__gte=today)
+        .filter(permit_type='waste_disposal')
         .order_by('company__name')
-        .values('id', 'company__name', 'company__number')
-    )
+        if _is_effective_active_permit(p, today)
+    ]
 
     # Build latest issued permit expiry per company, per permit type
     from ..models import Company as _Company
@@ -589,11 +596,14 @@ def permit_types(request):
         seen = set()
         result = {}
         for p in PirmetClearance.objects.filter(
-            permit_type=permit_type, status='issued'
-        ).order_by('-id').values('company_id', 'dateOfExpiry'):
-            if p['company_id'] not in seen:
-                seen.add(p['company_id'])
-                result[p['company_id']] = p['dateOfExpiry']
+            permit_type=permit_type
+        ).order_by('-id'):
+            if p.company_id in seen:
+                continue
+            if not _is_effective_active_permit(p, today):
+                continue
+            seen.add(p.company_id)
+            result[p.company_id] = p.dateOfExpiry
         return result
 
     def _latest_vehicle_permits_by_company():
