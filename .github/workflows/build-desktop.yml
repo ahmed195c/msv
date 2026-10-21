@@ -41,6 +41,19 @@ jobs:
         working-directory: desktop
         run: pyinstaller msv_desktop.spec --noconfirm --clean
 
+      - name: Build the update-applier tool
+        working-directory: desktop
+        run: pyinstaller apply_update.spec --noconfirm --clean
+
+      - name: Verify the update-applier tool actually built
+        run: |
+          f="desktop/dist/apply-update.exe"
+          if [ ! -f "$f" ] || [ "$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")" -lt 100000 ]; then
+            echo "::error::apply-update.exe is missing or suspiciously small — PyInstaller likely failed silently."
+            exit 1
+          fi
+          echo "apply-update.exe built ($(stat -c%s "$f" 2>/dev/null || stat -f%z "$f") bytes)."
+
       - name: Smoke-test the frozen exe actually boots Django
         run: |
           cp -r staging/django_src desktop/dist/app/django_src
@@ -66,6 +79,7 @@ jobs:
           mv staging/django_src desktop/dist/app/django_src
           mkdir -p "MSV-Desktop/app"
           cp -r desktop/dist/app/* "MSV-Desktop/app/"
+          cp desktop/dist/apply-update.exe "MSV-Desktop/apply-update.exe"
           cp desktop/README.md "MSV-Desktop/README.md"
 
       - name: Zip the build

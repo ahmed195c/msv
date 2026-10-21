@@ -19,6 +19,7 @@ see `hostlock.py` for the full protocol.
 
 ```
 MSV-Desktop/        <- move/copy this whole folder anywhere, it keeps working
+  apply-update.exe   <- run this to install a new version (see "Updating" below)
   app/               <- the program itself. Replaced wholesale on every update.
     msv-desktop.exe
     msv-desktop-debug.exe   <- same app, with a console window (see below)
@@ -29,6 +30,10 @@ MSV-Desktop/        <- move/copy this whole folder anywhere, it keeps working
     media/
     desktop_state/   (host.lock, secret.key, logs)
 ```
+
+Because `app/` is the one copy shared by every PC that opens this folder,
+updating it once updates it for everyone — there's no need to update each
+PC separately, and no need to pick one PC as "the main one" for updates.
 
 ## First-run notes
 
@@ -77,8 +82,26 @@ Then copy that same `msv/` source copy into `desktop/dist/app/django_src/`
 (the build doesn't freeze it in — see the comment at the top of
 `msv_desktop.spec` for why) before running `dist/app/msv-desktop.exe`.
 
-## What this doesn't do yet
+## Updating (no internet on the target network)
 
-Auto-updates aren't built yet (deliberately scoped out of this first
-version) — for now, getting a new version onto a PC means replacing the
-`app/` folder with a new build and leaving `data/` untouched.
+There's no "check for updates" button, because the network this runs on
+has no internet access at all — a new build has to be carried in on a
+USB drive from a machine that does have internet (e.g. downloading
+`MSV-Desktop-windows.zip` from this repo's GitHub Actions artifacts).
+
+Once the new build is on the network:
+
+1. Make sure the app is closed on **every** PC first.
+2. Run `apply-update.exe` (sitting at the top of this same `MSV-Desktop/`
+   folder — not inside `app/`, since that's exactly what it replaces).
+3. Point it at the `.zip` you brought in (or the already-extracted folder
+   — either works).
+4. Confirm. It backs up the current `app/` first, swaps in the new one,
+   and only deletes the backup once the swap succeeds — if anything goes
+   wrong partway through, it automatically restores the old version
+   instead of leaving you with a half-updated folder. `data/` is never
+   touched.
+
+If the app is still running anywhere when you try this, `apply-update.exe`
+refuses and tells you which PC is running it (checked the same way a
+client PC finds the host) — close it there first, then try again.
