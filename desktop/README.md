@@ -47,6 +47,13 @@ PC separately, and no need to pick one PC as "the main one" for updates.
   opening the folder will become the new host themselves — that's
   expected, not a bug.
 
+- **"Failed to resolve Python.Runtime.Loader.Initialize"** at startup
+  means Windows blocked the files because the zip came from the internet.
+  The launcher now unblocks its own DLLs automatically; on older builds,
+  right-click the zip → Properties → tick "Unblock" before extracting, or
+  run in PowerShell:
+  `Get-ChildItem -Recurse "<MSV-Desktop folder>" | Unblock-File`
+
 ## Operational rules
 
 - **Never open `data/db.sqlite3` directly from a client machine** — e.g.

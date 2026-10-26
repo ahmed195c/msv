@@ -72,6 +72,26 @@ def _get_or_create_secret_key(data_dir: Path) -> str:
     return key
 
 
+def _unblock_bundled_dlls(code_dir: Path) -> None:
+    """Strip Windows' Mark-of-the-Web from the bundled DLLs.
+
+    A zip downloaded from GitHub tags every extracted file with a
+    Zone.Identifier stream, and .NET then refuses to load pythonnet's
+    Python.Runtime.dll ("Failed to resolve Python.Runtime.Loader.Initialize")
+    — webview can't open a window. Deleting the stream is what
+    'Properties → Unblock' does by hand. Files without the mark, or on a
+    read-only share, are left as they are; the import below reports any
+    real failure.
+    """
+    if sys.platform != 'win32' or not _is_frozen():
+        return
+    for dll in code_dir.rglob('*.dll'):
+        try:
+            os.remove(f'{dll}:Zone.Identifier')
+        except OSError:
+            continue
+
+
 def _show_fatal_error(message: str) -> None:
     sys.stderr.write(message + '\n')
     if sys.platform == 'win32':
@@ -156,6 +176,7 @@ def main() -> None:
     code_dir, django_src, data_dir = resolve_dirs()
     data_dir.mkdir(parents=True, exist_ok=True)
     (data_dir / 'media').mkdir(parents=True, exist_ok=True)
+    _unblock_bundled_dlls(code_dir)
 
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import hostlock
