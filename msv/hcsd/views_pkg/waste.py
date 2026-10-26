@@ -170,6 +170,131 @@ def _previous_waste_permit_expiry(company, exclude_pk):
     return prev.dateOfExpiry if prev else None
 
 
+WASTE_PERMIT_TERM_MONTHS = 6
+
+
+def _cascade_waste_permit_renewals(permit, old_expiry, user):
+    """A renewal issued in 'continue' mode copied its issue_date from the
+    previous permit's expiry. When that expiry is edited, shift the chain of
+    continuing renewals so there's no gap/overlap. Returns permit numbers moved."""
+    moved = []
+    current, prev_old_expiry = permit, old_expiry
+    while prev_old_expiry and current.dateOfExpiry != prev_old_expiry:
+        nxt = (
+            PirmetClearance.objects
+            .filter(company=current.company, permit_type='waste_disposal',
+                    status='issued', issue_date=prev_old_expiry)
+            .exclude(pk__in=[permit.pk, current.pk])
+            .first()
+        )
+        if not nxt:
+            break
+        nxt_old_issue, nxt_old_expiry = nxt.issue_date, nxt.dateOfExpiry
+        nxt.issue_date = current.dateOfExpiry
+        nxt.dateOfExpiry = _add_months(nxt.issue_date, WASTE_PERMIT_TERM_MONTHS)
+        nxt.save(update_fields=['issue_date', 'dateOfExpiry'])
+        _log_pirmet_change(
+            nxt,
+            'details_update',
+            user,
+            notes=(
+                f'تم تعديل التواريخ تلقائياً تبعاً لتعديل التصريح السابق #{current.permit_no}: '
+                f'الإصدار {_fmt_date(nxt_old_issue)} ← {_fmt_date(nxt.issue_date)}، '
+                f'الانتهاء {_fmt_date(nxt_old_expiry)} ← {_fmt_date(nxt.dateOfExpiry)}.'
+            ),
+        )
+        moved.append(nxt.permit_no)
+        current, prev_old_expiry = nxt, nxt_old_expiry
+    return moved
+
+
+def _fmt_date(value):
+    return value.strftime('%d/%m/%Y') if value else '—'
+
+
+@transaction.atomic
+def _edit_issued_waste_permit(request, pirmet):
+    """Admin correction of an issued (active or expired) waste permit's
+    dates, payment data and the company's trade-license expiry. Returns a
+    list of validation errors (empty on success)."""
+    errors = []
+    if not _can_admin(request.user):
+        return ['ليس لديك صلاحية لتعديل بيانات التصريح.']
+    if pirmet.status != 'issued':
+        return ['يمكن تعديل بيانات التصريح بعد إصداره فقط.']
+
+    post = request.POST
+    issue_date = _parse_date((post.get('issue_date') or '').strip())
+    expiry_date = _parse_date((post.get('expiry_date') or '').strip())
+    payment_date_raw = (post.get('payment_date') or '').strip()
+    payment_date = _parse_date(payment_date_raw)
+    license_exp_raw = (post.get('trade_license_exp') or '').strip()
+    license_exp = _parse_date(license_exp_raw)
+    payment_number = (post.get('payment_number') or '').strip()
+
+    if not issue_date:
+        errors.append('يرجى إدخال تاريخ إصدار صحيح.')
+    if not expiry_date:
+        errors.append('يرجى إدخال تاريخ انتهاء صحيح.')
+    if issue_date and expiry_date and expiry_date <= issue_date:
+        errors.append('تاريخ الانتهاء يجب أن يكون بعد تاريخ الإصدار.')
+    if payment_date_raw and not payment_date:
+        errors.append('تاريخ الدفع غير صالح.')
+    if license_exp_raw and not license_exp:
+        errors.append('تاريخ انتهاء الرخصة التجارية غير صالح.')
+    if errors:
+        return errors
+
+    changes = []
+    old_expiry = pirmet.dateOfExpiry
+    for field, label, new in (
+        ('issue_date', 'تاريخ الإصدار', issue_date),
+        ('dateOfExpiry', 'تاريخ الانتهاء', expiry_date),
+        ('payment_date', 'تاريخ الدفع', payment_date),
+    ):
+        old = getattr(pirmet, field)
+        if old != new:
+            changes.append(f'{label}: {_fmt_date(old)} ← {_fmt_date(new)}')
+            setattr(pirmet, field, new)
+    if (pirmet.PaymentNumber or '') != payment_number:
+        changes.append(f'رقم أمر الدفع: {pirmet.PaymentNumber or "—"} ← {payment_number or "—"}')
+        pirmet.PaymentNumber = payment_number or None
+    pirmet.save(update_fields=['issue_date', 'dateOfExpiry', 'payment_date', 'PaymentNumber'])
+
+    company = pirmet.company
+    if company.trade_license_exp != license_exp:
+        changes.append(
+            f'تاريخ انتهاء الرخصة التجارية: {_fmt_date(company.trade_license_exp)} ← {_fmt_date(license_exp)}'
+        )
+        _log_company_change(
+            company,
+            'trade_license_exp_updated',
+            request.user,
+            notes=(
+                f'تم تعديل تاريخ انتهاء الرخصة التجارية من تصريح التخلص #{pirmet.permit_no}: '
+                f'{_fmt_date(company.trade_license_exp)} ← {_fmt_date(license_exp)}.'
+            ),
+        )
+        company.trade_license_exp = license_exp
+        company.save(update_fields=['trade_license_exp'])
+
+    if not changes:
+        return []
+
+    moved = _cascade_waste_permit_renewals(pirmet, old_expiry, request.user)
+    if moved:
+        changes.append('تم تعديل تواريخ التصاريح اللاحقة تلقائياً: ' + '، '.join(f'#{n}' for n in moved))
+    notes = 'تعديل إداري لبيانات التصريح — ' + ' | '.join(changes)
+    _log_pirmet_change(pirmet, 'details_update', request.user, notes=notes)
+    _log_company_change(
+        company,
+        'waste_permit_edited',
+        request.user,
+        notes=f'تم تعديل بيانات تصريح التخلص #{pirmet.permit_no}.',
+    )
+    return []
+
+
 @login_required
 def waste_permit_detail(request, id):
     pirmet = get_object_or_404(
@@ -349,6 +474,11 @@ def waste_permit_detail(request, id):
                     )
                     return redirect('waste_permit_detail', id=pirmet.id)
 
+        if action == 'edit_permit_data':
+            review_errors.extend(_edit_issued_waste_permit(request, pirmet))
+            if not review_errors:
+                return redirect('waste_permit_detail', id=pirmet.id)
+
         if action == 'edit_waste_details':
             if not _can_admin(request.user):
                 review_errors.append('ليس لديك صلاحية لتعديل بيانات التخلص.')
@@ -430,6 +560,7 @@ def waste_permit_detail(request, id):
             'can_record_payment': _can_admin(request.user),
             'can_issue_pirmet': _can_admin(request.user),
             'can_edit_waste_details': _can_admin(request.user),
+            'can_edit_permit_data': _can_admin(request.user) and pirmet.status == 'issued',
             'is_active': is_active,
             'disposal_requests': disposal_requests,
             'show_admin_close_form': (

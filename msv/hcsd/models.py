@@ -727,6 +727,8 @@ class CompanyChangeLog(models.Model):
         ('waste_permit_payment_reference', 'Waste Permit Payment Reference'),
         ('waste_permit_paid', 'Waste Permit Paid'),
         ('waste_permit_issued', 'Waste Permit Issued'),
+        ('waste_permit_edited', 'Waste Permit Edited'),
+        ('trade_license_exp_updated', 'Trade License Expiry Updated'),
         ('waste_request_created', 'Waste Request Created'),
         ('waste_request_payment_reference', 'Waste Request Payment Reference'),
         ('waste_request_paid', 'Waste Request Paid'),
