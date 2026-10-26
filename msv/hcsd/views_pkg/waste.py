@@ -214,11 +214,11 @@ def _fmt_date(value):
 
 @transaction.atomic
 def _edit_issued_waste_permit(request, pirmet):
-    """Admin correction of an issued (active or expired) waste permit's
+    """Admin / data-entry correction of an issued (active or expired) waste permit's
     dates, payment data and the company's trade-license expiry. Returns a
     list of validation errors (empty on success)."""
     errors = []
-    if not _can_admin(request.user):
+    if not _can_data_entry(request.user):
         return ['ليس لديك صلاحية لتعديل بيانات التصريح.']
     if pirmet.status != 'issued':
         return ['يمكن تعديل بيانات التصريح بعد إصداره فقط.']
@@ -560,7 +560,7 @@ def waste_permit_detail(request, id):
             'can_record_payment': _can_admin(request.user),
             'can_issue_pirmet': _can_admin(request.user),
             'can_edit_waste_details': _can_admin(request.user),
-            'can_edit_permit_data': _can_admin(request.user) and pirmet.status == 'issued',
+            'can_edit_permit_data': _can_data_entry(request.user) and pirmet.status == 'issued',
             'is_active': is_active,
             'disposal_requests': disposal_requests,
             'show_admin_close_form': (
