@@ -365,6 +365,7 @@
     
     </a>
 
+    {% if not permits_only %}
     <!-- Weed Removal / Container Transfer Tracking -->
     <a href="{% url 'all_requests' %}" class="portal-card portal-card--complaints">
       <div class="portal-card-icon">
@@ -410,8 +411,9 @@
         </svg>
       </div>
       <div class="portal-card-name">متابعة حملة القوارض </div>
-      
+
     </a>
+    {% endif %}
 
   </div>
 
