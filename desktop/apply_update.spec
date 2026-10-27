@@ -22,5 +22,6 @@ exe = EXE(
     name='apply-update',
     debug=False,
     console=False,
+    icon='app.ico',
     onefile=True,
 )

@@ -27,6 +27,7 @@ import traceback
 from pathlib import Path
 
 PORT = 8420
+WINDOW_TITLE = 'نظام التصاريح والعقود'
 
 
 def _is_frozen() -> bool:
@@ -158,7 +159,7 @@ def run_as_host(django_src: Path, data_dir: Path, claim) -> None:
     # interactive desktop session on a CI runner).
     print('MSV_DESKTOP_SERVER_READY', flush=True)
 
-    webview.create_window('نظام المسح — MSV', f'http://127.0.0.1:{claim.port}/')
+    webview.create_window(WINDOW_TITLE, f'http://127.0.0.1:{claim.port}/')
     try:
         webview.start()
     finally:
@@ -168,7 +169,7 @@ def run_as_host(django_src: Path, data_dir: Path, claim) -> None:
 
 def run_as_client(client) -> None:
     import webview
-    webview.create_window('نظام المسح — MSV', client.url)
+    webview.create_window(WINDOW_TITLE, client.url)
     webview.start()
 
 

@@ -76,6 +76,7 @@ exe_gui = EXE(
     name='msv-desktop',
     debug=False,
     console=False,
+    icon='app.ico',
 )
 
 # Same build, console attached — for QA and on-site troubleshooting, since
@@ -86,6 +87,7 @@ exe_debug = EXE(
     name='msv-desktop-debug',
     debug=False,
     console=True,
+    icon='app.ico',
 )
 
 coll = COLLECT(

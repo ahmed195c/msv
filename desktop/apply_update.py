@@ -27,7 +27,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox
 
 HOST_PORT_DEFAULT = 8420
-TITLE = 'تحديث MSV Desktop'
+TITLE = 'تحديث نظام التصاريح والعقود'
 
 
 def _here() -> Path:
