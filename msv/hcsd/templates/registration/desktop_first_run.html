@@ -1,0 +1,47 @@
+{% extends "registration/login.html" %}
+{% load static %}
+{% block title %}إعداد أول حساب{% endblock %}
+{% block content %}
+<section class="auth-page" lang="ar" dir="rtl">
+  <div class="auth-card">
+
+    <div class="auth-top">
+      <img class="auth-logo" src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+      <h1>إنشاء حساب المدير</h1>
+      <p>لا يوجد أي مستخدم بعد — هذا الحساب سيكون مدير النظام، ومنه تُنشأ حسابات الموظفين.</p>
+    </div>
+
+    <div class="auth-body">
+
+      {% if form.non_field_errors %}
+        <div class="auth-alert">{{ form.non_field_errors|join:" " }}</div>
+      {% endif %}
+
+      <form method="POST" novalidate style="display:grid;gap:14px;">
+        {% csrf_token %}
+
+        <div class="field-wrap">
+          <label for="{{ form.username.id_for_label }}">الرقم الإداري (اسم المستخدم)</label>
+          {{ form.username }}
+          {{ form.username.errors }}
+        </div>
+
+        <div class="field-wrap">
+          <label for="{{ form.password1.id_for_label }}">كلمة المرور</label>
+          {{ form.password1 }}
+          {{ form.password1.errors }}
+        </div>
+
+        <div class="field-wrap">
+          <label for="{{ form.password2.id_for_label }}">تأكيد كلمة المرور</label>
+          {{ form.password2 }}
+          {{ form.password2.errors }}
+        </div>
+
+        <button type="submit" class="auth-submit">إنشاء الحساب والدخول</button>
+      </form>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

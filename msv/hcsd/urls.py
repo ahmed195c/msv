@@ -1,10 +1,11 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
-from .desktop_views import desktop_ping
+from .desktop_views import DesktopAwareLoginView, desktop_first_run, desktop_ping
 
 urlpatterns = [
     path('__desktop_ping__/', desktop_ping, name='desktop_ping'),
+    path('setup/', desktop_first_run, name='desktop_first_run'),
     path('', views.portal_landing, name='portal_landing'),
     path('home/', views.home, name='home'),
     path('set-language/', views.set_app_language, name='set_app_language'),
@@ -118,7 +119,7 @@ urlpatterns = [
     path('printer/<int:permit_id>/', views.printer, name='printer_permit'),
     path('pirmet/<int:id>/', views.pest_control_permit_detail, name='pirmet_detail'),
     path('register/', views.register, name='register'),
-    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('login/', DesktopAwareLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path(
         'password-reset/',
