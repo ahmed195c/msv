@@ -19,6 +19,7 @@ from ..models import (
     PublicHealthExamRequestDocument, RequirementInsuranceRequest,
     WasteDisposalRequest, WasteDisposalRequestDocument,
 )
+from ..desktop_pdf import queue_activity_permit_pdf
 from ..forms import StaffRegistrationForm
 from .common import (
     ALLOWED_DOC_EXTENSIONS, PEST_ACTIVITY_ORDER, PEST_ACTIVITY_KEYS,
@@ -921,6 +922,7 @@ def pest_control_permit_detail(request, id):
                     new_status=pirmet.status,
                     notes='Payment received and permit issued.',
                 )
+                queue_activity_permit_pdf(pirmet)
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
         if action == 'receive_for_inspection':
@@ -1196,6 +1198,7 @@ def pest_control_permit_detail(request, id):
                     new_status=pirmet.status,
                     notes='Permit issued.',
                 )
+                queue_activity_permit_pdf(pirmet)
                 return redirect('pest_control_permit_detail', id=pirmet.id)
 
         if action == 'update_permit_details':

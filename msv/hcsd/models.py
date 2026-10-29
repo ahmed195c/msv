@@ -9,15 +9,23 @@ from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 
 ACTIVITY_PERMIT_FOLDER = 'تصريح النشاط'
+ACTIVITY_PERMIT_DOCS_FOLDER = 'أوراق الطلب'
+ACTIVITY_PERMIT_PDFS_FOLDER = 'التصاريح'
 COMPANY_FOLDER_MAX_LEN = 40
 _UNSAFE_FOLDER_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+def company_folder_name(company):
+    """Company name made safe as a Windows folder/file name."""
+    name = _UNSAFE_FOLDER_CHARS.sub('_', company.name or '')
+    return name[:COMPANY_FOLDER_MAX_LEN].strip(' .') or f'company_{company.pk}'
 
 
 @deconstructible
 class ActivityPermitUploadPath:
     """upload_to for files attached to a permit. In the desktop build,
     activity (pest_control) permit files are filed for browsing in Explorer
-    as تصريح النشاط/<YYYY-MM of the permit>/<company name>/<file>; every
+    as تصريح النشاط/أوراق الطلب/<YYYY-MM of the permit>/<company name>/<file>; every
     other permit type, and the server, keep the flat default_dir."""
 
     def __init__(self, default_dir):
@@ -28,9 +36,10 @@ class ActivityPermitUploadPath:
         if not (settings.DESKTOP_MODE and permit.permit_type == 'pest_control'):
             return posixpath.join(self.default_dir, filename)
         month = (permit.dateOfCreation or timezone.localdate()).strftime('%Y-%m')
-        company = _UNSAFE_FOLDER_CHARS.sub('_', permit.company.name or '')
-        company = company[:COMPANY_FOLDER_MAX_LEN].strip(' .') or f'company_{permit.company_id}'
-        return posixpath.join(ACTIVITY_PERMIT_FOLDER, month, company, filename)
+        return posixpath.join(
+            ACTIVITY_PERMIT_FOLDER, ACTIVITY_PERMIT_DOCS_FOLDER, month,
+            company_folder_name(permit.company), filename,
+        )
 
     def __eq__(self, other):
         return isinstance(other, ActivityPermitUploadPath) and other.default_dir == self.default_dir
