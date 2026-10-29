@@ -1,5 +1,5 @@
 {% extends "hcsd/field_work_base.html" %}
-{% load static %}
+{% load static static_version %}
 {% block title %}أمر عمل #{{ order.pk }}{% endblock %}
 {% block content %}
 <style>
@@ -1241,5 +1241,5 @@ select.form-control{cursor:pointer;}
 </section>
 
 <script>window.FW_CONFIG={pk:{{ order.pk }},hasBuildingType:{{ order.building_type|yesno:'true,false' }}};</script>
-<script src="{% static 'hcsd/field_work_detail.js' %}"></script>
+<script src="{% static_v 'hcsd/field_work_detail.js' %}"></script>
 {% endblock %}
