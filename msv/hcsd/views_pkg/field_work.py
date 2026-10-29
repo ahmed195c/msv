@@ -1301,6 +1301,8 @@ _ACTIVE_INGREDIENTS = {
     "CYPFORCE 40 EC": "Cypermethrin 25% / Tetramethrin 5% / Piperonyl Butoxide 10%",
     "D-TETRASUPER EC": "D-Tetramethrin 10%",
     "TEMEPHOS 55EC": "Temephos 50%",
+    "IC Turbo": "Peppermint Oil 73% / Rosemary Oil 10% / Geraniol 5% / Clove Oil 2%",
+    "Agro Block Brodi-5": "Brodifacoum",
     "Petrol": "Petroleum Distillates",
     "Diesel": "Diesel Fuel",
 }

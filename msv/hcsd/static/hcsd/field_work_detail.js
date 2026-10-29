@@ -26,6 +26,8 @@ var PESTICIDES = [
   {n:"SUREFIRE BROMA BLOCKS RODENTICIDE",u:"GRM"},{n:"NOCURAT PARAFFINATO",u:"GRM"},
   {n:"BuyBlocker Snake Deter",u:"GRM"},{n:"BOOM",u:"ML"},{n:"CYPFORCE 40 EC",u:"ML"},
   {n:"D-TETRASUPER EC",u:"ML"},{n:"TEMEPHOS 55EC",u:"ML"},
+  {n:"Raptor Cockroach Gel",u:"GRM"},{n:"Raptor Ant Gel",u:"GRM"},
+  {n:"IC Turbo",u:"ML"},{n:"Agro Block Brodi-5",u:"GRM"},
   {n:"Petrol",u:"L"},{n:"Diesel",u:"L"}
 ];
 var _PESTICIDE_NAMES = (function(){ var s={}; PESTICIDES.forEach(function(p){s[p.n]=true;}); return s; })();
