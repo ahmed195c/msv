@@ -4,6 +4,7 @@ import re
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.files.storage import FileSystemStorage
 from django.db import IntegrityError, models
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
@@ -11,6 +12,8 @@ from django.utils.deconstruct import deconstructible
 ACTIVITY_PERMIT_FOLDER = 'تصريح النشاط'
 ACTIVITY_PERMIT_DOCS_FOLDER = 'أوراق الطلب'
 ACTIVITY_PERMIT_PDFS_FOLDER = 'التصاريح'
+PERMIT_RECEIPT_LABEL = 'إيصال دفع التصريح'
+INSPECTION_RECEIPT_LABEL = 'إيصال دفع التفتيش'
 COMPANY_FOLDER_MAX_LEN = 40
 _UNSAFE_FOLDER_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
@@ -28,21 +31,53 @@ class ActivityPermitUploadPath:
     as تصريح النشاط/أوراق الطلب/<YYYY-MM of the permit>/<company name>/<file>; every
     other permit type, and the server, keep the flat default_dir."""
 
-    def __init__(self, default_dir):
+    def __init__(self, default_dir, file_label=None):
         self.default_dir = default_dir
+        self.file_label = file_label
 
     def __call__(self, instance, filename):
         permit = getattr(instance, 'pirmet', instance)
         if not (settings.DESKTOP_MODE and permit.permit_type == 'pest_control'):
             return posixpath.join(self.default_dir, filename)
         month = (permit.dateOfCreation or timezone.localdate()).strftime('%Y-%m')
+        if self.file_label:
+            # e.g. "إيصال دفع التصريح - <company>.pdf", keeping the upload's extension.
+            ext = _UNSAFE_FOLDER_CHARS.sub('', posixpath.splitext(filename)[1].lower())
+            filename = f'{self.file_label} - {company_folder_name(permit.company)}{ext}'
         return posixpath.join(
             ACTIVITY_PERMIT_FOLDER, ACTIVITY_PERMIT_DOCS_FOLDER, month,
             company_folder_name(permit.company), filename,
         )
 
     def __eq__(self, other):
-        return isinstance(other, ActivityPermitUploadPath) and other.default_dir == self.default_dir
+        return (
+            isinstance(other, ActivityPermitUploadPath)
+            and other.default_dir == self.default_dir
+            and other.file_label == self.file_label
+        )
+
+
+@deconstructible
+class ActivityPermitStorage(FileSystemStorage):
+    """Default storage, except the desktop build keeps spaces in file names
+    (Django turns them into '_') so labelled receipts read naturally in
+    Explorer. Names reaching here were already sanitized by
+    ActivityPermitUploadPath / company_folder_name."""
+
+    def get_valid_name(self, name):
+        if not settings.DESKTOP_MODE:
+            return super().get_valid_name(name)
+        return _UNSAFE_FOLDER_CHARS.sub('_', name).strip(' .') or super().get_valid_name(name)
+
+    def get_available_name(self, name, max_length=None):
+        # A re-uploaded labelled receipt replaces the old one under the same
+        # name instead of piling up "<name>_<random>" copies.
+        if settings.DESKTOP_MODE and posixpath.basename(name).startswith(
+            (PERMIT_RECEIPT_LABEL, INSPECTION_RECEIPT_LABEL)
+        ):
+            self.delete(name)
+            return name
+        return super().get_available_name(name, max_length=max_length)
 
 
 BUSINESS_ACTIVITY_CHOICES = [
@@ -215,14 +250,16 @@ class PirmetClearance(models.Model):
     PaymentNumber = models.CharField(max_length=100, null=True, blank=True)
     payment_email = models.EmailField(null=True, blank=True)
     payment_receipt = models.FileField(
-        upload_to=ActivityPermitUploadPath('pirmet_documents/payment_receipts'),
+        upload_to=ActivityPermitUploadPath('pirmet_documents/payment_receipts', PERMIT_RECEIPT_LABEL),
+        storage=ActivityPermitStorage(),
         max_length=255, null=True, blank=True
     )
     inspection_payment_link = models.CharField(max_length=500, null=True, blank=True)
     inspection_payment_reference = models.CharField(max_length=100, null=True, blank=True)
     inspection_payment_email = models.EmailField(null=True, blank=True)
     inspection_payment_receipt = models.FileField(
-        upload_to=ActivityPermitUploadPath('pirmet_documents/inspection_receipts'),
+        upload_to=ActivityPermitUploadPath('pirmet_documents/inspection_receipts', INSPECTION_RECEIPT_LABEL),
+        storage=ActivityPermitStorage(),
         max_length=255, null=True, blank=True
     )
     violation_reference_expiry = models.DateField(null=True, blank=True)
