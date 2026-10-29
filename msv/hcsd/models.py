@@ -1,10 +1,41 @@
+import posixpath
 import random
+import re
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import IntegrityError, models
 from django.utils import timezone
+from django.utils.deconstruct import deconstructible
 
-# Create your models here.
+ACTIVITY_PERMIT_FOLDER = 'تصريح النشاط'
+COMPANY_FOLDER_MAX_LEN = 40
+_UNSAFE_FOLDER_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+@deconstructible
+class ActivityPermitUploadPath:
+    """upload_to for files attached to a permit. In the desktop build,
+    activity (pest_control) permit files are filed for browsing in Explorer
+    as تصريح النشاط/<YYYY-MM of the permit>/<company name>/<file>; every
+    other permit type, and the server, keep the flat default_dir."""
+
+    def __init__(self, default_dir):
+        self.default_dir = default_dir
+
+    def __call__(self, instance, filename):
+        permit = getattr(instance, 'pirmet', instance)
+        if not (settings.DESKTOP_MODE and permit.permit_type == 'pest_control'):
+            return posixpath.join(self.default_dir, filename)
+        month = (permit.dateOfCreation or timezone.localdate()).strftime('%Y-%m')
+        company = _UNSAFE_FOLDER_CHARS.sub('_', permit.company.name or '')
+        company = company[:COMPANY_FOLDER_MAX_LEN].strip(' .') or f'company_{permit.company_id}'
+        return posixpath.join(ACTIVITY_PERMIT_FOLDER, month, company, filename)
+
+    def __eq__(self, other):
+        return isinstance(other, ActivityPermitUploadPath) and other.default_dir == self.default_dir
+
+
 BUSINESS_ACTIVITY_CHOICES = [
     ('pest_control', 'نشاط مكافحة'),
     ('buy_sell', 'نشاط بيع وشراء'),
@@ -175,28 +206,33 @@ class PirmetClearance(models.Model):
     PaymentNumber = models.CharField(max_length=100, null=True, blank=True)
     payment_email = models.EmailField(null=True, blank=True)
     payment_receipt = models.FileField(
-        upload_to='pirmet_documents/payment_receipts/', null=True, blank=True
+        upload_to=ActivityPermitUploadPath('pirmet_documents/payment_receipts'),
+        max_length=255, null=True, blank=True
     )
     inspection_payment_link = models.CharField(max_length=500, null=True, blank=True)
     inspection_payment_reference = models.CharField(max_length=100, null=True, blank=True)
     inspection_payment_email = models.EmailField(null=True, blank=True)
     inspection_payment_receipt = models.FileField(
-        upload_to='pirmet_documents/inspection_receipts/', null=True, blank=True
+        upload_to=ActivityPermitUploadPath('pirmet_documents/inspection_receipts'),
+        max_length=255, null=True, blank=True
     )
     violation_reference_expiry = models.DateField(null=True, blank=True)
     violation_payment_order_number = models.CharField(max_length=100, null=True, blank=True)
     violation_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     violation_payment_receipt = models.FileField(
-        upload_to='pirmet_documents/violation_receipts/', null=True, blank=True
+        upload_to=ActivityPermitUploadPath('pirmet_documents/violation_receipts'),
+        max_length=255, null=True, blank=True
     )
     inspection_requires_insurance = models.BooleanField(default=False)
     insurance_payment_order_number = models.CharField(max_length=100, null=True, blank=True)
     insurance_payment_receipt = models.FileField(
-        upload_to='pirmet_documents/insurance_receipts/', null=True, blank=True
+        upload_to=ActivityPermitUploadPath('pirmet_documents/insurance_receipts'),
+        max_length=255, null=True, blank=True
     )
     request_email = models.EmailField(null=True, blank=True)
     request_documents_bundle = models.FileField(
-        upload_to='pirmet_documents/bundles/', null=True, blank=True
+        upload_to=ActivityPermitUploadPath('pirmet_documents/bundles'),
+        max_length=255, null=True, blank=True
     )
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='order_received')
     
@@ -223,7 +259,7 @@ class PirmetDocument(models.Model):
     ]
 
     pirmet = models.ForeignKey(PirmetClearance, on_delete=models.CASCADE, related_name='documents')
-    file = models.FileField(upload_to='pirmet_documents/')
+    file = models.FileField(upload_to=ActivityPermitUploadPath('pirmet_documents'), max_length=255)
     doc_type = models.CharField(max_length=30, choices=DOC_TYPE_CHOICES, default=DOC_TYPE_ENGINEER)
     notes = models.TextField(blank=True, default='')
     uploadedAt = models.DateTimeField(auto_now_add=True)
