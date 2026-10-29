@@ -85,7 +85,7 @@ def _find_new_app_dir(src: Path, cleanup: list) -> Path:
             return child / 'app'
         if _looks_like_app_dir(child):
             return child
-    raise FileNotFoundError('ملف التحديث ده مش شكله صحيح — مش لاقي فولدر app فيه.')
+    raise FileNotFoundError('ملف التحديث غير صالح: لم يُعثر بداخله على مجلد app.')
 
 
 def main() -> None:
@@ -96,7 +96,7 @@ def main() -> None:
     if not (msv_dir / 'data').is_dir() or not (msv_dir / 'app').is_dir():
         messagebox.showerror(
             TITLE,
-            'لازم تشغّل أداة التحديث من نفس فولدر MSV-Desktop (جنب فولدر app و data مباشرة).',
+            'يجب تشغيل أداة التحديث من داخل مجلد MSV-Desktop نفسه، بجوار مجلدَي app و data مباشرةً.',
         )
         return
 
@@ -104,8 +104,8 @@ def main() -> None:
     if live_host:
         messagebox.showerror(
             TITLE,
-            f'البرنامج شغال دلوقتي على جهاز: {live_host}\n\n'
-            'لازم تقفل البرنامج من على كل الأجهزة أولاً قبل التحديث، وبعدين جرب تاني.',
+            f'البرنامج يعمل حاليًا على الجهاز: {live_host}\n\n'
+            'يُرجى إغلاق البرنامج على جميع الأجهزة أولًا، ثم إعادة المحاولة.',
         )
         return
 
@@ -114,7 +114,7 @@ def main() -> None:
         filetypes=[('MSV Update', '*.zip'), ('كل الملفات', '*.*')],
     )
     if not update_path_str:
-        update_path_str = filedialog.askdirectory(title='أو اختر فولدر التحديث لو كان مفكوك الضغط بالفعل')
+        update_path_str = filedialog.askdirectory(title='أو اختر مجلد التحديث إذا كان مفكوك الضغط مسبقًا')
         if not update_path_str:
             return
 
@@ -126,9 +126,9 @@ def main() -> None:
 
         if not messagebox.askyesno(
             TITLE,
-            'هيتم استبدال نسخة البرنامج الحالية بالنسخة الجديدة.\n'
-            'بيانات المستخدمين والصور (data/) هتفضل كما هي تماماً.\n\n'
-            'متأكد عايز تستمر؟',
+            'سيتم استبدال النسخة الحالية من البرنامج بالنسخة الجديدة.\n'
+            'ستبقى بيانات المستخدمين والملفات (data/) كما هي دون أي تغيير.\n\n'
+            'هل تريد المتابعة؟',
         ):
             return
 
@@ -143,11 +143,11 @@ def main() -> None:
         except Exception as e:
             if backup_dir.exists() and not app_dir.exists():
                 os.replace(backup_dir, app_dir)
-            messagebox.showerror(TITLE, f'فشل التحديث، وتم الرجوع للنسخة القديمة تلقائياً.\n\n{e}')
+            messagebox.showerror(TITLE, f'تعذّر إتمام التحديث، وأُعيدت النسخة السابقة تلقائيًا.\n\n{e}')
             return
 
         shutil.rmtree(backup_dir, ignore_errors=True)
-        messagebox.showinfo(TITLE, 'تم التحديث بنجاح. تقدر تشغّل البرنامج دلوقتي.')
+        messagebox.showinfo(TITLE, 'تم التحديث بنجاح. يمكنك الآن تشغيل البرنامج.')
 
     except FileNotFoundError as e:
         messagebox.showerror(TITLE, str(e))

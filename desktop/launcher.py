@@ -98,7 +98,7 @@ def _show_fatal_error(message: str) -> None:
     if sys.platform == 'win32':
         try:
             import ctypes
-            ctypes.windll.user32.MessageBoxW(0, message, 'MSV Desktop — Startup Error', 0x10)
+            ctypes.windll.user32.MessageBoxW(0, message, f'{WINDOW_TITLE} — خطأ في التشغيل', 0x10)
         except Exception:
             pass
 
@@ -200,8 +200,8 @@ if __name__ == '__main__':
             data_dir = Path('.')
         _log_crash(data_dir, exc)
         _show_fatal_error(
-            'MSV Desktop failed to start:\n\n'
+            'تعذّر تشغيل البرنامج:\n\n'
             f'{exc}\n\n'
-            f'Details were written to {data_dir / "desktop_state" / "launcher_errors.log"}'
+            f'حُفظت تفاصيل الخطأ في الملف: {data_dir / "desktop_state" / "launcher_errors.log"}'
         )
         sys.exit(1)
