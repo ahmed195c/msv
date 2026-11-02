@@ -1,3 +1,5 @@
+from django.conf import settings
+
 _ADMIN_GROUPS = {'admin', 'Administration'}
 _RODENT_SIDEBAR_PREFIXES = ('/rodent-control/', '/garden/')
 
@@ -10,6 +12,8 @@ def nav_context(request):
         ctx = {'nav_is_admin': True}
     else:
         ctx = {'nav_is_admin': user.groups.filter(name__in=_ADMIN_GROUPS).exists()}
+    # The Django admin link is shown only in the desktop build.
+    ctx['nav_show_django_admin'] = settings.DESKTOP_MODE and user.is_staff
 
     if request.path.startswith(_RODENT_SIDEBAR_PREFIXES):
         from .models import GardenVisit, RodentControlBuilding

@@ -1,0 +1,21 @@
+{% extends "hcsd/base.html" %}
+{% block title %}تفتيش النفايات الطبية{% endblock %}
+{% block content %}
+<style>
+.mw-page { max-width: 900px; margin: 0 auto; }
+.mw-header h1 { font-size: 20px; font-weight: 700; color: var(--ink); margin: 0; }
+.mw-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+.mw-empty {
+  margin-top: 28px; padding: 48px 24px; text-align: center;
+  background: #fff; border: 1.5px dashed var(--line); border-radius: 14px;
+  color: var(--ink-2); font-size: 14px;
+}
+</style>
+<div class="mw-page">
+  <div class="mw-header">
+    <h1>تفتيش النفايات الطبية</h1>
+    <p>نظام جديد — قيد التطوير</p>
+  </div>
+  <div class="mw-empty">لا توجد بيانات بعد.</div>
+</div>
+{% endblock %}

@@ -60,6 +60,7 @@ urlpatterns = [
     path('campaign/report/excel/', views.campaign_report_excel, name='campaign_report_excel'),
     path('campaign/<int:pk>/', views.campaign_detail, name='campaign_detail'),
     path('campaign/<int:pk>/delete/', views.campaign_delete, name='campaign_delete'),
+    path('medical-waste/', views.medical_waste_home, name='medical_waste_home'),
 
     path('garden/', views.garden_list, name='garden_list'),
     path('garden/add/', views.garden_create, name='garden_create'),

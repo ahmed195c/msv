@@ -29,6 +29,9 @@
       --campaign-color:   #4338ca;
       --campaign-dk:      #3730a3;
       --campaign-lt:      #eef2ff;
+      --medical-color:    #be123c;
+      --medical-dk:       #9f1239;
+      --medical-lt:       #fff1f2;
       --ink:   #1f2937;
       --ink-2: #4b5563;
       --ink-3: #9ca3af;
@@ -228,6 +231,13 @@
     .portal-card--campaign   .portal-card-btn { background: var(--campaign-color); }
     .portal-card--campaign   .portal-card-btn:hover { background: var(--campaign-dk); }
 
+    .portal-card--medical::before                 { background: var(--medical-color); }
+    .portal-card--medical:hover                   { border-color: var(--medical-color); }
+    .portal-card--medical .portal-card-icon       { background: var(--medical-lt); color: var(--medical-color); }
+    .portal-card--medical .portal-card-name       { color: var(--medical-color); }
+    .portal-card--medical .portal-card-btn        { background: var(--medical-color); }
+    .portal-card--medical .portal-card-btn:hover  { background: var(--medical-dk); }
+
     /* ── Footer ── */
     .portal-footer {
       margin-top: 48px;
@@ -411,6 +421,20 @@
         </svg>
       </div>
       <div class="portal-card-name">متابعة حملة القوارض </div>
+
+    </a>
+
+    <!-- Medical Waste Inspection -->
+    <a href="{% url 'medical_waste_home' %}" class="portal-card portal-card--medical">
+      <div class="portal-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          <path d="M12 10v7M8.5 13.5h7"/>
+        </svg>
+      </div>
+      <div class="portal-card-name">تفتيش النفايات الطبية</div>
 
     </a>
     {% endif %}
