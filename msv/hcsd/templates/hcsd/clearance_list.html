@@ -47,7 +47,7 @@
 
 /* ── Card ── */
 .card {
-  background: #fff; border-radius: 12px;
+  background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   border: 1.5px solid var(--border); margin-bottom: 16px; overflow: hidden;
 }
 .card-header {
@@ -87,63 +87,60 @@
 }
 .cl-errors ul { margin: 8px 0 0 18px; }
 
-/* ── Tabs ── */
-.cl-tabs {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  margin-bottom: 16px;
-  background: #fff; border: 1.5px solid var(--border); border-radius: 12px;
-  padding: 12px 14px;
+/* ── Panels in the same style as the sidebar ── */
+.cl-panel {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); padding: 6px; margin-bottom: 16px;
 }
+
+/* ── Permit-type tabs (sidebar-link style) ── */
+.cl-tabs { display: flex; flex-wrap: wrap; gap: 2px; }
 .cl-tab {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px;
-  font-size: 13px; font-weight: 600; font-family: inherit;
-  border: 1.5px solid var(--border);
-  background: var(--surface-1); color: var(--ink-2);
-  cursor: pointer; transition: background .15s, border-color .15s, color .15s;
-  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 12px; border-radius: 8px;
+  font-size: 13.5px; font-weight: 600; font-family: inherit;
+  color: var(--ink-2); text-decoration: none; white-space: nowrap;
+  transition: background .15s, color .15s;
 }
-.cl-tab:hover { background: var(--surface-2); border-color: #bec9d5; color: var(--ink-1); }
-.cl-tab--active { background: var(--accent); color: #fff; border-color: var(--accent); }
-.cl-tab--active:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
-.cl-tab-count {
+.cl-tab svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--ink-3); transition: color .15s; }
+.cl-tab:hover { background: var(--surface-2); color: var(--ink-1); }
+.cl-tab--active, .cl-tab--active:hover { background: var(--accent-lt); color: var(--accent); }
+.cl-tab--active svg { color: var(--accent); }
+.cl-tab-count, .cl-stage__count {
   display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.25); border: 1px solid rgba(255,255,255,.4);
-  border-radius: 20px; font-size: 11px; font-weight: 700;
-  padding: 1px 7px; font-family: var(--mono); min-width: 20px;
+  min-width: 22px; padding: 1px 7px; border-radius: 20px;
+  background: var(--surface-2); color: var(--ink-3);
+  font-size: 11px; font-weight: 700; font-family: var(--mono);
 }
-.cl-tab:not(.cl-tab--active) .cl-tab-count {
-  background: var(--surface-2); border-color: var(--border); color: var(--ink-3);
-}
+.cl-tab--active .cl-tab-count, .cl-stage.is-active .cl-stage__count { background: #fff; color: var(--accent); }
 
-/* ── Stage cards ── */
-.cl-stages {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
-  gap: 10px; margin-bottom: 16px;
-}
+/* ── Stage filters (sidebar-link style, coloured dot per stage) ── */
+.cl-stages { display: flex; flex-wrap: wrap; gap: 2px; }
 .cl-stage {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
-  padding: 12px 14px 13px; border-radius: 12px; cursor: pointer; text-align: start;
-  background: #fff; border: 1.5px solid var(--border); border-top: 4px solid var(--tone, var(--ink-4));
-  font-family: inherit; color: var(--ink-2); transition: border-color .15s, background .15s, box-shadow .15s;
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 10px; border-radius: 8px; cursor: pointer; text-align: start;
+  background: none; border: none; font-family: inherit;
+  font-size: 13px; font-weight: 600; color: var(--ink-2);
+  transition: background .15s, color .15s;
 }
-.cl-stage:hover { background: var(--surface-1); }
-.cl-stage.is-active { border-color: var(--tone, var(--accent)); background: var(--tone-bg, var(--accent-lt)); box-shadow: 0 2px 10px rgba(0,0,0,.06); }
-.cl-stage__label { font-size: 12.5px; font-weight: 700; line-height: 1.45; }
-.cl-stage__count { font-size: 24px; font-weight: 700; color: var(--tone, var(--ink-1)); font-family: var(--mono); line-height: 1; }
-.cl-stage--all { --tone: var(--accent); --tone-bg: var(--accent-lt); }
+.cl-stage:hover { background: var(--surface-2); color: var(--ink-1); }
+.cl-stage.is-active, .cl-stage.is-active:hover { background: var(--accent-lt); color: var(--accent); }
+.cl-stage:focus-visible, .cl-tab:focus-visible { outline: 2px solid #3f8fa3; outline-offset: 1px; }
+.cl-stage__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--tone, var(--ink-4)); }
+.cl-stage__label { line-height: 1.45; white-space: nowrap; }
+.cl-stage--all { --tone: var(--accent); }
 
-.tone-waiting { --tone: #97a6b5; --tone-bg: #eef2f6; }
-.tone-action  { --tone: #c8860a; --tone-bg: #fff8ea; }
-.tone-error   { --tone: #b03a1a; --tone-bg: #fdf0ee; }
-.tone-process { --tone: #0e7490; --tone-bg: #e6f2f4; }
-.tone-head    { --tone: #6b3fa0; --tone-bg: #f5f0ff; }
-.tone-done    { --tone: #1a7a3a; --tone-bg: #ecf7f0; }
-.tone-issued  { --tone: #155e2e; --tone-bg: #e4f4ea; }
+.tone-waiting { --tone: #97a6b5; }
+.tone-action  { --tone: #c8860a; }
+.tone-error   { --tone: #b03a1a; }
+.tone-process { --tone: #0e7490; }
+.tone-head    { --tone: #6b3fa0; }
+.tone-done    { --tone: #1a7a3a; }
+.tone-issued  { --tone: #155e2e; }
 
 /* ── Stage group (one table per stage) ── */
 .cl-group {
-  background: #fff; border: 1.5px solid var(--border); border-radius: 12px;
+  background: #fff; border: 1.5px solid var(--border); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   overflow: hidden; margin-bottom: 14px;
 }
 .cl-group-head {
@@ -292,11 +289,10 @@
   .cl-field select { font-size: 15px; padding: 11px 12px; min-height: 46px; }
   .cl-filter-actions { width: 100%; align-self: stretch; }
   .cl-filter-actions .btn { flex: 1; justify-content: center; padding: 12px 16px; font-size: 14px; min-height: 46px; }
-  .cl-tabs { gap: 6px; padding: 10px; }
-  .cl-tab { font-size: 12px; padding: 7px 12px; }
-  .cl-stages { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .cl-stage { padding: 10px 12px; }
-  .cl-stage__count { font-size: 20px; }
+  .cl-tabs { display: grid; grid-template-columns: 1fr 1fr; }
+  .cl-tab { white-space: normal; font-size: 12.5px; }
+  .cl-stages { display: grid; grid-template-columns: 1fr; }
+  .cl-stage__label { flex: 1; white-space: normal; }
   /* Each table row becomes a card; labels come from data-label (set by base.html) */
   .cl-table thead { display: none; }
   .cl-table, .cl-table tbody, .cl-table tr, .cl-table td { display: block; width: 100%; }
@@ -340,14 +336,20 @@
   {% endif %}
 
   {# ══ Tab bar ══ #}
-  <div class="cl-tabs">
+  <nav class="cl-panel cl-tabs" aria-label="نوع التصريح">
     {% for tab in tab_nav %}
-    <a class="cl-tab{% if tab.is_active %} cl-tab--active{% endif %}" href="?tab={{ tab.key }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">
+    <a class="cl-tab{% if tab.is_active %} cl-tab--active{% endif %}" {% if tab.is_active %}aria-current="page"{% endif %} href="?tab={{ tab.key }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        {% if tab.key == 'pest_control' %}<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h5"/>
+        {% elif tab.key == 'pesticide_transport' %}<rect x="1" y="6" width="15" height="11" rx="1"/><path d="M16 9h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/>
+        {% elif tab.key == 'waste_disposal' %}<path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        {% else %}<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>{% endif %}
+      </svg>
       {{ tab.label }}
       {% if tab.active_count %}<span class="cl-tab-count">{{ tab.active_count }}</span>{% endif %}
     </a>
     {% endfor %}
-  </div>
+  </nav>
 
   {# ── Search / filter toolbar ── #}
   <div class="card">
@@ -381,13 +383,15 @@
 
     {% if active_clearances %}
       {# Stage cards — click one to show only that stage #}
-      <div class="cl-stages" aria-label="مراحل الطلبات">
+      <div class="cl-panel cl-stages" aria-label="مراحل الطلبات">
         <button type="button" class="cl-stage cl-stage--all is-active" data-stage="all" aria-pressed="true">
+          <span class="cl-stage__dot"></span>
           <span class="cl-stage__label">كل الطلبات قيد المتابعة</span>
           <span class="cl-stage__count">{{ active_clearances|length }}</span>
         </button>
         {% for group in active_clearance_groups %}
         <button type="button" class="cl-stage tone-{{ group.tone }}" data-stage="{{ group.status }}" aria-pressed="false">
+          <span class="cl-stage__dot"></span>
           <span class="cl-stage__label">{{ group.label }}</span>
           <span class="cl-stage__count">{{ group.items|length }}</span>
         </button>
