@@ -94,24 +94,24 @@
 }
 
 /* ── Permit-type tabs (sidebar-link style) ── */
-.cl-tabs { display: flex; flex-wrap: wrap; gap: 2px; }
+.cl-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
 .cl-tab {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 12px; border-radius: 8px;
   font-size: 13.5px; font-weight: 600; font-family: inherit;
   color: var(--ink-2); text-decoration: none; white-space: nowrap;
+  background: var(--surface-1);
   transition: background .15s, color .15s;
 }
-.cl-tab svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--ink-3); transition: color .15s; }
 .cl-tab:hover { background: var(--surface-2); color: var(--ink-1); }
 .cl-tab--active, .cl-tab--active:hover { background: var(--accent-lt); color: var(--accent); }
-.cl-tab--active svg { color: var(--accent); }
 .cl-tab-count, .cl-stage__count {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 22px; padding: 1px 7px; border-radius: 20px;
-  background: var(--surface-2); color: var(--ink-3);
+  background: #fff; color: var(--ink-3);
   font-size: 11px; font-weight: 700; font-family: var(--mono);
 }
+.cl-stage__count { background: var(--surface-2); }
 .cl-tab--active .cl-tab-count, .cl-stage.is-active .cl-stage__count { background: #fff; color: var(--accent); }
 
 /* ── Stage filters (sidebar-link style, coloured dot per stage) ── */
@@ -339,9 +339,6 @@
   <nav class="cl-panel cl-tabs" aria-label="نوع التصريح">
     {% for tab in tab_nav %}
     <a class="cl-tab{% if tab.is_active %} cl-tab--active{% endif %}" {% if tab.is_active %}aria-current="page"{% endif %} href="?tab={{ tab.key }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h5"/>
-      </svg>
       {{ tab.label }}
       {% if tab.active_count %}<span class="cl-tab-count">{{ tab.active_count }}</span>{% endif %}
     </a>
