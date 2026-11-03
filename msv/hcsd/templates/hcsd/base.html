@@ -36,7 +36,6 @@
   --accent-bg:  #e6f2f4;
   --mono:       'JetBrains Mono', monospace;
   --sans:       'IBM Plex Sans Arabic', sans-serif;
-  --nav-h:      58px;
   --radius-sm:  6px;
   --radius-md:  8px;
   --radius-lg:  8px;
@@ -74,222 +73,106 @@ body.app-shell {
 }
 
 /* ══════════════════════════════════════════
-   NAVBAR
+   SIDEBAR
 ══════════════════════════════════════════ */
-.app-chrome {
-  position: sticky;
-  top: 0;
-  z-index: 100;
+.app-frame { display: flex; align-items: flex-start; min-height: 100vh; width: 100%; }
+
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
   background: var(--paper);
-  border-bottom: 1.5px solid var(--line);
-}
-
-.navbar {
-  max-width: 1280px;
-  margin: 0 auto;
-  height: var(--nav-h);
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  gap: 0;
-}
-
-.nav-mobile-panel {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-}
-
-.nav-toggle {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
   border: 1.5px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--ink);
-  cursor: pointer;
-  padding: 0;
-}
-.nav-toggle svg { width: 18px; height: 18px; }
-.nav-toggle:hover { background: var(--surface-2); }
-
-/* Brand */
-.nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 14px;
-  flex-shrink: 0;
-  margin-left: 20px;
-  padding-left: 20px;
-  border-left: 1.5px solid var(--line);
-  white-space: nowrap;
-}
-.nav-brand:hover { color: var(--accent); }
-
-.nav-brand-logo {
-  height: 30px;
-  width: auto;
-  object-fit: contain;
-  border-radius: 4px;
-  opacity: .95;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  margin: 12px;
+  padding: 16px 14px;
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
 }
 
-/* Nav Links */
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex: 1;
-  height: 100%;
-}
+.sidebar-head { display: flex; align-items: center; gap: 8px; }
+.sidebar-brand { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 4px 6px 16px; text-decoration: none; }
+.sidebar-brand img { height: 30px; border-radius: 6px; }
+.sidebar-brand-label { display: flex; flex-direction: column; line-height: 1.25; }
+.sidebar-brand-name { font-size: 14px; font-weight: 700; color: var(--ink); }
+.sidebar-brand-sub  { font-size: 10.5px; font-weight: 500; color: var(--ink-4); }
 
-.nav-links a {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 13px;
-  height: 100%;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--ink-2);
-  text-decoration: none;
-  transition: color .15s, background .15s;
-  white-space: nowrap;
-  border-radius: 0;
+.sidebar-toggle {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 36px; height: 36px; margin-bottom: 12px; flex-shrink: 0;
+  border: 1.5px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--ink-2); cursor: pointer;
 }
-.nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 10px;
-  left: 10px;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 2px 2px 0 0;
-  opacity: 0;
-  transform: scaleX(0);
-  transition: opacity .2s, transform .2s;
-}
-.nav-links a:hover { color: var(--ink); background: var(--surface); }
-.nav-links a.is-active { color: var(--accent); font-weight: 600; }
-.nav-links a.is-active::after { opacity: 1; transform: scaleX(1); }
+.sidebar-toggle svg { width: 18px; height: 18px; }
+.sidebar-toggle:hover { background: var(--surface-2); }
 
-/* Nav Auth */
-.nav-auth {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  border-right: 1.5px solid var(--line);
-  padding-right: 16px;
-  margin-right: 0;
-}
+.sidebar-body { display: flex; flex-direction: column; flex: 1; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
 
-/* User badge */
-.nav-user-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px 4px 5px;
-  border-radius: 20px;
-  background: var(--accent-bg);
-  border: 1.5px solid var(--accent-lt);
-  cursor: default;
+.sidebar-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px;
+  font-size: 13.5px; font-weight: 600; color: var(--ink-2); text-decoration: none;
+  transition: background .15s, color .15s;
+  width: 100%; border: none; background: none; cursor: pointer; font-family: inherit; text-align: start;
 }
-.nav-avatar {
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  font-size: 12px; font-weight: 700;
+.sidebar-link svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--ink-3); transition: color .15s; }
+.sidebar-link:hover { background: var(--surface-2); color: var(--ink); }
+.sidebar-link:hover svg { color: var(--ink-2); }
+.sidebar-link.active { background: var(--accent-bg); color: var(--accent); }
+.sidebar-link.active svg { color: var(--accent); }
+.sidebar-link:focus-visible { outline: 2px solid var(--accent-lt); outline-offset: 1px; }
+.sidebar-link--muted { color: var(--ink-3); }
+.sidebar-link--muted svg { color: var(--ink-4); }
+
+.sidebar-divider { height: 1px; background: var(--line); margin: 10px 4px; }
+.sidebar-spacer { flex: 1; }
+
+.sidebar-login {
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  letter-spacing: 0;
-  text-transform: uppercase;
+  padding: 9px 10px; border-radius: 8px; margin-top: 6px;
+  background: var(--accent); color: #fff; font-size: 13.5px; font-weight: 700; text-decoration: none;
 }
-.nav-username {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.sidebar-login:hover { background: var(--accent-dk); }
 
-.nav-auth-form { margin: 0; }
-
-.nav-switch {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 12px;
-  background: var(--accent-bg); border: 1.5px solid var(--accent-lt);
-  color: var(--accent); border-radius: 7px;
-  font-size: 12.5px; font-weight: 700; text-decoration: none;
-  transition: background .15s, color .15s, border-color .15s; white-space: nowrap;
+.sidebar-user {
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px; border-radius: 10px; border: 1.5px solid var(--line);
+  margin-top: 10px;
 }
-.nav-switch:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
-
-.nav-new-account {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 12px;
-  background: var(--accent-bg);
-  border: 1.5px solid var(--accent-lt);
-  color: var(--accent);
-  border-radius: 7px;
-  font-size: 12.5px; font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background .15s, color .15s, border-color .15s;
+.sidebar-user__avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent-bg); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
 }
-.nav-new-account:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.nav-logout {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px;
-  border-radius: 7px;
-  color: var(--ink-3);
-  background: none;
-  border: 1.5px solid transparent;
-  cursor: pointer; font-family: var(--sans);
+.sidebar-user__info { flex: 1; min-width: 0; }
+.sidebar-user__name  { font-size: 12.5px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-user__email { font-size: 11px; color: var(--ink-4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-user form { margin: 0; }
+.sidebar-logout {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
+  color: var(--ink-3); background: none; border: 1.5px solid transparent; cursor: pointer;
   transition: color .15s, border-color .15s, background .15s;
-  flex-shrink: 0;
 }
-.nav-logout:hover { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
-.nav-logout svg { width: 14px; height: 14px; }
+.sidebar-logout:hover { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+.sidebar-logout svg { width: 14px; height: 14px; }
 
-.nav-ghost {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 12px; border-radius: 7px;
-  border: 1.5px solid var(--accent);
-  font-size: 12.5px; font-weight: 600;
-  color: #fff; text-decoration: none;
-  background: var(--accent);
-  cursor: pointer; font-family: var(--sans);
-  transition: background .15s, border-color .15s;
-}
-.nav-ghost:hover, a.nav-ghost:hover {
-  background: var(--accent-dk); border-color: var(--accent-dk);
-}
+.app-content { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
 
 /* ══════════════════════════════════════════
    LATEST PERMITS SECTION
 ══════════════════════════════════════════ */
 .latest-permits {
   max-width: 1280px;
+  width: 100%;
   margin: 20px auto 0;
   padding: 0 20px;
 }
@@ -477,7 +360,7 @@ body.is-navigating .page-nav-skeleton {
   display: flex;
 }
 
-body.is-navigating .app-chrome,
+body.is-navigating .sidebar,
 body.is-navigating .app-main {
   pointer-events: none;
 }
@@ -513,107 +396,19 @@ body.is-navigating .app-main {
 /* ══════════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════════ */
-@media (max-width: 768px) {
-  .app-chrome {
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: 0;
-    width: 100%;
-    z-index: 120;
-  }
-
-  body.app-shell {
-    padding-top: calc(var(--mobile-nav-offset, 0px) + env(safe-area-inset-top, 0px));
-  }
-}
-
 @media (max-width: 860px) {
-  .navbar {
-    height: auto;
-    min-height: var(--nav-h);
-    padding: 10px 16px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "brand toggle"
-      "panel panel";
-    align-items: center;
-    gap: 10px 12px;
+  .app-frame { flex-direction: column; align-items: stretch; }
+  .sidebar {
+    width: auto; position: sticky; top: 0; max-height: none; overflow: visible;
+    margin: 0; border-radius: 0; border-width: 0 0 1.5px; padding: 10px 14px;
   }
-
-  .nav-brand {
-    grid-area: brand;
-    justify-self: start;
-    border-left: none;
-    margin-left: 0;
-    padding-left: 0;
-  }
-
-  .nav-toggle {
-    display: inline-flex;
-    grid-area: toggle;
-    justify-self: end;
-  }
-
-  .nav-mobile-panel {
-    grid-area: panel;
-    width: 100%;
-    display: none;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    height: auto;
-    padding-top: 10px;
-    border-top: 1.5px solid var(--line);
-  }
-
-  .navbar.is-open .nav-mobile-panel {
-    display: flex;
-  }
-
-  .nav-auth {
-    border-right: none;
-    padding-right: 0;
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .nav-auth-form { margin-right: auto; }
-
-  .nav-user-badge { width: 100%; }
-  .nav-username { max-width: 100%; }
-
-  .nav-links {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-    height: auto;
-    padding-bottom: 0;
-  }
-
-  .nav-links a {
-    height: auto;
-    padding: 9px 14px;
-    justify-content: center;
-    border: 1.5px solid var(--line);
-    border-radius: 6px;
-    background: var(--surface);
-  }
-  .nav-links a::after { display: none; }
-  .nav-links a.is-active {
-    background: var(--accent-bg);
-    border-color: var(--accent-lt);
-    color: var(--accent);
-    font-weight: 700;
-  }
+  .sidebar-brand { padding: 0; }
+  .sidebar-toggle { display: inline-flex; margin-bottom: 0; }
+  .sidebar-body { display: none; padding-top: 12px; max-height: calc(100vh - 70px); overflow-y: auto; }
+  .sidebar.is-open .sidebar-body { display: flex; }
 }
 
 @media (max-width: 640px) {
-  .nav-links { grid-template-columns: 1fr; }
   .latest-table-wrap { display: none; }
   .latest-permit-cards { display: grid; }
   .app-main { padding: 16px 14px 40px; }
@@ -625,80 +420,103 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
 
 <body class="app-shell">
 
-  {# ── NAVBAR ── #}
-  <header class="app-chrome" lang="ar" dir="rtl">
-    <nav class="navbar">
-
-      <a class="nav-brand" href="{% url 'home' %}">
-        <img class="nav-brand-logo" src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
-        <span>نظام التصاريح</span>
+  {# ── SIDEBAR ── #}
+  <div class="app-frame">
+  <aside class="sidebar" lang="ar" dir="rtl">
+    <div class="sidebar-head">
+      <a href="{% url 'home' %}" class="sidebar-brand">
+        <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
+        <span class="sidebar-brand-label">
+          <span class="sidebar-brand-name">نظام التصاريح</span>
+          <span class="sidebar-brand-sub">قسم البيئة — بلدية الشارقة</span>
+        </span>
       </a>
-
-      <button
-        class="nav-toggle"
-        type="button"
-        aria-expanded="false"
-        aria-controls="nav-mobile-panel"
-        aria-label="فتح القائمة"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 7h16M4 12h16M4 17h16"></path>
-        </svg>
+      <button class="sidebar-toggle" type="button" aria-expanded="false" aria-controls="sidebar-body" aria-label="فتح القائمة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
       </button>
+    </div>
 
-      <div class="nav-mobile-panel" id="nav-mobile-panel">
-        <div class="nav-links">
-          <a class="{% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' or request.resolver_match.url_name == 'add_company' %}is-active{% endif %}"
-             href="{% url 'company_list' %}">الشركات</a>
+    <div class="sidebar-body" id="sidebar-body">
+      <nav class="sidebar-nav">
+        <a href="{% url 'portal_landing' %}" class="sidebar-link sidebar-link--muted">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          الصفحة الرئيسية للنظام
+        </a>
 
-          <a class="{% if request.resolver_match.url_name == 'enginer_list' or request.resolver_match.url_name == 'enginer_add' or request.resolver_match.url_name == 'enginer_detail' %}is-active{% endif %}"
-             href="{% url 'enginer_list' %}">المهندسين</a>
+        <a href="{% url 'home' %}" class="sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          لوحة التصاريح
+        </a>
 
-          <a class="{% if request.resolver_match.url_name == 'permit_types' or request.resolver_match.url_name == 'pest_control_permit' or request.resolver_match.url_name == 'vehicle_permit' or request.resolver_match.url_name == 'waste_permit' or request.resolver_match.url_name == 'pest_control_permit_detail' or request.resolver_match.url_name == 'vehicle_permit_detail' or request.resolver_match.url_name == 'waste_permit_detail' or request.resolver_match.url_name == 'pest_control_permit_view' or request.resolver_match.url_name == 'waste_disposal_request_new' or request.resolver_match.url_name == 'waste_disposal_request_detail' %}is-active{% endif %}"
-             href="{% url 'permit_types' %}">التصاريح</a>
+        <a href="{% url 'company_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' or request.resolver_match.url_name == 'add_company' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>
+          الشركات
+        </a>
 
-          <a class="{% if request.resolver_match.url_name == 'clearance_list' %}is-active{% endif %}"
-             href="{% url 'clearance_list' %}">متابعة الطلبات</a>
+        <a href="{% url 'enginer_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'enginer_list' or request.resolver_match.url_name == 'enginer_add' or request.resolver_match.url_name == 'enginer_detail' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          المهندسين
+        </a>
 
-          <a class="{% if request.resolver_match.url_name == 'extension_followup' %}is-active{% endif %}"
-             href="{% url 'extension_followup' %}">متابعة المهل</a>
-        </div>
+        <a href="{% url 'permit_types' %}" class="sidebar-link {% if request.resolver_match.url_name == 'permit_types' or request.resolver_match.url_name == 'pest_control_permit' or request.resolver_match.url_name == 'vehicle_permit' or request.resolver_match.url_name == 'waste_permit' or request.resolver_match.url_name == 'pest_control_permit_detail' or request.resolver_match.url_name == 'vehicle_permit_detail' or request.resolver_match.url_name == 'waste_permit_detail' or request.resolver_match.url_name == 'pest_control_permit_view' or request.resolver_match.url_name == 'waste_disposal_request_new' or request.resolver_match.url_name == 'waste_disposal_request_detail' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h5"/></svg>
+          التصاريح
+        </a>
 
-        <div class="nav-auth">
-          <a class="nav-switch" href="{% url 'portal_landing' %}">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-            الرئيسية
-          </a>
-          {% if user.is_authenticated %}
-            {% if user.is_superuser or nav_is_admin %}
-            <a class="nav-new-account" href="{% url 'register' %}">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              إنشاء حساب
-            </a>
-            {% endif %}
-            {% if nav_show_django_admin %}
-            <a class="nav-new-account" href="{% url 'admin:index' %}">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-              لوحة الإدارة
-            </a>
-            {% endif %}
-            <div class="nav-user-badge">
-              <span class="nav-avatar">{{ user.get_full_name|default:user.username|slice:":1" }}</span>
-              <span class="nav-username">{{ user.get_full_name|default:user.username }}</span>
-            </div>
-            <form method="post" action="{% url 'logout' %}" class="nav-auth-form">
-              {% csrf_token %}
-              <button type="submit" class="nav-logout" title="خروج">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              </button>
-            </form>
-          {% else %}
-            <a class="nav-ghost" href="{% url 'login' %}">تسجيل الدخول</a>
+        <a href="{% url 'clearance_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'clearance_list' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          متابعة الطلبات
+        </a>
+
+        <a href="{% url 'extension_followup' %}" class="sidebar-link {% if request.resolver_match.url_name == 'extension_followup' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          متابعة المهل
+        </a>
+
+        {% if user.is_authenticated %}
+          {% if user.is_superuser or nav_is_admin or nav_show_django_admin %}
+          <div class="sidebar-divider"></div>
           {% endif %}
+          {% if user.is_superuser or nav_is_admin %}
+          <a href="{% url 'register' %}" class="sidebar-link {% if request.resolver_match.url_name == 'register' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            إنشاء حساب
+          </a>
+          {% endif %}
+          {% if nav_show_django_admin %}
+          <a href="{% url 'admin:index' %}" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            لوحة الإدارة
+          </a>
+          {% endif %}
+        {% endif %}
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-divider"></div>
+
+      {% if user.is_authenticated %}
+      <div class="sidebar-user">
+        <div class="sidebar-user__avatar">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>
+        <div class="sidebar-user__info">
+          <div class="sidebar-user__name">{{ user.get_full_name|default:user.username }}</div>
+          <div class="sidebar-user__email">{{ user.email|default:user.username }}</div>
         </div>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="sidebar-logout" title="تسجيل الخروج">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </form>
       </div>
-    </nav>
-  </header>
+      {% else %}
+      <a class="sidebar-login" href="{% url 'login' %}">تسجيل الدخول</a>
+      {% endif %}
+    </div>
+  </aside>
+
+  <div class="app-content">
+
 
   {# ── LATEST PERMITS ── #}
   {% if show_latest %}
@@ -788,6 +606,8 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
   <main class="app-main">
     {% block content %}{% endblock %}
   </main>
+  </div>{# .app-content #}
+  </div>{# .app-frame #}
 
   {# ── PAGE TRANSITION SKELETON ── #}
   <div class="page-nav-skeleton" aria-hidden="true" aria-live="polite" aria-label="جارٍ التحميل…">
@@ -887,50 +707,14 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
       });
     }
 
-    function syncMobileNavOffset() {
-      var header = document.querySelector(".app-chrome");
-      if (!header) return;
-      if (!window.matchMedia("(max-width: 768px)").matches) {
-        document.body.style.removeProperty("--mobile-nav-offset");
-        return;
-      }
-      document.body.style.setProperty("--mobile-nav-offset", header.offsetHeight + "px");
-    }
-
-    function setupMobileNavbar() {
-      var navbar = document.querySelector(".navbar");
-      var toggle = navbar ? navbar.querySelector(".nav-toggle") : null;
-      var panel = navbar ? navbar.querySelector(".nav-mobile-panel") : null;
-      if (!navbar || !toggle || !panel) return;
-
-      function closeMenu() {
-        navbar.classList.remove("is-open");
-        toggle.setAttribute("aria-expanded", "false");
-        syncMobileNavOffset();
-      }
-
+    function setupSidebarToggle() {
+      var sidebar = document.querySelector(".sidebar");
+      var toggle = sidebar ? sidebar.querySelector(".sidebar-toggle") : null;
+      if (!sidebar || !toggle) return;
       toggle.addEventListener("click", function () {
-        var willOpen = !navbar.classList.contains("is-open");
-        navbar.classList.toggle("is-open", willOpen);
+        var willOpen = !sidebar.classList.contains("is-open");
+        sidebar.classList.toggle("is-open", willOpen);
         toggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
-        syncMobileNavOffset();
-      });
-
-      panel.addEventListener("click", function (e) {
-        if (!e.target.closest("a")) return;
-        closeMenu();
-      });
-
-      document.addEventListener("click", function (e) {
-        if (!window.matchMedia("(max-width: 860px)").matches) return;
-        if (navbar.contains(e.target)) return;
-        closeMenu();
-      });
-
-      window.addEventListener("resize", function () {
-        if (!window.matchMedia("(max-width: 860px)").matches) {
-          closeMenu();
-        }
       });
     }
 
@@ -938,18 +722,14 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
       document.addEventListener("DOMContentLoaded", function () {
         prepTables();
         normDates();
-        syncMobileNavOffset();
-        setupMobileNavbar();
+        setupSidebarToggle();
       });
     } else {
       prepTables();
       normDates();
-      syncMobileNavOffset();
-      setupMobileNavbar();
+      setupSidebarToggle();
     }
 
-    window.addEventListener("resize", syncMobileNavOffset);
-    window.addEventListener("load", syncMobileNavOffset);
   })();
 
   // Restore scroll position when returning to this page via back/forward
