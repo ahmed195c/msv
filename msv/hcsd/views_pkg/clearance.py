@@ -44,6 +44,37 @@ from .common import (
     _is_effective_active_permit, _engineer_no_certificate_notice,
     _group_clearances_by_status, _validate_engineer_for_type,
 )
+
+# Colour of each stage card / group on the requests-tracking page:
+# action = waiting on payment, error = violation, head = final approval,
+# process = with the inspector, waiting = not started yet.
+_ACTIVE_STAGE_TONES = {
+    'waste_disposal_payment_pending':    'action',
+    'waste_disposal_inspection_pending': 'process',
+    'inspection_pending':                'process',
+    'inspection_received':               'process',
+    'order_received':                    'waiting',
+    'inspection_payment_pending':        'action',
+    'review_pending':                    'process',
+    'approved':                          'process',
+    'inspection_completed':              'process',
+    'head_approved':                     'head',
+    'payment_pending':                   'action',
+    'pesticide_payment_link_pending':    'action',
+    'violation_payment_link_pending':    'error',
+    'violation_payment_pending':         'error',
+}
+_FINISHED_STAGE_TONES = {
+    'issued':                      'issued',
+    'disposal_approved':           'done',
+    'closed_requirements_pending': 'action',
+    'needs_completion':            'error',
+    'rejected':                    'error',
+    'disposal_rejected':           'error',
+    'cancelled_admin':             'error',
+}
+
+
 @login_required
 def clearance_list(request):
     search_query = (request.GET.get('q') or '').strip()
@@ -495,6 +526,10 @@ def clearance_list(request):
 
     active_clearance_groups = _group_clearances_by_status(active_clearances, active_status_order, status_section_label_map)
     finished_clearance_groups = _group_clearances_by_status(finished_clearances, finished_status_order, status_section_label_map)
+    for group in active_clearance_groups:
+        group['tone'] = _ACTIVE_STAGE_TONES.get(group['status'], 'waiting')
+    for group in finished_clearance_groups:
+        group['tone'] = _FINISHED_STAGE_TONES.get(group['status'], 'waiting')
 
     return render(
         request,

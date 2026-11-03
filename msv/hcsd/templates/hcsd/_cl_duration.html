@@ -1,0 +1,5 @@
+{% if user_is_admin and c.inspection_duration_hours is not None %}
+  {% if c.inspection_duration_hours <= 24 %}<span class="cl-timer t-ok">{{ c.inspection_duration_display }}</span>
+  {% elif c.inspection_duration_hours <= 72 %}<span class="cl-timer t-mid">{{ c.inspection_duration_display }}</span>
+  {% else %}<span class="cl-timer t-late">{{ c.inspection_duration_display }}</span>{% endif %}
+{% else %}<span class="cl-muted">—</span>{% endif %}

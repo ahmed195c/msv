@@ -1,0 +1,62 @@
+{% if c.active_waste_request and c.active_waste_request.status == 'payment_pending' %}
+  <span class="cl-next">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    أرسل رابط الدفع للشركة
+  </span>
+{% elif c.status == 'order_received' %}
+  <span class="cl-next">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    أنشئ رابط دفع التفتيش
+  </span>
+{% elif c.status == 'inspection_payment_pending' %}
+  <span class="cl-next">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    بانتظار الدفع من الشركة
+  </span>
+{% elif c.status == 'review_pending' %}
+  <span class="cl-next">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    بانتظار مراجعة المفتش
+  </span>
+{% elif c.status == 'approved' %}
+  <span class="cl-next">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    بانتظار الاعتماد النهائي
+  </span>
+{% elif c.status == 'inspection_completed' and c.inspection_report_decision == 'approved' %}
+  <span class="cl-next">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    {% if c.permit_type == 'pesticide_transport' %}أنشئ رابط دفع التصريح{% else %}بانتظار الاعتماد النهائي{% endif %}
+  </span>
+{% elif c.status == 'head_approved' %}
+  <span class="cl-next">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    أدخل رقم أمر الدفع
+  </span>
+{% elif c.status == 'payment_pending' and c.payment_link %}
+  <a href="{{ c.payment_link }}" target="_blank" class="cl-next cl-next--link">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    رابط دفع التصريح ↗
+  </a>
+{% elif c.status == 'violation_payment_link_pending' %}
+  <span class="cl-next">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    أنشئ رابط دفع المخالفة
+  </span>
+{% elif c.status == 'violation_payment_pending' %}
+  <span class="cl-next">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    بانتظار دفع المخالفة
+  </span>
+{% elif c.unapprovedReason and c.status == 'needs_completion' %}
+  <span class="cl-next cl-next--err">{{ c.unapprovedReason }}</span>
+{% elif c.unapprovedReason and c.status == 'rejected' %}
+  <span class="cl-next cl-next--err">{{ c.unapprovedReason }}</span>
+{% elif c.status == 'approved' and c.inspector_name %}
+  <span class="cl-next">{{ c.inspector_name }}</span>
+{% elif c.inspection_payment_link and c.permit_type != 'pesticide_transport' %}
+  <a href="{{ c.inspection_payment_link }}" target="_blank" class="cl-next cl-next--link">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    رابط دفع التفتيش ↗
+  </a>
+{% endif %}

@@ -1,0 +1,14 @@
+<td class="cl-td-company">
+  <div class="cl-company-name">{{ c.company.name }}</div>
+  {% if c.contact_number %}<a href="tel:{{ c.contact_number }}" class="cl-phone" dir="ltr">{{ c.contact_number }}</a>{% endif %}
+</td>
+<td>
+  <div class="cl-permit-type">{{ c.permit_label_ar }}</div>
+  <div class="cl-permit-meta">
+    {% if c.permit_no %}<span class="cl-permit-no">#{{ c.permit_no }}</span>{% endif %}
+    {% if c.permit_type == 'pesticide_transport' and c.transport_details.vehicle_number %}
+      <span class="cl-vehicle-no">مركبة {{ c.transport_details.vehicle_number }}</span>
+    {% endif %}
+  </div>
+</td>
+<td class="cl-date">{{ c.dateOfCreation|date:"d/m/Y"|default:"—" }}</td>

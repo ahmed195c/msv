@@ -1,0 +1,7 @@
+<tr class="cl-item">
+  {% include "hcsd/_cl_row_company.html" %}
+  <td>{% include "hcsd/_cl_status_badge.html" %}</td>
+  <td>{% include "hcsd/_cl_next_step.html" %}</td>
+  {% if user_is_admin %}<td>{% include "hcsd/_cl_duration.html" %}</td>{% endif %}
+  <td class="cl-td-action"><a href="{{ c.detail_url }}" class="cl-view">عرض</a></td>
+</tr>

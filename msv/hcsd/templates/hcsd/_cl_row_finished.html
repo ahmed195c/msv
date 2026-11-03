@@ -1,0 +1,18 @@
+<tr class="cl-item">
+  {% include "hcsd/_cl_row_company.html" %}
+  <td>
+    <span class="cl-status
+      {% if c.status == 'issued' %}st-issued
+      {% elif c.status == 'cancelled_admin' or c.status == 'disposal_rejected' %}st-error
+      {% elif c.status == 'disposal_approved' %}st-done
+      {% else %}st-waiting{% endif %}">
+      {% if c.status == 'issued' %}تم إصدار التصريح
+      {% elif c.status == 'cancelled_admin' %}مغلق
+      {% elif c.status == 'disposal_approved' %}إتلاف معتمد
+      {% elif c.status == 'disposal_rejected' %}إتلاف مرفوض
+      {% else %}{{ c.get_status_display }}{% endif %}
+    </span>
+  </td>
+  {% if user_is_admin %}<td>{% include "hcsd/_cl_duration.html" %}</td>{% endif %}
+  <td class="cl-td-action"><a href="{{ c.detail_url }}" class="cl-view">عرض</a></td>
+</tr>
