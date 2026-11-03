@@ -340,10 +340,7 @@
     {% for tab in tab_nav %}
     <a class="cl-tab{% if tab.is_active %} cl-tab--active{% endif %}" {% if tab.is_active %}aria-current="page"{% endif %} href="?tab={{ tab.key }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        {% if tab.key == 'pest_control' %}<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h5"/>
-        {% elif tab.key == 'pesticide_transport' %}<rect x="1" y="6" width="15" height="11" rx="1"/><path d="M16 9h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/>
-        {% elif tab.key == 'waste_disposal' %}<path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-        {% else %}<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>{% endif %}
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h5"/>
       </svg>
       {{ tab.label }}
       {% if tab.active_count %}<span class="cl-tab-count">{{ tab.active_count }}</span>{% endif %}
