@@ -171,6 +171,15 @@ def _previous_waste_permit_expiry(company, exclude_pk):
 
 
 WASTE_PERMIT_TERM_MONTHS = 6
+# An issued waste permit moves through these statuses as disposal requests
+# are filed and inspected; it is still an issued permit in all of them.
+WASTE_PERMIT_ISSUED_STATUSES = frozenset({
+    'issued', 'inspection_pending', 'disposal_approved', 'disposal_rejected',
+})
+
+
+def _is_issued_waste_permit(permit):
+    return permit.status in WASTE_PERMIT_ISSUED_STATUSES and permit.issue_date is not None
 
 
 def _cascade_waste_permit_renewals(permit, old_expiry, user):
@@ -183,7 +192,7 @@ def _cascade_waste_permit_renewals(permit, old_expiry, user):
         nxt = (
             PirmetClearance.objects
             .filter(company=current.company, permit_type='waste_disposal',
-                    status='issued', issue_date=prev_old_expiry)
+                    status__in=WASTE_PERMIT_ISSUED_STATUSES, issue_date=prev_old_expiry)
             .exclude(pk__in=[permit.pk, current.pk])
             .first()
         )
@@ -220,7 +229,7 @@ def _edit_issued_waste_permit(request, pirmet):
     errors = []
     if not _can_data_entry(request.user):
         return ['ليس لديك صلاحية لتعديل بيانات التصريح.']
-    if pirmet.status != 'issued':
+    if not _is_issued_waste_permit(pirmet):
         return ['يمكن تعديل بيانات التصريح بعد إصداره فقط.']
 
     post = request.POST
@@ -560,7 +569,7 @@ def waste_permit_detail(request, id):
             'can_record_payment': _can_admin(request.user),
             'can_issue_pirmet': _can_admin(request.user),
             'can_edit_waste_details': _can_admin(request.user),
-            'can_edit_permit_data': _can_data_entry(request.user) and pirmet.status == 'issued',
+            'can_edit_permit_data': _can_data_entry(request.user) and _is_issued_waste_permit(pirmet),
             'is_active': is_active,
             'disposal_requests': disposal_requests,
             'show_admin_close_form': (
