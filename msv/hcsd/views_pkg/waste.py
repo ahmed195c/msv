@@ -293,7 +293,7 @@ def _edit_issued_waste_permit(request, pirmet):
     moved = _cascade_waste_permit_renewals(pirmet, old_expiry, request.user)
     if moved:
         changes.append('تم تعديل تواريخ التصاريح اللاحقة تلقائياً: ' + '، '.join(f'#{n}' for n in moved))
-    notes = 'تعديل إداري لبيانات التصريح — ' + ' | '.join(changes)
+    notes = ' | '.join(changes)
     _log_pirmet_change(pirmet, 'details_update', request.user, notes=notes)
     _log_company_change(
         company,
