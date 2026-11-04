@@ -1161,10 +1161,20 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                     disposal_request.save(update_fields=[
                         'status', 'updated_at', 'cancelled_by', 'cancelled_at', 'cancellation_reason',
                     ])
+                    old_permit_status = permit.status
+                    # Paying for the request moved the permit itself to
+                    # 'inspection_pending'; closing the request ends that
+                    # inspection, so the permit is back to a plain issued one.
+                    if permit.status == 'inspection_pending':
+                        permit.status = 'issued'
+                        permit.save(update_fields=['status'])
+                        InspectorReview.objects.filter(pirmet=permit).update(inspector_user=None)
                     _log_pirmet_change(
                         permit,
                         'status_change',
                         request.user,
+                        old_status=old_permit_status,
+                        new_status=permit.status,
                         notes=f'waste_disposal_request_cancelled:{disposal_request.id}:{cancel_reason}',
                     )
                     return redirect('waste_disposal_request_detail', permit_id=permit.id, request_id=disposal_request.id)

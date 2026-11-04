@@ -75,6 +75,35 @@ _FINISHED_STAGE_TONES = {
 }
 
 
+def _current_inspection_receipt(clearance, review, receive_log, report_log):
+    """(receiver user, received_at, report_at) for the request's CURRENT
+    inspection — not an earlier one on the same permit.
+
+    The permit's change log keeps every past 'received by' entry, so the
+    latest one may belong to an earlier inspection (a waste permit's previous
+    disposal request, for instance). Who holds the request now is what the
+    receive action records: the active disposal request's inspector for a
+    waste disposal request, otherwise the permit's InspectorReview."""
+    if clearance.permit_type == 'waste_disposal':
+        wr = clearance.active_waste_request
+        if wr and wr.status == 'inspection_pending' and wr.inspected_by_id:
+            return wr.inspected_by, wr.received_at, None
+        if not wr and clearance.status in {'disposal_approved', 'disposal_rejected'}:
+            # Finished disposal inspection: keep the duration indicator.
+            if receive_log and report_log and report_log.created_at >= receive_log.created_at:
+                return None, receive_log.created_at, report_log.created_at
+        return None, None, None
+    if not (review and review.inspector_user_id):
+        return None, None, None
+    received_at = receive_log.created_at if receive_log else None
+    report_at = (
+        report_log.created_at
+        if report_log and received_at and report_log.created_at >= received_at
+        else None
+    )
+    return review.inspector_user, received_at, report_at
+
+
 @login_required
 def clearance_list(request):
     search_query = (request.GET.get('q') or '').strip()
@@ -256,51 +285,29 @@ def clearance_list(request):
         clearance.company_location = (company.address or '').strip() if company and company.address else '-'
         review = review_map.get(clearance.id)
         clearance.inspector_name = _inspector_review_name(review)
-        clearance.inspection_assigned_user_id = review.inspector_user_id if review and review.inspector_user_id else None
-        if (
-            not clearance.inspection_assigned_user_id
-            and clearance.permit_type == 'waste_disposal'
-        ):
-            pending_waste_request = latest_active_waste_request_map.get(clearance.id)
-            if (
-                pending_waste_request
-                and pending_waste_request.status == 'inspection_pending'
-                and pending_waste_request.inspected_by_id
-            ):
-                clearance.inspection_assigned_user_id = pending_waste_request.inspected_by_id
         request_docs = _docs_map.get(clearance.id, [])
         clearance.request_documents_count = len(request_docs)
         clearance.has_request_documents = bool(
             clearance.request_documents_bundle
             or clearance.request_documents_count
         )
-        receive_change = inspection_receive_map.get(clearance.id)
-        report_change_item = inspection_report_map.get(clearance.id)
-        clearance.inspection_receiver_name = None
-        if receive_change and ':' in receive_change.notes:
-            clearance.inspection_receiver_name = receive_change.notes.split(':', 1)[1].strip()
-        # Compute inspection duration for admin indicator
+        receiver, received_at, finished_at = _current_inspection_receipt(
+            clearance,
+            review,
+            inspection_receive_map.get(clearance.id),
+            inspection_report_map.get(clearance.id),
+        )
+        clearance.inspection_assigned_user_id = receiver.id if receiver else None
+        clearance.inspection_receiver_name = _display_user_name(receiver) if receiver else None
+        # Inspection duration for the admin indicator: receipt -> report, or
+        # receipt -> now while the inspection is still open.
         clearance.inspection_duration_hours = None
         clearance.inspection_duration_display = None
-        if receive_change and report_change_item:
-            delta = report_change_item.created_at - receive_change.created_at
+        if received_at and (finished_at or clearance.status == 'inspection_pending'):
+            delta = (finished_at or timezone.now()) - received_at
             hours = max(int(delta.total_seconds() // 3600), 0)
             clearance.inspection_duration_hours = hours
             clearance.inspection_duration_display = f'{hours // 24} يوم' if hours >= 24 else f'{hours} ساعة'
-        elif receive_change and clearance.status == 'inspection_pending':
-            delta = timezone.now() - receive_change.created_at
-            hours = max(int(delta.total_seconds() // 3600), 0)
-            clearance.inspection_duration_hours = hours
-            clearance.inspection_duration_display = f'{hours // 24} يوم' if hours >= 24 else f'{hours} ساعة'
-        if (
-            not clearance.inspection_receiver_name
-            and clearance.permit_type == 'waste_disposal'
-        ):
-            pending_waste_request = latest_active_waste_request_map.get(clearance.id)
-            if pending_waste_request and pending_waste_request.inspected_by:
-                clearance.inspection_receiver_name = _display_user_name(
-                    pending_waste_request.inspected_by
-                )
         clearance.status_key = clearance.status
         if clearance.active_waste_request:
             wr_status = clearance.active_waste_request.status
