@@ -182,34 +182,53 @@ def _is_issued_waste_permit(permit):
     return permit.status in WASTE_PERMIT_ISSUED_STATUSES and permit.issue_date is not None
 
 
+def _new_waste_permit_dates(start_mode, prev_expiry, today, post):
+    """(issue_date, expiry_date, error) for a waste permit being issued now.
+
+    The issue date is always the day it is actually issued. Only the expiry
+    is counted from the term's start: today for a first permit, the previous
+    permit's expiry for a seamless renewal, or a date the user enters when
+    the previous permit lapsed more than a year ago."""
+    if start_mode == 'today':
+        term_start = today
+    elif start_mode == 'continue':
+        term_start = prev_expiry
+    else:
+        term_start = _parse_date((post.get('issue_date') or '').strip())
+        if not term_start:
+            return None, None, 'التصريح السابق منتهٍ منذ أكثر من سنة — يرجى إدخال تاريخ بداية احتساب مدة التصريح الجديد يدوياً.'
+    return today, _add_months(term_start, WASTE_PERMIT_TERM_MONTHS), None
+
+
 def _cascade_waste_permit_renewals(permit, old_expiry, user):
-    """A renewal issued in 'continue' mode copied its issue_date from the
-    previous permit's expiry. When that expiry is edited, shift the chain of
-    continuing renewals so there's no gap/overlap. Returns permit numbers moved."""
+    """A renewal issued in 'continue' mode runs its term from the previous
+    permit's expiry (its expiry = previous expiry + term). When that expiry is
+    edited, shift the chain of continuing renewals' expiries so there's no
+    gap/overlap; their issue dates are the real issuance days and stay put.
+    Returns permit numbers moved."""
     moved = []
     current, prev_old_expiry = permit, old_expiry
     while prev_old_expiry and current.dateOfExpiry != prev_old_expiry:
         nxt = (
             PirmetClearance.objects
             .filter(company=current.company, permit_type='waste_disposal',
-                    status__in=WASTE_PERMIT_ISSUED_STATUSES, issue_date=prev_old_expiry)
+                    status__in=WASTE_PERMIT_ISSUED_STATUSES,
+                    dateOfExpiry=_add_months(prev_old_expiry, WASTE_PERMIT_TERM_MONTHS))
             .exclude(pk__in=[permit.pk, current.pk])
             .first()
         )
         if not nxt:
             break
-        nxt_old_issue, nxt_old_expiry = nxt.issue_date, nxt.dateOfExpiry
-        nxt.issue_date = current.dateOfExpiry
-        nxt.dateOfExpiry = _add_months(nxt.issue_date, WASTE_PERMIT_TERM_MONTHS)
-        nxt.save(update_fields=['issue_date', 'dateOfExpiry'])
+        nxt_old_expiry = nxt.dateOfExpiry
+        nxt.dateOfExpiry = _add_months(current.dateOfExpiry, WASTE_PERMIT_TERM_MONTHS)
+        nxt.save(update_fields=['dateOfExpiry'])
         _log_pirmet_change(
             nxt,
             'details_update',
             user,
             notes=(
-                f'تم تعديل التواريخ تلقائياً تبعاً لتعديل التصريح السابق #{current.permit_no}: '
-                f'الإصدار {_fmt_date(nxt_old_issue)} ← {_fmt_date(nxt.issue_date)}، '
-                f'الانتهاء {_fmt_date(nxt_old_expiry)} ← {_fmt_date(nxt.dateOfExpiry)}.'
+                f'تم تعديل تاريخ الانتهاء تلقائياً تبعاً لتعديل التصريح السابق #{current.permit_no}: '
+                f'{_fmt_date(nxt_old_expiry)} ← {_fmt_date(nxt.dateOfExpiry)}.'
             ),
         )
         moved.append(nxt.permit_no)
@@ -381,20 +400,16 @@ def waste_permit_detail(request, id):
                 if ext not in ALLOWED_DOC_EXTENSIONS:
                     review_errors.append('يُسمح فقط بملفات PDF أو صور للإيصال.')
 
-            if waste_permit_start_mode == 'today':
-                issue_date = today
-            elif waste_permit_start_mode == 'continue':
-                issue_date = _prev_expiry
-            else:
-                issue_date = _parse_date((request.POST.get('issue_date') or '').strip())
-                if not issue_date:
-                    review_errors.append('التصريح السابق منتهٍ منذ أكثر من سنة — يرجى إدخال تاريخ بداية التصريح الجديد يدوياً.')
+            issue_date, expiry_date, date_error = _new_waste_permit_dates(
+                waste_permit_start_mode, _prev_expiry, today, request.POST,
+            )
+            if date_error:
+                review_errors.append(date_error)
 
             if not review_errors:
                 old_status = pirmet.status
                 pirmet.payment_receipt = receipt
                 pirmet.payment_date = today
-                expiry_date = _add_months(issue_date, 6)
                 pirmet.issue_date = issue_date
                 pirmet.dateOfExpiry = expiry_date
                 # New flow: after permit payment proof, issue the permit directly.
@@ -428,18 +443,14 @@ def waste_permit_detail(request, id):
             if pirmet.status != 'payment_pending':
                 review_errors.append('لا يمكن إصدار التصريح قبل تأكيد الدفع.')
 
-            if waste_permit_start_mode == 'today':
-                issue_date = today
-            elif waste_permit_start_mode == 'continue':
-                issue_date = _prev_expiry
-            else:
-                issue_date = _parse_date((request.POST.get('issue_date') or '').strip())
-                if not issue_date:
-                    review_errors.append('التصريح السابق منتهٍ منذ أكثر من سنة — يرجى إدخال تاريخ بداية التصريح الجديد يدوياً.')
+            issue_date, expiry_date, date_error = _new_waste_permit_dates(
+                waste_permit_start_mode, _prev_expiry, today, request.POST,
+            )
+            if date_error:
+                review_errors.append(date_error)
 
             if not review_errors:
                 old_status = pirmet.status
-                expiry_date = _add_months(issue_date, 6)
                 pirmet.issue_date = issue_date
                 pirmet.dateOfExpiry = expiry_date
                 pirmet.status = 'issued'
@@ -578,6 +589,9 @@ def waste_permit_detail(request, id):
             ),
             'waste_permit_start_mode': waste_permit_start_mode,
             'waste_permit_prev_expiry': _prev_expiry,
+            'waste_permit_continue_expiry': (
+                _add_months(_prev_expiry, WASTE_PERMIT_TERM_MONTHS) if _prev_expiry else None
+            ),
         },
     )
 
