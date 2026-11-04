@@ -231,12 +231,16 @@ def clearance_list(request):
         clearance.detail_url_name = _permit_detail_url_name(clearance.permit_type)
         clearance.detail_url = reverse(clearance.detail_url_name, kwargs={'id': clearance.id})
         clearance.active_waste_request = None
+        # The row's date: the permit request's date, or — when the row stands
+        # for a disposal request — that disposal request's own date.
+        clearance.row_date = clearance.dateOfCreation
         if clearance.permit_type == 'waste_disposal':
             latest_waste_request = (
                 latest_active_waste_request_map.get(clearance.id)
                 or latest_waste_request_map.get(clearance.id)
             )
             if latest_waste_request:
+                clearance.row_date = latest_waste_request.request_date
                 clearance.permit_label_ar = 'طلب التخلص من النفايات'
                 clearance.detail_url = reverse(
                     'waste_disposal_request_detail',
