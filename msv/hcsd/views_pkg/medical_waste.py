@@ -6,14 +6,11 @@ URL prefix : /medical-waste/
 Templates  : hcsd/medical_waste_*.html
 """
 
-import csv
-import io
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.http import FileResponse, HttpResponse, HttpResponseForbidden
+from django.http import FileResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse
@@ -28,12 +25,6 @@ from ..models import MedicalWasteInspection
 from .common import _can_admin, _can_data_entry, _can_inspector, _display_user_name, _parse_date
 
 ARCHIVE_PAGE_SIZE = 25
-EXPORT_HEADERS = [
-    'رقم التقرير', 'تاريخ التفتيش', 'اسم المفتش', 'اسم المنشأة', 'رقم الرخصة', 'العنوان', 'رقم الهاتف',
-    'نوع التفتيش', 'نوع الزيارة', 'نقطة 1', 'نقطة 2', 'نقطة 3', 'نقطة 4', 'الإجراء المتخذ',
-    'مدة الإخطار (أيام)', 'نوع النفايات', 'الوزن التقديري', 'تاريخ الحفظ',
-]
-_SPREADSHEET_FORMULA_PREFIXES = ('=', '+', '-', '@', '\t', '\r')
 
 
 def _can_write(user):
@@ -192,73 +183,3 @@ def medical_waste_delete(request, pk):
         field.storage.delete(field.name)
     messages.success(request, f'تم حذف التقرير رقم {report_id}.')
     return redirect('medical_waste_home')
-
-
-def _safe_cell(value):
-    """Spreadsheets run text starting with these characters as a formula."""
-    if isinstance(value, str) and value.startswith(_SPREADSHEET_FORMULA_PREFIXES):
-        return "'" + value
-    return value
-
-
-def _answer_label(answer):
-    return '' if answer is None else ('نعم' if answer else 'لا')
-
-
-def _export_rows(reports):
-    for report in reports:
-        action = report.get_contract_action_display()
-        if report.notice_days:
-            action = f'{action} ({report.notice_days}) أيام'
-        if report.letter_action:
-            action = MedicalWasteInspection.LETTER_ACTION_LABEL
-        if report.site_report_action:
-            action = MedicalWasteInspection.SITE_REPORT_ACTION_LABEL
-        row = [
-            report.pk, report.inspection_date.strftime('%d/%m/%Y'), report.inspector_name,
-            report.facility_name, report.license_number, report.address, report.phone,
-            report.get_inspection_type_display(), report.get_visit_type_display(),
-            _answer_label(report.point_1), _answer_label(report.point_2),
-            _answer_label(report.point_3), _answer_label(report.point_4),
-            action, report.notice_days or '', report.waste_types_display, report.estimated_weight,
-            timezone.localtime(report.created_at).strftime('%d/%m/%Y %H:%M'),
-        ]
-        yield [_safe_cell(value) for value in row]
-
-
-@login_required
-def medical_waste_export_csv(request):
-    reports, _ = _filtered_reports(request)
-    buffer = io.StringIO()
-    writer = csv.writer(buffer)
-    writer.writerow(EXPORT_HEADERS)
-    writer.writerows(_export_rows(reports))
-    # The BOM makes Excel read the Arabic as UTF-8.
-    response = HttpResponse('﻿' + buffer.getvalue(), content_type='text/csv; charset=utf-8')
-    response['Content-Disposition'] = 'attachment; filename="medical_waste_inspections.csv"'
-    return response
-
-
-@login_required
-def medical_waste_export_excel(request):
-    import openpyxl
-    from openpyxl.styles import Font
-
-    reports, _ = _filtered_reports(request)
-    workbook = openpyxl.Workbook()
-    sheet = workbook.active
-    sheet.title = 'تقارير التفتيش'
-    sheet.sheet_view.rightToLeft = True
-    sheet.append(EXPORT_HEADERS)
-    for cell in sheet[1]:
-        cell.font = Font(bold=True)
-    for row in _export_rows(reports):
-        sheet.append(row)
-    buffer = io.BytesIO()
-    workbook.save(buffer)
-    response = HttpResponse(
-        buffer.getvalue(),
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    )
-    response['Content-Disposition'] = 'attachment; filename="medical_waste_inspections.xlsx"'
-    return response

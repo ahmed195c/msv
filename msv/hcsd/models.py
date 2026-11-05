@@ -2256,9 +2256,5 @@ class MedicalWasteInspection(models.Model):
         ]
 
     @property
-    def waste_types_display(self):
-        return '، '.join(row['label'] for row in self.waste_type_rows if row['checked'])
-
-    @property
     def uploaded_files(self):
         return [self.inspector_signature, self.representative_signature, self.notice_attachment, self.pdf_file]

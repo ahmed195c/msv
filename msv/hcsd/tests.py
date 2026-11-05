@@ -111,7 +111,7 @@ class MedicalWasteFormTests(MedicalWasteBase):
 
     def test_anonymous_is_sent_to_login(self):
         self.client.logout()
-        for name, args in (('medical_waste_home', []), ('medical_waste_create', []), ('medical_waste_export_csv', [])):
+        for name, args in (('medical_waste_home', []), ('medical_waste_create', [])):
             self.assertIn('/login/', self.client.get(reverse(name, args=args)).url)
 
     def test_pdf_failure_keeps_the_report_and_says_so(self):
@@ -200,16 +200,6 @@ class MedicalWasteArchiveTests(MedicalWasteBase):
         self.client.post(url)
         self.assertFalse(Report.objects.filter(pk=report.pk).exists())
         self.assertFalse(storage.exists(name))
-
-    def test_exports_neutralise_formulas(self):
-        self._report(facility_name='=HYPERLINK("http://x")')
-        csv_body = self.client.get(reverse('medical_waste_export_csv')).content.decode('utf-8-sig')
-        self.assertIn("'=HYPERLINK", csv_body)
-        response = self.client.get(reverse('medical_waste_export_excel'))
-        self.assertEqual(response.status_code, 200)
-        import openpyxl
-        sheet = openpyxl.load_workbook(io.BytesIO(response.content)).active
-        self.assertTrue(sheet.cell(row=2, column=4).value.startswith("'="))
 
     def test_pdf_filename_has_date_facility_and_number(self):
         report = self._report(facility_name='a/b:c')

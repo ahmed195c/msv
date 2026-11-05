@@ -32,8 +32,6 @@
   </div>
   <div class="mw-actions">
     {% if can_write %}<a class="mw-btn mw-btn--primary" href="{% url 'medical_waste_create' %}">+ تقرير تفتيش جديد</a>{% endif %}
-    <a class="mw-btn" download href="{% url 'medical_waste_export_excel' %}{% if filter_query %}?{{ filter_query }}{% endif %}">تصدير Excel</a>
-    <a class="mw-btn" download href="{% url 'medical_waste_export_csv' %}{% if filter_query %}?{{ filter_query }}{% endif %}">تصدير CSV</a>
   </div>
 </div>
 
