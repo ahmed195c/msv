@@ -1,21 +1,100 @@
-{% extends "hcsd/base.html" %}
-{% block title %}تفتيش النفايات الطبية{% endblock %}
-{% block content %}
+{% extends "hcsd/medical_waste_base.html" %}
+{% block title %}أرشيف تقارير التفتيش{% endblock %}
+{% block mw_content %}
 <style>
-.mw-page { max-width: 900px; margin: 0 auto; }
-.mw-header h1 { font-size: 20px; font-weight: 700; color: var(--ink); margin: 0; }
-.mw-header p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
-.mw-empty {
-  margin-top: 28px; padding: 48px 24px; text-align: center;
-  background: #fff; border: 1.5px dashed var(--line); border-radius: 14px;
-  color: var(--ink-2); font-size: 14px;
+.mw-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; align-items: end; }
+.mw-filters label { display: block; font-size: 11.5px; font-weight: 700; color: var(--ink-3); margin-bottom: 4px; }
+.mw-filters input, .mw-filters select { width: 100%; min-height: 38px; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 8px; font: inherit; font-size: 13px; background: #fff; }
+.mw-table-wrap { background: #fff; border: 1.5px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 14px; }
+.mw-table { width: 100%; border-collapse: collapse; }
+.mw-table th { text-align: start; font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--surface); padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.mw-table td { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 13px; vertical-align: middle; }
+.mw-table tbody tr:last-child td { border-bottom: none; }
+.mw-table .mw-no, .mw-table .mw-date { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+.mw-row-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.mw-row-actions form { margin: 0; }
+.mw-empty { padding: 44px 20px; text-align: center; color: var(--ink-3); font-size: 14px; font-weight: 600; }
+.mw-pages { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 13px; color: var(--ink-3); }
+@media (max-width: 760px) {
+  .mw-table thead { display: none; }
+  .mw-table, .mw-table tbody, .mw-table tr, .mw-table td { display: block; width: 100%; }
+  .mw-table tr { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .mw-table td { padding: 3px 0; border: none; }
+  .mw-table td[data-label]:not(.mw-td-actions)::before { content: attr(data-label) ': '; font-family: var(--sans); font-size: 11px; font-weight: 700; color: var(--ink-3); }
+  .mw-td-actions { padding-top: 8px !important; }
 }
 </style>
-<div class="mw-page">
-  <div class="mw-header">
-    <h1>تفتيش النفايات الطبية</h1>
-    <p>قيد التطوير</p>
+
+<div class="mw-head">
+  <div>
+    <h1>أرشيف تقارير التفتيش</h1>
+    <p>نموذج التفتيش على المنشآت الطبية</p>
   </div>
-  <div class="mw-empty">لا توجد بيانات بعد.</div>
+  <div class="mw-actions">
+    {% if can_write %}<a class="mw-btn mw-btn--primary" href="{% url 'medical_waste_create' %}">+ تقرير تفتيش جديد</a>{% endif %}
+    <a class="mw-btn" download href="{% url 'medical_waste_export_excel' %}{% if filter_query %}?{{ filter_query }}{% endif %}">تصدير Excel</a>
+    <a class="mw-btn" download href="{% url 'medical_waste_export_csv' %}{% if filter_query %}?{{ filter_query }}{% endif %}">تصدير CSV</a>
+  </div>
 </div>
+
+<form method="get" class="mw-card mw-filters">
+  <div><label for="mw_facility">اسم المنشأة</label><input id="mw_facility" name="facility" value="{{ filters.facility }}"></div>
+  <div><label for="mw_inspector">المفتش</label><input id="mw_inspector" name="inspector" value="{{ filters.inspector }}"></div>
+  <div><label for="mw_from">من تاريخ</label><input id="mw_from" type="date" name="date_from" value="{{ filters.date_from }}"></div>
+  <div><label for="mw_to">إلى تاريخ</label><input id="mw_to" type="date" name="date_to" value="{{ filters.date_to }}"></div>
+  <div>
+    <label for="mw_type">نوع التفتيش</label>
+    <select id="mw_type" name="type">
+      <option value="">الكل</option>
+      {% for value, label in type_choices %}<option value="{{ value }}" {% if filters.type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="mw-actions">
+    <button type="submit" class="mw-btn mw-btn--primary">بحث</button>
+    {% if filter_query %}<a class="mw-btn" href="{% url 'medical_waste_home' %}">مسح</a>{% endif %}
+  </div>
+</form>
+
+<div class="mw-table-wrap">
+  {% if page.object_list %}
+  <table class="mw-table">
+    <thead><tr><th>الرقم</th><th>التاريخ</th><th>المفتش</th><th>المنشأة</th><th>نوع التفتيش</th><th>الإجراءات</th></tr></thead>
+    <tbody>
+      {% for r in page.object_list %}
+      <tr>
+        <td class="mw-no">{{ r.pk }}</td>
+        <td class="mw-date">{{ r.inspection_date|date:"d/m/Y" }}</td>
+        <td>{{ r.inspector_name }}</td>
+        <td>{{ r.facility_name }}</td>
+        <td>{{ r.get_inspection_type_display }}</td>
+        <td class="mw-td-actions">
+          <div class="mw-row-actions">
+            <a class="mw-btn mw-btn--sm" href="{% url 'medical_waste_detail' r.pk %}">عرض</a>
+            {% if can_write %}<a class="mw-btn mw-btn--sm" href="{% url 'medical_waste_edit' r.pk %}">تعديل</a>{% endif %}
+            <a class="mw-btn mw-btn--sm" href="{% url 'medical_waste_print' r.pk %}?autoprint=1" target="_blank" rel="noopener">طباعة</a>
+            <a class="mw-btn mw-btn--sm" data-skip-loader="true" href="{% url 'medical_waste_pdf' r.pk %}">PDF</a>
+            {% if can_delete %}
+            <form method="post" action="{% url 'medical_waste_delete' r.pk %}" data-skip-loader="true" onsubmit="return confirm('حذف التقرير رقم {{ r.pk }} نهائياً؟');">
+              {% csrf_token %}
+              <button type="submit" class="mw-btn mw-btn--sm mw-btn--danger">حذف</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="mw-empty">لا توجد تقارير{% if filter_query %} مطابقة للبحث{% endif %}.</div>
+  {% endif %}
+</div>
+
+{% if page.paginator.num_pages > 1 %}
+<div class="mw-pages">
+  {% if page.has_previous %}<a class="mw-btn mw-btn--sm" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page.previous_page_number }}">السابق</a>{% endif %}
+  <span>صفحة {{ page.number }} من {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a class="mw-btn mw-btn--sm" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page.next_page_number }}">التالي</a>{% endif %}
+</div>
+{% endif %}
 {% endblock %}

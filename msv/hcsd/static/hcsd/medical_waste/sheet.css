@@ -1,0 +1,114 @@
+/* The printed "نموذج التفتيش على المنشآت الطبية": A4 portrait, one page. */
+@font-face {
+  font-family: 'MW Naskh';
+  src: url('fonts/noto-naskh-arabic-400.woff2') format('woff2');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'MW Naskh';
+  src: url('fonts/noto-naskh-arabic-700.woff2') format('woff2');
+  font-weight: 700;
+}
+
+@page { size: A4 portrait; margin: 0; }
+
+.mw-sheet, .mw-sheet * { box-sizing: border-box; }
+.mw-sheet {
+  --mw-green: #5b7a3d;
+  position: relative;
+  width: 210mm;
+  height: 296mm;
+  overflow: hidden;
+  margin: 0 auto;
+  padding: 3mm 3mm 0;
+  background: #fff;
+  color: #000;
+  direction: rtl;
+  text-align: right;
+  font-family: 'MW Naskh', 'Sakkal Majalla', 'Traditional Arabic', Tahoma, Arial, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.32;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Letterhead */
+.mw-letterhead { position: relative; direction: ltr; }
+.mw-letterhead img { display: block; width: 100%; }
+.mw-letterhead__title {
+  position: absolute; top: 0; right: 2mm; left: 96mm; direction: rtl; text-align: center;
+  color: var(--mw-green); font-weight: 700; line-height: 1.25;
+}
+.mw-letterhead__ar { font-size: 14pt; }
+.mw-letterhead__en { font-size: 11.5pt; font-family: Calibri, Carlito, Arial, sans-serif; }
+.mw-letterhead__bar {
+  position: absolute; bottom: 0.6mm; right: 2mm; left: 104mm; display: flex;
+  justify-content: space-between; align-items: center; direction: rtl;
+  color: #fff; font-weight: 700; font-size: 9.5pt;
+}
+.mw-letterhead__bar-en { font-family: Calibri, Carlito, Arial, sans-serif; direction: ltr; }
+
+.mw-body { padding: 3mm 7mm 0; }
+
+/* Facility data */
+.mw-info { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 2.5mm; }
+.mw-info th, .mw-info td { border: 1px dotted #000; padding: 1mm 2mm; height: 9mm; vertical-align: middle; font-size: 10pt; overflow-wrap: anywhere; }
+.mw-info th { width: 24mm; background: #ececec; font-weight: 700; }
+.mw-info td { width: 71mm; }
+
+.mw-title { font-weight: 700; text-decoration: underline; }
+.mw-section-title { display: flex; align-items: center; gap: 1.5mm; margin: 2mm 0 1mm; font-weight: 700; text-decoration: underline; }
+.mw-section-no { font-family: Arial, sans-serif; font-size: 12pt; }
+.mw-sub { margin: 1mm 3mm 1mm 0; font-weight: 700; }
+.mw-line { margin: 0.8mm 8mm 0.8mm 0; display: flex; align-items: center; flex-wrap: wrap; gap: 1.5mm; }
+.mw-options { display: flex; justify-content: center; gap: 28mm; margin: 0.8mm 0; font-weight: 700; }
+.mw-options--waste { justify-content: space-between; gap: 2mm; margin: 0.8mm 3mm 0.8mm 0; }
+.mw-option { display: inline-flex; align-items: center; gap: 1.2mm; }
+
+/* Checkbox: drawn, so it prints the same without any symbol font. */
+.mw-box { display: inline-block; flex: none; position: relative; width: 3.2mm; height: 3.2mm; border: 0.35mm solid #000; }
+.mw-box.on::after {
+  content: ''; position: absolute; left: 0.75mm; top: -0.25mm; width: 1.1mm; height: 2.2mm;
+  border: solid #000; border-width: 0 0.45mm 0.45mm 0; transform: rotate(45deg);
+}
+
+/* Inspection points */
+.mw-points { width: 100%; border-collapse: collapse; margin: 1mm 0; font-size: 9.5pt; }
+.mw-points th, .mw-points td { border: 1px solid #000; padding: 0.6mm 2mm; text-align: center; vertical-align: middle; }
+.mw-points th { background: #ececec; font-weight: 700; }
+.mw-points .mw-col-no { width: 9mm; }
+.mw-points .mw-col-answer { width: 22mm; }
+.mw-points .mw-col-text { text-align: right; }
+.mw-points .mw-col-text div + div { margin-top: 0.5mm; }
+
+.mw-value { display: inline-block; min-width: 10mm; padding: 0 1mm; border-bottom: 1px dotted #000; text-align: center; font-weight: 700; }
+
+/* Signatures, attachments, footer */
+.mw-signatures {
+  display: flex; justify-content: space-between; gap: 6mm;
+  margin-top: 3mm; padding-top: 2mm; border-top: 1px dotted #000; font-weight: 700;
+}
+.mw-signature { flex: 1; display: flex; align-items: flex-end; gap: 2mm; min-height: 13mm; }
+.mw-signature__label { text-decoration: underline; white-space: nowrap; }
+.mw-signature__space { flex: 1; height: 12mm; border-bottom: 1px dotted #000; display: flex; align-items: flex-end; justify-content: center; }
+.mw-signature__space img { height: 12mm; max-width: 100%; object-fit: contain; }
+.mw-attachments { margin-top: 2mm; padding: 1mm 3mm; background: #ececec; font-size: 10pt; }
+.mw-attachments strong { text-decoration: underline; }
+.mw-footer { position: absolute; bottom: 3mm; right: 10mm; left: 10mm; display: flex; align-items: center; justify-content: space-between; direction: ltr; }
+.mw-footer img { height: 12mm; }
+.mw-footer__page { font-family: Calibri, Carlito, Arial, sans-serif; font-size: 9pt; font-weight: 700; }
+.mw-footer__center { flex: 1; text-align: center; font-size: 9pt; font-weight: 700; direction: rtl; }
+
+/* Standalone print page */
+html.mw-print-page, html.mw-print-page body { margin: 0; padding: 0; background: #e5e7eb; }
+.mw-toolbar { display: flex; gap: 8px; justify-content: center; padding: 12px; font-family: Tahoma, Arial, sans-serif; }
+.mw-toolbar a, .mw-toolbar button {
+  padding: 8px 18px; border-radius: 8px; border: 1.5px solid #0e7490; background: #fff; color: #0e7490;
+  font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer;
+}
+.mw-toolbar button { background: #0e7490; color: #fff; }
+
+@media print {
+  html.mw-print-page, html.mw-print-page body { background: #fff; }
+  .mw-toolbar { display: none !important; }
+}

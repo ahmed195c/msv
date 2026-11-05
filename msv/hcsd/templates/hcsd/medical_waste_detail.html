@@ -1,0 +1,33 @@
+{% extends "hcsd/medical_waste_base.html" %}
+{% block title %}تقرير تفتيش {{ report.pk }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ sheet_css_url }}">{% endblock %}
+{% block mw_content %}
+<style>
+.mw-sheet-wrap { overflow-x: auto; background: var(--surface-2); border-radius: 16px; padding: 14px; }
+.mw-sheet-wrap .mw-sheet { box-shadow: var(--shadow-md); }
+.mw-meta { font-size: 13px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+</style>
+<div class="mw-head">
+  <div>
+    <h1>تقرير التفتيش رقم {{ report.pk }}</h1>
+    <p>{{ report.facility_name }}</p>
+  </div>
+  <div class="mw-actions">
+    {% if can_write %}<a class="mw-btn" href="{% url 'medical_waste_edit' report.pk %}">تعديل</a>{% endif %}
+    <a class="mw-btn mw-btn--primary" href="{% url 'medical_waste_print' report.pk %}?autoprint=1" target="_blank" rel="noopener">طباعة</a>
+    <a class="mw-btn" data-skip-loader="true" href="{% url 'medical_waste_pdf' report.pk %}">تحميل PDF</a>
+    {% if can_delete %}
+    <form method="post" action="{% url 'medical_waste_delete' report.pk %}" style="margin:0;" data-skip-loader="true" onsubmit="return confirm('حذف التقرير رقم {{ report.pk }} نهائياً؟');">
+      {% csrf_token %}
+      <button type="submit" class="mw-btn mw-btn--danger">حذف</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+<div class="mw-card mw-meta">
+  <span>تاريخ الحفظ: {{ report.created_at|date:"d/m/Y H:i" }}</span>
+  {% if report.created_by %}<span>أدخله: {{ report.created_by.get_full_name|default:report.created_by.username }}</span>{% endif %}
+  {% if report.notice_attachment %}<a href="{{ report.notice_attachment.url }}" target="_blank" rel="noopener">نسخة الإخطار الممنوح للمنشأة ↗</a>{% endif %}
+</div>
+<div class="mw-sheet-wrap">{% include "hcsd/_mw_sheet.html" %}</div>
+{% endblock %}

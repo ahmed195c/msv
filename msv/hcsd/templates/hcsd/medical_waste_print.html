@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="mw-print-page">
+<head>
+  <meta charset="UTF-8">
+  {% if for_pdf %}<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src file: 'unsafe-inline'; img-src file:; font-src file:">{% endif %}
+  <title>تقرير تفتيش {{ report.pk }} — {{ report.facility_name }}</title>
+  <link rel="stylesheet" href="{{ sheet_css_url }}">
+</head>
+<body>
+  {% if not for_pdf %}
+  <div class="mw-toolbar">
+    <button type="button" onclick="window.print()">طباعة</button>
+    <a href="{% url 'medical_waste_detail' report.pk %}">رجوع إلى التقرير</a>
+    <a href="{% url 'medical_waste_home' %}">الأرشيف</a>
+  </div>
+  {% endif %}
+  {% include "hcsd/_mw_sheet.html" %}
+  {% if autoprint %}
+  <script>
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () { window.print(); });
+  </script>
+  {% endif %}
+</body>
+</html>

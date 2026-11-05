@@ -5,6 +5,7 @@ import re
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import IntegrityError, models
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
@@ -2128,3 +2129,136 @@ class GardenDailyReport(models.Model):
 
     def __str__(self):
         return f"{self.area_name} — {self.report_date}"
+
+
+MEDICAL_WASTE_MAX_NOTICE_DAYS = 365
+
+
+class MedicalWasteInspection(models.Model):
+    """One filled-in "نموذج التفتيش على المنشآت الطبية" report."""
+
+    TYPE_CONTRACT = 'contract'
+    TYPE_EXPIRED = 'expired_waste'
+    TYPE_NO_WASTE = 'no_waste'
+    TYPE_CHOICES = [
+        (TYPE_CONTRACT, 'التفتيش بغرض التأكد من تطبيق متطلبات التعاقد مع شركة وقاية'),
+        (TYPE_EXPIRED, 'تفتيش معاينة نفايات منتهية الصلاحية لغرض التخلص السليم منها'),
+        (TYPE_NO_WASTE, 'التفتيش على المنشآت الطبية التي لا ينتج عنها نفايات طبية'),
+    ]
+    VISIT_PERIODIC = 'periodic'
+    VISIT_FOLLOWUP = 'followup'
+    VISIT_CHOICES = [
+        (VISIT_PERIODIC, 'دوري، جديد'),
+        (VISIT_FOLLOWUP, 'متابعة (إخطار، مخالفة)'),
+    ]
+    ACTION_COMPLIANT = 'compliant'
+    ACTION_NOTICE = 'notice'
+    CONTRACT_ACTION_CHOICES = [
+        (ACTION_COMPLIANT, 'المنشأة مستوفية المتطلبات أعلاه'),
+        (ACTION_NOTICE, 'المنشأة غير مستوفية المتطلبات أعلاه وتمنح إخطار لتنفيذها خلال مدة'),
+    ]
+    # Each point's text, line by line, exactly as on the printed form.
+    INSPECTION_POINTS = (
+        (1, ('وجود عقد خدمات ساري المفعول لجمع ونقل ومعالجة النفايات الطبية مع شركة وقاية',)),
+        (2, (
+            'فرز وفصل النفايات الطبية بالمنشأة بشكل آمن وسليم عن النفايات الأخرى',
+            'فرز النفايات الطبية بالمنشأة حسب النوع بشكل آمن مع فرز النفايات الطبية عن النفايات العامة',
+        )),
+        (3, (
+            'وجود منطقة مخصصة بالمنشأة لتجميع النفايات الطبية مزودة بلوحات إرشادية وتحذيرية',
+            'وجود مكان مخصص لتجميع النفايات الطبية مع لوحة تعريفية بالنفايات',
+        )),
+        (4, ('وجود متدرب مؤهل حاصل على برنامج تدريبي من شركة وقاية للتعامل مع النفايات الطبية',)),
+    )
+    WASTE_TYPE_FIELDS = (
+        ('waste_medicines', 'أدوية'),
+        ('waste_cosmetics', 'مستحضرات تجميل'),
+        ('waste_lab_chemicals', 'مواد كيمائية خاصة بالمختبرات المدرسية'),
+        ('waste_damaged_supplies', 'مستلزمات طبية تالفة'),
+    )
+    LETTER_ACTION_LABEL = 'رسالة الى شركة النفايات الطبية (وقاية) لإجراء اللازم.'
+    SITE_REPORT_ACTION_LABEL = 'تمت معاينة المنشأة وسيتم رفع تقرير مصور الى شركة وقاية بطبيعة نشاط المنشأة'
+
+    # Header
+    inspector_name = models.CharField('اسم المفتش', max_length=150)
+    inspection_date = models.DateField('تاريخ التفتيش')
+    facility_name = models.CharField('اسم المنشأة', max_length=200)
+    license_number = models.CharField('رقم الرخصة', max_length=100, blank=True)
+    address = models.CharField('العنوان', max_length=255, blank=True)
+    phone = models.CharField('رقم الهاتف', max_length=50, blank=True)
+    inspection_type = models.CharField('نوع التفتيش', max_length=20, choices=TYPE_CHOICES)
+
+    # Type 1: contract requirements
+    visit_type = models.CharField('نوع الزيارة', max_length=20, choices=VISIT_CHOICES, blank=True)
+    point_1 = models.BooleanField('نقطة التفتيش 1', null=True, blank=True)
+    point_2 = models.BooleanField('نقطة التفتيش 2', null=True, blank=True)
+    point_3 = models.BooleanField('نقطة التفتيش 3', null=True, blank=True)
+    point_4 = models.BooleanField('نقطة التفتيش 4', null=True, blank=True)
+    contract_action = models.CharField('الإجراء المتخذ', max_length=20, choices=CONTRACT_ACTION_CHOICES, blank=True)
+    notice_days = models.PositiveSmallIntegerField(
+        'مدة الإخطار (أيام)', null=True, blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(MEDICAL_WASTE_MAX_NOTICE_DAYS)],
+    )
+
+    # Type 2: expired waste
+    waste_medicines = models.BooleanField('أدوية', default=False)
+    waste_cosmetics = models.BooleanField('مستحضرات تجميل', default=False)
+    waste_lab_chemicals = models.BooleanField('مواد كيمائية خاصة بالمختبرات المدرسية', default=False)
+    waste_damaged_supplies = models.BooleanField('مستلزمات طبية تالفة', default=False)
+    estimated_weight = models.CharField('الوزن التقديري للنفايات', max_length=100, blank=True)
+    letter_action = models.BooleanField('رسالة إلى شركة وقاية', default=False)
+
+    # Type 3: no medical waste
+    site_report_action = models.BooleanField('رفع تقرير مصور إلى شركة وقاية', default=False)
+
+    # Signatures and attachments
+    inspector_signature = models.ImageField(
+        'صورة توقيع المفتش', upload_to='medical_waste/signatures', max_length=255, blank=True,
+        validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'])],
+    )
+    representative_signature = models.ImageField(
+        'صورة توقيع ممثل المنشأة', upload_to='medical_waste/signatures', max_length=255, blank=True,
+        validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'])],
+    )
+    notice_attachment = models.FileField(
+        'نسخة من الإخطار الممنوح للمنشأة', upload_to='medical_waste/notices', max_length=255, blank=True,
+        validators=[FileExtensionValidator(['pdf', 'png', 'jpg', 'jpeg'])],
+    )
+    pdf_file = models.FileField(upload_to='medical_waste/reports', max_length=255, blank=True, editable=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='medical_waste_inspections', editable=False,
+    )
+
+    class Meta:
+        ordering = ['-inspection_date', '-id']
+        verbose_name = 'تقرير تفتيش منشأة طبية'
+        verbose_name_plural = 'تقارير تفتيش المنشآت الطبية'
+
+    def __str__(self):
+        return f'#{self.pk} {self.facility_name} ({self.inspection_date})'
+
+    @property
+    def point_rows(self):
+        return [
+            {'number': number, 'lines': lines, 'answer': getattr(self, f'point_{number}')}
+            for number, lines in self.INSPECTION_POINTS
+        ]
+
+    @property
+    def waste_type_rows(self):
+        return [
+            {'label': label, 'checked': getattr(self, field)}
+            for field, label in self.WASTE_TYPE_FIELDS
+        ]
+
+    @property
+    def waste_types_display(self):
+        return '، '.join(row['label'] for row in self.waste_type_rows if row['checked'])
+
+    @property
+    def uploaded_files(self):
+        return [self.inspector_signature, self.representative_signature, self.notice_attachment, self.pdf_file]

@@ -1,0 +1,284 @@
+{% extends "hcsd/medical_waste_base.html" %}
+{% block title %}{% if report %}تعديل التقرير {{ report.pk }}{% else %}تقرير تفتيش جديد{% endif %}{% endblock %}
+{% block mw_content %}
+<style>
+.mwf-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.mwf-field label { display: block; font-size: 12.5px; font-weight: 700; color: var(--ink-2); margin-bottom: 4px; }
+.mwf-field input[type=text], .mwf-field input[type=date], .mwf-field input[type=number] {
+  width: 100%; min-height: 40px; padding: 8px 11px; border: 1.5px solid var(--line); border-radius: 8px; font: inherit; font-size: 13.5px; background: #fff;
+}
+.mwf-req { color: #b91c1c; }
+.mwf-err { font-size: 12px; font-weight: 600; color: #b91c1c; margin-top: 4px; }
+.mwf-errors { background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 12px 16px; margin-bottom: 14px; color: #991b1b; font-size: 13px; font-weight: 600; }
+.mwf-errors ul { margin: 6px 0 0; padding-inline-start: 18px; }
+.mwf-choice { display: flex; align-items: flex-start; gap: 9px; padding: 8px 4px; font-size: 13.5px; color: var(--ink); cursor: pointer; }
+.mwf-choice input { margin-top: 4px; flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--accent); }
+.mwf-type { padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; margin-bottom: 8px; font-weight: 700; }
+.mwf-type:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); }
+.mwf-sub { font-size: 13px; font-weight: 700; color: var(--ink-2); margin: 14px 0 4px; }
+.mwf-row { display: flex; flex-wrap: wrap; gap: 4px 24px; }
+.mwf-points { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; }
+.mwf-points th { background: var(--surface); font-size: 12px; color: var(--ink-3); }
+.mwf-points th, .mwf-points td { border: 1px solid var(--line); padding: 8px 10px; text-align: center; }
+.mwf-points .mwf-text { text-align: start; line-height: 1.7; }
+.mwf-points input { width: 17px; height: 17px; accent-color: var(--accent); }
+.mwf-days { display: inline-flex; width: 90px; }
+.mwf-submit { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0; }
+.mwf-current { font-size: 12px; margin-top: 4px; color: var(--ink-3); }
+.mwf-pad-label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); margin-bottom: 4px; }
+.mwf-pad { position: relative; background: #fff; border: 1.5px dashed var(--line-2); border-radius: 10px; overflow: hidden; }
+.mwf-pad canvas { display: block; width: 100%; aspect-ratio: 3 / 1; touch-action: none; cursor: crosshair; }
+.mwf-pad-current { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 8px; pointer-events: none; }
+.mwf-pad-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-4); font-size: 14px; pointer-events: none; }
+.mwf-pad-hint[hidden] { display: none; }
+.mwf-pad-reset { margin-top: 6px; }
+@media (max-width: 640px) { .mwf-grid { grid-template-columns: 1fr; } .mwf-submit .mw-btn { flex: 1; } }
+</style>
+
+<div class="mw-head">
+  <div>
+    <h1>{% if report %}تعديل التقرير رقم {{ report.pk }}{% else %}تقرير تفتيش جديد{% endif %}</h1>
+    <p>نموذج التفتيش على المنشآت الطبية</p>
+  </div>
+  <a class="mw-btn" href="{% url 'medical_waste_home' %}">← الأرشيف</a>
+</div>
+
+{% if form.errors %}
+<div class="mwf-errors">
+  يرجى مراجعة ما يلي{% if request.FILES %} (وإعادة اختيار الملفات المرفقة){% endif %}:
+  <ul>
+    {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+    {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" id="mw-form" novalidate>
+  {% csrf_token %}
+
+  <div class="mw-card">
+    <div class="mwf-grid">
+      <div class="mwf-field"><label for="id_inspector_name">اسم المفتش <span class="mwf-req">*</span></label><input id="id_inspector_name" type="text" name="inspector_name" maxlength="150" value="{{ form.inspector_name.value|default_if_none:'' }}"></div>
+      <div class="mwf-field"><label for="id_inspection_date">تاريخ التفتيش <span class="mwf-req">*</span></label><input id="id_inspection_date" type="date" name="inspection_date" value="{{ form.inspection_date.value|default_if_none:'' }}"></div>
+      <div class="mwf-field"><label for="id_facility_name">اسم المنشأة <span class="mwf-req">*</span></label><input id="id_facility_name" type="text" name="facility_name" maxlength="200" value="{{ form.facility_name.value|default_if_none:'' }}"></div>
+      <div class="mwf-field"><label for="id_license_number">رقم الرخصة</label><input id="id_license_number" type="text" name="license_number" maxlength="100" value="{{ form.license_number.value|default_if_none:'' }}"></div>
+      <div class="mwf-field"><label for="id_address">العنوان</label><input id="id_address" type="text" name="address" maxlength="255" value="{{ form.address.value|default_if_none:'' }}"></div>
+      <div class="mwf-field"><label for="id_phone">رقم الهاتف</label><input id="id_phone" type="text" name="phone" maxlength="50" dir="ltr" style="text-align:right;" value="{{ form.phone.value|default_if_none:'' }}"></div>
+    </div>
+  </div>
+
+  <div class="mw-card">
+    <h2>تحديد نوع التفتيش <span class="mwf-req">*</span></h2>
+    {% for value, label in model.TYPE_CHOICES %}
+    <label class="mwf-choice mwf-type">
+      <input type="radio" name="inspection_type" value="{{ value }}" {% if form.inspection_type.value == value %}checked{% endif %}>
+      <span>{{ forloop.counter }}. {{ label }}</span>
+    </label>
+    {% endfor %}
+  </div>
+
+  {# ── 1: contract requirements ── #}
+  <div class="mw-card" data-mw-section="contract">
+    <h2>التفتيش بغرض التأكد من تطبيق متطلبات التعاقد مع شركة وقاية</h2>
+    <div class="mwf-sub">نوع الزيارة <span class="mwf-req">*</span></div>
+    <div class="mwf-row">
+      {% for value, label in model.VISIT_CHOICES %}
+      <label class="mwf-choice"><input type="radio" name="visit_type" value="{{ value }}" {% if form.visit_type.value == value %}checked{% endif %}> {{ label }}</label>
+      {% endfor %}
+    </div>
+    <div class="mwf-sub">نقاط التفتيش <span class="mwf-req">*</span></div>
+    <table class="mwf-points no-mobile-cards">
+      <thead><tr><th>م</th><th>نقاط التفتيش</th><th>نعم</th><th>لا</th></tr></thead>
+      <tbody>
+        {% for number, lines in points %}
+        <tr>
+          <td>{{ number }}</td>
+          <td class="mwf-text">{% for line in lines %}<div>{{ line }}</div>{% endfor %}</td>
+          {% if number == 1 %}<td><input type="radio" name="point_1" value="yes" aria-label="نعم" {% if form.point_1.value == 'yes' %}checked{% endif %}></td><td><input type="radio" name="point_1" value="no" aria-label="لا" {% if form.point_1.value == 'no' %}checked{% endif %}></td>
+          {% elif number == 2 %}<td><input type="radio" name="point_2" value="yes" aria-label="نعم" {% if form.point_2.value == 'yes' %}checked{% endif %}></td><td><input type="radio" name="point_2" value="no" aria-label="لا" {% if form.point_2.value == 'no' %}checked{% endif %}></td>
+          {% elif number == 3 %}<td><input type="radio" name="point_3" value="yes" aria-label="نعم" {% if form.point_3.value == 'yes' %}checked{% endif %}></td><td><input type="radio" name="point_3" value="no" aria-label="لا" {% if form.point_3.value == 'no' %}checked{% endif %}></td>
+          {% else %}<td><input type="radio" name="point_4" value="yes" aria-label="نعم" {% if form.point_4.value == 'yes' %}checked{% endif %}></td><td><input type="radio" name="point_4" value="no" aria-label="لا" {% if form.point_4.value == 'no' %}checked{% endif %}></td>{% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="mwf-sub">الإجراء المتخذ <span class="mwf-req">*</span></div>
+    <label class="mwf-choice"><input type="radio" name="contract_action" value="compliant" {% if form.contract_action.value == 'compliant' %}checked{% endif %}> المنشأة مستوفية المتطلبات أعلاه</label>
+    <label class="mwf-choice" style="align-items:center;flex-wrap:wrap;">
+      <input type="radio" name="contract_action" value="notice" style="margin-top:0;" {% if form.contract_action.value == 'notice' %}checked{% endif %}>
+      المنشأة غير مستوفية المتطلبات أعلاه وتمنح إخطار لتنفيذها خلال مدة (
+      <span class="mwf-field mwf-days"><input type="number" name="notice_days" min="1" max="365" aria-label="مدة الإخطار بالأيام" value="{{ form.notice_days.value|default_if_none:'' }}"></span>
+      ) أيام
+    </label>
+  </div>
+
+  {# ── 2: expired waste ── #}
+  <div class="mw-card" data-mw-section="expired_waste">
+    <h2>تفتيش معاينة نفايات منتهية الصلاحية لغرض التخلص السليم منها</h2>
+    <div class="mwf-sub">نوع النفايات <span class="mwf-req">*</span></div>
+    <div class="mwf-row">
+      <label class="mwf-choice"><input type="checkbox" name="waste_medicines" {% if form.waste_medicines.value %}checked{% endif %}> أدوية</label>
+      <label class="mwf-choice"><input type="checkbox" name="waste_cosmetics" {% if form.waste_cosmetics.value %}checked{% endif %}> مستحضرات تجميل</label>
+      <label class="mwf-choice"><input type="checkbox" name="waste_lab_chemicals" {% if form.waste_lab_chemicals.value %}checked{% endif %}> مواد كيمائية خاصة بالمختبرات المدرسية</label>
+      <label class="mwf-choice"><input type="checkbox" name="waste_damaged_supplies" {% if form.waste_damaged_supplies.value %}checked{% endif %}> مستلزمات طبية تالفة</label>
+    </div>
+    <div class="mwf-field" style="max-width:320px;margin-top:8px;">
+      <label for="id_estimated_weight">الوزن التقديري للنفايات (تقريباً)</label>
+      <input id="id_estimated_weight" type="text" name="estimated_weight" maxlength="100" value="{{ form.estimated_weight.value|default_if_none:'' }}">
+    </div>
+    <div class="mwf-sub">الإجراء المتخذ</div>
+    <label class="mwf-choice"><input type="checkbox" name="letter_action" {% if form.letter_action.value %}checked{% endif %}> {{ model.LETTER_ACTION_LABEL }}</label>
+  </div>
+
+  {# ── 3: no medical waste ── #}
+  <div class="mw-card" data-mw-section="no_waste">
+    <h2>التفتيش على المنشآت الطبية التي لا ينتج عنها نفايات طبية</h2>
+    <div class="mwf-sub">الإجراء المتخذ</div>
+    <label class="mwf-choice"><input type="checkbox" name="site_report_action" {% if form.site_report_action.value %}checked{% endif %}> {{ model.SITE_REPORT_ACTION_LABEL }}</label>
+  </div>
+
+  <div class="mw-card">
+    <h2>التوقيع والمرفقات</h2>
+    <p style="font-size:12.5px;color:var(--ink-3);margin:0 0 12px;">وقّع داخل المربع بالإصبع أو القلم أو الفأرة. المربع المتروك فارغاً يُطبع فارغاً للتوقيع بالقلم.</p>
+    <div class="mwf-grid">
+      {% include "hcsd/_mw_signature_pad.html" with name="inspector_signature" label="توقيع المفتش" current=report.inspector_signature data=form.inspector_signature_data.value clear=form.inspector_signature_clear.value %}
+      {% include "hcsd/_mw_signature_pad.html" with name="representative_signature" label="توقيع ممثل المنشأة" current=report.representative_signature data=form.representative_signature_data.value clear=form.representative_signature_clear.value %}
+      <div class="mwf-field">
+        <label for="id_notice_attachment">نسخة من الإخطار الممنوح للمنشأة (إن وجد)</label>
+        <input id="id_notice_attachment" type="file" name="notice_attachment" accept=".pdf,.png,.jpg,.jpeg">
+        {% if report.notice_attachment %}<div class="mwf-current"><a href="{{ report.notice_attachment.url }}" target="_blank" rel="noopener">الملف الحالي ↗</a> — <label style="font-weight:600;font-size:12px;display:inline;"><input type="checkbox" name="notice_attachment-clear"> إزالته</label></div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="mwf-submit">
+    <button type="submit" name="submit_action" value="save_print" class="mw-btn mw-btn--primary">حفظ وطباعة</button>
+    <button type="submit" name="submit_action" value="save" class="mw-btn">حفظ فقط</button>
+  </div>
+</form>
+
+<script>
+(function () {
+  var radios = document.querySelectorAll('input[name="inspection_type"]');
+  var sections = document.querySelectorAll('[data-mw-section]');
+  function sync() {
+    var chosen = document.querySelector('input[name="inspection_type"]:checked');
+    sections.forEach(function (section) {
+      section.hidden = !chosen || section.getAttribute('data-mw-section') !== chosen.value;
+    });
+  }
+  radios.forEach(function (radio) { radio.addEventListener('change', sync); });
+  sync();
+
+  var days = document.querySelector('input[name="notice_days"]');
+  var actions = document.querySelectorAll('input[name="contract_action"]');
+  function syncDays() {
+    var notice = document.querySelector('input[name="contract_action"][value="notice"]');
+    days.disabled = !notice.checked;
+    if (notice.checked) return;
+    days.value = '';
+  }
+  actions.forEach(function (radio) { radio.addEventListener('change', syncDays); });
+  syncDays();
+
+  // Signature pads: pointer events cover finger, stylus and mouse.
+  var INK_COLOR = '#0b2a6b', INK_WIDTH = 4, CROP_MARGIN = 6;
+
+  function croppedSignature(canvas) {
+    var ctx = canvas.getContext('2d');
+    var pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    var left = canvas.width, right = -1, top = canvas.height, bottom = -1;
+    for (var y = 0; y < canvas.height; y++) {
+      for (var x = 0; x < canvas.width; x++) {
+        if (!pixels[(y * canvas.width + x) * 4 + 3]) continue;
+        left = Math.min(left, x); right = Math.max(right, x);
+        top = Math.min(top, y); bottom = Math.max(bottom, y);
+      }
+    }
+    if (right < 0) return '';
+    left = Math.max(left - CROP_MARGIN, 0); top = Math.max(top - CROP_MARGIN, 0);
+    var width = Math.min(right + CROP_MARGIN, canvas.width - 1) - left + 1;
+    var height = Math.min(bottom + CROP_MARGIN, canvas.height - 1) - top + 1;
+    var cropped = document.createElement('canvas');
+    cropped.width = width; cropped.height = height;
+    cropped.getContext('2d').drawImage(canvas, left, top, width, height, 0, 0, width, height);
+    return cropped.toDataURL('image/png');
+  }
+
+  function setupSignaturePad(root) {
+    var canvas = root.querySelector('canvas');
+    var ctx = canvas.getContext('2d');
+    var data = root.querySelector('[data-pad-data]');
+    var clear = root.querySelector('[data-pad-clear]');
+    var hint = root.querySelector('[data-pad-hint]');
+    var current = root.querySelector('[data-pad-current]');
+    var drawing = false;
+
+    ctx.strokeStyle = INK_COLOR; ctx.fillStyle = INK_COLOR;
+    ctx.lineWidth = INK_WIDTH; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+    function hideCurrent() {
+      if (current) { current.remove(); current = null; }
+    }
+    function point(event) {
+      var rect = canvas.getBoundingClientRect();
+      return {
+        x: (event.clientX - rect.left) * canvas.width / rect.width,
+        y: (event.clientY - rect.top) * canvas.height / rect.height,
+      };
+    }
+    canvas.addEventListener('pointerdown', function (event) {
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+      drawing = true;
+      hideCurrent();
+      hint.hidden = true;
+      var at = point(event);
+      ctx.beginPath();
+      ctx.arc(at.x, at.y, INK_WIDTH / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(at.x, at.y);
+    });
+    canvas.addEventListener('pointermove', function (event) {
+      if (!drawing) return;
+      var at = point(event);
+      ctx.lineTo(at.x, at.y);
+      ctx.stroke();
+    });
+    function finishStroke() {
+      if (!drawing) return;
+      drawing = false;
+      data.value = croppedSignature(canvas);
+      clear.value = '';
+    }
+    canvas.addEventListener('pointerup', finishStroke);
+    canvas.addEventListener('pointercancel', finishStroke);
+
+    root.querySelector('[data-pad-reset]').addEventListener('click', function () {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      data.value = '';
+      // Only a signature that is already saved needs removing on the server.
+      if (current || clear.value) clear.value = '1';
+      hideCurrent();
+      hint.hidden = false;
+    });
+
+    // A form returned with errors keeps what was signed or cleared.
+    if (clear.value) { hideCurrent(); hint.hidden = false; }
+    if (data.value) {
+      hideCurrent();
+      hint.hidden = true;
+      var drawn = new Image();
+      drawn.onload = function () {
+        var scale = Math.min(canvas.width / drawn.width, canvas.height / drawn.height, 1);
+        var width = drawn.width * scale, height = drawn.height * scale;
+        ctx.drawImage(drawn, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+      };
+      drawn.src = data.value;
+    }
+  }
+  document.querySelectorAll('[data-signature-pad]').forEach(setupSignaturePad);
+})();
+</script>
+{% endblock %}

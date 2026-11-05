@@ -1,0 +1,95 @@
+<div class="mw-sheet">
+  <div class="mw-letterhead">
+    <img src="{{ header_image_url }}" alt="بلدية مدينة الشارقة">
+    <div class="mw-letterhead__title">
+      <div class="mw-letterhead__ar">نموذج التفتيش على المنشآت الطبية</div>
+      <div class="mw-letterhead__en">Medical Facilities Inspection Form</div>
+    </div>
+    <div class="mw-letterhead__bar">
+      <span>قسم رقابة وتنظيم النفايات</span>
+      <span class="mw-letterhead__bar-en">Waste Control and Regulation Section</span>
+    </div>
+  </div>
+
+  <div class="mw-body">
+    <table class="mw-info">
+      <tr><th>اسم المفتش</th><td>{{ report.inspector_name }}</td><th>تاريخ التفتيش</th><td>{{ report.inspection_date|date:"d/m/Y" }}</td></tr>
+      <tr><th>اسم المنشأة</th><td>{{ report.facility_name }}</td><th>رقم الرخصة</th><td>{{ report.license_number }}</td></tr>
+      <tr><th>العنوان</th><td>{{ report.address }}</td><th>رقم الهاتف</th><td><span dir="ltr">{{ report.phone }}</span></td></tr>
+    </table>
+
+    <div class="mw-title">• تحديد نوع التفتيش:</div>
+
+    {# ── 1 ── #}
+    <div class="mw-section-title">
+      <span class="mw-section-no">.1</span>
+      <span class="mw-box{% if report.inspection_type == 'contract' %} on{% endif %}"></span>
+      <span>التفتيش بغرض التأكد من تطبيق متطلبات التعاقد مع شركة وقاية:</span>
+    </div>
+    <div class="mw-sub">– نوع الزيارة:</div>
+    <div class="mw-options">
+      <span class="mw-option"><span class="mw-box{% if report.visit_type == 'periodic' %} on{% endif %}"></span> دوري، جديد</span>
+      <span class="mw-option"><span class="mw-box{% if report.visit_type == 'followup' %} on{% endif %}"></span> متابعة (إخطار، مخالفة)</span>
+    </div>
+    <div class="mw-sub">– نقاط التفتيش:</div>
+    <table class="mw-points">
+      <thead><tr><th class="mw-col-no">م</th><th>نقاط التفتيش</th><th class="mw-col-answer">نعم</th><th class="mw-col-answer">لا</th></tr></thead>
+      <tbody>
+        {% for row in report.point_rows %}
+        <tr>
+          <td>{{ row.number }}</td>
+          <td class="mw-col-text">{% for line in row.lines %}<div>{{ line }}</div>{% endfor %}</td>
+          <td><span class="mw-box{% if row.answer is True %} on{% endif %}"></span></td>
+          <td><span class="mw-box{% if row.answer is False %} on{% endif %}"></span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="mw-sub">– الإجراء المتخذ:</div>
+    <div class="mw-line"><span class="mw-box{% if report.contract_action == 'compliant' %} on{% endif %}"></span> المنشأة مستوفية المتطلبات أعلاه</div>
+    <div class="mw-line"><span class="mw-box{% if report.contract_action == 'notice' %} on{% endif %}"></span> المنشأة غير مستوفية المتطلبات أعلاه وتمنح إخطار لتنفيذها خلال مدة ( <span class="mw-value">{{ report.notice_days|default_if_none:"" }}</span> ) أيام</div>
+
+    {# ── 2 ── #}
+    <div class="mw-section-title">
+      <span class="mw-section-no">.2</span>
+      <span class="mw-box{% if report.inspection_type == 'expired_waste' %} on{% endif %}"></span>
+      <span>تفتيش معاينة نفايات منتهية الصلاحية لغرض التخلص السليم منها:</span>
+    </div>
+    <div class="mw-options mw-options--waste">
+      <span style="font-weight:700;">- نوع النفايات:</span>
+      {% for row in report.waste_type_rows %}
+      <span class="mw-option"><span class="mw-box{% if row.checked %} on{% endif %}"></span> {{ row.label }}</span>
+      {% endfor %}
+    </div>
+    <div class="mw-sub">الوزن التقديري للنفايات ( <span class="mw-value">{{ report.estimated_weight }}</span> تقريبا )</div>
+    <div class="mw-sub">– الإجراء المتخذ:</div>
+    <div class="mw-line"><span class="mw-box{% if report.letter_action %} on{% endif %}"></span> {{ report.LETTER_ACTION_LABEL }}</div>
+
+    {# ── 3 ── #}
+    <div class="mw-section-title">
+      <span class="mw-section-no">.3</span>
+      <span class="mw-box{% if report.inspection_type == 'no_waste' %} on{% endif %}"></span>
+      <span>التفتيش على المنشآت الطبية التي لا ينتج عنها نفايات طبية:</span>
+    </div>
+    <div class="mw-sub">– الإجراء المتخذ:</div>
+    <div class="mw-line"><span class="mw-box{% if report.site_report_action %} on{% endif %}"></span> {{ report.SITE_REPORT_ACTION_LABEL }}</div>
+
+    <div class="mw-signatures">
+      <div class="mw-signature">
+        <span class="mw-signature__label">توقيع المفتش</span>
+        <span class="mw-signature__space">{% if inspector_signature_url %}<img src="{{ inspector_signature_url }}" alt="">{% endif %}</span>
+      </div>
+      <div class="mw-signature">
+        <span class="mw-signature__label">توقيع ممثل المنشأة</span>
+        <span class="mw-signature__space">{% if representative_signature_url %}<img src="{{ representative_signature_url }}" alt="">{% endif %}</span>
+      </div>
+    </div>
+    <div class="mw-attachments"><strong>* المرفقات المطلوبة مع تقرير التفتيش:</strong> نسخة من الإخطار الممنوح للمنشأة (إن وجد)</div>
+  </div>
+
+  <div class="mw-footer">
+    <img src="{{ footer_image_url }}" alt="">
+    <span class="mw-footer__center">رقم التقرير: {{ report.pk }}</span>
+    <span class="mw-footer__page">Page 1 of 1</span>
+  </div>
+</div>

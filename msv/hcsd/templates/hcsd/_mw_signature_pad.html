@@ -1,0 +1,11 @@
+<div class="mwf-field" data-signature-pad>
+  <div class="mwf-pad-label">{{ label }}</div>
+  <div class="mwf-pad">
+    <canvas width="900" height="300" role="img" aria-label="{{ label }}"></canvas>
+    {% if current %}<img class="mwf-pad-current" src="{{ current.url }}" alt="التوقيع الحالي" data-pad-current>{% endif %}
+    <span class="mwf-pad-hint" data-pad-hint {% if current %}hidden{% endif %}>وقّع هنا</span>
+  </div>
+  <input type="hidden" name="{{ name }}_data" value="{{ data|default_if_none:'' }}" data-pad-data>
+  <input type="hidden" name="{{ name }}_clear" value="{% if clear %}1{% endif %}" data-pad-clear>
+  <button type="button" class="mw-btn mw-btn--sm mwf-pad-reset" data-pad-reset>مسح التوقيع</button>
+</div>

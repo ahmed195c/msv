@@ -1,0 +1,46 @@
+{% extends "hcsd/base.html" %}
+{% block title %}تفتيش النفايات الطبية{% endblock %}
+{% block sidebar_home_url %}{% url 'medical_waste_home' %}{% endblock %}
+{% block sidebar_brand_name %}تفتيش النفايات الطبية{% endblock %}
+{% block sidebar_nav %}
+        <a href="{% url 'portal_landing' %}" class="sidebar-link sidebar-link--muted">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          الصفحة الرئيسية للنظام
+        </a>
+        <a href="{% url 'medical_waste_home' %}" class="sidebar-link {% if request.resolver_match.url_name == 'medical_waste_home' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          أرشيف التقارير
+        </a>
+        <a href="{% url 'medical_waste_create' %}" class="sidebar-link {% if request.resolver_match.url_name == 'medical_waste_create' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          تقرير تفتيش جديد
+        </a>
+{% endblock %}
+{% block content %}
+<style>
+.mw-page { max-width: 1100px; margin: 0 auto; }
+.mw-head { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.mw-head h1 { font-size: 20px; font-weight: 700; color: var(--ink); margin: 0; }
+.mw-head p { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+.mw-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mw-card { background: #fff; border: 1.5px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-sm); padding: 18px; margin-bottom: 16px; }
+.mw-card h2 { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0 0 12px; }
+.mw-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 8px;
+  font-size: 13.5px; font-weight: 600; font-family: inherit; text-decoration: none; cursor: pointer;
+  border: 1.5px solid var(--line); background: #fff; color: var(--ink-2); transition: background .15s, border-color .15s;
+}
+.mw-btn:hover { background: var(--surface-2); }
+.mw-btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.mw-btn--primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+.mw-btn--danger { color: #b91c1c; border-color: #fca5a5; }
+.mw-btn--danger:hover { background: #fef2f2; }
+.mw-btn--sm { padding: 5px 10px; font-size: 12px; }
+.mw-msg { padding: 10px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600; margin-bottom: 12px; border: 1.5px solid var(--line); background: var(--accent-bg); color: var(--accent-dk); }
+.mw-msg--warning, .mw-msg--error { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+</style>
+<div class="mw-page">
+  {% for message in messages %}<div class="mw-msg mw-msg--{{ message.tags }}">{{ message }}</div>{% endfor %}
+  {% block mw_content %}{% endblock %}
+</div>
+{% endblock %}

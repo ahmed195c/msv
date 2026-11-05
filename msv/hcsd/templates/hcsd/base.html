@@ -424,10 +424,10 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
   <div class="app-frame">
   <aside class="sidebar" lang="ar" dir="rtl">
     <div class="sidebar-head">
-      <a href="{% url 'home' %}" class="sidebar-brand">
+      <a href="{% block sidebar_home_url %}{% url 'home' %}{% endblock %}" class="sidebar-brand">
         <img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة">
         <span class="sidebar-brand-label">
-          <span class="sidebar-brand-name">نظام التصاريح</span>
+          <span class="sidebar-brand-name">{% block sidebar_brand_name %}نظام التصاريح{% endblock %}</span>
           <span class="sidebar-brand-sub">قسم البيئة — بلدية الشارقة</span>
         </span>
       </a>
@@ -438,6 +438,7 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
 
     <div class="sidebar-body" id="sidebar-body">
       <nav class="sidebar-nav">
+        {% block sidebar_nav %}
         <a href="{% url 'portal_landing' %}" class="sidebar-link sidebar-link--muted">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
           الصفحة الرئيسية للنظام
@@ -490,6 +491,7 @@ input[type="date"]::-webkit-datetime-edit         { direction: rtl;   }
           </a>
           {% endif %}
         {% endif %}
+        {% endblock %}
       </nav>
 
       <div class="sidebar-spacer"></div>
