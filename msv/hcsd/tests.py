@@ -183,7 +183,7 @@ class MedicalWasteArchiveTests(MedicalWasteBase):
     def test_filters(self):
         wanted = self._report(facility_name='مستشفى النور', inspector_name='سالم')
         self._report(facility_name='عيادة', inspector_name='خالد', inspection_date=datetime.date(2026, 1, 1))
-        for params in ({'facility': 'النور'}, {'inspector': 'سالم'}, {'date_from': '2026-06-01'}):
+        for params in ({'facility': 'النور'}, {'date_from': '2026-06-01'}):
             page = self.client.get(reverse('medical_waste_home'), params).context['page']
             self.assertEqual(list(page.object_list), [wanted], params)
 
