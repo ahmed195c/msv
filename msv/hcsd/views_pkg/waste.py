@@ -182,6 +182,18 @@ def _is_issued_waste_permit(permit):
     return permit.status in WASTE_PERMIT_ISSUED_STATUSES and permit.issue_date is not None
 
 
+def _permit_status_before_disposal_request(permit, request_id):
+    """The status the permit had when this disposal request's payment moved it
+    to 'inspection_pending', as recorded in its change log."""
+    log = PirmetChangeLog.objects.filter(
+        pirmet=permit,
+        notes=f'waste_disposal_payment_received:{request_id}',
+    ).order_by('-created_at').first()
+    if log and log.old_status in WASTE_PERMIT_ISSUED_STATUSES and log.old_status != 'inspection_pending':
+        return log.old_status
+    return 'issued'
+
+
 def _new_waste_permit_dates(start_mode, prev_expiry, today, post):
     """(issue_date, expiry_date, error) for a waste permit being issued now.
 
@@ -1164,9 +1176,9 @@ def waste_disposal_request_detail(request, permit_id, request_id=None):
                     old_permit_status = permit.status
                     # Paying for the request moved the permit itself to
                     # 'inspection_pending'; closing the request ends that
-                    # inspection, so the permit is back to a plain issued one.
+                    # inspection, so the permit returns to its earlier status.
                     if permit.status == 'inspection_pending':
-                        permit.status = 'issued'
+                        permit.status = _permit_status_before_disposal_request(permit, disposal_request.id)
                         permit.save(update_fields=['status'])
                         InspectorReview.objects.filter(pirmet=permit).update(inspector_user=None)
                     _log_pirmet_change(

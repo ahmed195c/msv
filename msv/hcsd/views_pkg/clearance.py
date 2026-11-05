@@ -72,6 +72,7 @@ _FINISHED_STAGE_TONES = {
     'rejected':                    'error',
     'disposal_rejected':           'error',
     'cancelled_admin':             'error',
+    'disposal_request_closed':     'error',
 }
 
 
@@ -263,6 +264,7 @@ def clearance_list(request):
         # The row's date: the permit request's date, or — when the row stands
         # for a disposal request — that disposal request's own date.
         clearance.row_date = clearance.dateOfCreation
+        clearance.disposal_request_closed = False
         if clearance.permit_type == 'waste_disposal':
             latest_waste_request = (
                 latest_active_waste_request_map.get(clearance.id)
@@ -270,6 +272,7 @@ def clearance_list(request):
             )
             if latest_waste_request:
                 clearance.row_date = latest_waste_request.request_date
+                clearance.disposal_request_closed = latest_waste_request.status == 'cancelled_admin'
                 clearance.permit_label_ar = 'طلب التخلص من النفايات'
                 clearance.detail_url = reverse(
                     'waste_disposal_request_detail',
@@ -309,7 +312,10 @@ def clearance_list(request):
             clearance.inspection_duration_hours = hours
             clearance.inspection_duration_display = f'{hours // 24} يوم' if hours >= 24 else f'{hours} ساعة'
         clearance.status_key = clearance.status
-        if clearance.active_waste_request:
+        if clearance.disposal_request_closed:
+            # The row stands for the closed request; the permit stays valid.
+            clearance.status_key = 'disposal_request_closed'
+        elif clearance.active_waste_request:
             wr_status = clearance.active_waste_request.status
             if wr_status == 'payment_pending':
                 clearance.status_key = 'waste_disposal_payment_pending'
@@ -454,6 +460,7 @@ def clearance_list(request):
         'cancelled_admin':                 'ملغى إدارياً',
         'disposal_approved':               'إتلاف معتمد',
         'disposal_rejected':               'إتلاف مرفوض',
+        'disposal_request_closed':         'طلب تخلص مغلق',
     }
     status_section_label_map = {
         'waste_disposal_payment_pending':    'طلبات إتلاف بانتظار الدفع',
@@ -477,6 +484,7 @@ def clearance_list(request):
         'cancelled_admin':                 'طلبات ملغاة إدارياً',
         'disposal_approved':               'طلبات إتلاف معتمدة',
         'disposal_rejected':               'طلبات إتلاف مرفوضة',
+        'disposal_request_closed':         'طلبات تخلص مغلقة',
     }
     active_status_order = [
         'waste_disposal_payment_pending',
@@ -502,6 +510,7 @@ def clearance_list(request):
         'cancelled_admin',
         'disposal_approved',
         'disposal_rejected',
+        'disposal_request_closed',
     ]
     if inspector_scope_only:
         active_status_order = ['inspection_pending', 'inspection_received']

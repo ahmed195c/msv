@@ -2,11 +2,13 @@
   {% include "hcsd/_cl_row_company.html" %}
   <td>
     <span class="cl-status
-      {% if c.status == 'issued' %}st-issued
+      {% if c.disposal_request_closed %}st-error
+      {% elif c.status == 'issued' %}st-issued
       {% elif c.status == 'cancelled_admin' or c.status == 'disposal_rejected' %}st-error
       {% elif c.status == 'disposal_approved' %}st-done
       {% else %}st-waiting{% endif %}">
-      {% if c.status == 'issued' %}تم إصدار التصريح
+      {% if c.disposal_request_closed %}طلب مغلق
+      {% elif c.status == 'issued' %}تم إصدار التصريح
       {% elif c.status == 'cancelled_admin' %}مغلق
       {% elif c.status == 'disposal_approved' %}إتلاف معتمد
       {% elif c.status == 'disposal_rejected' %}إتلاف مرفوض
