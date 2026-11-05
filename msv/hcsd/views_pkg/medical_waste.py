@@ -35,6 +35,7 @@ def _filtered_reports(request):
     """The archive queryset for the request's filters, plus the raw filters."""
     filters = {
         'facility': (request.GET.get('facility') or '').strip(),
+        'license': (request.GET.get('license') or '').strip(),
         'date_from': (request.GET.get('date_from') or '').strip(),
         'date_to': (request.GET.get('date_to') or '').strip(),
         'type': (request.GET.get('type') or '').strip(),
@@ -42,6 +43,8 @@ def _filtered_reports(request):
     reports = MedicalWasteInspection.objects.all()
     if filters['facility']:
         reports = reports.filter(facility_name__icontains=filters['facility'])
+    if filters['license']:
+        reports = reports.filter(license_number__icontains=filters['license'])
     date_from, date_to = _parse_date(filters['date_from']), _parse_date(filters['date_to'])
     if date_from:
         reports = reports.filter(inspection_date__gte=date_from)
