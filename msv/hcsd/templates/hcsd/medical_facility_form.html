@@ -1,0 +1,56 @@
+{% extends "hcsd/medical_waste_base.html" %}
+{% block title %}{% if facility %}تعديل بيانات المنشأة{% else %}إضافة منشأة{% endif %}{% endblock %}
+{% block mw_content %}
+<style>
+.mff-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.mff-field label { display: block; font-size: 12.5px; font-weight: 700; color: var(--ink-2); margin-bottom: 4px; }
+.mff-field input, .mff-field textarea { width: 100%; min-height: 40px; padding: 8px 11px; border: 1.5px solid var(--line); border-radius: 8px; font: inherit; font-size: 13.5px; background: #fff; }
+.mff-field textarea { min-height: 80px; resize: vertical; }
+.mff-wide { grid-column: 1 / -1; }
+.mff-req { color: #b91c1c; }
+.mff-err { font-size: 12px; font-weight: 600; color: #b91c1c; margin-top: 4px; }
+.mff-submit { display: flex; gap: 8px; margin-top: 16px; }
+@media (max-width: 640px) { .mff-grid { grid-template-columns: 1fr; } }
+</style>
+<div class="mw-head">
+  <div>
+    <h1>{% if facility %}تعديل بيانات المنشأة{% else %}إضافة منشأة طبية{% endif %}</h1>
+    <p>{% if facility %}{{ facility.name }}{% else %}تُستخدم هذه البيانات تلقائياً في تقارير التفتيش{% endif %}</p>
+  </div>
+  <a class="mw-btn" href="{% if facility %}{% url 'medical_facility_detail' facility.pk %}{% else %}{% url 'medical_facility_list' %}{% endif %}">← رجوع</a>
+</div>
+{% if facility %}<div class="mw-msg">تعديل البيانات هنا لا يغيّر التقارير المحفوظة سابقاً، ويظهر في التقارير الجديدة وعند تعديل أي تقرير.</div>{% endif %}
+<form method="post" class="mw-card" novalidate>
+  {% csrf_token %}
+  {% for error in form.non_field_errors %}<div class="mff-err">{{ error }}</div>{% endfor %}
+  <div class="mff-grid">
+    <div class="mff-field">
+      <label for="id_name">اسم المنشأة <span class="mff-req">*</span></label>
+      <input id="id_name" type="text" name="name" maxlength="200" value="{{ form.name.value|default_if_none:'' }}">
+      {% for error in form.name.errors %}<div class="mff-err">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="mff-field">
+      <label for="id_license_number">رقم الرخصة</label>
+      <input id="id_license_number" type="text" name="license_number" maxlength="100" value="{{ form.license_number.value|default_if_none:'' }}">
+      {% for error in form.license_number.errors %}<div class="mff-err">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="mff-field">
+      <label for="id_address">العنوان</label>
+      <input id="id_address" type="text" name="address" maxlength="255" value="{{ form.address.value|default_if_none:'' }}">
+      {% for error in form.address.errors %}<div class="mff-err">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="mff-field">
+      <label for="id_phone">رقم الهاتف</label>
+      <input id="id_phone" type="text" name="phone" maxlength="50" dir="ltr" style="text-align:right;" value="{{ form.phone.value|default_if_none:'' }}">
+      {% for error in form.phone.errors %}<div class="mff-err">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="mff-field mff-wide">
+      <label for="id_notes">ملاحظات</label>
+      <textarea id="id_notes" name="notes">{{ form.notes.value|default_if_none:'' }}</textarea>
+    </div>
+  </div>
+  <div class="mff-submit">
+    <button type="submit" class="mw-btn mw-btn--primary">حفظ</button>
+  </div>
+</form>
+{% endblock %}

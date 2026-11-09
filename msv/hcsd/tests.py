@@ -12,13 +12,13 @@ from django.urls import reverse
 from PIL import Image
 
 from .medical_waste_pdf import pdf_filename
+from .models import MedicalFacility as Facility
 from .models import MedicalWasteInspection as Report
 
 
 def _contract_data(**overrides):
     data = {
-        'inspector_name': 'مفتش', 'inspection_date': '2026-11-05', 'facility_name': 'عيادة الاختبار',
-        'license_number': '123', 'address': 'الشارقة', 'phone': '065000000',
+        'inspector_name': 'مفتش', 'inspection_date': '2026-11-05',
         'inspection_type': Report.TYPE_CONTRACT, 'visit_type': Report.VISIT_PERIODIC,
         'point_1': 'yes', 'point_2': 'no', 'point_3': 'yes', 'point_4': 'no',
         'contract_action': Report.ACTION_NOTICE, 'notice_days': '7', 'submit_action': 'save',
@@ -35,6 +35,9 @@ class MedicalWasteBase(TestCase):
         override.enable()
         self.addCleanup(override.disable)
         self.admin = User.objects.create_superuser('mw_admin', password='x')
+        self.facility = Facility.objects.create(
+            name='عيادة الاختبار', license_number='123', address='الشارقة', phone='065000000',
+        )
         self.client.force_login(self.admin)
         # No browser here: the real rendering needs Chrome/Edge on the machine.
         patcher = mock.patch('hcsd.medical_waste_pdf._render_pdf_bytes', return_value=b'%PDF-test')
@@ -43,6 +46,9 @@ class MedicalWasteBase(TestCase):
         browser = mock.patch('hcsd.medical_waste_pdf._find_browser', return_value='browser')
         browser.start()
         self.addCleanup(browser.stop)
+
+    def _data(self, **overrides):
+        return _contract_data(facility=str(self.facility.pk), **overrides)
 
     def _report(self, **overrides):
         fields = {
@@ -55,7 +61,7 @@ class MedicalWasteBase(TestCase):
 
 class MedicalWasteFormTests(MedicalWasteBase):
     def test_contract_report_is_saved_with_pdf(self):
-        response = self.client.post(reverse('medical_waste_create'), _contract_data())
+        response = self.client.post(reverse('medical_waste_create'), self._data())
         report = Report.objects.get()
         self.assertRedirects(response, reverse('medical_waste_detail', args=[report.pk]))
         self.assertEqual(report.created_by, self.admin)
@@ -68,13 +74,13 @@ class MedicalWasteFormTests(MedicalWasteBase):
         self.assertIn('medical_waste/reports/', report.pdf_file.name)
 
     def test_save_and_print_goes_to_autoprint(self):
-        response = self.client.post(reverse('medical_waste_create'), _contract_data(submit_action='save_print'))
+        response = self.client.post(reverse('medical_waste_create'), self._data(submit_action='save_print'))
         report = Report.objects.get()
         self.assertEqual(response.url, f"{reverse('medical_waste_print', args=[report.pk])}?autoprint=1")
         self.assertContains(self.client.get(response.url), 'window.print()')
 
     def test_contract_type_requires_its_fields(self):
-        data = _contract_data(visit_type='', point_3='', contract_action='notice', notice_days='')
+        data = self._data(visit_type='', point_3='', contract_action='notice', notice_days='')
         response = self.client.post(reverse('medical_waste_create'), data)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Report.objects.exists())
@@ -83,7 +89,7 @@ class MedicalWasteFormTests(MedicalWasteBase):
 
     def test_expired_waste_requires_a_waste_type(self):
         response = self.client.post(reverse('medical_waste_create'), {
-            'inspector_name': 'مفتش', 'inspection_date': '2026-11-05', 'facility_name': 'صيدلية',
+            'inspector_name': 'مفتش', 'inspection_date': '2026-11-05', 'facility': self.facility.pk,
             'inspection_type': Report.TYPE_EXPIRED,
         })
         self.assertIn('waste_medicines', response.context['form'].errors)
@@ -94,7 +100,7 @@ class MedicalWasteFormTests(MedicalWasteBase):
             inspection_type=Report.TYPE_CONTRACT, visit_type=Report.VISIT_PERIODIC, point_1=True,
             contract_action=Report.ACTION_COMPLIANT,
         )
-        self.client.post(reverse('medical_waste_edit', args=[report.pk]), _contract_data(
+        self.client.post(reverse('medical_waste_edit', args=[report.pk]), self._data(
             inspection_type=Report.TYPE_EXPIRED, waste_cosmetics='on', estimated_weight='5 كجم',
             letter_action='on', notice_days='abc',
         ))
@@ -106,7 +112,7 @@ class MedicalWasteFormTests(MedicalWasteBase):
     def test_only_writers_can_fill_the_form(self):
         viewer = User.objects.create_user('mw_viewer', password='x')
         self.client.force_login(viewer)
-        self.assertEqual(self.client.post(reverse('medical_waste_create'), _contract_data()).status_code, 403)
+        self.assertEqual(self.client.post(reverse('medical_waste_create'), self._data()).status_code, 403)
         self.assertFalse(Report.objects.exists())
 
     def test_anonymous_is_sent_to_login(self):
@@ -116,7 +122,7 @@ class MedicalWasteFormTests(MedicalWasteBase):
 
     def test_pdf_failure_keeps_the_report_and_says_so(self):
         self.render_pdf.side_effect = OSError('boom')
-        response = self.client.post(reverse('medical_waste_create'), _contract_data(), follow=True)
+        response = self.client.post(reverse('medical_waste_create'), self._data(), follow=True)
         self.assertEqual(Report.objects.get().pdf_file.name, '')
         self.assertContains(response, 'تعذّر إنشاء نسخة PDF')
 
@@ -134,7 +140,7 @@ def _signature_data_url(fmt='PNG', size=(120, 40)):
 
 class MedicalWasteSignatureTests(MedicalWasteBase):
     def _create(self, **fields):
-        self.client.post(reverse('medical_waste_create'), _contract_data(**fields))
+        self.client.post(reverse('medical_waste_create'), self._data(**fields))
         return Report.objects.get()
 
     def test_drawn_signature_is_saved_as_an_image(self):
@@ -153,7 +159,7 @@ class MedicalWasteSignatureTests(MedicalWasteBase):
         )
         for value in bad_values:
             response = self.client.post(
-                reverse('medical_waste_create'), _contract_data(inspector_signature_data=value),
+                reverse('medical_waste_create'), self._data(inspector_signature_data=value),
             )
             self.assertIn('inspector_signature_data', response.context['form'].errors, value[:40])
         self.assertFalse(Report.objects.exists())
@@ -163,17 +169,17 @@ class MedicalWasteSignatureTests(MedicalWasteBase):
         first, storage = report.inspector_signature.name, report.inspector_signature.storage
         url = reverse('medical_waste_edit', args=[report.pk])
 
-        self.client.post(url, _contract_data())
+        self.client.post(url, self._data())
         report.refresh_from_db()
         self.assertEqual(report.inspector_signature.name, first)
 
-        self.client.post(url, _contract_data(inspector_signature_data=_signature_data_url(size=(90, 30))))
+        self.client.post(url, self._data(inspector_signature_data=_signature_data_url(size=(90, 30))))
         report.refresh_from_db()
         second = report.inspector_signature.name
         self.assertNotEqual(second, first)
         self.assertFalse(storage.exists(first))
 
-        self.client.post(url, _contract_data(inspector_signature_clear='1'))
+        self.client.post(url, self._data(inspector_signature_clear='1'))
         report.refresh_from_db()
         self.assertFalse(report.inspector_signature)
         self.assertFalse(storage.exists(second))
@@ -204,6 +210,69 @@ class MedicalWasteArchiveTests(MedicalWasteBase):
     def test_pdf_filename_has_date_facility_and_number(self):
         report = self._report(facility_name='a/b:c')
         self.assertEqual(pdf_filename(report), f'2026-11-05 - abc - تقرير {report.pk}.pdf')
+
+
+class MedicalFacilityTests(MedicalWasteBase):
+    def test_report_takes_the_facility_data(self):
+        self.client.post(reverse('medical_waste_create'), self._data())
+        report = Report.objects.get()
+        self.assertEqual(report.facility, self.facility)
+        self.assertEqual(
+            (report.facility_name, report.license_number, report.address, report.phone),
+            ('عيادة الاختبار', '123', 'الشارقة', '065000000'),
+        )
+
+    def test_report_needs_a_facility(self):
+        response = self.client.post(reverse('medical_waste_create'), _contract_data())
+        self.assertIn('facility', response.context['form'].errors)
+        self.assertFalse(Report.objects.exists())
+
+    def test_new_report_from_a_facility_preselects_it(self):
+        url = f"{reverse('medical_waste_create')}?facility={self.facility.pk}"
+        form = self.client.get(url).context['form']
+        self.assertEqual(form['facility'].value(), self.facility.pk)
+        form = self.client.get(f"{reverse('medical_waste_create')}?facility=abc").context['form']
+        self.assertIsNone(form['facility'].value())
+
+    def test_editing_a_facility_keeps_saved_reports(self):
+        self.client.post(reverse('medical_waste_create'), self._data())
+        self.client.post(reverse('medical_facility_edit', args=[self.facility.pk]), {'name': 'اسم جديد'})
+        self.facility.refresh_from_db()
+        self.assertEqual(self.facility.name, 'اسم جديد')
+        self.assertEqual(Report.objects.get().facility_name, 'عيادة الاختبار')
+
+    def test_create_and_duplicate_license(self):
+        response = self.client.post(reverse('medical_facility_create'), {'name': ' صيدلية ', 'license_number': '77'})
+        created = Facility.objects.get(license_number='77')
+        self.assertRedirects(response, reverse('medical_facility_detail', args=[created.pk]))
+        self.assertEqual(created.name, 'صيدلية')
+        response = self.client.post(reverse('medical_facility_create'), {'name': 'أخرى', 'license_number': '77'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Facility.objects.filter(license_number='77').count(), 1)
+        Facility.objects.create(name='بدون رخصة 1')
+        self.client.post(reverse('medical_facility_create'), {'name': 'بدون رخصة 2'})
+        self.assertEqual(Facility.objects.filter(license_number='').count(), 2)
+
+    def test_list_search_and_detail(self):
+        Facility.objects.create(name='مستشفى النور', license_number='CN-9')
+        page = self.client.get(reverse('medical_facility_list'), {'q': 'CN-9'}).context['page']
+        self.assertEqual([f.name for f in page.object_list], ['مستشفى النور'])
+        self.client.post(reverse('medical_waste_create'), self._data())
+        response = self.client.get(reverse('medical_facility_detail', args=[self.facility.pk]))
+        self.assertEqual(list(response.context['reports']), list(Report.objects.all()))
+
+    def test_delete_only_without_reports_and_by_admin(self):
+        self.client.post(reverse('medical_waste_create'), self._data())
+        self.client.post(reverse('medical_facility_delete', args=[self.facility.pk]))
+        self.assertTrue(Facility.objects.filter(pk=self.facility.pk).exists())
+        empty = Facility.objects.create(name='فارغة')
+        url = reverse('medical_facility_delete', args=[empty.pk])
+        self.client.force_login(User.objects.create_user('mw_viewer', password='x'))
+        self.assertEqual(self.client.post(url).status_code, 403)
+        self.assertEqual(self.client.post(reverse('medical_facility_create'), {'name': 'x'}).status_code, 403)
+        self.client.force_login(self.admin)
+        self.client.post(url)
+        self.assertFalse(Facility.objects.filter(pk=empty.pk).exists())
 
 
 class MedicalWasteReadAccessTests(TestCase):

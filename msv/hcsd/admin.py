@@ -5,6 +5,7 @@ from .models import (
     Enginer,
     FieldWorkOrder, FieldWorkPhoto,
     InspectorReview,
+    MedicalFacility,
     MedicalWasteInspection,
     PirmetClearance,
     PirmetDocument,
@@ -74,6 +75,12 @@ class UserProfileAdmin(admin.ModelAdmin):
     @admin.display(description='البريد الإلكتروني')
     def get_email(self, obj):
         return obj.user.email or '—'
+
+
+@admin.register(MedicalFacility)
+class MedicalFacilityAdmin(admin.ModelAdmin):
+    list_display = ('name', 'license_number', 'phone', 'created_at')
+    search_fields = ('name', 'license_number')
 
 
 @admin.register(MedicalWasteInspection)

@@ -1,0 +1,65 @@
+{% extends "hcsd/medical_waste_base.html" %}
+{% block title %}{{ facility.name }}{% endblock %}
+{% block mw_content %}
+<style>
+.mfd-info { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 16px; }
+.mfd-info span { display: block; font-size: 11.5px; font-weight: 700; color: var(--ink-3); margin-bottom: 2px; }
+.mfd-info strong { font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
+.mfd-notes { grid-column: 1 / -1; white-space: pre-line; }
+@media (max-width: 640px) { .mfd-info { grid-template-columns: 1fr; } }
+</style>
+<div class="mw-head">
+  <div>
+    <h1>{{ facility.name }}</h1>
+    <p>منشأة طبية — {{ reports|length }} تقرير تفتيش</p>
+  </div>
+  <div class="mw-actions">
+    {% if can_write %}
+    <a class="mw-btn mw-btn--primary" href="{% url 'medical_waste_create' %}?facility={{ facility.pk }}">+ تقرير تفتيش جديد</a>
+    <a class="mw-btn" href="{% url 'medical_facility_edit' facility.pk %}">تعديل البيانات</a>
+    {% endif %}
+    {% if can_delete and not reports %}
+    <form method="post" action="{% url 'medical_facility_delete' facility.pk %}" style="margin:0;" data-skip-loader="true" onsubmit="return confirm('حذف المنشأة نهائياً؟');">
+      {% csrf_token %}
+      <button type="submit" class="mw-btn mw-btn--danger">حذف</button>
+    </form>
+    {% endif %}
+    <a class="mw-btn" href="{% url 'medical_facility_list' %}">← المنشآت</a>
+  </div>
+</div>
+
+<div class="mw-card mfd-info">
+  <div><span>رقم الرخصة</span><strong>{{ facility.license_number|default:"—" }}</strong></div>
+  <div><span>العنوان</span><strong>{{ facility.address|default:"—" }}</strong></div>
+  <div><span>رقم الهاتف</span><strong dir="ltr">{{ facility.phone|default:"—" }}</strong></div>
+  {% if facility.notes %}<div class="mfd-notes"><span>ملاحظات</span>{{ facility.notes }}</div>{% endif %}
+</div>
+
+<div class="mw-table-wrap">
+  {% if reports %}
+  <table class="mw-table">
+    <thead><tr><th>الرقم</th><th>التاريخ</th><th>المفتش</th><th>نوع التفتيش</th><th>الإجراءات</th></tr></thead>
+    <tbody>
+      {% for r in reports %}
+      <tr>
+        <td data-label="الرقم" class="mw-no">{{ r.pk }}</td>
+        <td data-label="التاريخ" class="mw-date">{{ r.inspection_date|date:"d/m/Y" }}</td>
+        <td data-label="المفتش">{{ r.inspector_name }}</td>
+        <td data-label="نوع التفتيش">{{ r.get_inspection_type_display }}</td>
+        <td class="mw-td-actions">
+          <div class="mw-row-actions">
+            <a class="mw-btn mw-btn--sm" href="{% url 'medical_waste_detail' r.pk %}">عرض</a>
+            {% if can_write %}<a class="mw-btn mw-btn--sm" href="{% url 'medical_waste_edit' r.pk %}">تعديل</a>{% endif %}
+            <a class="mw-btn mw-btn--sm" href="{% url 'medical_waste_print' r.pk %}?autoprint=1" target="_blank" rel="noopener">طباعة</a>
+            <a class="mw-btn mw-btn--sm" data-skip-loader="true" href="{% url 'medical_waste_pdf' r.pk %}">PDF</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="mw-empty">لا توجد تقارير تفتيش لهذه المنشأة بعد.</div>
+  {% endif %}
+</div>
+{% endblock %}

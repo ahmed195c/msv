@@ -10,7 +10,7 @@
 <div class="mw-head">
   <div>
     <h1>تقرير التفتيش رقم {{ report.pk }}</h1>
-    <p>{{ report.facility_name }}</p>
+    <p>{% if report.facility %}<a href="{% url 'medical_facility_detail' report.facility.pk %}">{{ report.facility_name }}</a>{% else %}{{ report.facility_name }}{% endif %}</p>
   </div>
   <div class="mw-actions">
     {% if can_write %}<a class="mw-btn" href="{% url 'medical_waste_edit' report.pk %}">تعديل</a>{% endif %}

@@ -2134,8 +2134,40 @@ class GardenDailyReport(models.Model):
 MEDICAL_WASTE_MAX_NOTICE_DAYS = 365
 
 
+class MedicalFacility(models.Model):
+    """A medical facility inspected for medical waste; its reports copy its data."""
+
+    name = models.CharField('اسم المنشأة', max_length=200)
+    license_number = models.CharField('رقم الرخصة', max_length=100, blank=True)
+    address = models.CharField('العنوان', max_length=255, blank=True)
+    phone = models.CharField('رقم الهاتف', max_length=50, blank=True)
+    notes = models.TextField('ملاحظات', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='medical_facilities_created', editable=False,
+    )
+
+    class Meta:
+        ordering = ['name', 'id']
+        verbose_name = 'منشأة طبية'
+        verbose_name_plural = 'المنشآت الطبية'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['license_number'], condition=~models.Q(license_number=''),
+                name='medical_facility_unique_license',
+                violation_error_message='توجد منشأة مسجلة بنفس رقم الرخصة.',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.name} ({self.license_number})' if self.license_number else self.name
+
+
 class MedicalWasteInspection(models.Model):
-    """One filled-in "نموذج التفتيش على المنشآت الطبية" report."""
+    """One filled-in "نموذج التفتيش على المنشآت الطبية" report. The facility's
+    data is copied into it on save, so a printed report never changes later."""
 
     TYPE_CONTRACT = 'contract'
     TYPE_EXPIRED = 'expired_waste'
@@ -2182,6 +2214,10 @@ class MedicalWasteInspection(models.Model):
     # Header
     inspector_name = models.CharField('اسم المفتش', max_length=150)
     inspection_date = models.DateField('تاريخ التفتيش')
+    facility = models.ForeignKey(
+        MedicalFacility, on_delete=models.PROTECT, null=True, blank=True,
+        related_name='inspections', verbose_name='المنشأة',
+    )
     facility_name = models.CharField('اسم المنشأة', max_length=200)
     license_number = models.CharField('رقم الرخصة', max_length=100, blank=True)
     address = models.CharField('العنوان', max_length=255, blank=True)
@@ -2240,6 +2276,15 @@ class MedicalWasteInspection(models.Model):
 
     def __str__(self):
         return f'#{self.pk} {self.facility_name} ({self.inspection_date})'
+
+    def copy_facility_data(self):
+        """Take the linked facility's current data into the report's own fields."""
+        if self.facility_id:
+            facility = self.facility
+            self.facility_name = facility.name
+            self.license_number = facility.license_number
+            self.address = facility.address
+            self.phone = facility.phone
 
     @property
     def point_rows(self):

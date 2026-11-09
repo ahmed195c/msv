@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from PIL import Image, UnidentifiedImageError
 
-from .models import MedicalWasteInspection, UserProfile
+from .models import MedicalFacility, MedicalWasteInspection, UserProfile
 
 
 class StaffRegistrationForm(forms.Form):
@@ -113,6 +113,19 @@ class StaffRegistrationForm(forms.Form):
         return user
 
 
+class MedicalFacilityForm(forms.ModelForm):
+    class Meta:
+        model = MedicalFacility
+        fields = ['name', 'license_number', 'address', 'phone', 'notes']
+        error_messages = {'name': {'required': 'يرجى إدخال اسم المنشأة.'}}
+
+    def clean_name(self):
+        return self.cleaned_data['name'].strip()
+
+    def clean_license_number(self):
+        return self.cleaned_data['license_number'].strip()
+
+
 MEDICAL_WASTE_MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 SIGNATURE_DATA_PREFIX = 'data:image/png;base64,'
 SIGNATURE_MAX_DATA_CHARS = 700_000
@@ -189,8 +202,8 @@ class MedicalWasteInspectionForm(forms.ModelForm):
     class Meta:
         model = MedicalWasteInspection
         fields = [
-            'inspector_name', 'inspection_date', 'facility_name', 'license_number', 'address', 'phone',
-            'inspection_type', 'visit_type', 'point_1', 'point_2', 'point_3', 'point_4',
+            'inspector_name', 'inspection_date', 'facility', 'inspection_type',
+            'visit_type', 'point_1', 'point_2', 'point_3', 'point_4',
             'contract_action', 'notice_days', 'waste_medicines', 'waste_cosmetics',
             'waste_lab_chemicals', 'waste_damaged_supplies', 'estimated_weight', 'letter_action',
             'site_report_action', 'notice_attachment',
@@ -198,6 +211,10 @@ class MedicalWasteInspectionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        facility = self.fields['facility']
+        facility.required = True
+        facility.error_messages['required'] = 'يرجى اختيار المنشأة.'
+        facility.error_messages['invalid_choice'] = 'المنشأة المختارة غير موجودة.'
         # Templates compare these as strings, bound or not.
         for name in self.POINT_FIELDS:
             answer = self.initial.get(name)
@@ -265,6 +282,7 @@ class MedicalWasteInspectionForm(forms.ModelForm):
 
     def save(self, commit=True):
         report = super().save(commit=False)
+        report.copy_facility_data()
         for name in self.SIGNATURE_FIELDS:
             png = self.cleaned_data.get(f'{name}_data')
             if png:

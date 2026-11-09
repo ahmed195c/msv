@@ -21,7 +21,7 @@ from ..forms import MedicalWasteInspectionForm
 from ..medical_waste_pdf import (
     FOOTER_IMAGE, HEADER_IMAGE, SHEET_CSS, pdf_filename, save_report_pdf,
 )
-from ..models import MedicalWasteInspection
+from ..models import MedicalFacility, MedicalWasteInspection
 from .common import _can_admin, _can_data_entry, _can_inspector, _display_user_name, _parse_date
 
 ARCHIVE_PAGE_SIZE = 25
@@ -40,7 +40,7 @@ def _filtered_reports(request):
         'date_to': (request.GET.get('date_to') or '').strip(),
         'type': (request.GET.get('type') or '').strip(),
     }
-    reports = MedicalWasteInspection.objects.all()
+    reports = MedicalWasteInspection.objects.select_related('facility')
     if filters['facility']:
         reports = reports.filter(facility_name__icontains=filters['facility'])
     if filters['license']:
@@ -80,6 +80,12 @@ def _delete_replaced_files(old_names, report):
             field.storage.delete(old_name)
 
 
+def _facility_from_query(request):
+    """The facility a new report was started from (?facility=<pk>), if any."""
+    facility_id = request.GET.get('facility') or ''
+    return MedicalFacility.objects.filter(pk=facility_id).first() if facility_id.isdigit() else None
+
+
 def _form_view(request, report):
     is_new = report is None
     if not _can_write(request.user):
@@ -108,6 +114,7 @@ def _form_view(request, report):
             'inspection_date': timezone.localdate().isoformat(),
             'letter_action': True,
             'site_report_action': True,
+            'facility': _facility_from_query(request),
         })
     else:
         form = MedicalWasteInspectionForm(instance=report)
@@ -116,6 +123,7 @@ def _form_view(request, report):
         'report': report,
         'model': MedicalWasteInspection,
         'points': MedicalWasteInspection.INSPECTION_POINTS,
+        'facilities': MedicalFacility.objects.all(),
     })
 
 

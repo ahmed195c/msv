@@ -8,6 +8,12 @@
   width: 100%; min-height: 40px; padding: 8px 11px; border: 1.5px solid var(--line); border-radius: 8px; font: inherit; font-size: 13.5px; background: #fff;
 }
 .mwf-req { color: #b91c1c; }
+.mwf-wide { grid-column: 1 / -1; }
+.mwf-facility-pick { display: flex; gap: 8px; }
+.mwf-facility-pick select { flex: 1; min-width: 0; min-height: 40px; padding: 8px 11px; border: 1.5px solid var(--line); border-radius: 8px; font: inherit; font-size: 13.5px; background: #fff; }
+.mwf-facility { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 10px 14px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; }
+.mwf-facility span { display: block; font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
+.mwf-facility strong { display: block; font-size: 13.5px; color: var(--ink); overflow-wrap: anywhere; }
 .mwf-err { font-size: 12px; font-weight: 600; color: #b91c1c; margin-top: 4px; }
 .mwf-errors { background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 12px 16px; margin-bottom: 14px; color: #991b1b; font-size: 13px; font-weight: 600; }
 .mwf-errors ul { margin: 6px 0 0; padding-inline-start: 18px; }
@@ -32,7 +38,7 @@
 .mwf-pad-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-4); font-size: 14px; pointer-events: none; }
 .mwf-pad-hint[hidden] { display: none; }
 .mwf-pad-reset { margin-top: 6px; }
-@media (max-width: 640px) { .mwf-grid { grid-template-columns: 1fr; } .mwf-submit .mw-btn { flex: 1; } }
+@media (max-width: 640px) { .mwf-grid, .mwf-facility { grid-template-columns: 1fr; } .mwf-facility-pick { flex-direction: column; } .mwf-submit .mw-btn { flex: 1; } }
 </style>
 
 <div class="mw-head">
@@ -60,10 +66,24 @@
     <div class="mwf-grid">
       <div class="mwf-field"><label for="id_inspector_name">اسم المفتش <span class="mwf-req">*</span></label><input id="id_inspector_name" type="text" name="inspector_name" maxlength="150" value="{{ form.inspector_name.value|default_if_none:'' }}"></div>
       <div class="mwf-field"><label for="id_inspection_date">تاريخ التفتيش <span class="mwf-req">*</span></label><input id="id_inspection_date" type="date" name="inspection_date" value="{{ form.inspection_date.value|default_if_none:'' }}"></div>
-      <div class="mwf-field"><label for="id_facility_name">اسم المنشأة <span class="mwf-req">*</span></label><input id="id_facility_name" type="text" name="facility_name" maxlength="200" value="{{ form.facility_name.value|default_if_none:'' }}"></div>
-      <div class="mwf-field"><label for="id_license_number">رقم الرخصة</label><input id="id_license_number" type="text" name="license_number" maxlength="100" value="{{ form.license_number.value|default_if_none:'' }}"></div>
-      <div class="mwf-field"><label for="id_address">العنوان</label><input id="id_address" type="text" name="address" maxlength="255" value="{{ form.address.value|default_if_none:'' }}"></div>
-      <div class="mwf-field"><label for="id_phone">رقم الهاتف</label><input id="id_phone" type="text" name="phone" maxlength="50" dir="ltr" style="text-align:right;" value="{{ form.phone.value|default_if_none:'' }}"></div>
+      <div class="mwf-field mwf-wide">
+        <label for="id_facility">المنشأة <span class="mwf-req">*</span></label>
+        <div class="mwf-facility-pick">
+          <select id="id_facility" name="facility">
+            <option value="">— اختر المنشأة —</option>
+            {% for f in facilities %}
+            <option value="{{ f.pk }}" data-license="{{ f.license_number }}" data-address="{{ f.address }}" data-phone="{{ f.phone }}" {% if form.facility.value|stringformat:'s' == f.pk|stringformat:'s' %}selected{% endif %}>{{ f.name }}{% if f.license_number %} — {{ f.license_number }}{% endif %}</option>
+            {% endfor %}
+          </select>
+          <a class="mw-btn" href="{% url 'medical_facility_create' %}">+ منشأة جديدة</a>
+        </div>
+        {% if not facilities %}<div class="mwf-current">لا توجد منشآت مسجلة بعد، أضف المنشأة أولاً.</div>{% endif %}
+      </div>
+      <div class="mwf-facility mwf-wide" id="mw-facility-info" hidden>
+        <div><span>رقم الرخصة</span><strong data-facility-field="license"></strong></div>
+        <div><span>العنوان</span><strong data-facility-field="address"></strong></div>
+        <div><span>رقم الهاتف</span><strong data-facility-field="phone" dir="ltr"></strong></div>
+      </div>
     </div>
   </div>
 
@@ -159,6 +179,20 @@
 
 <script>
 (function () {
+  // The chosen facility's saved data, shown as it will appear on the report.
+  var facility = document.getElementById('id_facility');
+  var facilityInfo = document.getElementById('mw-facility-info');
+  function syncFacility() {
+    var option = facility.options[facility.selectedIndex];
+    facilityInfo.hidden = !option || !option.value;
+    if (facilityInfo.hidden) return;
+    ['license', 'address', 'phone'].forEach(function (name) {
+      facilityInfo.querySelector('[data-facility-field="' + name + '"]').textContent = option.getAttribute('data-' + name) || '—';
+    });
+  }
+  facility.addEventListener('change', syncFacility);
+  syncFacility();
+
   var radios = document.querySelectorAll('input[name="inspection_type"]');
   var sections = document.querySelectorAll('[data-mw-section]');
   function sync() {

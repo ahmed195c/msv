@@ -1,0 +1,57 @@
+{% extends "hcsd/medical_waste_base.html" %}
+{% block title %}المنشآت الطبية{% endblock %}
+{% block mw_content %}
+<div class="mw-head">
+  <div>
+    <h1>المنشآت الطبية</h1>
+    <p>بيانات المنشآت المسجلة وتقارير التفتيش الخاصة بكل منشأة</p>
+  </div>
+  <div class="mw-actions">
+    {% if can_write %}<a class="mw-btn mw-btn--primary" href="{% url 'medical_facility_create' %}">+ إضافة منشأة</a>{% endif %}
+  </div>
+</div>
+
+<form method="get" class="mw-card mw-filters">
+  <div><label for="mf_q">اسم المنشأة أو رقم الرخصة</label><input id="mf_q" name="q" value="{{ query }}"></div>
+  <div class="mw-actions">
+    <button type="submit" class="mw-btn mw-btn--primary">بحث</button>
+    {% if query %}<a class="mw-btn" href="{% url 'medical_facility_list' %}">مسح</a>{% endif %}
+  </div>
+</form>
+
+<div class="mw-table-wrap">
+  {% if page.object_list %}
+  <table class="mw-table">
+    <thead><tr><th>المنشأة</th><th>رقم الرخصة</th><th>العنوان</th><th>الهاتف</th><th>التقارير</th><th>آخر تفتيش</th><th>الإجراءات</th></tr></thead>
+    <tbody>
+      {% for f in page.object_list %}
+      <tr>
+        <td data-label="المنشأة"><a href="{% url 'medical_facility_detail' f.pk %}"><strong>{{ f.name }}</strong></a></td>
+        <td data-label="رقم الرخصة" class="mw-no">{{ f.license_number|default:"—" }}</td>
+        <td data-label="العنوان">{{ f.address|default:"—" }}</td>
+        <td data-label="الهاتف" class="mw-no" dir="ltr">{{ f.phone|default:"—" }}</td>
+        <td data-label="التقارير" class="mw-no">{{ f.report_count }}</td>
+        <td data-label="آخر تفتيش" class="mw-date">{{ f.last_inspection|date:"d/m/Y"|default:"—" }}</td>
+        <td class="mw-td-actions">
+          <div class="mw-row-actions">
+            <a class="mw-btn mw-btn--sm" href="{% url 'medical_facility_detail' f.pk %}">فتح</a>
+            {% if can_write %}<a class="mw-btn mw-btn--sm mw-btn--primary" href="{% url 'medical_waste_create' %}?facility={{ f.pk }}">تقرير جديد</a>{% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="mw-empty">{% if query %}لا توجد منشآت مطابقة للبحث.{% else %}لا توجد منشآت مسجلة بعد.{% endif %}</div>
+  {% endif %}
+</div>
+
+{% if page.paginator.num_pages > 1 %}
+<div class="mw-pages">
+  {% if page.has_previous %}<a class="mw-btn mw-btn--sm" href="?{% if query %}q={{ query|urlencode }}&{% endif %}page={{ page.previous_page_number }}">السابق</a>{% endif %}
+  <span>صفحة {{ page.number }} من {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a class="mw-btn mw-btn--sm" href="?{% if query %}q={{ query|urlencode }}&{% endif %}page={{ page.next_page_number }}">التالي</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
