@@ -9,8 +9,12 @@
 .mff-wide { grid-column: 1 / -1; }
 .mff-req { color: #b91c1c; }
 .mff-err { font-size: 12px; font-weight: 600; color: #b91c1c; margin-top: 4px; }
+.mff-location { display: flex; gap: 8px; }
+.mff-location input { flex: 1; min-width: 0; }
+.mff-hint { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+.mff-hint--error { color: #b91c1c; font-weight: 600; }
 .mff-submit { display: flex; gap: 8px; margin-top: 16px; }
-@media (max-width: 640px) { .mff-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .mff-grid { grid-template-columns: 1fr; } .mff-location { flex-wrap: wrap; } .mff-location input { flex-basis: 100%; } }
 </style>
 <div class="mw-head">
   <div>
@@ -45,6 +49,16 @@
       {% for error in form.phone.errors %}<div class="mff-err">{{ error }}</div>{% endfor %}
     </div>
     <div class="mff-field mff-wide">
+      <label for="id_google_maps_url">الموقع (رابط خرائط قوقل)</label>
+      <div class="mff-location">
+        <input id="id_google_maps_url" type="url" name="google_maps_url" maxlength="500" dir="ltr" placeholder="https://maps.app.goo.gl/..." value="{{ form.google_maps_url.value|default_if_none:'' }}">
+        <button type="button" class="mw-btn" id="mff-locate">📍 موقعي الحالي</button>
+        <a class="mw-btn" id="mff-open-map" href="#" target="_blank" rel="noopener noreferrer" hidden>فتح</a>
+      </div>
+      <div class="mff-hint" id="mff-locate-msg">انسخ رابط المنشأة من تطبيق خرائط قوقل (مشاركة ← نسخ الرابط) والصقه هنا، أو اضغط "موقعي الحالي" وأنت داخل المنشأة.</div>
+      {% for error in form.google_maps_url.errors %}<div class="mff-err">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="mff-field mff-wide">
       <label for="id_notes">ملاحظات</label>
       <textarea id="id_notes" name="notes">{{ form.notes.value|default_if_none:'' }}</textarea>
     </div>
@@ -53,4 +67,38 @@
     <button type="submit" class="mw-btn mw-btn--primary">حفظ</button>
   </div>
 </form>
+<script>
+(function () {
+  var url = document.getElementById('id_google_maps_url');
+  var open = document.getElementById('mff-open-map');
+  var locate = document.getElementById('mff-locate');
+  var msg = document.getElementById('mff-locate-msg');
+  function syncOpen() {
+    var value = url.value.trim();
+    open.hidden = !/^https?:\/\//i.test(value);
+    open.href = open.hidden ? '#' : value;
+  }
+  function say(text, isError) {
+    msg.textContent = text;
+    msg.classList.toggle('mff-hint--error', !!isError);
+  }
+  url.addEventListener('input', syncOpen);
+  syncOpen();
+  locate.addEventListener('click', function () {
+    if (!navigator.geolocation) { say('المتصفح لا يدعم تحديد الموقع.', true); return; }
+    locate.disabled = true;
+    say('جارٍ تحديد الموقع...');
+    navigator.geolocation.getCurrentPosition(function (position) {
+      var lat = position.coords.latitude.toFixed(6), lng = position.coords.longitude.toFixed(6);
+      url.value = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+      syncOpen();
+      locate.disabled = false;
+      say('تم تحديد الموقع (دقة تقريبية ' + Math.round(position.coords.accuracy) + ' متر). اضغط "فتح" للتأكد منه ثم احفظ.');
+    }, function () {
+      locate.disabled = false;
+      say('تعذّر تحديد الموقع. تأكد من السماح للمتصفح بالوصول إلى الموقع، أو الصق الرابط يدوياً.', true);
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  });
+})();
+</script>
 {% endblock %}

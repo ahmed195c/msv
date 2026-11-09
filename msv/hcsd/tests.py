@@ -261,6 +261,17 @@ class MedicalFacilityTests(MedicalWasteBase):
         response = self.client.get(reverse('medical_facility_detail', args=[self.facility.pk]))
         self.assertEqual(list(response.context['reports']), list(Report.objects.all()))
 
+    def test_location_accepts_only_google_maps_links(self):
+        url = reverse('medical_facility_edit', args=[self.facility.pk])
+        for link in ('https://evil.com/maps', 'https://google.evil.com/maps', 'javascript:alert(1)'):
+            response = self.client.post(url, {'name': 'عيادة', 'google_maps_url': link})
+            self.assertIn('google_maps_url', response.context['form'].errors, link)
+        link = 'https://maps.app.goo.gl/AbC123'
+        self.client.post(url, {'name': 'عيادة', 'google_maps_url': link})
+        self.facility.refresh_from_db()
+        self.assertEqual(self.facility.google_maps_url, link)
+        self.assertContains(self.client.get(reverse('medical_facility_detail', args=[self.facility.pk])), link)
+
     def test_delete_only_without_reports_and_by_admin(self):
         self.client.post(reverse('medical_waste_create'), self._data())
         self.client.post(reverse('medical_facility_delete', args=[self.facility.pk]))

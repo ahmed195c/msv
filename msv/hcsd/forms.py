@@ -1,7 +1,9 @@
 import base64
 import binascii
 import io
+import re
 import uuid
+from urllib.parse import urlsplit
 
 from django import forms
 from django.contrib.auth.models import User
@@ -113,17 +115,44 @@ class StaffRegistrationForm(forms.Form):
         return user
 
 
+# google.com, google.ae, google.co.uk... with or without the maps. subdomain.
+_GOOGLE_HOST = re.compile(r'^(maps\.)?google\.(com|[a-z]{2}|com?\.[a-z]{2})$')
+
+
+def _is_google_maps_url(url):
+    """Whether a link points to Google Maps, including its short share links."""
+    parts = urlsplit(url)
+    host = (parts.hostname or '').lower().removeprefix('www.')
+    if parts.scheme not in ('http', 'https'):
+        return False
+    if host == 'maps.app.goo.gl':
+        return True
+    if host == 'goo.gl':
+        return parts.path.startswith('/maps')
+    match = _GOOGLE_HOST.match(host)
+    return bool(match) and (bool(match.group(1)) or parts.path.startswith('/maps'))
+
+
 class MedicalFacilityForm(forms.ModelForm):
     class Meta:
         model = MedicalFacility
-        fields = ['name', 'license_number', 'address', 'phone', 'notes']
-        error_messages = {'name': {'required': 'يرجى إدخال اسم المنشأة.'}}
+        fields = ['name', 'license_number', 'address', 'phone', 'google_maps_url', 'notes']
+        error_messages = {
+            'name': {'required': 'يرجى إدخال اسم المنشأة.'},
+            'google_maps_url': {'invalid': 'يرجى إدخال رابط صحيح من خرائط قوقل.'},
+        }
 
     def clean_name(self):
         return self.cleaned_data['name'].strip()
 
     def clean_license_number(self):
         return self.cleaned_data['license_number'].strip()
+
+    def clean_google_maps_url(self):
+        url = self.cleaned_data['google_maps_url']
+        if url and not _is_google_maps_url(url):
+            raise ValidationError('يرجى إدخال رابط من خرائط قوقل فقط.')
+        return url
 
 
 MEDICAL_WASTE_MAX_UPLOAD_BYTES = 10 * 1024 * 1024

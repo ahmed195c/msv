@@ -35,6 +35,7 @@
         <td class="mw-td-actions">
           <div class="mw-row-actions">
             <a class="mw-btn mw-btn--sm" href="{% url 'medical_facility_detail' f.pk %}">فتح</a>
+            {% if f.google_maps_url %}<a class="mw-btn mw-btn--sm" href="{{ f.google_maps_url }}" target="_blank" rel="noopener noreferrer">📍 الموقع</a>{% endif %}
             {% if can_write %}<a class="mw-btn mw-btn--sm mw-btn--primary" href="{% url 'medical_waste_create' %}?facility={{ f.pk }}">تقرير جديد</a>{% endif %}
           </div>
         </td>
