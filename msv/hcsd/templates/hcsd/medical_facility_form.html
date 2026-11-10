@@ -8,6 +8,7 @@
 .mff-field textarea { min-height: 80px; resize: vertical; }
 .mff-wide { grid-column: 1 / -1; }
 .mff-req { color: #b91c1c; }
+.mff-optional { font-weight: 400; color: var(--ink-3); }
 .mff-err { font-size: 12px; font-weight: 600; color: #b91c1c; margin-top: 4px; }
 .mff-location { display: flex; gap: 8px; }
 .mff-location input { flex: 1; min-width: 0; }
@@ -47,6 +48,11 @@
       <label for="id_phone">رقم الهاتف</label>
       <input id="id_phone" type="text" name="phone" maxlength="50" dir="ltr" style="text-align:right;" value="{{ form.phone.value|default_if_none:'' }}">
       {% for error in form.phone.errors %}<div class="mff-err">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="mff-field">
+      <label for="id_email">البريد الإلكتروني <span class="mff-optional">(اختياري)</span></label>
+      <input id="id_email" type="email" name="email" maxlength="254" dir="ltr" style="text-align:right;" placeholder="name@example.com" value="{{ form.email.value|default_if_none:'' }}">
+      {% for error in form.email.errors %}<div class="mff-err">{{ error }}</div>{% endfor %}
     </div>
     <div class="mff-field mff-wide">
       <label for="id_google_maps_url">الموقع (رابط خرائط قوقل)</label>

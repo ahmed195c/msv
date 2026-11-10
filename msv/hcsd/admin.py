@@ -80,7 +80,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 @admin.register(MedicalFacility)
 class MedicalFacilityAdmin(admin.ModelAdmin):
     list_display = ('name', 'license_number', 'phone', 'created_at')
-    search_fields = ('name', 'license_number')
+    search_fields = ('name', 'license_number', 'email')
 
 
 @admin.register(MedicalWasteInspection)

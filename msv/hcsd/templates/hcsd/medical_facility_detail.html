@@ -32,6 +32,7 @@
   <div><span>رقم الرخصة</span><strong>{{ facility.license_number|default:"—" }}</strong></div>
   <div><span>العنوان</span><strong>{{ facility.address|default:"—" }}</strong></div>
   <div><span>رقم الهاتف</span><strong dir="ltr">{{ facility.phone|default:"—" }}</strong></div>
+  <div><span>البريد الإلكتروني</span>{% if facility.email %}<a href="mailto:{{ facility.email }}" dir="ltr"><strong>{{ facility.email }}</strong></a>{% else %}<strong>—</strong>{% endif %}</div>
   <div><span>الموقع</span>{% if facility.google_maps_url %}<a class="mw-btn mw-btn--sm" href="{{ facility.google_maps_url }}" target="_blank" rel="noopener noreferrer">📍 فتح في خرائط قوقل</a>{% else %}<strong>—</strong>{% endif %}</div>
   {% if facility.notes %}<div class="mfd-notes"><span>ملاحظات</span>{{ facility.notes }}</div>{% endif %}
 </div>

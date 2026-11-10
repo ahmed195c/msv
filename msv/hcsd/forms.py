@@ -136,9 +136,10 @@ def _is_google_maps_url(url):
 class MedicalFacilityForm(forms.ModelForm):
     class Meta:
         model = MedicalFacility
-        fields = ['name', 'license_number', 'address', 'phone', 'google_maps_url', 'notes']
+        fields = ['name', 'license_number', 'address', 'phone', 'email', 'google_maps_url', 'notes']
         error_messages = {
             'name': {'required': 'يرجى إدخال اسم المنشأة.'},
+            'email': {'invalid': 'يرجى إدخال بريد إلكتروني صحيح.'},
             'google_maps_url': {'invalid': 'يرجى إدخال رابط صحيح من خرائط قوقل.'},
         }
 
@@ -147,6 +148,9 @@ class MedicalFacilityForm(forms.ModelForm):
 
     def clean_license_number(self):
         return self.cleaned_data['license_number'].strip()
+
+    def clean_email(self):
+        return self.cleaned_data['email'].strip().lower()
 
     def clean_google_maps_url(self):
         url = self.cleaned_data['google_maps_url']

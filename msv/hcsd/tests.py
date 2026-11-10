@@ -272,6 +272,17 @@ class MedicalFacilityTests(MedicalWasteBase):
         self.assertEqual(self.facility.google_maps_url, link)
         self.assertContains(self.client.get(reverse('medical_facility_detail', args=[self.facility.pk])), link)
 
+    def test_email_is_optional_and_checked(self):
+        url = reverse('medical_facility_edit', args=[self.facility.pk])
+        response = self.client.post(url, {'name': 'عيادة', 'email': 'not-an-email'})
+        self.assertIn('email', response.context['form'].errors)
+        self.client.post(url, {'name': 'عيادة', 'email': ' Clinic@Example.com '})
+        self.facility.refresh_from_db()
+        self.assertEqual(self.facility.email, 'clinic@example.com')
+        self.client.post(url, {'name': 'عيادة'})
+        self.facility.refresh_from_db()
+        self.assertEqual(self.facility.email, '')
+
     def test_delete_only_without_reports_and_by_admin(self):
         self.client.post(reverse('medical_waste_create'), self._data())
         self.client.post(reverse('medical_facility_delete', args=[self.facility.pk]))

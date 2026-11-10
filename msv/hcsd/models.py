@@ -2141,6 +2141,7 @@ class MedicalFacility(models.Model):
     license_number = models.CharField('رقم الرخصة', max_length=100, blank=True)
     address = models.CharField('العنوان', max_length=255, blank=True)
     phone = models.CharField('رقم الهاتف', max_length=50, blank=True)
+    email = models.EmailField('البريد الإلكتروني', max_length=254, blank=True)
     google_maps_url = models.URLField('رابط الموقع على خرائط قوقل', max_length=500, blank=True)
     notes = models.TextField('ملاحظات', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
