@@ -1,6 +1,41 @@
 {% extends "hcsd/medical_waste_base.html" %}
 {% block title %}المنشآت الطبية{% endblock %}
 {% block mw_content %}
+<style>
+.mfl-search { display: flex; gap: 8px; align-items: center; padding: 12px; }
+.mfl-search-box { position: relative; flex: 1; min-width: 0; }
+.mfl-search-box svg { position: absolute; inset-inline-start: 12px; top: 50%; width: 17px; height: 17px; transform: translateY(-50%); color: var(--ink-4); pointer-events: none; }
+.mfl-search-box input { width: 100%; min-height: 42px; padding: 8px 40px 8px 12px; border: 1.5px solid var(--line); border-radius: 10px; font: inherit; font-size: 14px; background: #fff; }
+.mfl-search-box input:focus { outline: none; border-color: var(--accent); }
+.mfl-count { font-size: 12.5px; font-weight: 700; color: var(--ink-3); margin: 0 4px 8px; }
+@media (min-width: 761px) { .mfl-table td { padding-top: 12px; padding-bottom: 12px; } }
+.mfl-name { font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; }
+.mfl-name:hover { color: var(--accent); text-decoration: underline; }
+.mfl-sub { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); }
+.mfl-license { display: inline-block; padding: 3px 8px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+.mfl-contact { font-size: 12.5px; line-height: 1.6; }
+.mfl-contact span { display: block; direction: ltr; text-align: right; }
+.mfl-muted { color: var(--ink-4); }
+.mfl-reports { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 24px; padding: 0 8px; border-radius: 999px; background: var(--accent-bg); color: var(--accent-dk); font-family: var(--mono); font-size: 12px; font-weight: 700; }
+.mfl-reports--zero { background: var(--surface); color: var(--ink-4); }
+.mfl-col-num, .mfl-col-date { text-align: center !important; }
+.mfl-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: nowrap; }
+.mfl-icon { width: 32px; padding: 5px 0; }
+.mfl-icon svg { width: 15px; height: 15px; }
+.mfl-icon--off { visibility: hidden; }
+@media (max-width: 760px) {
+  .mfl-table td.mfl-cell-name { padding-bottom: 6px; }
+  .mfl-table td.mfl-cell-name::before { display: none; }
+  .mfl-table td.mfl-cell-inline { display: inline-block; width: auto; margin-inline-end: 14px; }
+  .mfl-col-num, .mfl-col-date { text-align: start !important; }
+  .mfl-contact span { display: inline; }
+  .mfl-contact span + span::before { content: ' · '; }
+  .mfl-table td.mfl-contact--empty { display: none; }
+  .mfl-actions { justify-content: flex-start; }
+  .mfl-icon--off { display: none; }
+}
+</style>
+
 <div class="mw-head">
   <div>
     <h1>المنشآت الطبية</h1>
@@ -11,32 +46,46 @@
   </div>
 </div>
 
-<form method="get" class="mw-card mw-filters">
-  <div><label for="mf_q">اسم المنشأة أو رقم الرخصة</label><input id="mf_q" name="q" value="{{ query }}"></div>
-  <div class="mw-actions">
-    <button type="submit" class="mw-btn mw-btn--primary">بحث</button>
-    {% if query %}<a class="mw-btn" href="{% url 'medical_facility_list' %}">مسح</a>{% endif %}
+<form method="get" class="mw-card mfl-search" role="search">
+  <div class="mfl-search-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input name="q" value="{{ query }}" placeholder="ابحث باسم المنشأة أو رقم الرخصة" aria-label="ابحث باسم المنشأة أو رقم الرخصة">
   </div>
+  <button type="submit" class="mw-btn mw-btn--primary">بحث</button>
+  {% if query %}<a class="mw-btn" href="{% url 'medical_facility_list' %}">مسح</a>{% endif %}
 </form>
+
+<div class="mfl-count">{% if query %}نتائج البحث: {% endif %}{{ page.paginator.count }} منشأة</div>
 
 <div class="mw-table-wrap">
   {% if page.object_list %}
-  <table class="mw-table">
-    <thead><tr><th>المنشأة</th><th>رقم الرخصة</th><th>العنوان</th><th>الهاتف</th><th>التقارير</th><th>آخر تفتيش</th><th>الإجراءات</th></tr></thead>
+  <table class="mw-table mfl-table">
+    <thead><tr><th>المنشأة</th><th>رقم الرخصة</th><th>التواصل</th><th class="mfl-col-num">التقارير</th><th class="mfl-col-date">آخر تفتيش</th><th></th></tr></thead>
     <tbody>
       {% for f in page.object_list %}
       <tr>
-        <td data-label="المنشأة"><a href="{% url 'medical_facility_detail' f.pk %}"><strong>{{ f.name }}</strong></a></td>
-        <td data-label="رقم الرخصة" class="mw-no">{{ f.license_number|default:"—" }}</td>
-        <td data-label="العنوان">{{ f.address|default:"—" }}</td>
-        <td data-label="الهاتف" class="mw-no" dir="ltr">{{ f.phone|default:"—" }}</td>
-        <td data-label="التقارير" class="mw-no">{{ f.report_count }}</td>
-        <td data-label="آخر تفتيش" class="mw-date">{{ f.last_inspection|date:"d/m/Y"|default:"—" }}</td>
+        <td data-label="المنشأة" class="mfl-cell-name">
+          <a class="mfl-name" href="{% url 'medical_facility_detail' f.pk %}">{{ f.name }}</a>
+          {% if f.address %}<span class="mfl-sub">{{ f.address }}</span>{% endif %}
+        </td>
+        <td data-label="رقم الرخصة" class="mfl-cell-inline">{% if f.license_number %}<span class="mfl-license">{{ f.license_number }}</span>{% else %}<span class="mfl-muted">—</span>{% endif %}</td>
+        <td data-label="التواصل" class="mfl-contact{% if not f.phone and not f.email %} mfl-contact--empty{% endif %}">
+          {% if f.phone or f.email %}
+            {% if f.phone %}<span>{{ f.phone }}</span>{% endif %}
+            {% if f.email %}<span class="mfl-sub">{{ f.email }}</span>{% endif %}
+          {% else %}<span class="mfl-muted">—</span>{% endif %}
+        </td>
+        <td data-label="التقارير" class="mfl-col-num mfl-cell-inline"><span class="mfl-reports{% if not f.report_count %} mfl-reports--zero{% endif %}">{{ f.report_count }}</span></td>
+        <td data-label="آخر تفتيش" class="mw-date mfl-col-date mfl-cell-inline">{{ f.last_inspection|date:"d/m/Y"|default:"—" }}</td>
         <td class="mw-td-actions">
-          <div class="mw-row-actions">
+          <div class="mfl-actions">
+            {% if f.google_maps_url %}
+            <a class="mw-btn mw-btn--sm mfl-icon" href="{{ f.google_maps_url }}" target="_blank" rel="noopener noreferrer" title="فتح الموقع في خرائط قوقل" aria-label="الموقع">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </a>
+            {% else %}<span class="mw-btn mw-btn--sm mfl-icon mfl-icon--off" aria-hidden="true"></span>{% endif %}
             <a class="mw-btn mw-btn--sm" href="{% url 'medical_facility_detail' f.pk %}">فتح</a>
-            {% if f.google_maps_url %}<a class="mw-btn mw-btn--sm" href="{{ f.google_maps_url }}" target="_blank" rel="noopener noreferrer">📍 الموقع</a>{% endif %}
-            {% if can_write %}<a class="mw-btn mw-btn--sm mw-btn--primary" href="{% url 'medical_waste_create' %}?facility={{ f.pk }}">تقرير جديد</a>{% endif %}
+            {% if can_write %}<a class="mw-btn mw-btn--sm mw-btn--primary" href="{% url 'medical_waste_create' %}?facility={{ f.pk }}">+ تقرير</a>{% endif %}
           </div>
         </td>
       </tr>
