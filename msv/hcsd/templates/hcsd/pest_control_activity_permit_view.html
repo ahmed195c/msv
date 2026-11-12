@@ -3,322 +3,236 @@
 {% block title %}عرض تصريح النشاط{% endblock %}
 {% block extra_css %}
 <style>
+  /* Same look as the request page (pest_control_activity_permit_detail.html). */
   .permit-page {
     --pd-ink: #304357;
-    --pd-ink-2: #455c75;
     --pd-ink-3: #6f8297;
-    --pd-paper: #ffffff;
     --pd-surface: #f1f4f7;
     --pd-surface-2: #e8eef4;
     --pd-line: #d4dce5;
     --pd-line-2: #bcc8d5;
-    --pd-accent: #304357;
-    --pd-accent-dark: #26384a;
-    --pd-radius: 8px;
-    --pd-shadow: 0 10px 24px rgba(48,67,87,0.08);
-    padding: 20px 10px 36px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
-    direction: rtl;
-  }
-
-  .permit-card {
+    --pd-accent: #0e7490;
+    --pd-accent-dark: #0b5568;
     max-width: 1000px;
     margin: 0 auto;
-    background: var(--pd-paper);
-    border: 1.5px solid var(--pd-line);
-    border-radius: var(--pd-radius);
-    box-shadow: var(--pd-shadow);
-    padding: 18px;
-    color: var(--pd-ink);
-    font-family: "IBM Plex Sans Arabic", "Tahoma", sans-serif;
-  }
-
-  .hero-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    padding: 14px 18px;
-    background: linear-gradient(160deg, #3a4f66 0%, #304357 55%, #26384a 100%);
-    border-radius: 6px 6px 0 0;
-    margin: -18px -18px 18px;
-    color: #fff;
-  }
-
-  .hero-title {
-    font-size: clamp(14px, 1.8vw, 18px);
-    font-weight: 800;
-    flex: 1;
-    text-align: center;
-  }
-
-  .hero-btn {
-    color: #c8d8e8;
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    border: 1.5px solid rgba(255,255,255,0.25);
-    border-radius: 6px;
-    padding: 6px 12px;
-    white-space: nowrap;
-    transition: background .15s;
-  }
-
-  .hero-btn:hover { background: rgba(255,255,255,0.1); }
-
-  .meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 18px;
-  }
-
-  .meta-item {
-    display: grid;
-    gap: 4px;
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    background: var(--pd-surface);
-    padding: 9px 12px;
-    min-width: 160px;
-  }
-
-  .meta-item .label {
-    font-size: 11px;
-    color: var(--pd-ink-3);
-    font-weight: 700;
-  }
-
-  .meta-item .value {
-    font-size: 14px;
-    font-weight: 800;
+    padding: 20px 10px 36px;
+    direction: rtl;
     color: var(--pd-ink);
   }
+  .action-bar {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; padding: 12px 18px; background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.10), 0 0 0 1px rgba(48,67,87,0.08);
+  }
+  .action-bar__buttons { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .back-link, .print-button {
+    display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; border-radius: 6px;
+    font-size: 13px; font-weight: 700; font-family: inherit; line-height: 1; text-decoration: none;
+    border: 1.5px solid var(--pd-line-2); background: var(--pd-surface); color: var(--pd-ink);
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .back-link:hover { background: var(--pd-surface-2); border-color: var(--pd-ink-3); }
+  .print-button { background: var(--pd-accent); border-color: var(--pd-accent); color: #fff; }
+  .print-button:hover { background: var(--pd-accent-dark); border-color: var(--pd-accent-dark); }
+  .municipality { display: flex; align-items: center; gap: 10px; }
+  .logo-box { width: 64px; height: 64px; flex-shrink: 0; }
+  .logo-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .municipality-text .title { font-size: 17px; font-weight: 800; margin-bottom: 2px; }
+  .municipality-text .sub { font-size: 12px; color: var(--pd-ink-3); font-weight: 600; line-height: 1.5; }
 
-  .permit-section {
-    margin-top: 14px;
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    background: #fff;
-    padding: 12px;
+  .doc-card {
+    margin-top: 14px; background: #fff; border-radius: 6px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(48,67,87,0.10), 0 0 0 1px rgba(48,67,87,0.08);
+  }
+  .doc-band {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 18px 12px; border-bottom: 1.5px solid var(--pd-line);
+  }
+  .doc-band:last-child { border-bottom: none; }
+  .doc-band-title { font-size: 17px; font-weight: 800; line-height: 1.3; }
+  .doc-band-title--main { font-size: clamp(16px, 2vw, 20px); }
+  .doc-band-ref { display: flex; flex-direction: column; align-items: flex-start; flex-shrink: 0; gap: 2px; }
+  .doc-band-ref-label { font-size: 10.5px; color: var(--pd-ink-3); font-weight: 600; }
+  .doc-band-ref-no { font-size: 22px; font-weight: 800; color: var(--pd-accent); font-family: "JetBrains Mono", "Courier New", monospace; line-height: 1; }
+
+  .detail-item { display: flex; align-items: flex-start; padding: 10px 18px; border-bottom: 1px solid #eef1f5; }
+  .detail-item:last-child { border-bottom: none; }
+  .detail-item:nth-child(even) { background: #fafbfc; }
+  .detail-item .label { width: 36%; flex-shrink: 0; font-size: 12.5px; color: var(--pd-ink-3); font-weight: 600; line-height: 1.5; }
+  .detail-item .value { flex: 1; font-size: 13.5px; font-weight: 700; line-height: 1.5; word-break: break-word; font-variant-numeric: tabular-nums; }
+  .detail-item .value a { color: var(--pd-accent); text-decoration: underline; text-underline-offset: 3px; }
+  .doc-divider {
+    padding: 7px 18px 6px; background: var(--pd-surface); border-top: 1.5px solid var(--pd-line);
+    border-bottom: 1px solid var(--pd-line); font-size: 11px; font-weight: 700; color: var(--pd-ink-3);
   }
 
-  .section-title {
-    display: inline-flex;
-    align-items: center;
-    padding: 5px 10px;
-    border-radius: 6px;
-    background: var(--pd-accent);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 800;
-    margin-bottom: 12px;
+  .activities { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .activities__col { padding: 12px 18px 14px; }
+  .activities__col + .activities__col { border-inline-start: 1px solid #eef1f5; }
+  .activities__head { font-size: 12.5px; font-weight: 700; color: var(--pd-ink-3); margin-bottom: 8px; }
+  .activity-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .activity-list li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; }
+  .activity-list li::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--pd-line-2);
   }
+  .activity-list--allowed li::before { background: #15803d; }
+  .activity-list--restricted li::before { background: #b91c1c; }
+  .activity-list li.is-empty { color: var(--pd-ink-3); font-weight: 600; }
+  .activity-list li.is-empty::before { display: none; }
 
-  .detail-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 10px;
-  }
-
-  .detail-item {
-    display: grid;
-    gap: 5px;
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    background: var(--pd-surface);
-    padding: 9px 10px;
-  }
-
-  .detail-item .label { font-size: 11px; color: var(--pd-ink-3); font-weight: 700; }
-  .detail-item .value { font-size: 14px; font-weight: 700; color: var(--pd-ink); word-break: break-word; }
-
-  .activity-list {
-    padding-inline-start: 20px;
-    line-height: 2;
-    font-size: 13.5px;
-    color: var(--pd-ink);
-    font-weight: 600;
+  @media (max-width: 640px) {
+    .permit-page { padding: 8px 4px 24px; }
+    .action-bar { padding: 10px 12px; }
+    .back-link, .print-button { font-size: 12px; padding: 6px 10px; }
+    .logo-box { width: 40px; height: 40px; }
+    .municipality-text .title { font-size: 13px; }
+    .municipality-text .sub { font-size: 11px; }
+    .doc-band { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .doc-band-ref-no { font-size: 18px; }
+    .detail-item { padding: 9px 12px; }
+    .detail-item .label { width: 42%; font-size: 11.5px; padding-inline-end: 8px; }
+    .detail-item .value { font-size: 13px; }
+    .activities { grid-template-columns: 1fr; }
+    .activities__col + .activities__col { border-inline-start: none; border-top: 1px solid #eef1f5; }
   }
 </style>
 {% endblock %}
 {% block content %}
 <section class="permit-page" lang="ar" dir="rtl">
-  <div class="permit-card">
 
-    <div class="hero-bar no-print">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="{% url 'company_detail' pirmet.company.id %}" class="hero-btn">← العودة إلى الشركة</a>
-        <a href="{% url 'pest_control_permit_print' pirmet.id %}" target="_blank" class="hero-btn" style="background:rgba(255,255,255,0.15);">طباعة التصريح</a>
-      </div>
-      <span class="hero-title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</span>
+  <div class="action-bar no-print">
+    <div class="action-bar__buttons">
+      <a class="back-link" href="{% url 'company_detail' pirmet.company.id %}">العودة إلى الشركة</a>
+      <a class="back-link" href="{{ permit_detail_path }}">تفاصيل الطلب</a>
+      <a class="print-button" href="{% url 'pest_control_permit_print' pirmet.id %}" target="_blank" rel="noopener">طباعة التصريح</a>
     </div>
-
-    <div class="meta-row">
-      <div class="meta-item">
-        <span class="label">رقم التصريح</span>
-        <span class="value">{{ pirmet.permit_no|default:"-" }}</span>
-      </div>
-      <div class="meta-item">
-        <span class="label">تاريخ الإصدار</span>
-        <span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span>
-      </div>
-      <div class="meta-item">
-        <span class="label">تاريخ الانتهاء</span>
-        <span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span>
+    <div class="municipality">
+      <div class="logo-box"><img src="{% static 'hcsd/shjmun-logo-website.png' %}" alt="شعار بلدية الشارقة"></div>
+      <div class="municipality-text">
+        <div class="title">بلدية مدينة الشارقة</div>
+        <div class="sub">إدارة الرقابة والسلامة الصحية</div>
+        <div class="sub">قسم رقابة وتنظيم النفايات</div>
       </div>
     </div>
-
-    <section class="permit-section">
-      <div class="section-title">بيانات الشركة</div>
-      <div class="detail-grid">
-        <div class="detail-item">
-          <span class="label">اسم الشركة</span>
-          <span class="value">{{ pirmet.company.name|default:"-" }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">رقم الرخصة التجارية</span>
-          <span class="value">{{ pirmet.company.number|default:"-" }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">عنوان الشركة</span>
-          <span class="value">{{ pirmet.company.address|default:"-" }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">البريد الإلكتروني</span>
-          <span class="value">{{ pirmet.company.email|default:"-" }}</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="permit-section">
-      <div class="section-title">بيانات المهندس</div>
-      <div class="detail-grid">
-        {% if pirmet.company.enginer %}
-          <div class="detail-item">
-            <span class="label">اسم المهندس</span>
-            <span class="value">{{ pirmet.company.enginer.name }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">رقم الهاتف المتحرك</span>
-            <span class="value">{{ pirmet.company.enginer.phone }}</span>
-          </div>
-        {% else %}
-          <div class="detail-item">
-            <span class="label">بيانات المهندس</span>
-            <span class="value">-</span>
-          </div>
-        {% endif %}
-      </div>
-    </section>
-
-    <section class="permit-section">
-      <div class="section-title">الأنشطة المصرح بها</div>
-      <ul class="activity-list">
-        {% if allowed_activities %}
-          {% for item in allowed_activities %}
-            <li>
-              {% if item == "public_health_pest_control" %}مكافحة آفات الصحة العامة
-              {% elif item == "flying_insects" %}مكافحة الحشرات الطائرة
-              {% elif item == "rodents" %}مكافحة القوارض
-              {% elif item == "termite_control" %}مكافحة النمل الأبيض
-              {% elif item == "grain_pests" %}مكافحة آفات الحبوب
-              {% else %}{{ item }}{% endif %}
-            </li>
-          {% endfor %}
-        {% else %}
-          <li>لا توجد بيانات.</li>
-        {% endif %}
-        {% if pirmet.allowed_other %}
-          <li>أخرى: {{ pirmet.allowed_other }}</li>
-        {% endif %}
-      </ul>
-    </section>
-
-    <section class="permit-section">
-      <div class="section-title">الأنشطة غير المصرح بها</div>
-      <ul class="activity-list">
-        {% if restricted_activities %}
-          {% for item in restricted_activities %}
-            <li>
-              {% if item == "public_health_pest_control" %}مكافحة آفات الصحة العامة
-              {% elif item == "flying_insects" %}مكافحة الحشرات الطائرة
-              {% elif item == "rodents" %}مكافحة القوارض
-              {% elif item == "termite_control" %}مكافحة النمل الأبيض
-              {% elif item == "grain_pests" %}مكافحة آفات الحبوب
-              {% else %}{{ item }}{% endif %}
-            </li>
-          {% endfor %}
-        {% else %}
-          <li>لا توجد بيانات.</li>
-        {% endif %}
-        {% if pirmet.restricted_other %}
-          <li>أخرى: {{ pirmet.restricted_other }}</li>
-        {% endif %}
-      </ul>
-    </section>
-
-    <section class="permit-section">
-      <div class="section-title">بيانات الطلب</div>
-      <div class="detail-grid">
-        <div class="detail-item">
-          <span class="label">رقم التصريح</span>
-          <span class="value">{{ pirmet.permit_no|default:"-" }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">تاريخ إصدار التصريح</span>
-          <span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">تاريخ انتهاء التصريح</span>
-          <span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">تاريخ الدفع</span>
-          <span class="value">{{ pirmet.payment_date|date:"d/m/Y"|default:"-" }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">رقم أمر دفع التفتيش</span>
-          <span class="value">{{ pirmet.inspection_payment_reference|default:"-" }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">إيصال دفع التفتيش</span>
-          <span class="value">
-            {% if pirmet.inspection_payment_receipt %}
-              <a href="{{ pirmet.inspection_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
-            {% else %}-{% endif %}
-          </span>
-        </div>
-        <div class="detail-item">
-          <span class="label">رقم أمر دفع التصريح</span>
-          <span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">إيصال دفع التصريح</span>
-          <span class="value">
-            {% if pirmet.payment_receipt %}
-              <a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
-            {% else %}-{% endif %}
-          </span>
-        </div>
-        {% if pirmet.violation_amount %}
-        <div class="detail-item">
-          <span class="label">مبلغ المخالفة</span>
-          <span class="value">{{ pirmet.violation_amount }} درهم</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">إيصال دفع المخالفة</span>
-          <span class="value">
-            {% if pirmet.violation_payment_receipt %}
-              <a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>
-            {% else %}-{% endif %}
-          </span>
-        </div>
-        {% endif %}
-      </div>
-    </section>
-
   </div>
+
+  <div class="doc-card">
+    <div class="doc-band">
+      <div class="doc-band-title doc-band-title--main">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</div>
+      {% if pirmet.permit_no %}
+      <div class="doc-band-ref">
+        <span class="doc-band-ref-label">رقم التصريح</span>
+        <span class="doc-band-ref-no">{{ pirmet.permit_no }}</span>
+      </div>
+      {% endif %}
+    </div>
+    <div class="detail-item">
+      <span class="label">تاريخ إصدار التصريح</span>
+      <span class="value">{{ pirmet.issue_date|date:"d/m/Y"|default:"-" }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">تاريخ انتهاء التصريح</span>
+      <span class="value">{{ pirmet.dateOfExpiry|date:"d/m/Y"|default:"-" }}</span>
+    </div>
+  </div>
+
+  <div class="doc-card">
+    <div class="doc-band"><div class="doc-band-title">بيانات الشركة</div></div>
+    <div class="detail-item">
+      <span class="label">اسم الشركة</span>
+      <span class="value">{{ pirmet.company.name|default:"-" }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">رقم الرخصة التجارية</span>
+      <span class="value">{{ pirmet.company.number|default:"-" }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">عنوان الشركة</span>
+      <span class="value">{{ pirmet.company.address|default:"-" }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">البريد الإلكتروني</span>
+      <span class="value">{{ pirmet.company.email|default:"-" }}</span>
+    </div>
+    <div class="doc-divider">بيانات المهندس</div>
+    {% if pirmet.company.enginer %}
+    <div class="detail-item">
+      <span class="label">اسم المهندس</span>
+      <span class="value">{{ pirmet.company.enginer.name }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">رقم الهاتف المتحرك</span>
+      <span class="value">{{ pirmet.company.enginer.phone|default:"-" }}</span>
+    </div>
+    {% else %}
+    <div class="detail-item">
+      <span class="label">المهندس</span>
+      <span class="value">-</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="doc-card">
+    <div class="doc-band"><div class="doc-band-title">الأنشطة</div></div>
+    <div class="activities">
+      <div class="activities__col">
+        <div class="activities__head">الأنشطة المصرح بها</div>
+        <ul class="activity-list activity-list--allowed">
+          {% for item in allowed_activities %}
+          <li>{% include "hcsd/_pest_activity_label.html" %}</li>
+          {% empty %}
+          {% if not pirmet.allowed_other %}<li class="is-empty">لا توجد بيانات.</li>{% endif %}
+          {% endfor %}
+          {% if pirmet.allowed_other %}<li>أخرى: {{ pirmet.allowed_other }}</li>{% endif %}
+        </ul>
+      </div>
+      <div class="activities__col">
+        <div class="activities__head">الأنشطة غير المصرح بها</div>
+        <ul class="activity-list activity-list--restricted">
+          {% for item in restricted_activities %}
+          <li>{% include "hcsd/_pest_activity_label.html" %}</li>
+          {% empty %}
+          {% if not pirmet.restricted_other %}<li class="is-empty">لا توجد بيانات.</li>{% endif %}
+          {% endfor %}
+          {% if pirmet.restricted_other %}<li>أخرى: {{ pirmet.restricted_other }}</li>{% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-card">
+    <div class="doc-band"><div class="doc-band-title">بيانات الدفع</div></div>
+    <div class="detail-item">
+      <span class="label">تاريخ الدفع</span>
+      <span class="value">{{ pirmet.payment_date|date:"d/m/Y"|default:"-" }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">رقم أمر دفع التفتيش</span>
+      <span class="value">{{ pirmet.inspection_payment_reference|default:"-" }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">إيصال دفع التفتيش</span>
+      <span class="value">{% if pirmet.inspection_payment_receipt %}<a href="{{ pirmet.inspection_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>{% else %}-{% endif %}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">رقم أمر دفع التصريح</span>
+      <span class="value">{{ pirmet.PaymentNumber|default:"-" }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">إيصال دفع التصريح</span>
+      <span class="value">{% if pirmet.payment_receipt %}<a href="{{ pirmet.payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>{% else %}-{% endif %}</span>
+    </div>
+    {% if pirmet.violation_amount %}
+    <div class="detail-item">
+      <span class="label">مبلغ المخالفة</span>
+      <span class="value">{{ pirmet.violation_amount }} درهم</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">إيصال دفع المخالفة</span>
+      <span class="value">{% if pirmet.violation_payment_receipt %}<a href="{{ pirmet.violation_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>{% else %}-{% endif %}</span>
+    </div>
+    {% endif %}
+  </div>
+
 </section>
 {% endblock %}
