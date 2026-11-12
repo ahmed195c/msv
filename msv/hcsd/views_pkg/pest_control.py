@@ -469,6 +469,8 @@ def pest_control_permit_detail(request, id):
             issue_date_raw = (request.POST.get('issue_date') or '').strip()
             expiry_date_raw = (request.POST.get('expiry_date') or '').strip()
             payment_date_raw = (request.POST.get('payment_date') or '').strip()
+            inspection_payment_date_raw = (request.POST.get('inspection_payment_date') or '').strip()
+            inspection_payment_date = _parse_date(inspection_payment_date_raw)
             issue_date = _parse_date(issue_date_raw)
             expiry_date = _parse_date(expiry_date_raw)
             payment_date = _parse_date(payment_date_raw)
@@ -480,7 +482,9 @@ def pest_control_permit_detail(request, id):
             if expiry_date_raw and not expiry_date:
                 review_errors.append('تاريخ انتهاء التصريح غير صالح.')
             if payment_date_raw and not payment_date:
-                review_errors.append('تاريخ الدفع غير صالح.')
+                review_errors.append('تاريخ دفع التصريح غير صالح.')
+            if inspection_payment_date_raw and not inspection_payment_date:
+                review_errors.append('تاريخ دفع التفتيش غير صالح.')
 
             enginer = pirmet.company.enginer
             engineer_email = (request.POST.get('engineer_email') or '').strip()
@@ -505,7 +509,10 @@ def pest_control_permit_detail(request, id):
                     changed_labels.append('تاريخ انتهاء التصريح')
                 if pirmet.payment_date != payment_date:
                     pirmet.payment_date = payment_date
-                    changed_labels.append('تاريخ الدفع')
+                    changed_labels.append('تاريخ دفع التصريح')
+                if pirmet.inspection_payment_date != inspection_payment_date:
+                    pirmet.inspection_payment_date = inspection_payment_date
+                    changed_labels.append('تاريخ دفع التفتيش')
                 if pirmet.company.email != (company_email or None):
                     pirmet.company.email = company_email or None
                     pirmet.company.save(update_fields=['email'])
@@ -541,6 +548,7 @@ def pest_control_permit_detail(request, id):
                         'issue_date',
                         'dateOfExpiry',
                         'payment_date',
+                        'inspection_payment_date',
                     ] + receipt_update_fields)
 
                 if enginer:
@@ -744,6 +752,7 @@ def pest_control_permit_detail(request, id):
                 if inspection_reference:
                     pirmet.inspection_payment_reference = inspection_reference
                 pirmet.inspection_payment_receipt = receipt
+                pirmet.inspection_payment_date = datetime.date.today()
                 # After inspection fee is paid, the request moves directly to inspection.
                 pirmet.status = 'inspection_pending'
                 pirmet.save()

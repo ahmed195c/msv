@@ -1224,7 +1224,18 @@
           </span>
         </div>
         <div class="detail-item">
-          <span class="label">تاريخ الدفع</span>
+          <span class="label">تاريخ دفع التفتيش</span>
+          <span class="value">
+            {% if can_record_payment %}
+              <span class="js-read-value">{{ pirmet.inspection_payment_date|date:"d/m/Y"|default:"-" }}</span>
+              <input class="js-edit-input" name="inspection_payment_date" type="date" value="{{ pirmet.inspection_payment_date|date:'Y-m-d'|default:'' }}">
+            {% else %}
+              {{ pirmet.inspection_payment_date|date:"d/m/Y"|default:"-" }}
+            {% endif %}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">تاريخ دفع التصريح</span>
           <span class="value">
             {% if can_record_payment %}
               <span class="js-read-value">{{ pirmet.payment_date|date:"d/m/Y"|default:"-" }}</span>

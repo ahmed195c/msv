@@ -255,6 +255,7 @@ class PirmetClearance(models.Model):
         storage=ActivityPermitStorage(),
         max_length=255, null=True, blank=True
     )
+    inspection_payment_date = models.DateField('تاريخ دفع التفتيش', null=True, blank=True)
     inspection_payment_link = models.CharField(max_length=500, null=True, blank=True)
     inspection_payment_reference = models.CharField(max_length=100, null=True, blank=True)
     inspection_payment_email = models.EmailField(null=True, blank=True)

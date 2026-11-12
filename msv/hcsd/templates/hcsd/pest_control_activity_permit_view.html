@@ -1,5 +1,5 @@
 {% extends "hcsd/base.html" %}
-{% load static %}
+{% load static l10n %}
 {% block title %}عرض تصريح النشاط{% endblock %}
 {% block extra_css %}
 <style>
@@ -154,6 +154,14 @@
       <span class="label">البريد الإلكتروني</span>
       <span class="value">{{ pirmet.company.email|default:"-" }}</span>
     </div>
+    <div class="detail-item">
+      <span class="label">الموقع الجغرافي</span>
+      <span class="value">
+        {% if pirmet.company.latitude is not None and pirmet.company.longitude is not None %}
+        <a href="https://www.google.com/maps?q={{ pirmet.company.latitude|unlocalize }},{{ pirmet.company.longitude|unlocalize }}" target="_blank" rel="noopener noreferrer">📍 فتح في خرائط قوقل</a>
+        {% else %}-{% endif %}
+      </span>
+    </div>
     <div class="doc-divider">بيانات المهندس</div>
     {% if pirmet.company.enginer %}
     <div class="detail-item">
@@ -202,9 +210,10 @@
 
   <div class="doc-card">
     <div class="doc-band"><div class="doc-band-title">بيانات الدفع</div></div>
+    <div class="doc-divider">دفع التفتيش</div>
     <div class="detail-item">
-      <span class="label">تاريخ الدفع</span>
-      <span class="value">{{ pirmet.payment_date|date:"d/m/Y"|default:"-" }}</span>
+      <span class="label">تاريخ دفع التفتيش</span>
+      <span class="value">{{ pirmet.inspection_payment_date|date:"d/m/Y"|default:"-" }}</span>
     </div>
     <div class="detail-item">
       <span class="label">رقم أمر دفع التفتيش</span>
@@ -213,6 +222,11 @@
     <div class="detail-item">
       <span class="label">إيصال دفع التفتيش</span>
       <span class="value">{% if pirmet.inspection_payment_receipt %}<a href="{{ pirmet.inspection_payment_receipt.url }}" target="_blank" rel="noopener">فتح الإيصال</a>{% else %}-{% endif %}</span>
+    </div>
+    <div class="doc-divider">دفع التصريح</div>
+    <div class="detail-item">
+      <span class="label">تاريخ دفع التصريح</span>
+      <span class="value">{{ pirmet.payment_date|date:"d/m/Y"|default:"-" }}</span>
     </div>
     <div class="detail-item">
       <span class="label">رقم أمر دفع التصريح</span>

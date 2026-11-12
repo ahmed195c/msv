@@ -333,3 +333,38 @@ class CompanyPermitCardTests(TestCase):
         response, permit = self._card_permit()
         self.assertIsNone(permit)
         self.assertNotContains(response, '30/06/2027')
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp(prefix='msv_permit_test_'))
+class ActivityPermitPaymentDateTests(TestCase):
+    def setUp(self):
+        from .models import Company, PirmetClearance
+        self.company = Company.objects.create(
+            name='شركة', number='C-2', address='الشارقة', latitude='25.349326', longitude='55.469057',
+        )
+        self.permit = PirmetClearance.objects.create(
+            company=self.company, permit_type='pest_control', status='inspection_payment_pending',
+            inspection_payment_reference='111',
+        )
+        self.client.force_login(User.objects.create_superuser('pay_admin', password='x'))
+
+    def test_inspection_payment_records_its_own_date(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        self.client.post(reverse('pest_control_permit_detail', args=[self.permit.id]), {
+            'action': 'inspection_payment',
+            'inspection_payment_receipt': SimpleUploadedFile('r.pdf', b'%PDF-1', content_type='application/pdf'),
+        })
+        self.permit.refresh_from_db()
+        self.assertEqual(self.permit.status, 'inspection_pending')
+        self.assertEqual(self.permit.inspection_payment_date, datetime.date.today())
+        self.assertIsNone(self.permit.payment_date)
+
+    def test_view_page_shows_both_payment_dates_and_location(self):
+        self.permit.status = 'issued'
+        self.permit.inspection_payment_date = datetime.date(2026, 2, 23)
+        self.permit.payment_date = datetime.date(2026, 2, 25)
+        self.permit.save()
+        response = self.client.get(reverse('pest_control_permit_view', args=[self.permit.id]))
+        self.assertContains(response, '23/02/2026')
+        self.assertContains(response, '25/02/2026')
+        self.assertContains(response, 'https://www.google.com/maps?q=25.349326,55.469057')

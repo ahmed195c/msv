@@ -210,8 +210,9 @@ def engineer_addition_detail(request, id):
             if not review_errors:
                 old_status = pirmet.status
                 pirmet.inspection_payment_receipt = receipt
+                pirmet.inspection_payment_date = datetime.date.today()
                 pirmet.status = 'inspection_pending'
-                pirmet.save(update_fields=['inspection_payment_receipt', 'status'])
+                pirmet.save(update_fields=['inspection_payment_receipt', 'inspection_payment_date', 'status'])
                 _log_pirmet_change(pirmet, 'status_change', request.user,
                     old_status=old_status, new_status=pirmet.status,
                     notes='Inspection receipt uploaded.')
