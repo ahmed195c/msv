@@ -593,7 +593,7 @@
     <div class="card-body">
       <div class="permits-grid">
 
-        {% with permit=active_pest_permit|default:latest_pest_permit %}
+        {% with permit=display_pest_permit %}
         <div class="p-card">
           <div class="p-card__head">
             <span class="p-card__type">تصريح النشاط</span>
@@ -619,7 +619,7 @@
         </div>
         {% endwith %}
 
-        {% with permit=active_vehicle_permit|default:latest_vehicle_permit %}
+        {% with permit=display_vehicle_permit %}
         <div class="p-card">
           <div class="p-card__head">
             <span class="p-card__type">تصريح المركبة</span>
@@ -645,7 +645,7 @@
         </div>
         {% endwith %}
 
-        {% with permit=active_waste_permit|default:latest_waste_permit %}
+        {% with permit=display_waste_permit %}
         <div class="p-card">
           <div class="p-card__head">
             <span class="p-card__type">تصريح النفايات</span>

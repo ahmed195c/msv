@@ -303,3 +303,33 @@ class MedicalWasteReadAccessTests(TestCase):
         reader.groups.add(Group.objects.create(name='unrelated'))
         self.client.force_login(reader)
         self.assertEqual(self.client.get(reverse('medical_waste_home')).status_code, 200)
+
+
+class CompanyPermitCardTests(TestCase):
+    def setUp(self):
+        from .models import Company
+        self.company = Company.objects.create(name='شركة', number='C-1', address='الشارقة')
+        self.client.force_login(User.objects.create_superuser('card_admin', password='x'))
+
+    def _permit(self, **fields):
+        from .models import PirmetClearance
+        return PirmetClearance.objects.create(company=self.company, permit_type='pest_control', **fields)
+
+    def _card_permit(self):
+        response = self.client.get(reverse('company_detail', args=[self.company.id]))
+        return response, response.context['display_pest_permit']
+
+    def test_closed_request_does_not_replace_the_issued_permit(self):
+        issued = self._permit(
+            status='issued', issue_date=datetime.date(2025, 1, 1), dateOfExpiry=datetime.date(2026, 1, 1),
+        )
+        self._permit(status='cancelled_admin', dateOfExpiry=datetime.date(2027, 6, 30))
+        response, permit = self._card_permit()
+        self.assertEqual(permit, issued)
+        self.assertNotContains(response, '30/06/2027')
+
+    def test_only_a_closed_request_shows_no_permit(self):
+        self._permit(status='cancelled_admin', dateOfExpiry=datetime.date(2027, 6, 30))
+        response, permit = self._card_permit()
+        self.assertIsNone(permit)
+        self.assertNotContains(response, '30/06/2027')

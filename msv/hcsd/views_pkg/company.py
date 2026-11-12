@@ -691,9 +691,8 @@ def company_detail(request, id):
             'can_manage_requirement_insurance': can_manage_requirement_insurance,
             'logs': logs,
             'requirement_insurance_requests': requirement_insurance_requests,
-            'latest_pest_permit': latest_permits.get('pest_control'),
-            'latest_vehicle_permit': latest_permits.get('pesticide_transport'),
-            'latest_waste_permit': latest_permits.get('waste_disposal'),
+            # The permit cards: the active permit, else the latest issued one; never a
+            # request that is still pending or was closed administratively.
             'active_pest_permit': active_permits.get('pest_control'),
             'active_vehicle_permit': active_permits.get('pesticide_transport'),
             'active_waste_permit': active_permits.get('waste_disposal'),
