@@ -571,13 +571,13 @@ def pest_control_permit_detail(request, id):
 
         if action == 'cancel_admin':
             if not _can_admin(request.user):
-                review_errors.append('ليس لديك صلاحية لإلغاء/إغلاق الطلب إدارياً.')
+                review_errors.append('ليس لديك صلاحية لإغلاق الطلب.')
             elif pirmet.status in {'issued', 'cancelled_admin'}:
                 review_errors.append('لا يمكن إلغاء هذا الطلب في حالته الحالية.')
 
             cancel_reason = (request.POST.get('cancel_reason') or '').strip()
             if not cancel_reason:
-                review_errors.append('يرجى كتابة سبب الإلغاء/الإغلاق الإداري.')
+                review_errors.append('يرجى كتابة سبب الإغلاق.')
 
             if not review_errors:
                 old_status = pirmet.status

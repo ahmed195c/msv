@@ -711,7 +711,7 @@ def _build_disposal_timeline(disposal_request):
             cancelled_by, cancelled_at, cancellation_reason = log.changed_by, log.created_at, reason
     if cancelled_at:
         events.append({
-            'action': 'cancelled', 'label': 'إغلاق الطلب إدارياً',
+            'action': 'cancelled', 'label': 'إغلاق الطلب',
             'actor': cancelled_by, 'timestamp': cancelled_at,
             'note': cancellation_reason,
         })

@@ -208,7 +208,7 @@ class PirmetClearance(models.Model):
         ('violation_payment_pending', 'بانتظار دفع المخالفة'),
         ('head_approved', 'الاعتماد النهائي'),
         ('closed_requirements_pending', 'مغلق - متطلبات معلقة'),
-        ('cancelled_admin', 'ملغى إدارياً'),
+        ('cancelled_admin', 'مغلق'),
         ('disposal_approved', 'موافقة على التخلص'),
         ('disposal_rejected', 'رفض التخلص'),
     ]
@@ -357,7 +357,7 @@ class WasteDisposalRequest(models.Model):
         ('approved', 'معتمد'),
         ('rejected', 'مرفوض'),
         ('completed', 'مكتمل'),
-        ('cancelled_admin', 'ملغى إدارياً'),
+        ('cancelled_admin', 'مغلق'),
     ]
 
     WASTE_CLASSIFICATION_CHOICES = [
