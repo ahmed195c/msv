@@ -3,356 +3,373 @@
 {% block title %}طلب إضافة مهندس{% endblock %}
 {% block extra_css %}
 <style>
-  .permit-page {
-    --pd-ink: #304357;
-    --pd-ink-2: #455c75;
-    --pd-ink-3: #6f8297;
-    --pd-paper: #ffffff;
-    --pd-surface: #f1f4f7;
-    --pd-surface-2: #e8eef4;
-    --pd-line: #d4dce5;
-    --pd-line-2: #bcc8d5;
-    --pd-accent: #304357;
-    --pd-accent-dark: #26384a;
-    --pd-radius: 8px;
-    --pd-shadow: 0 10px 24px rgba(48,67,87,0.08);
-    padding: 20px 10px 36px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(241,244,247,0.86)), var(--pd-surface);
-    direction: rtl;
-  }
-  .permit-card {
-    max-width: 860px;
-    margin: 0 auto;
-    background: var(--pd-paper);
-    border: 1.5px solid var(--pd-line);
-    border-radius: var(--pd-radius);
-    box-shadow: var(--pd-shadow);
-    padding: 0;
-    overflow: hidden;
-  }
-  .hero-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    background: linear-gradient(160deg, #3a4f66 0%, #304357 55%, #26384a 100%);
-    color: #fff;
-  }
-  .hero-title {
-    font-size: clamp(15px, 2vw, 20px);
-    font-weight: 800;
-    text-align: center;
-    flex: 1;
-  }
-  .hero-back {
-    color: #c8d8e8;
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    border: 1.5px solid rgba(255,255,255,0.25);
-    border-radius: 6px;
-    padding: 6px 12px;
-    transition: background 0.15s;
-    white-space: nowrap;
-  }
-  .hero-back:hover { background: rgba(255,255,255,0.1); }
-  .form-body { padding: 16px 18px; }
-  .alert {
-    background: #fef2f2;
-    border: 1.5px solid #f5c6cb;
-    border-radius: 6px;
-    padding: 10px 14px;
-    color: #8c1f1f;
-    margin-bottom: 14px;
-    font-size: 13px;
-  }
-  .alert ul { padding-inline-start: 18px; margin-top: 6px; line-height: 1.9; }
-  .form-section {
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    padding: 14px;
-    margin-bottom: 14px;
-  }
-  .section-title {
-    display: inline-flex;
-    align-items: center;
-    padding: 5px 10px;
-    border-radius: 6px;
-    background: var(--pd-accent);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 800;
-    margin-bottom: 12px;
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-  }
-  .field label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--pd-ink-3);
-    display: block;
-    margin-bottom: 5px;
-  }
-  .field input,
-  .field select,
-  .field textarea {
-    width: 100%;
-    border: 1.5px solid var(--pd-line-2);
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--pd-ink);
-    background: var(--pd-paper);
-    font-family: inherit;
-    box-sizing: border-box;
-  }
-  .field input:focus,
-  .field select:focus,
-  .field textarea:focus {
-    border-color: var(--pd-accent);
-    outline: none;
-  }
-  .field-full { grid-column: 1 / -1; }
-  .hint {
-    font-size: 11.5px;
-    color: var(--pd-ink-3);
-    margin-top: 5px;
-    line-height: 1.5;
-  }
-  /* Certificates */
-  .cert-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .cert-block {
-    border: 1.5px solid var(--pd-line);
-    border-radius: 6px;
-    padding: 12px;
-    background: var(--pd-surface);
-    display: grid;
-    gap: 8px;
-  }
-  .cert-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--pd-ink);
-    cursor: pointer;
-  }
-  .cert-toggle input[type="checkbox"] {
-    width: 16px; height: 16px;
-    accent-color: var(--pd-accent);
-    cursor: pointer;
-  }
-  .cert-file-row { display: none; }
-  .cert-file-row.visible { display: grid; gap: 5px; }
-  .cert-file-row label { font-size: 12px; font-weight: 600; color: var(--pd-ink-3); }
-  /* Actions */
-  .form-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    padding-top: 6px;
-  }
-  .btn-submit {
-    background: var(--pd-accent);
-    border: none;
-    color: #fff;
-    font-weight: 800;
-    font-size: 14px;
-    padding: 10px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: inherit;
-  }
-  .btn-submit:hover { background: var(--pd-accent-dark); }
-  .btn-cancel {
-    color: var(--pd-ink-2);
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    border: 1.5px solid var(--pd-line-2);
-    border-radius: 6px;
-    padding: 9px 16px;
-  }
-  @media (max-width: 600px) {
-    .cert-grid { grid-template-columns: 1fr; }
-  }
+/* Same look as متابعة الطلبات (clearance_list.html). */
+.ea-page {
+  --ink-1:      #253a4f;
+  --ink-2:      #41576f;
+  --ink-3:      #6f8194;
+  --ink-4:      #97a6b5;
+  --surface-1:  #f4f6f9;
+  --surface-2:  #e9eef3;
+  --border:     #dfe5ec;
+  --accent:     #0e7490;
+  --accent-dk:  #0b5568;
+  --accent-lt:  #e6f2f4;
+  --mono:       'JetBrains Mono', monospace;
+  --shadow:     0 1px 2px rgba(16,40,64,.04), 0 2px 8px rgba(16,40,64,.05);
+  max-width: 860px; margin: 0 auto; padding: 24px 16px 56px; direction: rtl; color: var(--ink-1);
+}
+
+/* ── Header ── */
+.ea-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.ea-head__main { display: flex; align-items: center; gap: 12px; }
+.ea-head__icon { width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center; background: #eaeef4; color: #304357; flex-shrink: 0; }
+.ea-head__icon svg { width: 23px; height: 23px; }
+.ea-head h1 { font-size: clamp(19px,2.3vw,24px); font-weight: 800; margin: 0; }
+.ea-head__sub { font-size: 13px; color: var(--ink-3); margin-top: 3px; }
+.ea-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 700; font-family: inherit;
+  text-decoration: none; white-space: nowrap; border: 1.5px solid var(--border); background: #fff; color: var(--ink-2); cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.ea-btn:hover { background: var(--surface-1); }
+.ea-btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ea-btn--primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+
+/* ── Errors ── */
+.ea-alert { border: 1.5px solid #e2a5a5; background: #fdecec; border-radius: 12px; padding: 12px 16px; margin-bottom: 14px; color: #7a1a1a; font-size: 13px; font-weight: 600; }
+.ea-alert ul { margin: 6px 0 0; padding-inline-start: 18px; }
+
+/* ── Sections ── */
+.ea-section { background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); margin-bottom: 14px; }
+.ea-section__head { display: flex; align-items: center; gap: 10px; padding: 14px 18px 4px; }
+.ea-step { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--accent-lt); color: var(--accent); font-size: 12.5px; font-weight: 800; font-family: var(--mono); }
+.ea-section__title { font-size: 14.5px; font-weight: 800; }
+.ea-section__hint { font-size: 12px; color: var(--ink-4); font-weight: 600; margin-inline-start: auto; }
+.ea-section__body { padding: 12px 18px 18px; }
+.ea-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 14px; }
+.ea-field label { display: block; font-size: 12.5px; font-weight: 700; color: var(--ink-2); margin-bottom: 5px; }
+.ea-req { color: #b91c1c; }
+.ea-field input[type=text], .ea-field input[type=email], .ea-field input[type=search] {
+  width: 100%; box-sizing: border-box; min-height: 42px; padding: 9px 12px;
+  border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface-1);
+  font-family: inherit; font-size: 13.5px; color: var(--ink-1); transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.ea-field input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(14,116,144,.12); }
+.ea-field--wide { max-width: 420px; }
+
+/* ── Company picker ── */
+.ea-picker { position: relative; }
+.ea-picker__box { position: relative; }
+.ea-picker__box svg { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--ink-4); pointer-events: none; }
+.ea-picker__box input { padding-inline-start: 38px !important; }
+.ea-results { position: absolute; inset-inline: 0; top: calc(100% + 4px); z-index: 30; max-height: 300px; overflow-y: auto; background: #fff; border: 1.5px solid var(--border); border-radius: 12px; box-shadow: 0 12px 30px rgba(16,40,64,.14); }
+.ea-results[hidden] { display: none; }
+.ea-result { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; border: 0; border-bottom: 1px solid #edf1f5; background: none; font: inherit; font-size: 13.5px; font-weight: 600; text-align: start; cursor: pointer; color: var(--ink-1); }
+.ea-result:last-child { border-bottom: 0; }
+.ea-result:hover, .ea-result.is-active { background: var(--accent-lt); }
+.ea-result small { font-family: var(--mono); font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.ea-result-none { padding: 14px; font-size: 13px; color: var(--ink-3); }
+.ea-chosen { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 12px 14px; border: 1.5px solid #8fbac7; background: var(--accent-lt); border-radius: 12px; }
+.ea-chosen[hidden] { display: none; }
+.ea-chosen__icon { width: 36px; height: 36px; border-radius: 10px; background: #fff; color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ea-chosen__icon svg { width: 18px; height: 18px; }
+.ea-chosen__name { font-size: 14px; font-weight: 800; color: var(--accent-dk); }
+.ea-chosen__num { font-size: 12px; color: var(--ink-3); margin-top: 1px; }
+.ea-chosen__num b { font-family: var(--mono); font-weight: 600; }
+.ea-chosen__change { margin-inline-start: auto; border: none; background: #fff; color: var(--accent-dk); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.ea-chosen__change:hover { background: var(--accent); color: #fff; }
+/* Without JavaScript the plain list stays usable. */
+.ea-select { width: 100%; min-height: 130px; border: 1.5px solid var(--border); border-radius: 10px; font: inherit; font-size: 13px; padding: 4px; }
+.ea-select[hidden] { display: none; }
+
+/* ── Certificates ── */
+.ea-certs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.ea-cert { border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; transition: border-color .15s, background .15s; }
+.ea-cert:has(input[type=checkbox]:checked) { border-color: #7bcf9a; background: #f3faf6; }
+.ea-cert__toggle { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.ea-cert__toggle input { width: 18px; height: 18px; accent-color: #1a7a3a; margin: 0; }
+.ea-cert__toggle small { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink-4); }
+.cert-file-row { display: none; margin-top: 10px; }
+.cert-file-row.visible { display: block; }
+
+/* ── File inputs ── */
+.ea-file { position: relative; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1.5px dashed #bcc8d5; border-radius: 12px; background: var(--surface-1); cursor: pointer; transition: border-color .15s, background .15s; }
+.ea-file:hover { border-color: var(--accent); background: var(--accent-lt); }
+.ea-file input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.ea-file__icon { width: 34px; height: 34px; border-radius: 10px; background: #fff; color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ea-file__icon svg { width: 17px; height: 17px; }
+.ea-file__title { display: block; font-size: 13px; font-weight: 700; color: var(--ink-1); }
+.ea-file__sub { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 1px; overflow-wrap: anywhere; }
+.ea-file.has-file { border-style: solid; border-color: #7bcf9a; background: #f3faf6; }
+
+/* ── Actions ── */
+.ea-actions { display: flex; gap: 8px; justify-content: flex-start; margin-top: 4px; }
+.ea-actions .ea-btn--primary { min-width: 160px; }
+
+@media (max-width: 680px) {
+  .ea-page { padding: 16px 10px 40px; }
+  .ea-grid, .ea-certs { grid-template-columns: 1fr; }
+  .ea-field--wide { max-width: none; }
+  .ea-section__hint { display: none; }
+  .ea-field input[type=text], .ea-field input[type=email], .ea-field input[type=search] { font-size: 16px; min-height: 46px; }
+  .ea-actions { flex-direction: column-reverse; }
+  .ea-actions .ea-btn { width: 100%; min-height: 46px; }
+}
 </style>
 {% endblock %}
 {% block content %}
-<section class="permit-page" lang="ar" dir="rtl">
-  <div class="permit-card">
+<div class="ea-page" lang="ar" dir="rtl">
 
-    <div class="hero-bar">
-      <a href="{% url 'clearance_list' %}" class="hero-back">← العودة</a>
-      <span class="hero-title">طلب إضافة مهندس جديد</span>
+  <div class="ea-head">
+    <div class="ea-head__main">
+      <span class="ea-head__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></span>
+      <div>
+        <h1>طلب إضافة مهندس</h1>
+        <div class="ea-head__sub">إضافة مهندس لشركة جديدة، أو مهندس ثانٍ لنفس الشركة</div>
+      </div>
     </div>
-
-    <form method="post" enctype="multipart/form-data" autocomplete="off" class="form-body">
-      {% csrf_token %}
-
-      {% if errors %}
-        <div class="alert">
-          <strong>تعذر إنشاء الطلب:</strong>
-          <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
-        </div>
-      {% endif %}
-
-      <!-- الشركة -->
-      <div class="form-section">
-        <div class="section-title">بيانات الشركة</div>
-        <div class="form-grid">
-          <div class="field field-full">
-            <label for="company_search">بحث عن الشركة</label>
-            <input type="text" id="company_search"
-                   placeholder="ابحث باسم الشركة أو رقم الرخصة…"
-                   autocomplete="off" style="margin-bottom:6px;">
-            <label for="company_id">اختيار الشركة <span style="color:#c0392b;">*</span></label>
-            <select id="company_id" name="company_id" required size="6"
-                    style="width:100%;box-sizing:border-box;height:auto;min-height:130px;overflow-y:auto;">
-              <option value="">— اختر الشركة —</option>
-              {% for company in companies %}
-                <option value="{{ company.id }}"
-                  data-name="{{ company.name }}"
-                  data-number="{{ company.number }}"
-                  {% if request.POST.company_id == company.id|stringformat:"s" %}selected{% endif %}>
-                  {{ company.name }} — {{ company.number }}
-                </option>
-              {% endfor %}
-            </select>
-            <div class="hint">ابحث بالاسم أو رقم الرخصة ثم اختر الشركة من القائمة.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- بيانات مقدم الطلب -->
-      <div class="form-section">
-        <div class="section-title">بيانات مقدم الطلب</div>
-        <div class="form-grid">
-          <div class="field">
-            <label for="request_email">إيميل مقدم الطلب</label>
-            <input type="email" id="request_email" name="request_email"
-                   placeholder="example@email.com"
-                   value="{{ request.POST.request_email|default:'' }}">
-          </div>
-        </div>
-      </div>
-
-      <!-- بيانات المهندس -->
-      <div class="form-section">
-        <div class="section-title">بيانات المهندس</div>
-        <div class="form-grid">
-          <div class="field">
-            <label for="engineer_name">اسم المهندس <span style="color:#c0392b;">*</span></label>
-            <input type="text" id="engineer_name" name="engineer_name"
-                   placeholder="الاسم الكامل"
-                   value="{{ request.POST.engineer_name|default:'' }}" required>
-          </div>
-          <div class="field">
-            <label for="engineer_id_number">رقم الهوية / الموحد</label>
-            <input type="text" id="engineer_id_number" name="engineer_id_number"
-                   placeholder="اختياري"
-                   value="{{ request.POST.engineer_id_number|default:'' }}">
-          </div>
-          <div class="field">
-            <label for="engineer_phone">رقم الهاتف <span style="color:#c0392b;">*</span></label>
-            <input type="text" id="engineer_phone" name="engineer_phone"
-                   placeholder="05xxxxxxxx"
-                   value="{{ request.POST.engineer_phone|default:'' }}" required>
-          </div>
-        </div>
-
-        <!-- الشهادات -->
-        <div style="margin-top:14px;">
-          <div class="section-title" style="font-size:12px;padding:4px 8px;margin-bottom:10px;">الشهادات</div>
-          <div class="cert-grid">
-            <div class="cert-block">
-              <label class="cert-toggle">
-                <input type="checkbox" name="has_general_cert" id="has_general_cert"
-                       {% if request.POST.has_general_cert %}checked{% endif %}>
-                شهادة الصحة العامة
-              </label>
-              <div class="cert-file-row {% if request.POST.has_general_cert %}visible{% endif %}"
-                   id="general_cert_file_row">
-                <label for="general_cert_file">رفع الشهادة (PDF أو صورة)</label>
-                <input type="file" id="general_cert_file" name="general_cert_file"
-                       accept=".pdf,.jpg,.jpeg,.png">
-              </div>
-            </div>
-            <div class="cert-block">
-              <label class="cert-toggle">
-                <input type="checkbox" name="has_termite_cert" id="has_termite_cert"
-                       {% if request.POST.has_termite_cert %}checked{% endif %}>
-                شهادة النمل الأبيض
-              </label>
-              <div class="cert-file-row {% if request.POST.has_termite_cert %}visible{% endif %}"
-                   id="termite_cert_file_row">
-                <label for="termite_cert_file">رفع الشهادة (PDF أو صورة)</label>
-                <input type="file" id="termite_cert_file" name="termite_cert_file"
-                       accept=".pdf,.jpg,.jpeg,.png">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- مستندات إضافية -->
-      <div class="form-section">
-        <div class="section-title">مستندات المهندس</div>
-        <div class="form-grid">
-          <div class="field field-full">
-            <label for="engineer_documents">إرفاق المستندات (PDF أو صور — يمكن رفع أكثر من ملف)</label>
-            <input type="file" id="engineer_documents" name="engineer_documents"
-                   accept=".pdf,.jpg,.jpeg,.png" multiple>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn-submit">إنشاء الطلب</button>
-        <a href="{% url 'clearance_list' %}" class="btn-cancel">إلغاء</a>
-      </div>
-
-    </form>
+    <a href="{% url 'permit_types' %}" class="ea-btn">← التصاريح</a>
   </div>
-</section>
-<script>
-(function() {
-  // Certificate file toggle
-  function toggleCertFile(checkboxId, rowId) {
-    var cb = document.getElementById(checkboxId);
-    var row = document.getElementById(rowId);
-    if (!cb || !row) return;
-    cb.addEventListener('change', function() {
-      row.classList.toggle('visible', cb.checked);
-    });
-  }
-  toggleCertFile('has_general_cert', 'general_cert_file_row');
-  toggleCertFile('has_termite_cert', 'termite_cert_file_row');
 
-  // Company search filter
-  var companySearch = document.getElementById('company_search');
-  var companySelect = document.getElementById('company_id');
-  if (companySearch && companySelect) {
-    var allOptions = Array.from(companySelect.options);
-    companySearch.addEventListener('input', function() {
-      var q = this.value.trim().toLowerCase();
-      allOptions.forEach(function(opt) {
-        if (!opt.value) { opt.style.display = ''; return; }
-        var name = (opt.dataset.name || '').toLowerCase();
-        var num  = (opt.dataset.number || '').toLowerCase();
-        opt.style.display = (!q || name.includes(q) || num.includes(q)) ? '' : 'none';
-      });
+  <form method="post" enctype="multipart/form-data" autocomplete="off" id="ea-form">
+    {% csrf_token %}
+
+    {% if errors %}
+    <div class="ea-alert" role="alert">
+      تعذّر إنشاء الطلب:
+      <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    {# ── 1: company ── #}
+    <section class="ea-section">
+      <div class="ea-section__head"><span class="ea-step">1</span><span class="ea-section__title">الشركة <span class="ea-req">*</span></span></div>
+      <div class="ea-section__body">
+        <div class="ea-field ea-picker">
+          <label for="company_search">ابحث عن الشركة</label>
+          <div class="ea-picker__box" id="company-picker" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="company_search" placeholder="اكتب اسم الشركة أو رقم الرخصة" autocomplete="off"
+                   role="combobox" aria-expanded="false" aria-controls="company-results" aria-autocomplete="list">
+            <div class="ea-results" id="company-results" role="listbox" hidden></div>
+          </div>
+          <select id="company_id" name="company_id" required size="6" class="ea-select" aria-label="الشركة">
+            <option value="">— اختر الشركة —</option>
+            {% for company in companies %}
+            <option value="{{ company.id }}" data-name="{{ company.name }}" data-number="{{ company.number }}"
+              {% if request.POST.company_id == company.id|stringformat:"s" %}selected{% endif %}>{{ company.name }} — {{ company.number }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="ea-chosen" id="company-chosen" hidden>
+          <span class="ea-chosen__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/></svg></span>
+          <div><div class="ea-chosen__name" id="company-chosen-name"></div><div class="ea-chosen__num">رقم الرخصة: <b id="company-chosen-number"></b></div></div>
+          <button type="button" class="ea-chosen__change" id="company-change">تغيير</button>
+        </div>
+      </div>
+    </section>
+
+    {# ── 2: requester ── #}
+    <section class="ea-section">
+      <div class="ea-section__head"><span class="ea-step">2</span><span class="ea-section__title">مقدم الطلب</span></div>
+      <div class="ea-section__body">
+        <div class="ea-field ea-field--wide">
+          <label for="request_email">البريد الإلكتروني لمقدم الطلب</label>
+          <input type="email" id="request_email" name="request_email" placeholder="example@email.com" dir="ltr" style="text-align:right;"
+                 value="{{ request.POST.request_email|default:'' }}">
+        </div>
+      </div>
+    </section>
+
+    {# ── 3: engineer ── #}
+    <section class="ea-section">
+      <div class="ea-section__head"><span class="ea-step">3</span><span class="ea-section__title">بيانات المهندس</span></div>
+      <div class="ea-section__body">
+        <div class="ea-grid">
+          <div class="ea-field">
+            <label for="engineer_name">اسم المهندس <span class="ea-req">*</span></label>
+            <input type="text" id="engineer_name" name="engineer_name" placeholder="الاسم الكامل" value="{{ request.POST.engineer_name|default:'' }}" required>
+          </div>
+          <div class="ea-field">
+            <label for="engineer_id_number">رقم الهوية / الرقم الموحد</label>
+            <input type="text" id="engineer_id_number" name="engineer_id_number" placeholder="اختياري" value="{{ request.POST.engineer_id_number|default:'' }}">
+          </div>
+          <div class="ea-field">
+            <label for="engineer_phone">رقم الهاتف <span class="ea-req">*</span></label>
+            <input type="text" id="engineer_phone" name="engineer_phone" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right;" inputmode="tel" value="{{ request.POST.engineer_phone|default:'' }}" required>
+          </div>
+        </div>
+
+        <div class="ea-certs">
+          <div class="ea-cert">
+            <label class="ea-cert__toggle">
+              <input type="checkbox" name="has_general_cert" id="has_general_cert" {% if request.POST.has_general_cert %}checked{% endif %}>
+              <span>شهادة الصحة العامة<small>فعّلها إن كانت لدى المهندس</small></span>
+            </label>
+            <div class="cert-file-row {% if request.POST.has_general_cert %}visible{% endif %}" id="general_cert_file_row">
+              <label class="ea-file">
+                <span class="ea-file__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+                <span><span class="ea-file__title">رفع الشهادة</span><span class="ea-file__sub" data-file-name>PDF أو صورة</span></span>
+                <input type="file" id="general_cert_file" name="general_cert_file" accept=".pdf,.jpg,.jpeg,.png" aria-label="رفع شهادة الصحة العامة">
+              </label>
+            </div>
+          </div>
+          <div class="ea-cert">
+            <label class="ea-cert__toggle">
+              <input type="checkbox" name="has_termite_cert" id="has_termite_cert" {% if request.POST.has_termite_cert %}checked{% endif %}>
+              <span>شهادة النمل الأبيض<small>فعّلها إن كانت لدى المهندس</small></span>
+            </label>
+            <div class="cert-file-row {% if request.POST.has_termite_cert %}visible{% endif %}" id="termite_cert_file_row">
+              <label class="ea-file">
+                <span class="ea-file__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+                <span><span class="ea-file__title">رفع الشهادة</span><span class="ea-file__sub" data-file-name>PDF أو صورة</span></span>
+                <input type="file" id="termite_cert_file" name="termite_cert_file" accept=".pdf,.jpg,.jpeg,.png" aria-label="رفع شهادة النمل الأبيض">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ── 4: documents ── #}
+    <section class="ea-section">
+      <div class="ea-section__head"><span class="ea-step">4</span><span class="ea-section__title">مستندات المهندس</span><span class="ea-section__hint">يمكن إرفاق أكثر من ملف</span></div>
+      <div class="ea-section__body upload-card">
+        <label class="ea-file">
+          <span class="ea-file__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span>
+          <span><span class="ea-file__title">إرفاق المستندات</span><span class="ea-file__sub">PDF أو صور — كل ملف أو صورة تختارها تُضاف للسابقة</span></span>
+          <input type="file" id="engineer_documents" name="engineer_documents" accept=".pdf,.jpg,.jpeg,.png" multiple data-keep-files aria-label="إرفاق مستندات المهندس">
+        </label>
+      </div>
+    </section>
+
+    <div class="ea-actions">
+      <button type="submit" class="ea-btn ea-btn--primary">إنشاء الطلب</button>
+      <a href="{% url 'permit_types' %}" class="ea-btn">إلغاء</a>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  // Certificate upload appears when its checkbox is on.
+  [['has_general_cert', 'general_cert_file_row'], ['has_termite_cert', 'termite_cert_file_row']].forEach(function (pair) {
+    var box = document.getElementById(pair[0]), row = document.getElementById(pair[1]);
+    if (box && row) box.addEventListener('change', function () { row.classList.toggle('visible', box.checked); });
+  });
+
+  // A chosen certificate file shows its name.
+  document.querySelectorAll('.cert-file-row input[type=file]').forEach(function (input) {
+    input.addEventListener('change', function () {
+      var label = input.closest('.ea-file');
+      var name = label.querySelector('[data-file-name]');
+      var file = input.files && input.files[0];
+      label.classList.toggle('has-file', !!file);
+      name.textContent = file ? file.name : 'PDF أو صورة';
     });
+  });
+
+  // Company search: type part of the name or licence number, then pick a result.
+  // The plain select stays in the form (and visible without JavaScript).
+  var select = document.getElementById('company_id');
+  var picker = document.getElementById('company-picker');
+  var search = document.getElementById('company_search');
+  var results = document.getElementById('company-results');
+  var chosen = document.getElementById('company-chosen');
+  var MAX_RESULTS = 30;
+  var options = Array.prototype.slice.call(select.options).filter(function (o) { return o.value; });
+  var activeIndex = -1;
+
+  function normalize(text) {
+    return (text || '').toLowerCase()
+      .replace(/[ً-ٰٟـ]/g, '')
+      .replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+      .replace(/[٠-٩]/g, function (d) { return String(d.charCodeAt(0) - 0x0660); })
+      .replace(/\s+/g, ' ').trim();
   }
+  options.forEach(function (o) { o.searchText = normalize(o.dataset.name + ' ' + o.dataset.number); });
+
+  function showChosen() {
+    var option = select.options[select.selectedIndex];
+    var has = !!(option && option.value);
+    chosen.hidden = !has;
+    picker.hidden = has;
+    if (has) {
+      document.getElementById('company-chosen-name').textContent = option.dataset.name;
+      document.getElementById('company-chosen-number').textContent = option.dataset.number || '—';
+    }
+  }
+  function close() { results.hidden = true; search.setAttribute('aria-expanded', 'false'); activeIndex = -1; }
+  function choose(option) { select.value = option.value; search.value = ''; close(); showChosen(); }
+  function highlight(index) {
+    var items = results.querySelectorAll('.ea-result');
+    if (!items.length) return;
+    activeIndex = (index + items.length) % items.length;
+    items.forEach(function (item, i) { item.classList.toggle('is-active', i === activeIndex); });
+    items[activeIndex].scrollIntoView({ block: 'nearest' });
+  }
+  function render() {
+    var words = normalize(search.value).split(' ').filter(Boolean);
+    var matches = options.filter(function (o) { return words.every(function (w) { return o.searchText.indexOf(w) !== -1; }); });
+    results.textContent = '';
+    if (!matches.length) {
+      results.appendChild(Object.assign(document.createElement('div'), { className: 'ea-result-none', textContent: 'لا توجد شركة مطابقة.' }));
+    }
+    matches.slice(0, MAX_RESULTS).forEach(function (o) {
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'ea-result';
+      item.setAttribute('role', 'option');
+      item.appendChild(Object.assign(document.createElement('span'), { textContent: o.dataset.name }));
+      if (o.dataset.number) item.appendChild(Object.assign(document.createElement('small'), { textContent: o.dataset.number }));
+      item.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      item.addEventListener('click', function () { choose(o); });
+      item.option = o;
+      results.appendChild(item);
+    });
+    results.hidden = false;
+    search.setAttribute('aria-expanded', 'true');
+    activeIndex = -1;
+    if (words.length && matches.length) highlight(0);
+  }
+
+  select.hidden = true;
+  showChosen();
+  search.addEventListener('focus', render);
+  search.addEventListener('input', render);
+  search.addEventListener('blur', close);
+  search.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (results.hidden) render();
+      highlight(activeIndex + (e.key === 'ArrowDown' ? 1 : -1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      var active = results.querySelectorAll('.ea-result')[activeIndex];
+      if (!results.hidden && active) choose(active.option);
+    } else if (e.key === 'Escape') {
+      close();
+    }
+  });
+  document.getElementById('company-change').addEventListener('click', function () {
+    select.value = '';
+    showChosen();
+    search.focus();
+  });
+  // The hidden select is still "required": point at the search box instead of a silent block.
+  document.getElementById('ea-form').addEventListener('submit', function (e) {
+    if (!select.value) {
+      e.preventDefault();
+      picker.hidden = false;
+      search.focus();
+      search.setCustomValidity('يرجى اختيار الشركة.');
+      search.reportValidity();
+      search.addEventListener('input', function () { search.setCustomValidity(''); }, { once: true });
+    }
+  });
 })();
 </script>
+<script src="{% static 'hcsd/js/keep_files.js' %}"></script>
 {% endblock %}
