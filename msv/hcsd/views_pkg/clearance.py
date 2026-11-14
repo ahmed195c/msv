@@ -167,7 +167,7 @@ def _clearance_summary(active_groups, finished_count):
         item.our_days = _our_days(item, transitions, disposal_paid_at, now)
         item.waits_for_client = item.our_days is None
         item.is_late = item.our_days is not None and item.our_days >= CLEARANCE_LATE_DAYS
-        item.late_label = f'تأخير لدينا: {_days_label(item.our_days)}' if item.is_late else ''
+        item.late_label = f'مدة الإنجاز: {_days_label(item.our_days)}' if item.is_late else ''
         late += item.is_late
     return {
         'active': len(items),
