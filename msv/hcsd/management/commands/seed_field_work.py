@@ -17,7 +17,7 @@ from hcsd.models import FieldWorkOrder
 
 EXCEL_PATH_DEFAULT = os.path.join(
     os.path.dirname(__file__),
-    '..', '..', 'static', 'hcsd', 'excl',
+    '..', '..', 'data', 'excl',
     'Summary of Unscheduled 2026 (1).xlsx',
 )
 

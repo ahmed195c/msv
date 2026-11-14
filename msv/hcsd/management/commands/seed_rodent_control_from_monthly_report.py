@@ -20,7 +20,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from hcsd.models import RodentControlBuilding, RodentControlVisit
 
-DEFAULT_PATH = 'hcsd/static/hcsd/excl/buldings/MONTHLY REPORT RODENT CONTROL 2026.xlsx'
+DEFAULT_PATH = 'hcsd/data/excl/buldings/MONTHLY REPORT RODENT CONTROL 2026.xlsx'
 
 MONTH_SHEETS = {
     'Jan': (2026, 1), 'FEB': (2026, 2), 'MAR': (2026, 3), 'APR': (2026, 4),

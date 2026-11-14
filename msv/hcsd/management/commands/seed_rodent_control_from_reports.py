@@ -16,7 +16,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from hcsd.models import RodentControlBuilding, RodentControlVisit
 
-DEFAULT_PATH = 'hcsd/static/hcsd/excl/buldings/Park RBS and Manholes Report.xlsx'
+DEFAULT_PATH = 'hcsd/data/excl/buldings/Park RBS and Manholes Report.xlsx'
 
 # sheet name -> (year, month). Determined from the actual "Date Of Services"
 # values inside each sheet, not guessed from the sheet name alone.

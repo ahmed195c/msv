@@ -267,7 +267,7 @@ def rodent_control_building_detail(request, pk):
 def rodent_control_monthly_excel(request):
     """Excel export of visit records for a date range, matching the exact
     column layout of the real "Rodent Team Report" spreadsheet (see
-    hcsd/static/hcsd/excl/buldings/MONTHLY REPORT RODENT CONTROL 2026.xlsx)
+    hcsd/data/excl/buldings/MONTHLY REPORT RODENT CONTROL 2026.xlsx)
     so this export is a drop-in replacement for it — header text and column
     order are copied verbatim from that file, quirks included."""
     import openpyxl
