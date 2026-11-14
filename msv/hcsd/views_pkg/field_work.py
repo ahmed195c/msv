@@ -422,7 +422,7 @@ def field_work_list(request):
         'id', 'order_number', 'customer_name', 'site_name',
         'area', 'location', 'pest_types', 'request_date', 'work_date',
         'close_date', 'postponed_until', 'supervisor_name', 'status', 'excel_status', 'source',
-        'created_at', 'assigned_supervisor',
+        'complaint_source', 'created_at', 'assigned_supervisor',
     ).select_related('assigned_supervisor', 'assigned_supervisor__fw_supervisor_profile')
 
     # Supervisors see only their area orders + directly assigned/received

@@ -479,9 +479,8 @@ def public_health_exam_request_list(request):
     for company in companies:
         if company.enginer_id and company.enginer_id not in engineer_company_map:
             engineer_company_map[company.enginer_id] = company.id
-        for engineer_id in company.engineers.values_list('id', flat=True):
-            if engineer_id not in engineer_company_map:
-                engineer_company_map[engineer_id] = company.id
+        for engineer in company.engineers.all():  # prefetched above
+            engineer_company_map.setdefault(engineer.id, company.id)
 
     return render(
         request,
