@@ -503,34 +503,6 @@ class InspectorReview(models.Model):
         )
 
 
-class DisposalProcess(models.Model):
-    pirmet = models.OneToOneField(PirmetClearance, on_delete=models.CASCADE)
-    inspectionFee = models.DecimalField(max_digits=10, decimal_places=2, default=200)
-    feePaid = models.BooleanField(default=False)
-    feePaidDate = models.DateTimeField(null=True, blank=True)
-    
-    def __str__(self):
-        return f"{self.pirmet.company.name} - Disposal"
-
-
-class InspectionReport(models.Model):
-    APPROVAL_CHOICES = [
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('pending', 'Pending'),
-    ]
-    
-    disposal = models.OneToOneField(DisposalProcess, on_delete=models.CASCADE)
-    inspector = models.ForeignKey(Enginer, on_delete=models.SET_NULL, null=True)
-    inspectionDate = models.DateTimeField(auto_now_add=True)
-    approval = models.CharField(max_length=10, choices=APPROVAL_CHOICES, default='pending')
-    reportNotes = models.TextField()
-    rejectionReason = models.TextField(blank=True, null=True)
-    
-    def __str__(self):
-        return f"{self.disposal.pirmet.company.name} - {self.approval}"
-
-
 class EnginerStatusLog(models.Model):
     ACTION_CHOICES = [
         ('created', 'Created'),

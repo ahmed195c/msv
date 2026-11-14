@@ -17,8 +17,6 @@ from .common import (
     _log_pirmet_change,
 )
 
-ENGINEER_ADDITION_PHOTO_PREFIX = 'eng_addition_inspection_'
-
 
 @login_required
 def engineer_addition_create(request):
