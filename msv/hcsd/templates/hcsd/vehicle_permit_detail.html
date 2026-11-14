@@ -620,7 +620,7 @@
             <label for="inspection_report_notes">ملاحظات التفتيش</label>
             <textarea id="inspection_report_notes" name="inspection_report_notes" rows="4"></textarea>
             <label for="inspection_report_photos">صور من التفتيش (اختياري)</label>
-            <input id="inspection_report_photos" name="inspection_report_photos" type="file" accept="image/*" multiple>
+            <input id="inspection_report_photos" name="inspection_report_photos" type="file" accept="image/*" multiple data-keep-files>
             <button type="submit">حفظ تقرير التفتيش</button>
           </form>
         </div>
@@ -822,4 +822,5 @@
     });
   })();
 </script>
+<script src="{% static 'hcsd/js/keep_files.js' %}"></script>
 {% endblock %}

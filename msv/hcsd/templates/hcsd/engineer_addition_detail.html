@@ -663,7 +663,7 @@
               <span class="upload-dropzone-sub">يمكنك إرفاق أكثر من صورة أو مستند</span>
             </label>
             <input type="file" id="inspection_files" name="inspection_files"
-                   accept=".pdf,.jpg,.jpeg,.png" multiple
+                   accept=".pdf,.jpg,.jpeg,.png" multiple data-keep-files
                    class="upload-hidden-input js-file-input">
             <div class="upload-file-chip js-file-chip" aria-live="polite">
               <span class="upload-file-chip-name js-file-name">لم يتم اختيار ملفات</span>
@@ -928,4 +928,5 @@
   document.querySelectorAll('.js-file-input').forEach(attachUploadCard);
 })();
 </script>
+<script src="{% static 'hcsd/js/keep_files.js' %}"></script>
 {% endblock %}

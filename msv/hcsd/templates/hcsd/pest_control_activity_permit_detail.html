@@ -1418,6 +1418,7 @@
                     type="file"
                     accept="image/*"
                     multiple
+                    data-keep-files
                     class="upload-hidden-input js-file-input"
                   >
                   <div class="upload-file-chip js-file-chip" aria-live="polite">
@@ -1857,6 +1858,7 @@
                 type="file"
                 accept="image/*"
                 multiple
+                data-keep-files
                 class="upload-hidden-input js-file-input"
               >
               <div class="upload-file-chip js-file-chip" aria-live="polite">
@@ -2067,4 +2069,5 @@
     );
   }
 </script>
+<script src="{% static 'hcsd/js/keep_files.js' %}"></script>
 {% endblock %}
