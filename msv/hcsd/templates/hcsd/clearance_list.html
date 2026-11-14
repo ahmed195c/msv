@@ -169,7 +169,8 @@
 .cl-permit-no { font-size: 11.5px; font-weight: 700; color: var(--accent); font-family: var(--mono); }
 .cl-date { font-size: 12.5px; color: var(--ink-2); font-family: var(--mono); white-space: nowrap; }
 .cl-age { font-size: 11.5px; color: var(--ink-4); font-weight: 600; margin-top: 2px; white-space: nowrap; }
-.cl-age.is-late { color: #b03a1a; }
+.cl-age.is-late { color: #b03a1a; font-weight: 700; }
+.cl-age.is-client { color: #b26b00; }
 .cl-vehicle-no { display: inline-flex; padding: 0 7px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); font-size: 11px; font-weight: 700; font-family: var(--mono); white-space: nowrap; }
 .cl-phone { text-decoration: none; color: var(--ink-3); font-size: 11.5px; font-family: var(--mono); }
 .cl-phone:hover { color: var(--accent); }
@@ -233,7 +234,8 @@
   .cl-table td::before { content: attr(data-label); flex-shrink: 0; font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 11px; font-weight: 700; color: var(--ink-4); }
   .cl-table td.cl-td-company { display: block; padding-bottom: 6px; }
   .cl-table td.cl-td-date { display: flex; }
-  .cl-table td.cl-td-date .cl-age { margin: 0 auto 0 0; }
+  .cl-table td.cl-td-date { flex-wrap: wrap; }
+  .cl-table td.cl-td-date .cl-age { margin: 0; }
   .cl-table td.cl-td-company::before, .cl-table td.cl-td-action::before { content: none; }
   .cl-table tbody tr:hover td { background: transparent; }
   .cl-td-action { padding-top: 8px !important; }
@@ -272,7 +274,7 @@
     </div>
     <div class="cl-kpi kpi-late">
       <span class="cl-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
-      <div><div class="cl-kpi__value">{{ summary.late }}</div><div class="cl-kpi__label">متأخرة <span class="cl-kpi__hint">· {{ summary.late_days }} أيام فأكثر</span></div></div>
+      <div><div class="cl-kpi__value">{{ summary.late }}</div><div class="cl-kpi__label">متأخرة <span class="cl-kpi__hint">· {{ summary.late_days }} أيام فأكثر لدينا</span></div></div>
     </div>
     {% if show_finished_section %}
     <div class="cl-kpi kpi-done">

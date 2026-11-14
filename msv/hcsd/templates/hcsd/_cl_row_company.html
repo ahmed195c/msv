@@ -9,5 +9,7 @@
 </td>
 <td class="cl-td-date">
   <div class="cl-date">{{ c.row_date|date:"d/m/Y"|default:"—" }}</div>
-  {% if c.age_label %}<div class="cl-age{% if c.is_late %} is-late{% endif %}">{{ c.age_label }}</div>{% endif %}
+  {% if c.age_label %}<div class="cl-age">{{ c.age_label }}</div>{% endif %}
+  {% if c.is_late %}<div class="cl-age is-late">{{ c.late_label }}</div>
+  {% elif c.waits_for_client %}<div class="cl-age is-client">بانتظار العميل</div>{% endif %}
 </td>

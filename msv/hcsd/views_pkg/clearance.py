@@ -80,6 +80,16 @@ CLEARANCE_LATE_DAYS = 7
 _NEEDS_ACTION_TONES = frozenset({'action', 'error'})
 
 
+def _days_label(days):
+    if days == 1:
+        return 'يوم'
+    if days == 2:
+        return 'يومان'
+    if days <= 10:
+        return f'{days} أيام'
+    return f'{days} يومًا'
+
+
 def _age_label(days):
     if days <= 0:
         return 'اليوم'
@@ -87,25 +97,81 @@ def _age_label(days):
         return 'منذ يوم'
     if days == 2:
         return 'منذ يومين'
-    if days <= 10:
-        return f'منذ {days} أيام'
-    return f'منذ {days} يومًا'
+    return f'منذ {_days_label(days)}'
 
 
-def _clearance_summary(active_groups, finished_count, today):
-    """Mark each active request's age and count the requests for the summary cards."""
-    needs_action = late = 0
-    for group in active_groups:
-        for item in group['items']:
-            item.age_days = (today - item.row_date).days if item.row_date else None
-            item.age_label = _age_label(item.age_days) if item.age_days is not None else ''
-            item.is_late = item.age_days is not None and item.age_days >= CLEARANCE_LATE_DAYS
-            late += item.is_late
-        if group['tone'] in _NEEDS_ACTION_TONES:
-            needs_action += len(group['items'])
+# Stages waiting on the company (a payment), not on us: their days are not delay.
+CLIENT_WAIT_STATUSES = frozenset({'inspection_payment_pending', 'payment_pending', 'violation_payment_pending'})
+CLIENT_WAIT_KEYS = CLIENT_WAIT_STATUSES | {'waste_disposal_payment_pending'}
+_DISPOSAL_PAID_NOTE = 'waste_disposal_payment_received:{}'
+
+
+def _start_of_day(day):
+    return timezone.make_aware(datetime.datetime.combine(day, datetime.time.min))
+
+
+def _our_days(item, transitions, disposal_paid_at, now):
+    """Days the request has been with us: its age minus the time spent waiting
+    for the company to pay. None while it is waiting for the company now."""
+    if getattr(item, 'status_key', item.status) in CLIENT_WAIT_KEYS:
+        return None
+    if item.active_waste_request:
+        # A disposal request is ours from its payment on.
+        start = disposal_paid_at.get(item.active_waste_request.id) or _start_of_day(item.row_date)
+        return max((now - start).days, 0)
+    start = _start_of_day(item.dateOfCreation)
+    client_wait = datetime.timedelta()
+    status, since = None, start
+    for changed_at, old_status, new_status in transitions.get(item.id, ()):
+        if status is None:
+            status = old_status
+        if status in CLIENT_WAIT_STATUSES and changed_at > since:
+            client_wait += changed_at - since
+        status, since = new_status, max(changed_at, start)
+    return max((now - start - client_wait).days, 0)
+
+
+def _status_transitions(items):
+    """Each permit's logged status changes, oldest first, in one query."""
+    transitions = {}
+    for permit_id, changed_at, old_status, new_status in (
+        PirmetChangeLog.objects.filter(pirmet_id__in=[item.id for item in items])
+        .exclude(new_status__isnull=True).exclude(new_status='')
+        .order_by('created_at').values_list('pirmet_id', 'created_at', 'old_status', 'new_status')
+    ):
+        transitions.setdefault(permit_id, []).append((changed_at, old_status, new_status))
+    return transitions
+
+
+def _disposal_payment_times(items):
+    """When each active disposal request's payment was confirmed, in one query."""
+    request_ids = {item.active_waste_request.id for item in items if item.active_waste_request}
+    notes = [_DISPOSAL_PAID_NOTE.format(request_id) for request_id in request_ids]
+    paid_at = {}
+    for note, changed_at in PirmetChangeLog.objects.filter(notes__in=notes).values_list('notes', 'created_at'):
+        request_id = int(note.rsplit(':', 1)[1])
+        paid_at[request_id] = min(paid_at.get(request_id, changed_at), changed_at)
+    return paid_at
+
+
+def _clearance_summary(active_groups, finished_count):
+    """Mark each active request's age and our delay, and count the summary cards."""
+    items = [item for group in active_groups for item in group['items']]
+    transitions = _status_transitions(items)
+    disposal_paid_at = _disposal_payment_times(items)
+    now, today = timezone.now(), timezone.localdate()
+    late = 0
+    for item in items:
+        age_days = (today - item.row_date).days if item.row_date else None
+        item.age_label = _age_label(age_days) if age_days is not None else ''
+        item.our_days = _our_days(item, transitions, disposal_paid_at, now)
+        item.waits_for_client = item.our_days is None
+        item.is_late = item.our_days is not None and item.our_days >= CLEARANCE_LATE_DAYS
+        item.late_label = f'تأخير لدينا: {_days_label(item.our_days)}' if item.is_late else ''
+        late += item.is_late
     return {
-        'active': sum(len(group['items']) for group in active_groups),
-        'needs_action': needs_action,
+        'active': len(items),
+        'needs_action': sum(len(g['items']) for g in active_groups if g['tone'] in _NEEDS_ACTION_TONES),
         'late': late,
         'late_days': CLEARANCE_LATE_DAYS,
         'finished': finished_count,
@@ -586,7 +652,7 @@ def clearance_list(request):
         group['tone'] = _ACTIVE_STAGE_TONES.get(group['status'], 'waiting')
     for group in finished_clearance_groups:
         group['tone'] = _FINISHED_STAGE_TONES.get(group['status'], 'waiting')
-    summary = _clearance_summary(active_clearance_groups, len(finished_clearances), timezone.localdate())
+    summary = _clearance_summary(active_clearance_groups, len(finished_clearances))
 
     return render(
         request,

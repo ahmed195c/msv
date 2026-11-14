@@ -368,3 +368,28 @@ class ActivityPermitPaymentDateTests(TestCase):
         self.assertContains(response, '23/02/2026')
         self.assertContains(response, '25/02/2026')
         self.assertContains(response, 'https://www.google.com/maps?q=25.349326,55.469057')
+
+
+class ClearanceDelayTests(TestCase):
+    """Days waiting for the company to pay are not counted as our delay."""
+
+    def _item(self, status, created):
+        from types import SimpleNamespace
+        return SimpleNamespace(id=1, status=status, status_key=status, dateOfCreation=created, active_waste_request=None)
+
+    def test_client_payment_wait_is_not_delay(self):
+        from django.utils import timezone
+        from .views_pkg.clearance import _our_days, _start_of_day
+        created = datetime.date(2026, 11, 1)
+        start = _start_of_day(created)
+        day = datetime.timedelta(days=1)
+        transitions = {1: [
+            (start + day, 'order_received', 'inspection_payment_pending'),
+            (start + 15 * day, 'inspection_payment_pending', 'inspection_pending'),
+        ]}
+        now = start + 20 * day
+        # 20 days old, 14 of them waiting for the company to pay the inspection.
+        self.assertEqual(_our_days(self._item('inspection_pending', created), transitions, {}, now), 6)
+        self.assertIsNone(_our_days(self._item('payment_pending', created), transitions, {}, now))
+        self.assertEqual(_our_days(self._item('inspection_pending', created), {}, {}, now), 20)
+        self.assertTrue(timezone.is_aware(start))
