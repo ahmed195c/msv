@@ -7,6 +7,8 @@ from hcsd.models import Company, Enginer
 
 
 DEFAULT_XLSX = "/home/a/Downloads/مزاولة-مهندس - SCM-AGE-ENV-F-85-01.xlsx"
+# The sheet has no activities column: point to the licence rather than invent a value.
+SEE_LICENSE_ACTIVITY = "كما هو موضح في الرخصة التجارية"
 
 
 class Command(BaseCommand):
@@ -128,7 +130,7 @@ class Command(BaseCommand):
                     landline=landline or None,
                     owner_phone=owner_phone or None,
                     email=company_email or None,
-                    business_activity="pest_control",
+                    business_activity=SEE_LICENSE_ACTIVITY,
                     pest_control_type="public_health_pest_control",
                     enginer=primary_engineer,
                 )
@@ -155,8 +157,8 @@ class Command(BaseCommand):
             if company_email and company.email != company_email:
                 company.email = company_email
                 changed.append("email")
-            if company.business_activity != "pest_control":
-                company.business_activity = "pest_control"
+            if not company.business_activity:
+                company.business_activity = SEE_LICENSE_ACTIVITY
                 changed.append("business_activity")
             if company.pest_control_type != "public_health_pest_control":
                 company.pest_control_type = "public_health_pest_control"
