@@ -393,3 +393,62 @@ class ClearanceDelayTests(TestCase):
         self.assertIsNone(_our_days(self._item('payment_pending', created), transitions, {}, now))
         self.assertEqual(_our_days(self._item('inspection_pending', created), {}, {}, now), 20)
         self.assertTrue(timezone.is_aware(start))
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp(prefix='msv_eng_add_test_'))
+class EngineerAdditionCreateTests(TestCase):
+    def test_form_creates_the_request_with_documents(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from .models import Company, PirmetClearance
+        company = Company.objects.create(name='شركة', number='C-3', address='الشارقة')
+        self.client.force_login(User.objects.create_superuser('ea_admin', password='x'))
+        page = self.client.get(reverse('engineer_addition_create'))
+        self.assertContains(page, 'id="company_search"')
+        response = self.client.post(reverse('engineer_addition_create'), {
+            'company_id': str(company.id), 'engineer_name': 'مهندس', 'engineer_phone': '0500000000',
+            'request_email': 'a@b.com', 'has_general_cert': 'on',
+            'general_cert_file': SimpleUploadedFile('c.pdf', b'%PDF-1', content_type='application/pdf'),
+            'engineer_documents': [
+                SimpleUploadedFile('d1.pdf', b'%PDF-1', content_type='application/pdf'),
+                SimpleUploadedFile('d2.jpg', b'\xff\xd8\xff', content_type='image/jpeg'),
+            ],
+        })
+        permit = PirmetClearance.objects.get(permit_type='engineer_addition')
+        self.assertRedirects(response, reverse('engineer_addition_detail', args=[permit.id]), fetch_redirect_response=False)
+        self.assertEqual(permit.company, company)
+        self.assertEqual(permit.engineer_to_add.name, 'مهندس')
+        self.assertTrue(permit.engineer_to_add.public_health_cert)
+        self.assertEqual(permit.documents.count(), 2)
+
+    def test_missing_company_keeps_the_typed_values(self):
+        self.client.force_login(User.objects.create_superuser('ea_admin2', password='x'))
+        response = self.client.post(reverse('engineer_addition_create'), {'engineer_name': 'مهندس محفوظ', 'engineer_phone': '05'})
+        self.assertContains(response, 'يرجى اختيار الشركة.')
+        self.assertContains(response, 'value="مهندس محفوظ"')
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp(prefix='msv_pest_form_test_'))
+class PestControlRequestFormTests(TestCase):
+    def test_form_creates_the_request_with_all_documents(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from .models import Company, Enginer, PirmetClearance
+        engineer = Enginer.objects.create(name='مهندس', phone='0500000001')
+        company = Company.objects.create(
+            name='شركة', number='C-4', address='الشارقة', enginer=engineer,
+            trade_license_exp=datetime.date.today() + datetime.timedelta(days=200),
+        )
+        self.client.force_login(User.objects.create_superuser('pc_admin', password='x'))
+        page = self.client.get(f"{reverse('pest_control_permit')}?company_id={company.id}")
+        self.assertContains(page, 'id="engineer_search"')
+        self.client.post(reverse('pest_control_permit'), {
+            'company_id': str(company.id), 'company_name': company.name, 'trade_license_no': company.number,
+            'company_address': company.address, 'trade_license_exp': company.trade_license_exp.isoformat(),
+            'request_email': 'req@example.com', 'engineer_id': str(engineer.id), 'engineer_phone': '0500000001',
+            'documents': [
+                SimpleUploadedFile('a.pdf', b'%PDF-1', content_type='application/pdf'),
+                SimpleUploadedFile('b.jpg', b'\xff\xd8\xff', content_type='image/jpeg'),
+            ],
+        })
+        permit = PirmetClearance.objects.get(permit_type='pest_control', company=company)
+        self.assertEqual(permit.documents.count(), 2)
+        self.assertEqual(permit.request_email, 'req@example.com')
