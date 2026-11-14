@@ -1,396 +1,275 @@
 {% extends "hcsd/base.html" %}
-{% load static %}
+{% load static l10n %}
 {% block title %}قائمة الشركات{% endblock %}
 {% block extra_css %}
 <style>
-.cl-page {
-  --ink-1:      #304357;
+/* Same look as متابعة الطلبات (clearance_list.html). */
+.co-page {
+  --ink-1:      #253a4f;
   --ink-2:      #41576f;
   --ink-3:      #6f8194;
   --ink-4:      #97a6b5;
-  --surface-1:  #F1F4F7;
-  --surface-2:  #e6ecf2;
-  --border:     #d7dfe8;
+  --surface-1:  #f4f6f9;
+  --surface-2:  #e9eef3;
+  --border:     #dfe5ec;
   --accent:     #0e7490;
+  --accent-dk:  #0b5568;
   --accent-lt:  #e6f2f4;
-  --success:    #1a7a3a;
-  --success-bg: #e8f5ee;
-  --warn:       #7a4500;
-  --warn-bg:    #fff4e0;
-  --danger:     #8a1a1a;
-  --danger-bg:  #fdeaea;
   --mono:       'JetBrains Mono', monospace;
-  padding: 24px 16px 56px;
-  background: var(--surface-1);
-  direction: rtl;
-  font-family: 'IBM Plex Sans Arabic', 'Tahoma', sans-serif;
-  color: var(--ink-1);
-}
-.cl-wrap { max-width: 1160px; margin: 0 auto; }
-
-/* ── Page header ── */
-.cl-page-header {
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
-}
-.cl-page-header h1 {
-  font-size: clamp(18px,2.2vw,24px); font-weight: 700; color: var(--ink-1); margin: 0;
-}
-.cl-page-header__sub {
-  font-size: 13px; color: var(--ink-4); margin-top: 3px;
-}
-.cl-page-header__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-
-/* ── Buttons ── */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px; font-size: 13.5px;
-  font-weight: 600; text-decoration: none; cursor: pointer;
-  transition: .15s; font-family: inherit; white-space: nowrap; border: none;
-}
-.btn-outline { background: #fff; color: var(--ink-2); border: 1.5px solid var(--border); }
-.btn-outline:hover { background: var(--surface-2); }
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: #0b5568; }
-.btn-sm { padding: 5px 12px; font-size: 12px; }
-
-/* ── Card ── */
-.card {
-  background: #fff; border-radius: 12px;
-  border: 1.5px solid var(--border); margin-bottom: 16px; overflow: hidden;
-}
-.card-header {
-  padding: 14px 18px; border-bottom: 1.5px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-}
-.card-header h2 { font-size: 15px; font-weight: 700; color: var(--ink-1); margin: 0; }
-.card-body { padding: 18px; }
-
-/* ── Filter form ── */
-.filter-form {
-  display: grid;
-  grid-template-columns: 1.8fr 1fr auto auto;
-  gap: 12px; align-items: end;
-}
-.filter-field { display: grid; gap: 5px; }
-.filter-field label { font-size: 11px; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: .04em; }
-.filter-field input,
-.filter-field select {
-  width: 100%; min-height: 40px; border: 1.5px solid var(--border);
-  border-radius: 8px; background: #fff; color: var(--ink-1);
-  padding: 9px 12px; font-family: inherit; font-size: 14px;
-  box-sizing: border-box; outline: none; transition: border-color .15s, box-shadow .15s;
-}
-.filter-field input:focus,
-.filter-field select:focus {
-  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,116,144,.12);
+  --shadow:     0 1px 2px rgba(16,40,64,.04), 0 2px 8px rgba(16,40,64,.05);
+  max-width: 1160px; margin: 0 auto; padding: 24px 16px 56px;
+  direction: rtl; color: var(--ink-1);
 }
 
-/* ── Active filter tag ── */
-.filter-tag {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 12px; padding: 4px 12px; border-radius: 20px;
-  background: var(--accent-lt); border: 1.5px solid #7fb3c0;
-  color: var(--accent); font-size: 12px; font-weight: 700;
+/* ── Header ── */
+.co-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.co-head h1 { font-size: clamp(20px,2.4vw,26px); font-weight: 800; margin: 0; letter-spacing: -.01em; }
+.co-head__sub { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+.co-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 700; font-family: inherit;
+  text-decoration: none; white-space: nowrap; border: 1.5px solid transparent; cursor: pointer; transition: background .15s;
 }
-.filter-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+.co-btn--primary { background: var(--accent); color: #fff; }
+.co-btn--primary:hover { background: var(--accent-dk); }
+.co-btn--outline { background: #fff; color: var(--ink-2); border-color: var(--border); }
+.co-btn--outline:hover { background: var(--surface-1); }
 
-/* ── Count chip ── */
-.count-chip {
-  display: inline-flex; align-items: center;
-  padding: 3px 12px; border-radius: 20px;
-  background: var(--surface-2); border: 1.5px solid var(--border);
-  font-size: 12px; font-weight: 700; color: var(--ink-3);
+/* ── Status cards (each one filters the list) ── */
+.co-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.co-kpi {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px; min-width: 0;
+  background: #fff; border: 1.5px solid var(--border); border-radius: 14px; box-shadow: var(--shadow);
+  color: inherit; text-decoration: none; transition: border-color .15s, background .15s;
 }
+.co-kpi:hover { border-color: var(--kpi-fg); }
+.co-kpi.is-active { border-color: var(--kpi-fg); background: var(--kpi-bg); }
+.co-kpi__icon { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--kpi-bg); color: var(--kpi-fg); }
+.co-kpi.is-active .co-kpi__icon { background: #fff; }
+.co-kpi__icon svg { width: 18px; height: 18px; }
+.co-kpi__value { font-size: 22px; font-weight: 800; line-height: 1.1; font-family: var(--mono); }
+.co-kpi__label { font-size: 12px; font-weight: 600; color: var(--ink-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-all     { --kpi-bg: #eaeef4; --kpi-fg: #304357; }
+.kpi-active  { --kpi-bg: #e8f5ee; --kpi-fg: #1a7a3a; }
+.kpi-expired { --kpi-bg: #f0ebff; --kpi-fg: #6b3fa0; }
+.kpi-ext     { --kpi-bg: #fff4e0; --kpi-fg: #b26b00; }
+.kpi-susp    { --kpi-bg: #fdecec; --kpi-fg: #b03a1a; }
+
+/* ── Search ── */
+.co-toolbar { display: flex; gap: 10px; align-items: center; padding: 12px; margin-bottom: 14px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+.co-search { position: relative; flex: 1; min-width: 0; }
+.co-search svg { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--ink-4); pointer-events: none; }
+.co-search input {
+  width: 100%; min-height: 42px; box-sizing: border-box; padding: 9px 12px; padding-inline-start: 38px;
+  border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface-1);
+  font-family: inherit; font-size: 13.5px; color: var(--ink-1); transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.co-search input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(14,116,144,.12); }
 
 /* ── Table ── */
-.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.cl-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.cl-tbl thead tr { background: var(--surface-2); border-bottom: 1.5px solid var(--border); }
-.cl-tbl th {
-  padding: 10px 14px; text-align: right; font-weight: 700; color: var(--ink-3);
-  white-space: nowrap; font-size: 11px; letter-spacing: .04em;
+.co-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+.co-card__head { display: flex; align-items: center; gap: 10px; padding: 13px 16px; font-size: 14.5px; font-weight: 800; }
+.co-count { font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--surface-2); border-radius: 20px; padding: 1px 9px; font-family: var(--mono); }
+.co-card__page { margin-inline-start: auto; font-size: 12px; font-weight: 600; color: var(--ink-4); }
+.co-table-scroll { overflow-x: auto; }
+.co-tbl { width: 100%; border-collapse: collapse; }
+.co-tbl th { text-align: start; font-size: 11.5px; font-weight: 700; color: var(--ink-4); background: var(--surface-1); padding: 9px 16px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); white-space: nowrap; }
+.co-tbl td { padding: 12px 16px; border-bottom: 1px solid #edf1f5; font-size: 13px; vertical-align: middle; }
+.co-tbl tbody tr:last-child td { border-bottom: none; }
+.co-tbl tbody tr[data-href] { cursor: pointer; transition: background .12s; }
+.co-tbl tbody tr:hover td { background: #f8fafc; }
+.co-td-company { min-width: 260px; }
+.co-td-action { text-align: end; width: 1%; }
+.co-name { font-size: 13.5px; font-weight: 700; color: var(--ink-1); line-height: 1.5; }
+.co-address { font-size: 12px; color: var(--ink-4); margin-top: 2px; line-height: 1.5; }
+.co-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; }
+.co-map { display: inline-flex; align-items: center; gap: 3px; padding: 0 7px; border-radius: 6px; background: var(--accent-lt); color: var(--accent-dk); font-size: 11px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.co-map:hover { background: var(--accent); color: #fff; }
+.co-license { display: inline-flex; padding: 3px 8px; border-radius: 6px; background: var(--surface-1); border: 1px solid var(--border); font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
+.co-date { font-size: 12.5px; color: var(--ink-2); font-family: var(--mono); white-space: nowrap; }
+.co-date-note { font-size: 11.5px; font-weight: 700; margin-top: 2px; white-space: nowrap; }
+.co-date-note.is-expired { color: #b03a1a; }
+.co-date-note.is-soon { color: #b26b00; }
+.co-muted { color: var(--ink-4); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill-active  { background: #e8f5ee; color: #1a5233; }
+.pill-expired { background: #f0ebff; color: #4c1d95; }
+.pill-ext     { background: #fff4e0; color: #7a4500; }
+.pill-susp    { background: #fdecec; color: #8a1f1f; }
+.co-view {
+  display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px;
+  background: var(--accent-lt); color: var(--accent-dk); font-size: 12.5px; font-weight: 700;
+  text-decoration: none; white-space: nowrap; transition: background .15s, color .15s;
 }
-.cl-tbl tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
-.cl-tbl tbody tr:last-child { border-bottom: none; }
-.cl-tbl tbody tr:hover { background: var(--surface-1); }
-.cl-tbl td { padding: 12px 14px; vertical-align: middle; color: var(--ink-2); }
+.co-view:hover, tr:hover .co-view { background: var(--accent); color: #fff; }
+.co-empty { text-align: center; padding: 48px 20px; color: var(--ink-3); font-size: 14px; font-weight: 600; }
 
-.company-name { font-weight: 700; font-size: 14px; color: var(--ink-1); }
-.company-num  { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+/* Pagination */
+.co-pages { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface-1); flex-wrap: wrap; }
+.co-pages a, .co-pages span {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 34px; padding: 6px 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; text-decoration: none; color: var(--ink-2); background: #fff; border: 1.5px solid var(--border);
+}
+.co-pages a:hover { background: var(--surface-2); }
+.co-pages .is-current { background: var(--accent); border-color: var(--accent); color: #fff; font-family: var(--mono); }
+.co-pages .co-pages__info { background: none; border: none; color: var(--ink-4); font-size: 12px; }
 
-/* ── Status badges ── */
-.sbadge {
-  display: inline-flex; align-items: center; gap: 5px;
-  border-radius: 20px; padding: 3px 10px;
-  font-size: 11.5px; font-weight: 600; border: 1.5px solid; white-space: nowrap;
+@media (max-width: 900px) {
+  .co-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-.sbadge::before { content:''; width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0; }
-.sbadge-ok    { border-color:#059669; background:#ecfdf5; color:#065f46; }
-.sbadge-warn  { border-color:#d97706; background:#fff7ed; color:#92400e; }
-.sbadge-block { border-color:#dc2626; background:#fef2f2; color:#991b1b; }
-.sbadge-exp   { border-color:#7c3aed; background:#f5f3ff; color:#5b21b6; }
-
-/* ── Pagination ── */
-.pagination-wrap {
-  padding: 12px 18px; border-top: 1.5px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 10px; flex-wrap: wrap;
-}
-.pagination-info { font-size: 12.5px; color: var(--ink-4); font-weight: 600; }
-.pagination-links { display: flex; gap: 6px; flex-wrap: wrap; }
-.pagination-links a,
-.pagination-links span {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 34px; padding: 6px 10px; border-radius: 6px;
-  border: 1.5px solid var(--border); background: #fff;
-  color: var(--ink-2); text-decoration: none;
-  font-size: 13px; font-weight: 600; transition: background .12s;
-}
-.pagination-links a:hover { background: var(--surface-2); }
-.pagination-links .is-active {
-  background: var(--accent); border-color: var(--accent);
-  color: #fff; font-weight: 700;
-}
-
-/* ── Empty ── */
-.tbl-empty {
-  padding: 48px 16px; text-align: center;
-  color: var(--ink-4); font-size: 13.5px; font-weight: 600;
-}
-
-/* ── Mobile cards ── */
-.co-cards { display: none; padding: 12px; gap: 10px; flex-direction: column; }
-.co-card {
-  background: #fff; border: 1.5px solid var(--border); border-radius: 10px;
-  padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 10px;
-}
-.co-card__row {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-}
-.co-card__name { font-weight: 700; font-size: 14.5px; color: var(--ink-1); }
-.co-card__num  { font-family: var(--mono); font-size: 12px; color: var(--ink-4); }
-.co-card__expiry { font-size: 12.5px; color: var(--ink-3); }
-.co-card__expiry-label { font-size: 11px; color: var(--ink-4); margin-bottom: 2px; }
-.co-card__btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; padding: 10px; border-radius: 8px;
-  background: var(--accent); color: #fff;
-  font-size: 14px; font-weight: 700; text-decoration: none;
-  transition: background .15s;
-}
-.co-card__btn:hover { background: #0b5568; }
-
-/* ── Responsive ── */
-@media(max-width:860px) {
-  .filter-form { grid-template-columns: 1fr 1fr; }
-}
-@media(max-width:540px) {
-  .filter-form { grid-template-columns: 1fr; }
-  .cl-page-header { flex-direction: column; align-items: flex-start; }
-}
-@media(max-width:640px) {
-  .tbl-wrap { display: none; }
-  .co-cards  { display: flex; }
+@media (max-width: 640px) {
+  .co-page { padding: 16px 10px 40px; }
+  .co-head .co-btn { width: 100%; }
+  .co-kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .co-kpis .co-kpi:first-child { grid-column: 1 / -1; }
+  .co-toolbar { flex-direction: column; align-items: stretch; }
+  .co-search input { font-size: 15px; min-height: 46px; }
+  .co-toolbar .co-btn { min-height: 44px; }
+  .co-tbl thead { display: none; }
+  .co-tbl, .co-tbl tbody, .co-tbl tr, .co-tbl td { display: block; width: 100%; }
+  .co-tbl tr { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .co-tbl tbody tr:last-child { border-bottom: none; }
+  .co-tbl td { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; border: none; }
+  .co-tbl td::before { content: attr(data-label); font-size: 11px; font-weight: 700; color: var(--ink-4); }
+  .co-tbl td.co-td-company { display: block; padding-bottom: 6px; }
+  .co-tbl td.co-td-company::before, .co-tbl td.co-td-action::before { content: none; }
+  .co-tbl td.co-td-expiry > div { display: flex; align-items: baseline; gap: 8px; }
+  .co-tbl tbody tr:hover td { background: transparent; }
+  .co-view { width: 100%; justify-content: center; padding: 9px 12px; margin-top: 4px; }
+  .co-card__page { display: none; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="cl-page" lang="ar" dir="rtl">
-<div class="cl-wrap">
+<div class="co-page" lang="ar" dir="rtl">
 
-  {# ── Page header ── #}
-  <div class="cl-page-header">
+  <div class="co-head">
     <div>
-      <h1>قائمة الشركات</h1>
-      <div class="cl-page-header__sub">إدارة الشركات المسجلة وتصاريحها</div>
+      <h1>الشركات</h1>
+      <div class="co-head__sub">الشركات المسجلة وحالة تصاريحها</div>
     </div>
-    <div class="cl-page-header__actions">
-      {% if can_add_company %}
-        <a class="btn btn-primary" href="{% url 'add_company' %}">+ شركة جديدة</a>
-      {% endif %}
-    </div>
+    {% if can_add_company %}<a class="co-btn co-btn--primary" href="{% url 'add_company' %}">+ شركة جديدة</a>{% endif %}
   </div>
 
-  {# ── Filter card ── #}
-  <div class="card">
-    <div class="card-header"><h2>بحث وتصفية</h2></div>
-    <div class="card-body">
-      <form class="filter-form filters" method="get">
-        <div class="filter-field">
-          <label for="q">بحث</label>
-          <input type="text" id="q" name="q" value="{{ query }}" placeholder="ابحث بالاسم أو رقم الرخصة" autocomplete="off">
-        </div>
-        <div class="filter-field">
-          <label for="status">الحالة</label>
-          <select id="status" name="status">
-            <option value="all"             {% if status_filter == "all" %}selected{% endif %}>كل الشركات</option>
-            <option value="extension"       {% if status_filter == "extension" %}selected{% endif %}>مهلة نشطة</option>
-            <option value="suspended"       {% if status_filter == "suspended" %}selected{% endif %}>موقوفة</option>
-            <option value="expired_permits" {% if status_filter == "expired_permits" %}selected{% endif %}>تصاريح منتهية</option>
-          </select>
-        </div>
-        <button class="btn btn-primary" type="submit">بحث</button>
-        <a class="btn btn-outline" href="{% url 'company_list' %}">إعادة ضبط</a>
-      </form>
-      {% if status_filter != "all" %}
-        <div class="filter-tag">فلتر نشط:
-          {% if status_filter == "extension" %}مهلة نشطة
-          {% elif status_filter == "suspended" %}موقوفة
-          {% elif status_filter == "expired_permits" %}تصاريح منتهية
-          {% else %}{{ status_filter }}{% endif %}
-        </div>
-      {% endif %}
-    </div>
-  </div>
+  {# ── Status cards: each filters the list (the search stays) ── #}
+  <nav class="co-kpis" aria-label="حالة الشركات">
+    <a class="co-kpi kpi-all{% if status_filter == 'all' %} is-active{% endif %}" href="?{% if query %}q={{ query|urlencode }}{% endif %}" {% if status_filter == 'all' %}aria-current="page"{% endif %}>
+      <span class="co-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1M14 9h1M9 13h1M14 13h1M9 17h1M14 17h1"/></svg></span>
+      <div><div class="co-kpi__value">{{ status_counts.all }}</div><div class="co-kpi__label">كل الشركات</div></div>
+    </a>
+    <a class="co-kpi kpi-active{% if status_filter == 'active' %} is-active{% endif %}" href="?status=active{% if query %}&q={{ query|urlencode }}{% endif %}" {% if status_filter == 'active' %}aria-current="page"{% endif %}>
+      <span class="co-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+      <div><div class="co-kpi__value">{{ status_counts.active }}</div><div class="co-kpi__label">نشطة</div></div>
+    </a>
+    <a class="co-kpi kpi-expired{% if status_filter == 'expired_permits' %} is-active{% endif %}" href="?status=expired_permits{% if query %}&q={{ query|urlencode }}{% endif %}" {% if status_filter == 'expired_permits' %}aria-current="page"{% endif %}>
+      <span class="co-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9.5" y1="12.5" x2="14.5" y2="17.5"/><line x1="14.5" y1="12.5" x2="9.5" y2="17.5"/></svg></span>
+      <div><div class="co-kpi__value">{{ status_counts.expired_permits }}</div><div class="co-kpi__label">تصاريح منتهية</div></div>
+    </a>
+    <a class="co-kpi kpi-ext{% if status_filter == 'extension' %} is-active{% endif %}" href="?status=extension{% if query %}&q={{ query|urlencode }}{% endif %}" {% if status_filter == 'extension' %}aria-current="page"{% endif %}>
+      <span class="co-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      <div><div class="co-kpi__value">{{ status_counts.extension }}</div><div class="co-kpi__label">مهلة نشطة</div></div>
+    </a>
+    <a class="co-kpi kpi-susp{% if status_filter == 'suspended' %} is-active{% endif %}" href="?status=suspended{% if query %}&q={{ query|urlencode }}{% endif %}" {% if status_filter == 'suspended' %}aria-current="page"{% endif %}>
+      <span class="co-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></span>
+      <div><div class="co-kpi__value">{{ status_counts.suspended }}</div><div class="co-kpi__label">موقوفة</div></div>
+    </a>
+  </nav>
 
-  {# ── Table card ── #}
-  <div class="card">
-    <div class="card-header">
-      <h2>الشركات</h2>
-      <span class="count-chip">{{ total_companies }} شركة</span>
+  <form method="get" class="co-toolbar" role="search">
+    {% if status_filter != 'all' %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    <div class="co-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" name="q" value="{{ query }}" placeholder="ابحث باسم الشركة أو رقم الرخصة" aria-label="بحث" autocomplete="off">
+    </div>
+    <button class="co-btn co-btn--primary" type="submit">بحث</button>
+    {% if query or status_filter != 'all' %}<a class="co-btn co-btn--outline" href="{% url 'company_list' %}">مسح</a>{% endif %}
+  </form>
+
+  <div class="co-card">
+    <div class="co-card__head">
+      {% if status_filter == 'active' %}شركات نشطة{% elif status_filter == 'expired_permits' %}شركات بتصاريح منتهية{% elif status_filter == 'extension' %}شركات في مهلة نشطة{% elif status_filter == 'suspended' %}شركات موقوفة{% else %}كل الشركات{% endif %}
+      <span class="co-count">{{ total_companies }}</span>
+      {% if page_obj.paginator.num_pages > 1 %}<span class="co-card__page">صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}</span>{% endif %}
     </div>
 
     {% if company_rows %}
-
-      {# Top pagination #}
-      {% if page_obj %}
-      <div class="pagination-wrap">
-        <div class="pagination-info">
-          عرض {{ company_rows|length }} من {{ total_companies }} · صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}
-        </div>
-        <div class="pagination-links">
-          {% if page_obj.has_previous %}
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page=1">الأولى</a>
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">السابق</a>
-          {% endif %}
-          <span class="is-active">{{ page_obj.number }}</span>
-          {% if page_obj.has_next %}
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">التالي</a>
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.paginator.num_pages }}">الأخيرة</a>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-
-      <div class="tbl-wrap">
-        <table class="cl-tbl">
-          <thead>
-            <tr>
-              <th>اسم الشركة</th>
-              <th>رقم الرخصة</th>
-              <th>انتهاء الرخصة</th>
-              <th>الحالة</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in company_rows %}
-            <tr>
-              <td>
-                <div class="company-name">{{ row.company.name }}</div>
-                {% if row.company.address %}
-                  <div style="font-size:12px;color:var(--ink-4);margin-top:2px;">{{ row.company.address }}</div>
-                {% endif %}
-              </td>
-              <td><span class="company-num">{{ row.company.number }}</span></td>
-              <td>
-                {% if row.trade_expiry %}
-                  <span style="font-size:13.5px;color:var(--ink-2);">{{ row.trade_expiry|date:"d/m/Y" }}</span>
-                {% else %}
-                  <span style="color:var(--ink-4);">—</span>
-                {% endif %}
-              </td>
-              <td>
-                <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                  {% if row.is_suspended %}
-                    <span class="sbadge sbadge-block">موقوفة</span>
-                  {% elif row.has_active_extension %}
-                    <span class="sbadge sbadge-warn">مهلة نشطة</span>
-                  {% elif row.has_expired_permit %}
-                    <span class="sbadge sbadge-exp">تصريح منتهٍ</span>
-                  {% else %}
-                    <span class="sbadge sbadge-ok">نشطة</span>
-                  {% endif %}
-                </div>
-              </td>
-              <td><a class="btn btn-primary btn-sm" href="{% url 'company_detail' row.company.id %}">عرض</a></td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      {# Mobile cards #}
-      <div class="co-cards">
-        {% for row in company_rows %}
-        <div class="co-card">
-          <div class="co-card__row">
-            <span class="co-card__name">{{ row.company.name }}</span>
-            <span class="co-card__num">{{ row.company.number }}</span>
-          </div>
-          <div class="co-card__row">
-            <div>
-              <div class="co-card__expiry-label">انتهاء الرخصة</div>
-              <div class="co-card__expiry">
-                {% if row.trade_expiry %}{{ row.trade_expiry|date:"d/m/Y" }}{% else %}—{% endif %}
+    <div class="co-table-scroll">
+      <table class="co-tbl">
+        <thead><tr><th>الشركة</th><th>رقم الرخصة</th><th>انتهاء الرخصة التجارية</th><th>الحالة</th><th></th></tr></thead>
+        <tbody>
+          {% for row in company_rows %}
+          <tr data-href="{% url 'company_detail' row.company.id %}">
+            <td class="co-td-company">
+              <div class="co-name">{{ row.company.name }}</div>
+              {% if row.company.address %}<div class="co-address">{{ row.company.address }}</div>{% endif %}
+              {% if row.company.latitude is not None and row.company.longitude is not None %}
+              <div class="co-meta">
+                <a href="https://www.google.com/maps?q={{ row.company.latitude|unlocalize }},{{ row.company.longitude|unlocalize }}" class="co-map" target="_blank" rel="noopener noreferrer" title="موقع الشركة على خرائط قوقل"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>الموقع</a>
               </div>
-            </div>
-            <div>
-              {% if row.is_suspended %}
-                <span class="sbadge sbadge-block">موقوفة</span>
-              {% elif row.has_active_extension %}
-                <span class="sbadge sbadge-warn">مهلة نشطة</span>
-              {% elif row.has_expired_permit %}
-                <span class="sbadge sbadge-exp">تصريح منتهٍ</span>
-              {% else %}
-                <span class="sbadge sbadge-ok">نشطة</span>
               {% endif %}
-            </div>
-          </div>
-          <a class="co-card__btn" href="{% url 'company_detail' row.company.id %}">عرض</a>
-        </div>
-        {% endfor %}
-      </div>
+            </td>
+            <td data-label="رقم الرخصة"><span class="co-license">{{ row.company.number }}</span></td>
+            <td data-label="انتهاء الرخصة" class="co-td-expiry">
+              {% if row.trade_expiry %}
+              <div>
+                <div class="co-date">{{ row.trade_expiry|date:"d/m/Y" }}</div>
+                {% if row.trade_note %}<div class="co-date-note is-{{ row.trade_note.1 }}">{{ row.trade_note.0 }}</div>{% endif %}
+              </div>
+              {% else %}<span class="co-muted">—</span>{% endif %}
+            </td>
+            <td data-label="الحالة">
+              {% if row.status == 'suspended' %}<span class="pill pill-susp">موقوفة</span>
+              {% elif row.status == 'extension' %}<span class="pill pill-ext">مهلة نشطة</span>
+              {% elif row.status == 'expired_permits' %}<span class="pill pill-expired">تصريح منتهٍ</span>
+              {% else %}<span class="pill pill-active">نشطة</span>{% endif %}
+            </td>
+            <td class="co-td-action"><a class="co-view" href="{% url 'company_detail' row.company.id %}">عرض<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-      {# Bottom pagination #}
-      {% if page_obj and page_obj.paginator.num_pages > 1 %}
-      <div class="pagination-wrap">
-        <div class="pagination-info">صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}</div>
-        <div class="pagination-links">
-          {% if page_obj.has_previous %}
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page=1">الأولى</a>
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">السابق</a>
-          {% endif %}
-          <span class="is-active">{{ page_obj.number }}</span>
-          {% if page_obj.has_next %}
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">التالي</a>
-            <a href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.paginator.num_pages }}">الأخيرة</a>
-          {% endif %}
-        </div>
-      </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="co-pages" aria-label="الصفحات">
+      {% if page_obj.has_previous %}
+        <a href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">السابق</a>
       {% endif %}
-
-    {% else %}
-      <div class="tbl-empty">
-        {% if status_filter == "suspended" %}لا توجد شركة موقوفة.
-        {% elif status_filter == "extension" %}لا توجد شركة على قيد مهلة.
-        {% elif status_filter == "expired_permits" %}لا توجد شركة بتصاريح منتهية.
-        {% else %}لا توجد شركات مطابقة للبحث.{% endif %}
-      </div>
+      {% for number in page_obj.paginator.page_range %}
+        {% if number == page_obj.number %}<span class="is-current" aria-current="page">{{ number }}</span>
+        {% else %}<a href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}page={{ number }}">{{ number }}</a>{% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <a href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}page={{ page_obj.next_page_number }}">التالي</a>
+      {% endif %}
+    </nav>
     {% endif %}
 
+    {% else %}
+    <div class="co-empty">
+      {% if query %}لا توجد شركات مطابقة للبحث.
+      {% elif status_filter == 'suspended' %}لا توجد شركة موقوفة.
+      {% elif status_filter == 'extension' %}لا توجد شركة على قيد مهلة.
+      {% elif status_filter == 'expired_permits' %}لا توجد شركة بتصاريح منتهية.
+      {% elif status_filter == 'active' %}لا توجد شركات نشطة.
+      {% else %}لا توجد شركات مسجلة بعد.{% endif %}
+    </div>
+    {% endif %}
   </div>
 
-</div>
 </div>
 
 <script>
 (function () {
-  document.addEventListener("submit", function (e) {
-    if (e.target.matches(".cl-page .filters"))
-      document.documentElement.classList.add("cl--loading");
+  // A click anywhere on a row opens the company (links keep their own action).
+  document.querySelectorAll('.co-tbl tr[data-href]').forEach(function (row) {
+    row.addEventListener('click', function (event) {
+      if (event.target.closest('a, button')) return;
+      if (window.getSelection && String(window.getSelection())) return;
+      window.location.href = row.getAttribute('data-href');
+    });
   });
 })();
 </script>

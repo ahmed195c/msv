@@ -43,26 +43,41 @@ from .common import (
     _is_effective_active_permit, _engineer_no_certificate_notice,
     _group_clearances_by_status, _validate_engineer_for_type,
 )
+ENGINEER_FILTERS = ('public_health', 'termite', 'expired', 'on_leave')
+
+
+def _engineer_filter_keys(engineer):
+    """The list filters an engineer appears under."""
+    keys = set()
+    if engineer.public_health_cert:
+        keys.add('public_health')
+    if engineer.termite_cert:
+        keys.add('termite')
+    if (engineer.public_health_cert and engineer.public_health_cert_is_expired) or (
+        engineer.termite_cert and engineer.termite_cert_is_expired
+    ):
+        keys.add('expired')
+    if engineer.active_leave:
+        keys.add('on_leave')
+    return keys
+
+
 @login_required
 def enginer_list(request):
     search_query = (request.GET.get('q') or '').strip()
     certification_filter = (request.GET.get('certification') or '').strip()
+    if certification_filter not in ENGINEER_FILTERS:
+        certification_filter = ''
 
-    engineers = Enginer.objects.all()
-
+    engineers = Enginer.objects.order_by('name')
     if search_query:
         engineers = engineers.filter(
             Q(name__icontains=search_query) |
             Q(national_or_unified_number__icontains=search_query) |
             Q(card_number__icontains=search_query)
         )
+    engineers = list(engineers)
 
-    if certification_filter == 'public_health':
-        engineers = engineers.exclude(public_health_cert='')
-    elif certification_filter == 'termite':
-        engineers = engineers.exclude(termite_cert='')
-
-    engineers = list(engineers.order_by('name'))
     # Fetch all active leave records in one query for efficiency
     active_leave_map = {
         leave.engineer_id: leave
@@ -71,14 +86,22 @@ def enginer_list(request):
             engineer_id__in=[e.id for e in engineers],
         ).select_related('substitute')
     }
+    filter_counts = {key: 0 for key in ENGINEER_FILTERS}
     for engineer in engineers:
         ph_expiry_date, ph_is_expired = _certificate_expiry(engineer.public_health_cert_issue_date, engineer.public_health_cert_expiry_date)
         termite_expiry_date, termite_is_expired = _certificate_expiry(engineer.termite_cert_issue_date, engineer.termite_cert_expiry_date)
-        engineer._ph_expiry_date = ph_expiry_date
+        engineer.ph_cert_expiry = ph_expiry_date
         engineer.public_health_cert_is_expired = ph_is_expired
-        engineer._termite_expiry_date = termite_expiry_date
+        engineer.termite_cert_expiry = termite_expiry_date
         engineer.termite_cert_is_expired = termite_is_expired
         engineer.active_leave = active_leave_map.get(engineer.id)
+        engineer.filter_keys = _engineer_filter_keys(engineer)
+        for key in engineer.filter_keys:
+            filter_counts[key] += 1
+    filter_counts['all'] = len(engineers)
+    if certification_filter:
+        engineers = [e for e in engineers if certification_filter in e.filter_keys]
+
     return render(
         request,
         'hcsd/enginer_list.html',
@@ -89,7 +112,7 @@ def enginer_list(request):
             'can_view_exam_requests': _can_inspector(request.user) or _can_create_exam_request(request.user),
             'search_query': search_query,
             'certification_filter': certification_filter,
-            'on_leave_count': len(active_leave_map),
+            'filter_counts': filter_counts,
         },
     )
 

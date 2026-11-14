@@ -1,299 +1,246 @@
 {% extends "hcsd/base.html" %}
 {% load static %}
-{% block title %}قائمة المهندسين{% endblock %}
+{% block title %}المهندسون{% endblock %}
 {% block extra_css %}
 <style>
+/* Same look as متابعة الطلبات (clearance_list.html). */
 .el-page {
-  --ink-1:      #304357;
+  --ink-1:      #253a4f;
   --ink-2:      #41576f;
   --ink-3:      #6f8194;
   --ink-4:      #97a6b5;
-  --surface-1:  #F1F4F7;
-  --surface-2:  #e6ecf2;
-  --border:     #d7dfe8;
+  --surface-1:  #f4f6f9;
+  --surface-2:  #e9eef3;
+  --border:     #dfe5ec;
   --accent:     #0e7490;
+  --accent-dk:  #0b5568;
   --accent-lt:  #e6f2f4;
-  --success:    #1a7a3a;
-  --success-bg: #e8f5ee;
-  --warn:       #7a4500;
-  --warn-bg:    #fff4e0;
-  --danger:     #8a1a1a;
-  --danger-bg:  #fdeaea;
   --mono:       'JetBrains Mono', monospace;
-  padding: 24px 16px 56px;
-  background: var(--surface-1);
-  direction: rtl;
-  font-family: 'IBM Plex Sans Arabic', 'Tahoma', sans-serif;
-  color: var(--ink-1);
-}
-.el-wrap { max-width: 1160px; margin: 0 auto; }
-
-/* ── Page header ── */
-.el-page-header {
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
-}
-.el-page-header h1 {
-  font-size: clamp(18px,2.2vw,24px); font-weight: 700; color: var(--ink-1); margin: 0;
-}
-.el-page-header__sub {
-  font-size: 13px; color: var(--ink-4); margin-top: 3px;
-}
-.el-page-header__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-
-/* ── Buttons ── */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px; font-size: 13.5px;
-  font-weight: 600; text-decoration: none; cursor: pointer;
-  transition: .15s; font-family: inherit; white-space: nowrap; border: none;
-}
-.btn-outline { background: #fff; color: var(--ink-2); border: 1.5px solid var(--border); }
-.btn-outline:hover { background: var(--surface-2); }
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: #0b5568; }
-.btn-sm { padding: 5px 12px; font-size: 12px; }
-
-/* ── Leave notice ── */
-.el-notice {
-  background: var(--warn-bg);
-  border: 1.5px solid #e8c97a;
-  border-right: 3px solid #d97706;
-  border-radius: 10px;
-  padding: 11px 16px;
-  font-size: 13px; font-weight: 600;
-  color: var(--warn);
-  margin-bottom: 16px;
+  --shadow:     0 1px 2px rgba(16,40,64,.04), 0 2px 8px rgba(16,40,64,.05);
+  max-width: 1160px; margin: 0 auto; padding: 24px 16px 56px;
+  direction: rtl; color: var(--ink-1);
 }
 
-/* ── Card ── */
-.card {
-  background: #fff; border-radius: 12px;
-  border: 1.5px solid var(--border); margin-bottom: 16px; overflow: hidden;
+/* ── Header ── */
+.el-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.el-head h1 { font-size: clamp(20px,2.4vw,26px); font-weight: 800; margin: 0; letter-spacing: -.01em; }
+.el-head__sub { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+.el-head__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.el-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 700; font-family: inherit;
+  text-decoration: none; white-space: nowrap; border: 1.5px solid transparent; cursor: pointer; transition: background .15s;
 }
-.card-header {
-  padding: 14px 18px; border-bottom: 1.5px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-}
-.card-header h2 { font-size: 15px; font-weight: 700; color: var(--ink-1); margin: 0; }
-.card-body { padding: 18px; }
+.el-btn--primary { background: var(--accent); color: #fff; }
+.el-btn--primary:hover { background: var(--accent-dk); }
+.el-btn--outline { background: #fff; color: var(--ink-2); border-color: var(--border); }
+.el-btn--outline:hover { background: var(--surface-1); }
 
-/* ── Filter form ── */
-.filter-form {
-  display: grid;
-  grid-template-columns: 1.8fr 1fr auto;
-  gap: 12px; align-items: end;
+/* ── Filter cards ── */
+.el-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.el-kpi {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px; min-width: 0;
+  background: #fff; border: 1.5px solid var(--border); border-radius: 14px; box-shadow: var(--shadow);
+  color: inherit; text-decoration: none; transition: border-color .15s, background .15s;
 }
-.filter-field { display: grid; gap: 5px; }
-.filter-field label { font-size: 11px; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: .04em; }
-.filter-field input,
-.filter-field select {
-  width: 100%; min-height: 40px; border: 1.5px solid var(--border);
-  border-radius: 8px; background: #fff; color: var(--ink-1);
-  padding: 9px 12px; font-family: inherit; font-size: 14px;
-  box-sizing: border-box; outline: none; transition: border-color .15s, box-shadow .15s;
-}
-.filter-field input:focus,
-.filter-field select:focus {
-  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,92,154,.12);
-}
+.el-kpi:hover { border-color: var(--kpi-fg); }
+.el-kpi.is-active { border-color: var(--kpi-fg); background: var(--kpi-bg); }
+.el-kpi__icon { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--kpi-bg); color: var(--kpi-fg); }
+.el-kpi.is-active .el-kpi__icon { background: #fff; }
+.el-kpi__icon svg { width: 18px; height: 18px; }
+.el-kpi__value { font-size: 22px; font-weight: 800; line-height: 1.1; font-family: var(--mono); }
+.el-kpi__label { font-size: 12px; font-weight: 600; color: var(--ink-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-all     { --kpi-bg: #eaeef4; --kpi-fg: #304357; }
+.kpi-ph      { --kpi-bg: #e8f5ee; --kpi-fg: #1a7a3a; }
+.kpi-termite { --kpi-bg: var(--accent-lt); --kpi-fg: var(--accent); }
+.kpi-expired { --kpi-bg: #fff4e0; --kpi-fg: #b26b00; }
+.kpi-leave   { --kpi-bg: #f0ebff; --kpi-fg: #6b3fa0; }
 
-/* ── Count chip ── */
-.count-chip {
-  display: inline-flex; align-items: center;
-  padding: 3px 12px; border-radius: 20px;
-  background: var(--surface-2); border: 1.5px solid var(--border);
-  font-size: 12px; font-weight: 700; color: var(--ink-3);
+/* ── Search ── */
+.el-toolbar { display: flex; gap: 10px; align-items: center; padding: 12px; margin-bottom: 14px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+.el-search { position: relative; flex: 1; min-width: 0; }
+.el-search svg { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--ink-4); pointer-events: none; }
+.el-search input {
+  width: 100%; min-height: 42px; box-sizing: border-box; padding: 9px 12px; padding-inline-start: 38px;
+  border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface-1);
+  font-family: inherit; font-size: 13.5px; color: var(--ink-1); transition: border-color .15s, box-shadow .15s, background .15s;
 }
+.el-search input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(14,116,144,.12); }
 
 /* ── Table ── */
-.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.el-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.el-tbl thead tr { background: var(--surface-2); border-bottom: 1.5px solid var(--border); }
-.el-tbl th {
-  padding: 10px 14px; text-align: right; font-weight: 700; color: var(--ink-3);
-  white-space: nowrap; font-size: 11px; letter-spacing: .04em;
+.el-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+.el-card__head { display: flex; align-items: center; gap: 10px; padding: 13px 16px; font-size: 14.5px; font-weight: 800; }
+.el-count { font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--surface-2); border-radius: 20px; padding: 1px 9px; font-family: var(--mono); }
+.el-table-scroll { overflow-x: auto; }
+.el-tbl { width: 100%; border-collapse: collapse; }
+.el-tbl th { text-align: start; font-size: 11.5px; font-weight: 700; color: var(--ink-4); background: var(--surface-1); padding: 9px 16px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); white-space: nowrap; }
+.el-tbl td { padding: 12px 16px; border-bottom: 1px solid #edf1f5; font-size: 13px; vertical-align: middle; }
+.el-tbl tbody tr:last-child td { border-bottom: none; }
+.el-tbl tbody tr[data-href] { cursor: pointer; transition: background .12s; }
+.el-tbl tbody tr:hover td { background: #f8fafc; }
+.el-td-name { min-width: 240px; }
+.el-td-action { text-align: end; width: 1%; }
+.el-name { font-size: 13.5px; font-weight: 700; color: var(--ink-1); line-height: 1.5; }
+.el-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 2px; }
+.el-cardno { font-size: 11.5px; font-weight: 700; color: var(--accent); }
+.el-num { font-family: var(--mono); }
+.el-phone { font-size: 11.5px; color: var(--ink-3); font-family: var(--mono); text-decoration: none; }
+.el-phone:hover { color: var(--accent); }
+.el-certs { display: flex; flex-wrap: wrap; gap: 6px; }
+.el-cert { display: inline-flex; flex-direction: column; padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 700; line-height: 1.35; white-space: nowrap; }
+.el-cert small { font-size: 10.5px; font-weight: 600; opacity: .8; }
+.el-cert--ok      { background: #e8f5ee; color: #1a5233; }
+.el-cert--expired { background: #fff4e0; color: #7a4500; }
+.el-cert--missing { background: transparent; color: var(--ink-4); border: 1px dashed var(--border); font-weight: 600; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill-work  { background: #e8f5ee; color: #1a5233; }
+.pill-leave { background: #f0ebff; color: #4c1d95; }
+.el-sub { font-size: 11.5px; color: var(--ink-3); margin-top: 3px; white-space: nowrap; }
+.el-view {
+  display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px;
+  background: var(--accent-lt); color: var(--accent-dk); font-size: 12.5px; font-weight: 700;
+  text-decoration: none; white-space: nowrap; transition: background .15s, color .15s;
 }
-.el-tbl tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
-.el-tbl tbody tr:last-child { border-bottom: none; }
-.el-tbl tbody tr:hover { background: var(--surface-1); }
-.el-tbl td { padding: 12px 14px; vertical-align: middle; color: var(--ink-2); }
+.el-view:hover, tr:hover .el-view { background: var(--accent); color: #fff; }
+.el-empty { text-align: center; padding: 48px 20px; color: var(--ink-3); font-size: 14px; font-weight: 600; }
 
-.eng-name   { font-weight: 700; font-size: 14px; color: var(--ink-1); }
-.eng-cardno { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
-.eng-sub    { font-size: 11px; color: var(--ink-4); margin-top: 3px; }
-
-/* ── Cert badges ── */
-.cbadge {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 9px; border-radius: 20px;
-  font-size: 11.5px; font-weight: 600;
-  white-space: nowrap; margin: 2px 2px 2px 0;
-  border: 1.5px solid;
+@media (max-width: 900px) {
+  .el-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-.cbadge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-.cbadge-ok   { background: var(--success-bg); color: var(--success); border-color: #7bcf9a; }
-.cbadge-ok::before   { background: var(--success); }
-.cbadge-warn { background: var(--warn-bg); color: var(--warn); border-color: #e8c97a; }
-.cbadge-warn::before { background: #d97706; }
-.cbadge-miss { background: var(--surface-2); color: var(--ink-4); border-color: var(--border); }
-.cbadge-miss::before { background: var(--ink-4); }
-
-/* ── Status badges ── */
-.sbadge {
-  display: inline-flex; align-items: center; gap: 5px;
-  border-radius: 20px; padding: 3px 10px;
-  font-size: 11.5px; font-weight: 600; border: 1.5px solid; white-space: nowrap;
-}
-.sbadge::before { content:''; width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0; }
-.sbadge-ok    { border-color:#059669; background:#ecfdf5; color:#065f46; }
-.sbadge-warn  { border-color:#d97706; background:#fff7ed; color:#92400e; }
-
-/* ── Empty ── */
-.tbl-empty {
-  padding: 48px 16px; text-align: center;
-  color: var(--ink-4); font-size: 13.5px; font-weight: 600;
-}
-
-/* ── Responsive ── */
-@media(max-width:760px) {
-  .filter-form { grid-template-columns: 1fr 1fr; }
-}
-@media(max-width:480px) {
-  .filter-form { grid-template-columns: 1fr; }
-  .el-page-header { flex-direction: column; align-items: flex-start; }
+@media (max-width: 640px) {
+  .el-page { padding: 16px 10px 40px; }
+  .el-head__actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .el-head__actions .el-btn--primary { grid-column: 1 / -1; }
+  .el-kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .el-kpis .el-kpi:first-child { grid-column: 1 / -1; }
+  .el-toolbar { flex-direction: column; align-items: stretch; }
+  .el-search input { font-size: 15px; min-height: 46px; }
+  .el-toolbar .el-btn { min-height: 44px; }
+  .el-tbl thead { display: none; }
+  .el-tbl, .el-tbl tbody, .el-tbl tr, .el-tbl td { display: block; width: 100%; }
+  .el-tbl tr { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .el-tbl tbody tr:last-child { border-bottom: none; }
+  .el-tbl td { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; border: none; }
+  .el-tbl td::before { content: attr(data-label); flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--ink-4); }
+  .el-tbl td.el-td-name { display: block; padding-bottom: 6px; }
+  .el-tbl td.el-td-name::before, .el-tbl td.el-td-action::before { content: none; }
+  .el-tbl tbody tr:hover td { background: transparent; }
+  .el-certs { justify-content: flex-end; }
+  .el-view { width: 100%; justify-content: center; padding: 9px 12px; margin-top: 4px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="el-page" lang="ar" dir="rtl">
-<div class="el-wrap">
 
-  {# ── Page header ── #}
-  <div class="el-page-header">
+  <div class="el-head">
     <div>
-      <h1>قائمة المهندسين</h1>
-      <div class="el-page-header__sub">إدارة المهندسين المسجلين وشهاداتهم</div>
+      <h1>المهندسون</h1>
+      <div class="el-head__sub">المهندسون المسجلون وشهاداتهم</div>
     </div>
-    <div class="el-page-header__actions">
-      {% if can_view_exam_requests %}
-        <a class="btn btn-outline" href="{% url 'public_health_exam_request_list' %}">طلبات الاختبار</a>
-      {% endif %}
-      {% if can_create_exam_request %}
-        <a class="btn btn-outline" href="{% url 'engineer_certificate_request_list' %}">شهادات لمن يهمه</a>
-      {% endif %}
-      {% if can_add_enginer %}
-        <a class="btn btn-primary" href="{% url 'enginer_add' %}">+ مهندس جديد</a>
-      {% endif %}
+    <div class="el-head__actions">
+      {% if can_view_exam_requests %}<a class="el-btn el-btn--outline" href="{% url 'public_health_exam_request_list' %}">طلبات الاختبار</a>{% endif %}
+      {% if can_create_exam_request %}<a class="el-btn el-btn--outline" href="{% url 'engineer_certificate_request_list' %}">شهادات لمن يهمه</a>{% endif %}
+      {% if can_add_enginer %}<a class="el-btn el-btn--primary" href="{% url 'enginer_add' %}">+ مهندس جديد</a>{% endif %}
     </div>
   </div>
 
-  {# ── Leave notice ── #}
-  {% if on_leave_count %}
-    <div class="el-notice">{{ on_leave_count }} مهندس في إجازة حالياً</div>
-  {% endif %}
+  {# ── Filter cards (the search stays) ── #}
+  <nav class="el-kpis" aria-label="تصفية المهندسين">
+    <a class="el-kpi kpi-all{% if not certification_filter %} is-active{% endif %}" href="?{% if search_query %}q={{ search_query|urlencode }}{% endif %}" {% if not certification_filter %}aria-current="page"{% endif %}>
+      <span class="el-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <div><div class="el-kpi__value">{{ filter_counts.all }}</div><div class="el-kpi__label">كل المهندسين</div></div>
+    </a>
+    <a class="el-kpi kpi-ph{% if certification_filter == 'public_health' %} is-active{% endif %}" href="?certification=public_health{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" {% if certification_filter == 'public_health' %}aria-current="page"{% endif %}>
+      <span class="el-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/></svg></span>
+      <div><div class="el-kpi__value">{{ filter_counts.public_health }}</div><div class="el-kpi__label">شهادة الصحة العامة</div></div>
+    </a>
+    <a class="el-kpi kpi-termite{% if certification_filter == 'termite' %} is-active{% endif %}" href="?certification=termite{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" {% if certification_filter == 'termite' %}aria-current="page"{% endif %}>
+      <span class="el-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/></svg></span>
+      <div><div class="el-kpi__value">{{ filter_counts.termite }}</div><div class="el-kpi__label">شهادة النمل الأبيض</div></div>
+    </a>
+    <a class="el-kpi kpi-expired{% if certification_filter == 'expired' %} is-active{% endif %}" href="?certification=expired{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" {% if certification_filter == 'expired' %}aria-current="page"{% endif %}>
+      <span class="el-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <div><div class="el-kpi__value">{{ filter_counts.expired }}</div><div class="el-kpi__label">شهادات منتهية</div></div>
+    </a>
+    <a class="el-kpi kpi-leave{% if certification_filter == 'on_leave' %} is-active{% endif %}" href="?certification=on_leave{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" {% if certification_filter == 'on_leave' %}aria-current="page"{% endif %}>
+      <span class="el-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg></span>
+      <div><div class="el-kpi__value">{{ filter_counts.on_leave }}</div><div class="el-kpi__label">في إجازة</div></div>
+    </a>
+  </nav>
 
-  {# ── Filter card ── #}
-  <div class="card">
-    <div class="card-header"><h2>بحث وتصفية</h2></div>
-    <div class="card-body">
-      <form class="filter-form enginer-filters" method="get">
-        <div class="filter-field">
-          <label for="f_q">بحث</label>
-          <input id="f_q" type="text" name="q"
-            value="{{ search_query }}" placeholder="الاسم أو رقم الهوية أو رقم البطاقة" autocomplete="off">
-        </div>
-        <div class="filter-field">
-          <label for="f_cert">نوع الشهادة</label>
-          <select id="f_cert" name="certification">
-            <option value="" {% if not certification_filter %}selected{% endif %}>كل الشهادات</option>
-            <option value="public_health" {% if certification_filter == 'public_health' %}selected{% endif %}>الصحة العامة</option>
-            <option value="termite" {% if certification_filter == 'termite' %}selected{% endif %}>النمل الأبيض</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary">بحث</button>
-      </form>
+  <form method="get" class="el-toolbar" role="search">
+    {% if certification_filter %}<input type="hidden" name="certification" value="{{ certification_filter }}">{% endif %}
+    <div class="el-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" name="q" value="{{ search_query }}" placeholder="ابحث بالاسم أو رقم الهوية أو رقم البطاقة" aria-label="بحث" autocomplete="off">
     </div>
-  </div>
+    <button type="submit" class="el-btn el-btn--primary">بحث</button>
+    {% if search_query or certification_filter %}<a class="el-btn el-btn--outline" href="{% url 'enginer_list' %}">مسح</a>{% endif %}
+  </form>
 
-  {# ── Table card ── #}
-  <div class="card">
-    <div class="card-header">
-      <h2>المهندسون</h2>
-      <span class="count-chip">{{ engineers|length }} مهندس</span>
+  <div class="el-card">
+    <div class="el-card__head">
+      {% if certification_filter == 'public_health' %}مهندسون لديهم شهادة الصحة العامة{% elif certification_filter == 'termite' %}مهندسون لديهم شهادة النمل الأبيض{% elif certification_filter == 'expired' %}مهندسون بشهادات منتهية{% elif certification_filter == 'on_leave' %}مهندسون في إجازة{% else %}كل المهندسين{% endif %}
+      <span class="el-count">{{ engineers|length }}</span>
     </div>
 
     {% if engineers %}
-      <div class="tbl-wrap">
-        <table class="el-tbl">
-          <thead>
-            <tr>
-              <th>الاسم</th>
-              <th>رقم البطاقة</th>
-              <th>الهاتف</th>
-              <th>الشهادات</th>
-              <th>الحالة</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for engineer in engineers %}
-            <tr>
-              <td><span class="eng-name">{{ engineer.name }}</span></td>
-              <td><span class="eng-cardno">{{ engineer.card_number|default:"—" }}</span></td>
-              <td>{{ engineer.phone }}</td>
-              <td>
+    <div class="el-table-scroll">
+      <table class="el-tbl">
+        <thead><tr><th>المهندس</th><th>الشهادات</th><th>الحالة</th><th></th></tr></thead>
+        <tbody>
+          {% for engineer in engineers %}
+          <tr data-href="{% url 'enginer_detail' engineer.id %}">
+            <td class="el-td-name">
+              <div class="el-name">{{ engineer.name }}</div>
+              <div class="el-meta">
+                {% if engineer.card_number %}<span class="el-cardno">بطاقة <span class="el-num">{{ engineer.card_number }}</span></span>{% endif %}
+                {% if engineer.phone %}<a class="el-phone" href="tel:{{ engineer.phone }}" dir="ltr">{{ engineer.phone }}</a>{% endif %}
+              </div>
+            </td>
+            <td data-label="الشهادات">
+              <div class="el-certs">
                 {% if engineer.public_health_cert %}
-                  {% if engineer.public_health_cert_is_expired %}
-                    <span class="cbadge cbadge-warn">الصحة العامة — منتهية</span>
-                  {% else %}
-                    <span class="cbadge cbadge-ok">الصحة العامة</span>
-                  {% endif %}
-                {% else %}
-                  <span class="cbadge cbadge-miss">الصحة العامة</span>
-                {% endif %}
+                  <span class="el-cert {% if engineer.public_health_cert_is_expired %}el-cert--expired{% else %}el-cert--ok{% endif %}">الصحة العامة{% if engineer.ph_cert_expiry %}<small>{% if engineer.public_health_cert_is_expired %}انتهت {% else %}حتى {% endif %}<span class="el-num">{{ engineer.ph_cert_expiry|date:"d/m/Y" }}</span></small>{% endif %}</span>
+                {% else %}<span class="el-cert el-cert--missing">الصحة العامة</span>{% endif %}
                 {% if engineer.termite_cert %}
-                  {% if engineer.termite_cert_is_expired %}
-                    <span class="cbadge cbadge-warn">النمل الأبيض — منتهية</span>
-                  {% else %}
-                    <span class="cbadge cbadge-ok">النمل الأبيض</span>
-                  {% endif %}
-                {% else %}
-                  <span class="cbadge cbadge-miss">النمل الأبيض</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if engineer.active_leave %}
-                  <span class="sbadge sbadge-warn">في إجازة</span>
-                  {% if engineer.active_leave.substitute %}
-                    <div class="eng-sub">بديل: {{ engineer.active_leave.substitute.name }}</div>
-                  {% endif %}
-                {% else %}
-                  <span class="sbadge sbadge-ok">في العمل</span>
-                {% endif %}
-              </td>
-              <td>
-                <a class="btn btn-primary btn-sm" href="{% url 'enginer_detail' engineer.id %}">عرض</a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+                  <span class="el-cert {% if engineer.termite_cert_is_expired %}el-cert--expired{% else %}el-cert--ok{% endif %}">النمل الأبيض{% if engineer.termite_cert_expiry %}<small>{% if engineer.termite_cert_is_expired %}انتهت {% else %}حتى {% endif %}<span class="el-num">{{ engineer.termite_cert_expiry|date:"d/m/Y" }}</span></small>{% endif %}</span>
+                {% else %}<span class="el-cert el-cert--missing">النمل الأبيض</span>{% endif %}
+              </div>
+            </td>
+            <td data-label="الحالة">
+              {% if engineer.active_leave %}
+                <div>
+                  <span class="pill pill-leave">في إجازة</span>
+                  {% if engineer.active_leave.substitute %}<div class="el-sub">البديل: {{ engineer.active_leave.substitute.name }}</div>{% endif %}
+                </div>
+              {% else %}<span class="pill pill-work">في العمل</span>{% endif %}
+            </td>
+            <td class="el-td-action"><a class="el-view" href="{% url 'enginer_detail' engineer.id %}">عرض<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
     {% else %}
-      <div class="tbl-empty">لا يوجد مهندسون مطابقون للبحث.</div>
+    <div class="el-empty">{% if search_query or certification_filter %}لا يوجد مهندسون مطابقون للبحث.{% else %}لا يوجد مهندسون مسجلون بعد.{% endif %}</div>
     {% endif %}
   </div>
 
 </div>
-</div>
 
 <script>
 (function () {
-  document.addEventListener("submit", function (e) {
-    if (e.target.matches(".enginer-filters"))
-      document.documentElement.classList.add("enginer-list--loading");
+  // A click anywhere on a row opens the engineer (links keep their own action).
+  document.querySelectorAll('.el-tbl tr[data-href]').forEach(function (row) {
+    row.addEventListener('click', function (event) {
+      if (event.target.closest('a, button')) return;
+      if (window.getSelection && String(window.getSelection())) return;
+      window.location.href = row.getAttribute('data-href');
+    });
   });
 })();
 </script>

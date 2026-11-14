@@ -43,149 +43,120 @@ from .common import (
     _is_effective_active_permit, _engineer_no_certificate_notice,
     _group_clearances_by_status, _validate_engineer_for_type,
 )
-@login_required
-def company_list(request):
-    query = (request.GET.get('q') or '').strip()
-    status_filter = (request.GET.get('status') or 'all').strip()
-    today = datetime.date.today()
 
-    companies_qs = Company.objects.all()
-    if query:
-        companies_qs = companies_qs.filter(Q(name__icontains=query) | Q(number__icontains=query))
+COMPANY_PAGE_SIZE = 30
+# Trade licences ending within this many days are flagged as ending soon.
+TRADE_LICENSE_SOON_DAYS = 30
+COMPANY_STATUS_FILTERS = ('active', 'expired_permits', 'extension', 'suspended')
 
-    need_python_filter = status_filter in ('extension', 'suspended', 'expired_permits')
 
-    if not need_python_filter:
-        # DB-level pagination: sort and paginate before fetching related data.
-        companies_qs = companies_qs.order_by(
-            F('trade_license_exp').desc(nulls_last=True), 'name'
-        )
-        paginator = Paginator(companies_qs, 30)
-        page_obj = paginator.get_page(request.GET.get('page'))
-        companies = list(page_obj.object_list)
-        total_companies = paginator.count
-    else:
-        companies = list(companies_qs)
-        total_companies = len(companies)
+def _trade_expiry_note(days_left):
+    """(text, tone) shown under the trade licence expiry date, or None when it is far off."""
+    if days_left is None or days_left > TRADE_LICENSE_SOON_DAYS:
+        return None
+    if days_left < 0:
+        return 'منتهية', 'expired'
+    if days_left == 0:
+        return 'تنتهي اليوم', 'soon'
+    if days_left == 1:
+        return 'بعد يوم', 'soon'
+    if days_left == 2:
+        return 'بعد يومين', 'soon'
+    return (f'بعد {days_left} أيام' if days_left <= 10 else f'بعد {days_left} يومًا'), 'soon'
 
+
+def _company_status_rows(companies, today):
+    """One row per company with its status flags; every lookup is one batched query."""
     company_ids = [c.id for c in companies]
 
-    # Batch all per-company queries to avoid N+1.
     latest_issued_permit_map = {}
-    for permit in PirmetClearance.objects.filter(
-        company_id__in=company_ids,
-        permit_type='pest_control',
-        status__in=['issued'],
-    ).order_by('company_id', '-dateOfCreation', '-id'):
-        if permit.company_id not in latest_issued_permit_map:
-            latest_issued_permit_map[permit.company_id] = permit
-
     latest_permit_any_map = {}
     for permit in PirmetClearance.objects.filter(
-        company_id__in=company_ids,
-        permit_type='pest_control',
+        company_id__in=company_ids, permit_type='pest_control',
     ).order_by('company_id', '-dateOfCreation', '-id'):
-        if permit.company_id not in latest_permit_any_map:
-            latest_permit_any_map[permit.company_id] = permit
+        latest_permit_any_map.setdefault(permit.company_id, permit)
+        if permit.status == 'issued':
+            latest_issued_permit_map.setdefault(permit.company_id, permit)
 
-    # A company can hold several concurrently-valid permits of the same type
-    # (e.g. one permit per vehicle), and a renewal creates a brand-new
-    # PirmetClearance row rather than updating the old one. So neither "any
-    # historical issued permit is expired" nor "the single latest-created
-    # permit is expired" correctly answers "does this company currently hold
-    # a valid permit of this type" — a company can have an old, never-renewed
-    # vehicle permit sitting expired right next to a different vehicle that
-    # was actually renewed. Match the same effective-active semantics
-    # company_details.html already uses (_is_effective_active_permit): a
-    # permit type only counts as expired if the company has at least one
-    # issued record of that type and NONE of them are currently active.
-    _has_issued_of_type = set()
-    _has_active_of_type = set()
+    # A company can hold several concurrently-valid permits of one type (one per
+    # vehicle, renewals as new rows), so a type only counts as expired when the
+    # company has an issued record of it and NONE is currently active — the same
+    # effective-active rule as the company page (_is_effective_active_permit).
+    has_issued_of_type, has_active_of_type = set(), set()
     for permit in PirmetClearance.objects.filter(
         company_id__in=company_ids,
         permit_type__in=['pest_control', 'pesticide_transport', 'waste_disposal'],
     ):
         key = (permit.company_id, permit.permit_type)
-        is_issued_record = bool(permit.issue_date) or permit.status == 'issued'
-        if is_issued_record and permit.status != 'cancelled_admin':
-            _has_issued_of_type.add(key)
+        if (bool(permit.issue_date) or permit.status == 'issued') and permit.status != 'cancelled_admin':
+            has_issued_of_type.add(key)
         if _is_effective_active_permit(permit, today):
-            _has_active_of_type.add(key)
-
-    expired_company_ids = {
-        company_id
-        for (company_id, _ptype) in _has_issued_of_type
-        if (company_id, _ptype) not in _has_active_of_type
-    }
+            has_active_of_type.add(key)
+    expired_company_ids = {key[0] for key in has_issued_of_type - has_active_of_type}
 
     latest_extension_map = {}
     for log in CompanyChangeLog.objects.filter(
-        company_id__in=company_ids,
-        action='extension_requested',
+        company_id__in=company_ids, action='extension_requested',
     ).order_by('company_id', '-created_at'):
-        if log.company_id not in latest_extension_map:
-            latest_extension_map[log.company_id] = log
+        latest_extension_map.setdefault(log.company_id, log)
 
     rows = []
     for company in companies:
-        latest_issued_permit = latest_issued_permit_map.get(company.id)
+        extension = latest_extension_map.get(company.id)
         latest_permit_any = latest_permit_any_map.get(company.id)
-        has_expired_permit = company.id in expired_company_ids
-        activity_keys = _activity_keys_for_company(company, latest_issued_permit)
-
-        latest_extension = latest_extension_map.get(company.id)
-        has_active_extension = bool(
-            latest_extension
-            and latest_extension.extension_end_date
-            and (not latest_extension.extension_start_date or latest_extension.extension_start_date <= today)
-            and latest_extension.extension_end_date >= today
+        row = {
+            'company': company,
+            'trade_expiry': company.trade_license_exp,
+            'is_suspended': bool(latest_permit_any and latest_permit_any.status == 'cancelled_admin'),
+            'has_active_extension': bool(
+                extension and extension.extension_end_date
+                and (not extension.extension_start_date or extension.extension_start_date <= today)
+                and extension.extension_end_date >= today
+            ),
+            'has_expired_permit': company.id in expired_company_ids,
+            'activity_keys': _activity_keys_for_company(company, latest_issued_permit_map.get(company.id)),
+        }
+        row['status'] = (
+            'suspended' if row['is_suspended']
+            else 'extension' if row['has_active_extension']
+            else 'expired_permits' if row['has_expired_permit']
+            else 'active'
         )
-        is_suspended = bool(latest_permit_any and latest_permit_any.status == 'cancelled_admin')
+        expiry = row['trade_expiry']
+        row['trade_note'] = _trade_expiry_note((expiry - today).days if expiry else None)
+        rows.append(row)
+    return rows
 
-        activity_expiry = latest_issued_permit.dateOfExpiry if latest_issued_permit else None
-        trade_expiry = company.trade_license_exp
-        effective_expiry = activity_expiry or trade_expiry
 
-        rows.append(
-            {
-                'company': company,
-                'activity_keys': activity_keys,
-                'activity_expiry': activity_expiry,
-                'trade_expiry': trade_expiry,
-                'effective_expiry': effective_expiry,
-                'has_active_extension': has_active_extension,
-                'is_suspended': is_suspended,
-                'has_expired_permit': has_expired_permit,
-            }
-        )
+@login_required
+def company_list(request):
+    query = (request.GET.get('q') or '').strip()
+    status_filter = (request.GET.get('status') or 'all').strip()
+    if status_filter not in COMPANY_STATUS_FILTERS:
+        status_filter = 'all'
+    today = datetime.date.today()
 
-    if need_python_filter:
-        if status_filter == 'extension':
-            rows = [row for row in rows if row['has_active_extension']]
-        elif status_filter == 'suspended':
-            rows = [row for row in rows if row['is_suspended']]
-        elif status_filter == 'expired_permits':
-            rows = [row for row in rows if row['has_expired_permit']]
+    companies_qs = Company.objects.order_by(F('trade_license_exp').desc(nulls_last=True), 'name')
+    if query:
+        companies_qs = companies_qs.filter(Q(name__icontains=query) | Q(number__icontains=query))
+    rows = _company_status_rows(list(companies_qs), today)
 
-        rows.sort(
-            key=lambda row: (
-                row['trade_expiry'] is None,
-                -(row['trade_expiry'].toordinal() if row['trade_expiry'] else 0),
-                row['company'].name or '',
-            )
-        )
-        total_companies = len(rows)
-        paginator = Paginator(rows, 30)
-        page_obj = paginator.get_page(request.GET.get('page'))
-        rows = list(page_obj.object_list)
+    status_counts = {key: 0 for key in COMPANY_STATUS_FILTERS}
+    for row in rows:
+        status_counts[row['status']] += 1
+    status_counts['all'] = len(rows)
+    if status_filter != 'all':
+        rows = [row for row in rows if row['status'] == status_filter]
 
+    page_obj = Paginator(rows, COMPANY_PAGE_SIZE).get_page(request.GET.get('page'))
     return render(
         request,
         'hcsd/company_list.html',
         {
-            'company_rows': rows,
+            'company_rows': list(page_obj.object_list),
             'page_obj': page_obj,
-            'total_companies': total_companies,
+            'total_companies': len(rows),
+            'status_counts': status_counts,
             'query': query,
             'status_filter': status_filter,
             'can_add_company': _can_data_entry(request.user),
