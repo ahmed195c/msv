@@ -125,7 +125,7 @@
   <div class="meta-grid" style="margin-bottom:16px;">
     <div><div class="meta-item-label">رقم الشكوى</div><div class="meta-item-value" style="font-family:monospace;font-size:16px;">{{ obj.complaint_number }}</div></div>
     <div><div class="meta-item-label">تاريخ التقديم</div><div class="meta-item-value">{{ obj.created_at|date:"d/m/Y" }}</div></div>
-    <div><div class="meta-item-label">أضيف بواسطة</div><div class="meta-item-value">{{ obj.created_by.get_full_name|default:obj.created_by.username|default:"—" }}</div></div>
+    <div><div class="meta-item-label">أضيف بواسطة</div><div class="meta-item-value">{% if obj.created_by %}{{ obj.created_by.get_full_name|default:obj.created_by.username }}{% else %}—{% endif %}</div></div>
     <div><div class="meta-item-label">آخر تحديث</div><div class="meta-item-value">{{ obj.updated_at|date:"d/m/Y" }}</div></div>
   </div>
 
@@ -309,7 +309,7 @@
   <div class="meta-grid" style="margin-bottom:14px;">
     <div>
       <div class="meta-item-label">رُفض بواسطة</div>
-      <div class="meta-item-value">{{ inspection.rejected_by.get_full_name|default:inspection.rejected_by.username|default:"—" }}</div>
+      <div class="meta-item-value">{% if inspection.rejected_by %}{{ inspection.rejected_by.get_full_name|default:inspection.rejected_by.username }}{% else %}—{% endif %}</div>
     </div>
     <div>
       <div class="meta-item-label">تاريخ الرفض</div>
@@ -332,7 +332,7 @@
   </div>
 
   <div class="meta-grid" style="margin-bottom:14px;">
-    <div><div class="meta-item-label">المفتش</div><div class="meta-item-value">{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</div></div>
+    <div><div class="meta-item-label">المفتش</div><div class="meta-item-value">{% if inspection.inspector %}{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}{% else %}—{% endif %}</div></div>
     <div><div class="meta-item-label">تاريخ التعيين</div><div class="meta-item-value">{{ inspection.assigned_at|date:"d/m/Y H:i" }}</div></div>
   </div>
 
