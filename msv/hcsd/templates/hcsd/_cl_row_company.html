@@ -1,14 +1,13 @@
-<td class="cl-td-company">
+{% load l10n %}<td class="cl-td-company">
   <div class="cl-company-name">{{ c.company.name }}</div>
-  {% if c.contact_number %}<a href="tel:{{ c.contact_number }}" class="cl-phone" dir="ltr">{{ c.contact_number }}</a>{% endif %}
-</td>
-<td>
-  <div class="cl-permit-type">{{ c.permit_label_ar }}</div>
-  <div class="cl-permit-meta">
+  <div class="cl-company-meta">
     {% if c.permit_no %}<span class="cl-permit-no">#{{ c.permit_no }}</span>{% endif %}
-    {% if c.permit_type == 'pesticide_transport' and c.transport_details.vehicle_number %}
-      <span class="cl-vehicle-no">مركبة {{ c.transport_details.vehicle_number }}</span>
-    {% endif %}
+    {% if c.permit_type == 'pesticide_transport' and c.transport_details.vehicle_number %}<span class="cl-vehicle-no">مركبة {{ c.transport_details.vehicle_number }}</span>{% endif %}
+    {% if c.contact_number %}<a href="tel:{{ c.contact_number }}" class="cl-phone" dir="ltr">{{ c.contact_number }}</a>{% endif %}
+    {% if c.company.latitude is not None and c.company.longitude is not None %}<a href="https://www.google.com/maps?q={{ c.company.latitude|unlocalize }},{{ c.company.longitude|unlocalize }}" class="cl-map" target="_blank" rel="noopener noreferrer" title="موقع الشركة على خرائط قوقل"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>الموقع</a>{% endif %}
   </div>
 </td>
-<td class="cl-date">{{ c.row_date|date:"d/m/Y"|default:"—" }}</td>
+<td class="cl-td-date">
+  <div class="cl-date">{{ c.row_date|date:"d/m/Y"|default:"—" }}</div>
+  {% if c.age_label %}<div class="cl-age{% if c.is_late %} is-late{% endif %}">{{ c.age_label }}</div>{% endif %}
+</td>

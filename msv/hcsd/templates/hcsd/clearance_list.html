@@ -3,131 +3,117 @@
 {% block content %}
 <style>
 .cl-page {
-  --ink-1:      #304357;
+  --ink-1:      #253a4f;
   --ink-2:      #41576f;
   --ink-3:      #6f8194;
   --ink-4:      #97a6b5;
-  --surface-1:  #F1F4F7;
-  --surface-2:  #e6ecf2;
-  --border:     #d7dfe8;
+  --surface-1:  #f4f6f9;
+  --surface-2:  #e9eef3;
+  --border:     #dfe5ec;
   --accent:     #0e7490;
   --accent-dk:  #0b5568;
   --accent-lt:  #e6f2f4;
   --mono:       'JetBrains Mono', monospace;
+  --shadow:     0 1px 2px rgba(16,40,64,.04), 0 2px 8px rgba(16,40,64,.05);
   padding: 24px 16px 56px;
-  background: var(--surface-1);
   direction: rtl;
   font-family: 'IBM Plex Sans Arabic', 'Tahoma', sans-serif;
   color: var(--ink-1);
 }
 .cl-wrap { max-width: 1160px; margin: 0 auto; }
 
-/* ── Page header ── */
-.cl-page-header {
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
-}
-.cl-page-header h1 {
-  font-size: clamp(18px,2.2vw,24px); font-weight: 700; color: var(--ink-1); margin: 0;
-}
-.cl-page-header__sub { font-size: 13px; color: var(--ink-4); margin-top: 3px; }
+/* ── Header ── */
+.cl-page-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.cl-page-header h1 { font-size: clamp(20px,2.4vw,26px); font-weight: 800; margin: 0; letter-spacing: -.01em; }
+.cl-page-header__sub { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
 
-/* ── Buttons ── */
 .btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px; font-size: 13.5px;
-  font-weight: 600; text-decoration: none; cursor: pointer;
-  transition: .15s; font-family: inherit; white-space: nowrap; border: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; cursor: pointer; transition: background .15s, border-color .15s;
+  font-family: inherit; white-space: nowrap; border: 1.5px solid transparent;
 }
-.btn-outline { background: #fff; color: var(--ink-2); border: 1.5px solid var(--border); }
-.btn-outline:hover { background: var(--surface-2); }
+.btn-outline { background: #fff; color: var(--ink-2); border-color: var(--border); }
+.btn-outline:hover { background: var(--surface-1); }
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover { background: var(--accent-dk); }
-.btn-sm { padding: 5px 12px; font-size: 12px; }
 
-/* ── Card ── */
-.card {
-  background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-  border: 1.5px solid var(--border); margin-bottom: 16px; overflow: hidden;
+/* ── Summary cards ── */
+.cl-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.cl-kpi {
+  position: relative; display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow);
 }
-.card-header {
-  padding: 14px 18px; border-bottom: 1.5px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+.cl-kpi__icon {
+  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--kpi-bg); color: var(--kpi-fg);
 }
-.card-header h2 { font-size: 15px; font-weight: 700; color: var(--ink-1); margin: 0; }
-.card-body { padding: 18px; }
+.cl-kpi__icon svg { width: 20px; height: 20px; }
+.cl-kpi__value { font-size: 24px; font-weight: 800; line-height: 1.1; font-family: var(--mono); color: var(--ink-1); }
+.cl-kpi__label { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-top: 2px; }
+.cl-kpi__hint { font-size: 11px; font-weight: 600; color: var(--ink-4); white-space: nowrap; }
+.kpi-active { --kpi-bg: var(--accent-lt); --kpi-fg: var(--accent); }
+.kpi-action { --kpi-bg: #fff4e0; --kpi-fg: #b26b00; }
+.kpi-late   { --kpi-bg: #fdecec; --kpi-fg: #b03a1a; }
+.kpi-done   { --kpi-bg: #e8f5ee; --kpi-fg: #1a7a3a; }
 
-/* ── Filter form ── */
-.cl-filter-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
-.cl-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px; }
-.cl-field label { font-size: 11px; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: .04em; }
-.cl-field input,
-.cl-field select {
-  border: 1.5px solid var(--border); border-radius: 8px; background: #fff;
-  color: var(--ink-1); padding: 9px 12px; font-size: 13.5px; font-family: inherit;
-  transition: border-color .15s, box-shadow .15s; min-height: 40px; box-sizing: border-box;
-}
-.cl-field input:focus,
-.cl-field select:focus {
-  outline: none; border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(14,116,144,.12); background: #fff;
-}
-.cl-tag {
-  display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;
-  padding: 3px 12px; border-radius: 20px;
-  background: var(--accent-lt); border: 1.5px solid #8fbac7;
-  color: var(--accent); font-size: 12px; font-weight: 700;
-}
-.cl-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
-
-/* ── Errors ── */
-.cl-errors {
-  border: 1.5px solid #b05a3a; background: #fdeaea; border-radius: 10px;
-  padding: 14px 16px; margin-bottom: 16px; color: #7a1a1a; font-size: 13px; font-weight: 600;
-}
-.cl-errors ul { margin: 8px 0 0 18px; }
-
-/* ── Panels in the same style as the sidebar ── */
-.cl-panel {
-  background: #fff; border: 1.5px solid var(--border); border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06); padding: 6px; margin-bottom: 16px;
-}
-
-/* ── Permit-type tabs (sidebar-link style) ── */
-.cl-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+/* ── Toolbar: permit tabs + search in one card ── */
+.cl-toolbar { background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
+.cl-tabs { display: flex; gap: 4px; padding: 0 10px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+.cl-tabs::-webkit-scrollbar { display: none; }
 .cl-tab {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 12px; border-radius: 8px;
-  font-size: 13.5px; font-weight: 600; font-family: inherit;
-  color: var(--ink-2); text-decoration: none; white-space: nowrap;
-  background: var(--surface-1);
-  transition: background .15s, color .15s;
+  position: relative; display: inline-flex; align-items: center; gap: 8px; padding: 13px 10px 12px;
+  font-size: 13.5px; font-weight: 700; color: var(--ink-3); text-decoration: none; white-space: nowrap;
+  transition: color .15s;
 }
-.cl-tab:hover { background: var(--surface-2); color: var(--ink-1); }
-.cl-tab--active, .cl-tab--active:hover { background: var(--accent-lt); color: var(--accent); }
+.cl-tab::after { content: ''; position: absolute; inset-inline: 6px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: transparent; }
+.cl-tab:hover { color: var(--ink-1); }
+.cl-tab--active, .cl-tab--active:hover { color: var(--accent); }
+.cl-tab--active::after { background: var(--accent); }
 .cl-tab-count, .cl-stage__count {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 22px; padding: 1px 7px; border-radius: 20px;
-  background: #fff; color: var(--ink-3);
+  display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 7px;
+  border-radius: 20px; background: var(--surface-2); color: var(--ink-3);
   font-size: 11px; font-weight: 700; font-family: var(--mono);
 }
-.cl-stage__count { background: var(--surface-2); }
-.cl-tab--active .cl-tab-count, .cl-stage.is-active .cl-stage__count { background: #fff; color: var(--accent); }
+.cl-tab--active .cl-tab-count { background: var(--accent-lt); color: var(--accent); }
 
-/* ── Stage filters (sidebar-link style, coloured dot per stage) ── */
-.cl-stages { display: flex; flex-wrap: wrap; gap: 2px; }
-.cl-stage {
-  display: flex; align-items: center; gap: 9px;
-  padding: 9px 10px; border-radius: 8px; cursor: pointer; text-align: start;
-  background: none; border: none; font-family: inherit;
-  font-size: 13px; font-weight: 600; color: var(--ink-2);
-  transition: background .15s, color .15s;
+.cl-filter-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px; }
+.cl-search { position: relative; flex: 2; min-width: 220px; }
+.cl-search svg { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--ink-4); pointer-events: none; }
+.cl-search input, .cl-filter-form select {
+  width: 100%; min-height: 42px; box-sizing: border-box; border: 1.5px solid var(--border); border-radius: 10px;
+  background: var(--surface-1); color: var(--ink-1); padding: 9px 12px; font-size: 13.5px; font-family: inherit;
+  transition: border-color .15s, box-shadow .15s, background .15s;
 }
-.cl-stage:hover { background: var(--surface-2); color: var(--ink-1); }
-.cl-stage.is-active, .cl-stage.is-active:hover { background: var(--accent-lt); color: var(--accent); }
-.cl-stage:focus-visible, .cl-tab:focus-visible { outline: 2px solid #3f8fa3; outline-offset: 1px; }
+.cl-search input { padding-inline-start: 38px; }
+.cl-filter-form select { flex: 1; min-width: 170px; width: auto; }
+.cl-search input:focus, .cl-filter-form select:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(14,116,144,.12); }
+.cl-filter-actions { display: flex; gap: 8px; }
+.cl-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; }
+.cl-tags:empty { display: none; }
+.cl-tag {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 12px; border-radius: 20px;
+  background: var(--accent-lt); color: var(--accent); font-size: 12px; font-weight: 700;
+}
+
+/* ── Errors ── */
+.cl-errors { border: 1.5px solid #e2a5a5; background: #fdecec; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; color: #7a1a1a; font-size: 13px; font-weight: 600; }
+.cl-errors ul { margin: 8px 0 0 18px; }
+
+/* ── Stage chips: one scrollable row ── */
+.cl-stages { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px; margin-bottom: 14px; }
+.cl-stage {
+  display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; padding: 8px 12px; border-radius: 999px;
+  background: #fff; border: 1px solid var(--border); box-shadow: var(--shadow); cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 700; color: var(--ink-2); white-space: nowrap;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.cl-stage:hover { border-color: var(--ink-4); color: var(--ink-1); }
+.cl-stage.is-active, .cl-stage.is-active:hover { background: var(--ink-1); border-color: var(--ink-1); color: #fff; }
+.cl-stage.is-active .cl-stage__count { background: rgba(255,255,255,.18); color: #fff; }
+.cl-stage:focus-visible, .cl-tab:focus-visible { outline: 2px solid #3f8fa3; outline-offset: 2px; }
 .cl-stage__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--tone, var(--ink-4)); }
-.cl-stage__label { line-height: 1.45; white-space: nowrap; }
 .cl-stage--all { --tone: var(--accent); }
 
 .tone-waiting { --tone: #97a6b5; }
@@ -139,180 +125,119 @@
 .tone-issued  { --tone: #155e2e; }
 
 /* ── Stage group (one table per stage) ── */
-.cl-group {
-  background: #fff; border: 1.5px solid var(--border); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-  overflow: hidden; margin-bottom: 14px;
-}
-.cl-group-head {
-  display: flex; align-items: center; gap: 9px;
-  padding: 11px 16px; border-bottom: 1.5px solid var(--border);
-  border-inline-start: 4px solid var(--tone, var(--ink-4));
-  font-size: 14px; font-weight: 700; color: var(--ink-1);
-}
-.cl-count {
-  font-size: 11.5px; font-weight: 700; color: var(--ink-3);
-  background: var(--surface-1); border: 1.5px solid var(--border);
-  border-radius: 20px; padding: 1px 9px; font-family: var(--mono);
-}
-.cl-section--finished .cl-group { border-style: dashed; }
+.cl-group { background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 14px; }
+.cl-group-head { display: flex; align-items: center; gap: 10px; padding: 13px 16px; font-size: 14.5px; font-weight: 800; color: var(--ink-1); }
+.cl-group-head::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--tone, var(--ink-4)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone, #97a6b5) 18%, transparent); }
+.cl-count { font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--surface-2); border-radius: 20px; padding: 1px 9px; font-family: var(--mono); }
+.cl-section--finished .cl-group { box-shadow: none; }
 
+.cl-table-scroll { overflow-x: auto; }
 .cl-table { width: 100%; border-collapse: collapse; }
 .cl-table th {
-  text-align: start; font-size: 11.5px; font-weight: 700; color: var(--ink-3);
-  background: var(--surface-1); padding: 9px 14px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  text-align: start; font-size: 11.5px; font-weight: 700; color: var(--ink-4);
+  background: var(--surface-1); padding: 9px 16px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); white-space: nowrap;
 }
-.cl-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+.cl-table td { padding: 12px 16px; border-bottom: 1px solid #edf1f5; font-size: 13px; vertical-align: middle; }
 .cl-table tbody tr:last-child td { border-bottom: none; }
-.cl-table tbody tr:hover td { background: var(--surface-1); }
-.cl-td-company { min-width: 220px; }
+.cl-table tbody tr[data-href] { cursor: pointer; transition: background .12s; }
+.cl-table tbody tr:hover td { background: #f8fafc; }
+.cl-td-company { min-width: 230px; }
 .cl-td-action { text-align: end; width: 1%; }
 .cl-muted { color: var(--ink-4); }
 
 /* Status badge */
-.cl-status {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 11px; border-radius: 20px;
-  font-size: 12px; font-weight: 700; white-space: nowrap; border: 1.5px solid;
-  flex-shrink: 0;
-}
+.cl-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
 .cl-status::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; background: currentColor; }
-.st-waiting { background: var(--surface-2); color: var(--ink-2); border-color: var(--border); }
-.st-action  { background: #fff4e0; color: #7a4500; border-color: #e8c97a; }
-.st-error   { background: #fdeaea; color: #7a1a1a; border-color: #d08080; }
-.st-process { background: var(--accent-lt); color: var(--accent-dk); border-color: #8fbac7; }
-.st-done    { background: #e8f5ee; color: #1a5233; border-color: #7bcf9a; }
-.st-issued  { background: #d4f0e0; color: #0e3d1d; border-color: #5cbf8a; }
-.st-head    { background: #f0ebff; color: #4c1d95; border-color: #9b72e0; }
+.st-waiting { background: var(--surface-2); color: var(--ink-2); }
+.st-action  { background: #fff4e0; color: #7a4500; }
+.st-error   { background: #fdecec; color: #8a1f1f; }
+.st-process { background: var(--accent-lt); color: var(--accent-dk); }
+.st-done    { background: #e8f5ee; color: #1a5233; }
+.st-issued  { background: #d4f0e0; color: #0e3d1d; }
+.st-head    { background: #f0ebff; color: #4c1d95; }
 
-/* Next step pill */
-.cl-next {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 11px; border-radius: 8px;
-  font-size: 12px; font-weight: 600;
-  background: var(--surface-2); border: 1.5px solid var(--border); color: var(--ink-2);
-  white-space: nowrap;
-}
-.cl-next svg { flex-shrink: 0; opacity: .6; }
-.cl-next--link {
-  color: var(--accent-dk); background: var(--accent-lt); border-color: #8fbac7; text-decoration: none;
-}
-.cl-next--link:hover { background: #dde6ee; }
-.cl-next--err { color: #7a1a1a; background: #fdeaea; border-color: #d08080; }
+/* Next step */
+.cl-next { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.cl-next svg { flex-shrink: 0; opacity: .5; }
+.cl-next--link { color: var(--accent); text-decoration: none; }
+.cl-next--link:hover { text-decoration: underline; }
+.cl-next--err { color: #8a1f1f; }
 
 /* Cell content */
-.cl-company-name { font-size: 13px; font-weight: 700; color: var(--ink-1); line-height: 1.5; }
-.cl-permit-type  { font-size: 12.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
-.cl-permit-meta  { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px; }
-.cl-permit-no    { font-size: 11.5px; font-weight: 700; color: var(--ink-3); font-family: var(--mono); }
-.cl-date  { font-size: 12px; color: var(--ink-3); font-family: var(--mono); white-space: nowrap; }
-.cl-vehicle-no {
-  display: inline-flex; align-items: center;
-  padding: 0 7px; border-radius: 6px;
-  background: var(--surface-1); border: 1px solid var(--border);
-  color: var(--ink-2); font-size: 11px; font-weight: 700; font-family: var(--mono); white-space: nowrap;
-}
-.cl-phone {
-  display: inline-block; margin-top: 2px; text-decoration: none;
-  color: var(--ink-3); font-size: 11.5px; font-family: var(--mono);
-}
+.cl-company-name { font-size: 13.5px; font-weight: 700; color: var(--ink-1); line-height: 1.5; }
+.cl-company-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 2px; }
+.cl-permit-no { font-size: 11.5px; font-weight: 700; color: var(--accent); font-family: var(--mono); }
+.cl-date { font-size: 12.5px; color: var(--ink-2); font-family: var(--mono); white-space: nowrap; }
+.cl-age { font-size: 11.5px; color: var(--ink-4); font-weight: 600; margin-top: 2px; white-space: nowrap; }
+.cl-age.is-late { color: #b03a1a; }
+.cl-vehicle-no { display: inline-flex; padding: 0 7px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); font-size: 11px; font-weight: 700; font-family: var(--mono); white-space: nowrap; }
+.cl-phone { text-decoration: none; color: var(--ink-3); font-size: 11.5px; font-family: var(--mono); }
 .cl-phone:hover { color: var(--accent); }
+.cl-map { display: inline-flex; align-items: center; gap: 3px; padding: 0 7px; border-radius: 6px; background: var(--accent-lt); color: var(--accent-dk); font-size: 11px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.cl-map:hover { background: var(--accent); color: #fff; }
 .cl-view {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 14px; border-radius: 8px;
-  background: var(--accent); color: #fff; font-size: 12.5px; font-weight: 600;
-  text-decoration: none; white-space: nowrap; transition: background .15s;
+  display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px;
+  background: var(--accent-lt); color: var(--accent-dk); font-size: 12.5px; font-weight: 700;
+  text-decoration: none; white-space: nowrap; transition: background .15s, color .15s;
 }
-.cl-view:hover { background: var(--accent-dk); }
+.cl-view:hover, tr:hover .cl-view { background: var(--accent); color: #fff; }
 
-/* Timer */
-.cl-timer {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
-  border: 1.5px solid; white-space: nowrap; flex-shrink: 0;
-}
+/* Inspection timer */
+.cl-timer { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
 .cl-timer::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-.t-ok   { background:#e8f5ee; color:#1a5233; border-color:#7bcf9a; }
-.t-ok::before   { background:#1a7a3a; }
-.t-mid  { background:#fff4e0; color:#7a4500; border-color:#e8c97a; }
-.t-mid::before  { background:#c8860a; }
-.t-late { background:#fdeaea; color:#7a1a1a; border-color:#d08080; }
-.t-late::before { background:#b03a1a; }
+.t-ok   { background:#e8f5ee; color:#1a5233; }  .t-ok::before   { background:#1a7a3a; }
+.t-mid  { background:#fff4e0; color:#7a4500; }  .t-mid::before  { background:#c8860a; }
+.t-late { background:#fdecec; color:#8a1f1f; }  .t-late::before { background:#b03a1a; }
 
 /* Pagination */
-.cl-pagination {
-  display: flex; align-items: center; justify-content: center;
-  gap: 8px; padding: 12px 18px;
-  border-top: 1px solid var(--border); background: var(--surface-1);
-}
-.cl-pagination button {
-  background: #fff; border: 1.5px solid var(--border); color: var(--ink-2);
-  border-radius: 8px; padding: 5px 16px; font-size: 13px;
-  font-family: inherit; cursor: pointer; transition: background .15s;
-}
-.cl-pagination button:hover:not(:disabled) { background: var(--surface-2); border-color: #bec9d5; }
+.cl-pagination { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--border); background: var(--surface-1); }
+.cl-pagination button { background: #fff; border: 1.5px solid var(--border); color: var(--ink-2); border-radius: 8px; padding: 5px 16px; font-size: 13px; font-family: inherit; cursor: pointer; }
+.cl-pagination button:hover:not(:disabled) { background: var(--surface-2); }
 .cl-pagination button:disabled { opacity: .35; cursor: default; }
 .cl-pagination .pg-info { font-size: 12px; color: var(--ink-4); font-family: var(--mono); min-width: 52px; text-align: center; }
 
-/* Finished toggle button */
+/* Finished section */
 .cl-finished-toggle {
-  display: inline-flex; align-items: center; gap: 7px;
-  margin-bottom: 10px; padding: 7px 14px; border-radius: 8px;
-  background: #fff; border: 1.5px solid var(--border);
-  color: var(--ink-3); font-size: 13px; font-weight: 600;
-  cursor: pointer; font-family: inherit; transition: background .15s, color .15s;
+  display: flex; align-items: center; gap: 8px; width: 100%; margin: 6px 0 10px; padding: 12px 16px; border-radius: 12px;
+  background: transparent; border: 1.5px dashed var(--border); color: var(--ink-3);
+  font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .15s, color .15s;
 }
-.cl-finished-toggle:hover { background: var(--surface-2); color: var(--ink-1); }
+.cl-finished-toggle:hover { background: #fff; color: var(--ink-1); }
 .cl-finished-toggle svg { transition: transform .2s; }
 .cl-finished-toggle.is-open svg { transform: rotate(90deg); }
-.cl-finished-count {
-  background: var(--surface-2); border: 1.5px solid var(--border);
-  border-radius: 20px; padding: 1px 8px;
-  font-size: 11px; font-weight: 700; color: var(--ink-3); font-family: var(--mono);
-}
+.cl-finished-count { background: var(--surface-2); border-radius: 20px; padding: 1px 8px; font-size: 11px; font-weight: 700; color: var(--ink-3); font-family: var(--mono); }
 
 /* Empty */
-.cl-empty {
-  text-align: center; padding: 40px 20px;
-  color: var(--ink-4); font-size: 13.5px; font-weight: 600;
-}
+.cl-empty { text-align: center; padding: 48px 20px; color: var(--ink-3); font-size: 14px; font-weight: 600; }
+.cl-empty svg { display: block; margin: 0 auto 10px; width: 36px; height: 36px; color: var(--ink-4); }
 
-/* Filter actions button group */
-.cl-filter-actions {
-  display: flex; gap: 8px; flex-wrap: wrap; align-self: flex-end;
-}
-
-@media (max-width: 600px) {
-  .cl-filter-form { flex-direction: column; gap: 12px; align-items: stretch; }
-  .cl-field { min-width: 0; width: 100%; }
-  .cl-field label { font-size: 12px; }
-  .cl-field input,
-  .cl-field select { font-size: 15px; padding: 11px 12px; min-height: 46px; }
-  .cl-filter-actions { width: 100%; align-self: stretch; }
-  .cl-filter-actions .btn { flex: 1; justify-content: center; padding: 12px 16px; font-size: 14px; min-height: 46px; }
-  .cl-tabs { display: grid; grid-template-columns: 1fr 1fr; }
-  .cl-tab { white-space: normal; font-size: 12.5px; }
-  .cl-stages { display: grid; grid-template-columns: 1fr; }
-  .cl-stage__label { flex: 1; white-space: normal; }
+@media (max-width: 640px) {
+  .cl-page { padding: 16px 10px 40px; }
+  .cl-page-header .btn { width: 100%; }
+  .cl-kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cl-kpi { padding: 12px; gap: 10px; }
+  .cl-kpi__icon { width: 34px; height: 34px; }
+  .cl-kpi__value { font-size: 20px; }
+  .cl-stages { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -10px; padding: 2px 10px 4px; }
+  .cl-stages::-webkit-scrollbar { display: none; }
+  .cl-filter-form { flex-direction: column; align-items: stretch; }
+  .cl-search, .cl-filter-form select { min-width: 0; width: 100%; }
+  .cl-search input, .cl-filter-form select { font-size: 15px; min-height: 46px; }
+  .cl-filter-actions .btn { flex: 1; min-height: 44px; }
   /* Each table row becomes a card; labels come from data-label (set by base.html) */
   .cl-table thead { display: none; }
   .cl-table, .cl-table tbody, .cl-table tr, .cl-table td { display: block; width: 100%; }
   .cl-table tr { padding: 12px 14px; border-bottom: 1px solid var(--border); }
   .cl-table tbody tr:last-child { border-bottom: none; }
-  .cl-table td {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 5px 0; border: none; text-align: start;
-  }
-  .cl-table td::before {
-    content: attr(data-label); flex-shrink: 0;
-    font-family: 'IBM Plex Sans Arabic', sans-serif; letter-spacing: 0;
-    font-size: 11px; font-weight: 700; color: var(--ink-4);
-  }
+  .cl-table td { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; border: none; text-align: start; }
+  .cl-table td::before { content: attr(data-label); flex-shrink: 0; font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 11px; font-weight: 700; color: var(--ink-4); }
   .cl-table td.cl-td-company { display: block; padding-bottom: 6px; }
+  .cl-table td.cl-td-date { display: flex; }
+  .cl-table td.cl-td-date .cl-age { margin: 0 auto 0 0; }
   .cl-table td.cl-td-company::before, .cl-table td.cl-td-action::before { content: none; }
   .cl-table tbody tr:hover td { background: transparent; }
-  .cl-permit-type { white-space: normal; text-align: end; }
   .cl-td-action { padding-top: 8px !important; }
-  .cl-view { width: 100%; justify-content: center; }
+  .cl-view { width: 100%; justify-content: center; padding: 9px 12px; }
 }
 </style>
 
@@ -323,9 +248,9 @@
   <div class="cl-page-header">
     <div>
       <h1>متابعة الطلبات</h1>
-      <div class="cl-page-header__sub">متابعة طلبات التصاريح وحالاتها</div>
+      <div class="cl-page-header__sub">متابعة طلبات التصاريح ومراحلها حتى الإصدار</div>
     </div>
-    <a href="{% url 'company_list' %}" class="btn btn-outline">← الشركات</a>
+    {% if can_create_pirmet %}<a href="{% url 'permit_types' %}" class="btn btn-primary">+ طلب جديد</a>{% endif %}
   </div>
 
   {% if form_errors %}
@@ -335,41 +260,55 @@
     </div>
   {% endif %}
 
-  {# ══ Tab bar ══ #}
-  <nav class="cl-panel cl-tabs" aria-label="نوع التصريح">
-    {% for tab in tab_nav %}
-    <a class="cl-tab{% if tab.is_active %} cl-tab--active{% endif %}" {% if tab.is_active %}aria-current="page"{% endif %} href="?tab={{ tab.key }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">
-      {{ tab.label }}
-      {% if tab.active_count %}<span class="cl-tab-count">{{ tab.active_count }}</span>{% endif %}
-    </a>
-    {% endfor %}
-  </nav>
-
-  {# ── Search / filter toolbar ── #}
-  <div class="card">
-    <div class="card-body">
-      <form method="get" class="cl-filter-form">
-        <input type="hidden" name="tab" value="{{ active_tab }}">
-        <div class="cl-field" style="flex:2;">
-          <label for="clearance_query">بحث باسم الشركة أو رقم الرخصة أو الرقم الإداري للمفتش</label>
-          <input id="clearance_query" type="text" name="q" value="{{ query }}" placeholder="اسم الشركة، رقم الرخصة، أو الرقم الإداري…">
-        </div>
-        <div class="cl-field">
-          <label for="status_filter">تصفية حسب الحالة</label>
-          <select id="status_filter" name="status">
-            {% for option in status_filter_options %}
-              <option value="{{ option.value }}" {% if status_filter == option.value %}selected{% endif %}>{{ option.label }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="cl-filter-actions">
-          <button type="submit" class="btn btn-primary">تطبيق</button>
-          {% if status_filter != 'all' or query %}<a href="{% url 'clearance_list' %}?tab={{ active_tab }}" class="btn btn-outline">مسح</a>{% endif %}
-        </div>
-      </form>
-      {% if status_filter != 'all' %}<span class="cl-tag">{{ status_filter_label }}</span>{% endif %}
-      {% if query %}<span class="cl-tag">بحث: {{ query }}</span>{% endif %}
+  {# ── Summary cards (for the open tab and filters) ── #}
+  <div class="cl-kpis">
+    <div class="cl-kpi kpi-active">
+      <span class="cl-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h5"/></svg></span>
+      <div><div class="cl-kpi__value">{{ summary.active }}</div><div class="cl-kpi__label">قيد المتابعة</div></div>
     </div>
+    <div class="cl-kpi kpi-action">
+      <span class="cl-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+      <div><div class="cl-kpi__value">{{ summary.needs_action }}</div><div class="cl-kpi__label">بانتظار دفع أو إجراء</div></div>
+    </div>
+    <div class="cl-kpi kpi-late">
+      <span class="cl-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      <div><div class="cl-kpi__value">{{ summary.late }}</div><div class="cl-kpi__label">متأخرة <span class="cl-kpi__hint">· {{ summary.late_days }} أيام فأكثر</span></div></div>
+    </div>
+    {% if show_finished_section %}
+    <div class="cl-kpi kpi-done">
+      <span class="cl-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+      <div><div class="cl-kpi__value">{{ summary.finished }}</div><div class="cl-kpi__label">طلبات منتهية</div></div>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── Permit-type tabs + search ── #}
+  <div class="cl-toolbar">
+    <nav class="cl-tabs" aria-label="نوع التصريح">
+      {% for tab in tab_nav %}
+      <a class="cl-tab{% if tab.is_active %} cl-tab--active{% endif %}" {% if tab.is_active %}aria-current="page"{% endif %} href="?tab={{ tab.key }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">
+        {{ tab.label }}
+        {% if tab.active_count %}<span class="cl-tab-count">{{ tab.active_count }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </nav>
+    <form method="get" class="cl-filter-form" role="search">
+      <input type="hidden" name="tab" value="{{ active_tab }}">
+      <div class="cl-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="clearance_query" type="search" name="q" value="{{ query }}" placeholder="ابحث باسم الشركة، رقم الرخصة، أو الرقم الإداري للمفتش" aria-label="بحث">
+      </div>
+      <select id="status_filter" name="status" aria-label="تصفية حسب الحالة">
+        {% for option in status_filter_options %}
+          <option value="{{ option.value }}" {% if status_filter == option.value %}selected{% endif %}>{{ option.label }}</option>
+        {% endfor %}
+      </select>
+      <div class="cl-filter-actions">
+        <button type="submit" class="btn btn-primary">بحث</button>
+        {% if status_filter != 'all' or query %}<a href="{% url 'clearance_list' %}?tab={{ active_tab }}" class="btn btn-outline">مسح</a>{% endif %}
+      </div>
+    </form>
+    <div class="cl-tags">{% if status_filter != 'all' %}<span class="cl-tag">{{ status_filter_label }}</span>{% endif %}{% if query %}<span class="cl-tag">بحث: {{ query }}</span>{% endif %}</div>
   </div>
 
   {# ══ Active tab pane ══ #}
@@ -377,7 +316,7 @@
 
     {% if active_clearances %}
       {# Stage cards — click one to show only that stage #}
-      <div class="cl-panel cl-stages" aria-label="مراحل الطلبات">
+      <div class="cl-stages" aria-label="مراحل الطلبات">
         <button type="button" class="cl-stage cl-stage--all is-active" data-stage="all" aria-pressed="true">
           <span class="cl-stage__dot"></span>
           <span class="cl-stage__label">كل الطلبات قيد المتابعة</span>
@@ -398,9 +337,9 @@
             {{ group.label }}
             <span class="cl-count">{{ group.items|length }}</span>
           </div>
-          <table class="cl-table">
+          <div class="cl-table-scroll"><table class="cl-table">
             <thead><tr>
-              <th>الشركة</th><th>التصريح</th><th>تاريخ الطلب</th><th>الحالة</th><th>الإجراء التالي</th>
+              <th>الشركة</th><th>تاريخ الطلب</th><th>الحالة</th><th>الإجراء التالي</th>
               {% if user_is_admin %}<th>مدة التفتيش</th>{% endif %}<th></th>
             </tr></thead>
             <tbody data-pg-group="a{{ forloop.counter }}">
@@ -408,7 +347,7 @@
               {% include "hcsd/_cl_row_active.html" %}
             {% endfor %}
             </tbody>
-          </table>
+          </table></div>
           <div class="cl-pagination" data-pg-bar="a{{ forloop.counter }}" style="display:none;">
             <button type="button" data-pg-prev>&#8250; السابق</button>
             <span class="pg-info" data-pg-info></span>
@@ -417,7 +356,7 @@
         </div>
       {% endfor %}
     {% else %}
-      <div class="cl-group"><div class="cl-empty">لا توجد طلبات قيد المتابعة حالياً</div></div>
+      <div class="cl-group"><div class="cl-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>{% if query or status_filter != 'all' %}لا توجد طلبات مطابقة للبحث{% else %}لا توجد طلبات قيد المتابعة حالياً{% endif %}</div></div>
     {% endif %}
 
     {# Finished section — collapsed by default #}
@@ -435,9 +374,9 @@
               {{ group.label }}
               <span class="cl-count">{{ group.items|length }}</span>
             </div>
-            <table class="cl-table">
+            <div class="cl-table-scroll"><table class="cl-table">
               <thead><tr>
-              <th>الشركة</th><th>التصريح</th><th>تاريخ الطلب</th><th>الحالة</th>
+              <th>الشركة</th><th>تاريخ الطلب</th><th>الحالة</th>
               {% if user_is_admin %}<th>مدة التفتيش</th>{% endif %}<th></th>
             </tr></thead>
               <tbody data-pg-group="f{{ forloop.counter }}">
@@ -445,7 +384,7 @@
                 {% include "hcsd/_cl_row_finished.html" %}
               {% endfor %}
               </tbody>
-            </table>
+            </table></div>
             <div class="cl-pagination" data-pg-bar="f{{ forloop.counter }}" style="display:none;">
               <button type="button" data-pg-prev>&#8250; السابق</button>
               <span class="pg-info" data-pg-info></span>
@@ -509,6 +448,15 @@
     });
   });
   if (stageBtns.length) showStage((location.hash || '').replace('#stage-', '') || 'all');
+
+  // A click anywhere on a row opens the request (links and buttons keep their own action).
+  document.querySelectorAll('tr[data-href]').forEach(function (row) {
+    row.addEventListener('click', function (event) {
+      if (event.target.closest('a, button, input, select, label')) return;
+      if (window.getSelection && String(window.getSelection())) return;
+      window.location.href = row.getAttribute('data-href');
+    });
+  });
 
   // Finished section toggle
   document.querySelectorAll('[data-finished-toggle]').forEach(function(btn) {

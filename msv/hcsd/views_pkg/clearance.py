@@ -75,6 +75,42 @@ _FINISHED_STAGE_TONES = {
     'disposal_request_closed':     'error',
 }
 
+# A request still in progress this many days after it was made counts as late.
+CLEARANCE_LATE_DAYS = 7
+_NEEDS_ACTION_TONES = frozenset({'action', 'error'})
+
+
+def _age_label(days):
+    if days <= 0:
+        return 'اليوم'
+    if days == 1:
+        return 'منذ يوم'
+    if days == 2:
+        return 'منذ يومين'
+    if days <= 10:
+        return f'منذ {days} أيام'
+    return f'منذ {days} يومًا'
+
+
+def _clearance_summary(active_groups, finished_count, today):
+    """Mark each active request's age and count the requests for the summary cards."""
+    needs_action = late = 0
+    for group in active_groups:
+        for item in group['items']:
+            item.age_days = (today - item.row_date).days if item.row_date else None
+            item.age_label = _age_label(item.age_days) if item.age_days is not None else ''
+            item.is_late = item.age_days is not None and item.age_days >= CLEARANCE_LATE_DAYS
+            late += item.is_late
+        if group['tone'] in _NEEDS_ACTION_TONES:
+            needs_action += len(group['items'])
+    return {
+        'active': sum(len(group['items']) for group in active_groups),
+        'needs_action': needs_action,
+        'late': late,
+        'late_days': CLEARANCE_LATE_DAYS,
+        'finished': finished_count,
+    }
+
 
 def _current_inspection_receipt(clearance, review, receive_log, report_log):
     """(receiver user, received_at, report_at) for the request's CURRENT
@@ -550,6 +586,7 @@ def clearance_list(request):
         group['tone'] = _ACTIVE_STAGE_TONES.get(group['status'], 'waiting')
     for group in finished_clearance_groups:
         group['tone'] = _FINISHED_STAGE_TONES.get(group['status'], 'waiting')
+    summary = _clearance_summary(active_clearance_groups, len(finished_clearances), timezone.localdate())
 
     return render(
         request,
@@ -570,6 +607,7 @@ def clearance_list(request):
             'can_create_pirmet': _can_data_entry(request.user),
             'user_is_admin': _can_admin(request.user),
             'form_errors': [],
+            'summary': summary,
         },
     )
 
