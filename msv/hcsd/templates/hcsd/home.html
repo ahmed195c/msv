@@ -1,186 +1,152 @@
 {% extends "hcsd/base.html" %}
 {% load static %}
-{% block title %}لوحة النظام{% endblock %}
+{% block title %}لوحة التصاريح{% endblock %}
 {% block extra_css %}
 <style>
-/* ── All scoped under .hp to avoid fighting base.html tokens ── */
-
-.hp { direction: rtl; }
-
-/* ── Page header ── */
-.hp-head {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 12px; padding-bottom: 20px; margin-bottom: 24px;
-  border-bottom: 1px solid var(--line);
-}
-.hp-head__title { font-size: 17px; font-weight: 700; color: var(--ink); margin: 0 0 3px; }
-.hp-head__sub   { font-size: 12.5px; color: var(--ink-3); margin: 0; }
-.hp-head__user  { font-size: 12px; color: var(--ink-4); }
-
-/* ── Stat strip ── */
-.hp-strip {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  border: 1.5px solid var(--line-2);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  margin-bottom: 24px;
-  background: var(--line);
-  gap: 1px;
-}
-.hp-cell {
-  background: var(--paper);
-  padding: 18px 16px 14px;
-  display: flex; flex-direction: column; gap: 7px;
-  border-top: 3px solid transparent;
-}
-.hp-cell--ac   { border-top-color: #0A6640; }
-.hp-cell--warn { border-top-color: #B45309; }
-.hp-cell--navy { border-top-color: var(--ink); }
-.hp-cell__n {
-  font-size: 30px; font-weight: 800; line-height: 1;
-  color: var(--ink); letter-spacing: -.04em;
-  font-variant-numeric: tabular-nums;
-}
-.hp-cell--ac   .hp-cell__n { color: #0A6640; }
-.hp-cell--warn .hp-cell__n { color: #B45309; }
-.hp-cell__l {
-  font-size: 10.5px; font-weight: 600; color: var(--ink-4);
-  letter-spacing: .04em; line-height: 1.3;
+/* Same look as متابعة الطلبات (clearance_list.html). */
+.hp {
+  --ink-1:      #253a4f;
+  --ink-2:      #41576f;
+  --ink-3:      #6f8194;
+  --ink-4:      #97a6b5;
+  --surface-1:  #f4f6f9;
+  --surface-2:  #e9eef3;
+  --border:     #dfe5ec;
+  --accent:     #0e7490;
+  --accent-dk:  #0b5568;
+  --accent-lt:  #e6f2f4;
+  --mono:       'JetBrains Mono', monospace;
+  --shadow:     0 1px 2px rgba(16,40,64,.04), 0 2px 8px rgba(16,40,64,.05);
+  max-width: 1160px; margin: 0 auto; padding: 24px 16px 56px;
+  direction: rtl; color: var(--ink-1);
 }
 
-/* ── Section label ── */
-.hp-sec {
-  font-size: 10.5px; font-weight: 700; color: var(--ink-4);
-  letter-spacing: .1em; text-transform: uppercase;
-  margin: 0 0 10px;
-}
-
-/* ── Alert card ── */
-.hp-alert {
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--paper);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 24px;
-}
-.hp-alert__head {
-  padding: 11px 18px;
-  background: #FFFBEB;
-  border-bottom: 1px solid #FDE68A;
-  display: flex; align-items: center; gap: 10px;
-}
-.hp-alert__dot { width: 7px; height: 7px; border-radius: 50%; background: #D97706; flex-shrink: 0; }
-.hp-alert__title { font-size: 12.5px; font-weight: 700; color: #78350F; flex: 1; }
-.hp-alert__n {
-  background: #D97706; color: #fff;
-  font-size: 11px; font-weight: 800;
-  border-radius: 99px; padding: 2px 9px;
-}
-
-/* ── Tables ── */
-.hp-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
-.hp-tbl th {
-  padding: 9px 16px; text-align: right;
-  font-size: 10.5px; font-weight: 700; color: var(--ink-4);
-  letter-spacing: .06em; text-transform: uppercase;
-  border-bottom: 1.5px solid var(--line); background: var(--surface);
-}
-.hp-tbl td {
-  padding: 10px 16px; border-bottom: 1px solid var(--line);
-  color: var(--ink-2); vertical-align: middle;
-}
-.hp-tbl tr:last-child td { border-bottom: none; }
-.hp-tbl tr:hover td { background: var(--surface); }
-
-/* ── Pills ── */
-.pill {
-  display: inline-flex; align-items: center;
-  padding: 2px 9px; border-radius: 99px;
-  font-size: 11px; font-weight: 700;
-  border: 1px solid transparent;
-}
-.pill-r { background: #FEF2F2; color: #991B1B; border-color: #FECACA; }
-.pill-a { background: #FFFBEB; color: #92400E; border-color: #FDE68A; }
-.pill-b { background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE; }
-
-/* ── Action buttons ── */
+/* ── Header ── */
+.hp-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.hp-head h1 { font-size: clamp(20px,2.4vw,26px); font-weight: 800; margin: 0; letter-spacing: -.01em; }
+.hp-head__sub { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+.hp-head__actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .hp-btn {
-  display: inline-flex; align-items: center;
-  padding: 5px 11px; border-radius: var(--radius-sm);
-  font-size: 12px; font-weight: 600;
-  border: 1.5px solid var(--line-2);
-  color: var(--ink-2); background: var(--paper);
-  transition: background .12s; margin-inline-end: 5px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; white-space: nowrap; border: 1.5px solid transparent; transition: background .15s;
 }
-.hp-btn:hover { background: var(--surface); }
-.hp-btn--ac { background: #0A6640; color: #fff; border-color: #0A6640; }
-.hp-btn--ac:hover { background: #085430; }
+.hp-btn--outline { background: #fff; color: var(--ink-2); border-color: var(--border); }
+.hp-btn--outline:hover { background: var(--surface-1); }
+.hp-btn--primary { background: var(--accent); color: #fff; }
+.hp-btn--primary:hover { background: var(--accent-dk); }
+.hp-btn--sm { padding: 6px 12px; font-size: 12.5px; border-radius: 8px; }
+.hp-btn--soft { background: var(--accent-lt); color: var(--accent-dk); }
+.hp-btn--soft:hover { background: var(--accent); color: #fff; }
 
-/* ── Two column ── */
-.hp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+/* ── Summary cards ── */
+.hp-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.hp-kpis--small { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 18px; }
+.hp-kpi {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; min-width: 0;
+  background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow);
+  color: inherit; text-decoration: none; transition: border-color .15s, transform .15s;
+}
+a.hp-kpi:hover { border-color: var(--kpi-fg); transform: translateY(-1px); }
+.hp-kpi__icon {
+  width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; background: var(--kpi-bg); color: var(--kpi-fg);
+}
+.hp-kpi__icon svg { width: 21px; height: 21px; }
+.hp-kpi__value { font-size: 26px; font-weight: 800; line-height: 1.1; font-family: var(--mono); }
+.hp-kpi__label { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-top: 2px; }
+.hp-kpis--small .hp-kpi { padding: 11px 14px; }
+.hp-kpis--small .hp-kpi__icon { width: 34px; height: 34px; border-radius: 10px; }
+.hp-kpis--small .hp-kpi__icon svg { width: 17px; height: 17px; }
+.hp-kpis--small .hp-kpi__value { font-size: 20px; }
+.kpi-accent { --kpi-bg: var(--accent-lt); --kpi-fg: var(--accent); }
+.kpi-navy   { --kpi-bg: #eaeef4; --kpi-fg: #304357; }
+.kpi-green  { --kpi-bg: #e8f5ee; --kpi-fg: #1a7a3a; }
+.kpi-amber  { --kpi-bg: #fff4e0; --kpi-fg: #b26b00; }
+.kpi-violet { --kpi-bg: #f0ebff; --kpi-fg: #6b3fa0; }
+.kpi-grey   { --kpi-bg: var(--surface-2); --kpi-fg: var(--ink-3); }
 
-/* ── Card ── */
-.hp-card {
-  background: var(--paper);
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-.hp-card__head {
-  padding: 11px 16px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
-  font-size: 10.5px; font-weight: 700;
-  color: var(--ink-4); letter-spacing: .08em; text-transform: uppercase;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.hp-card__body { padding: 8px 10px; }
+/* ── Cards ── */
+.hp-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 16px; }
+.hp-card__head { display: flex; align-items: center; gap: 10px; padding: 13px 16px; font-size: 14.5px; font-weight: 800; }
+.hp-card__head::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--tone, var(--accent)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone, #0e7490) 18%, transparent); }
+.hp-card__head--alert { background: #fffaf0; border-bottom: 1px solid #f5e2bd; --tone: #c8860a; }
+.hp-card__sub { margin-inline-start: auto; font-size: 12px; font-weight: 600; color: var(--ink-4); }
+.hp-count { font-size: 11.5px; font-weight: 700; color: #7a4500; background: #fff0d2; border-radius: 20px; padding: 1px 9px; font-family: var(--mono); }
+.hp-card__body { padding: 4px 16px 14px; }
+.hp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.hp-grid .hp-card { margin-bottom: 0; }
 
-/* ── Row list with progress ── */
-.hp-rows { list-style: none; margin: 0; padding: 0; }
-.hp-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 8px; border-radius: var(--radius-sm);
-  font-size: 13px; color: var(--ink-2); font-weight: 500;
-  transition: background .1s;
-}
-.hp-row:hover { background: var(--surface); }
-.hp-row__lbl { flex: 1; }
-.hp-row__bar { width: 60px; height: 3px; background: var(--line-2); border-radius: 99px; overflow: hidden; flex-shrink: 0; }
-.hp-row__fill { height: 100%; background: #0A6640; border-radius: 99px; }
-.hp-row__n {
-  font-size: 13px; font-weight: 700; color: var(--ink);
-  min-width: 28px; text-align: left;
-  font-variant-numeric: tabular-nums;
-}
+/* Expiring permits table */
+.hp-table-scroll { overflow-x: auto; }
+.hp-tbl { width: 100%; border-collapse: collapse; }
+.hp-tbl th { text-align: start; font-size: 11.5px; font-weight: 700; color: var(--ink-4); background: var(--surface-1); padding: 9px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.hp-tbl td { padding: 12px 16px; border-bottom: 1px solid #edf1f5; font-size: 13px; vertical-align: middle; }
+.hp-tbl tbody tr:last-child td { border-bottom: none; }
+.hp-tbl tbody tr:hover td { background: #f8fafc; }
+.hp-company { font-size: 13.5px; font-weight: 700; color: var(--ink-1); }
+.hp-permit-no { font-size: 11.5px; font-weight: 700; color: var(--accent); font-family: var(--mono); }
+.hp-date { font-size: 12.5px; color: var(--ink-2); font-family: var(--mono); white-space: nowrap; }
+.hp-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill-r { background: #fdecec; color: #8a1f1f; }
+.pill-a { background: #fff4e0; color: #7a4500; }
+.pill-b { background: var(--accent-lt); color: var(--accent-dk); }
 
-/* ── Nav links ── */
-.hp-nav-list { list-style: none; margin: 0; padding: 0; }
-.hp-nav-item a {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 10px; border-radius: var(--radius-sm);
-  font-size: 13px; font-weight: 600; color: var(--ink-2);
-  transition: background .1s, color .1s;
-}
-.hp-nav-item a:hover { background: var(--surface); color: var(--ink); }
-.hp-nav-item a svg { opacity: .45; flex-shrink: 0; }
-.hp-nav-item a:hover svg { opacity: .8; }
-.hp-nav-item__lbl { flex: 1; }
-.hp-nav-item__arr { color: var(--ink-4); font-size: 12px; transition: transform .15s; }
-.hp-nav-item a:hover .hp-nav-item__arr { transform: translateX(-3px); color: var(--ink-3); }
+/* Breakdown bars */
+.hp-bars { list-style: none; margin: 0; padding: 0; }
+.hp-bar { padding: 9px 0; border-bottom: 1px solid #edf1f5; }
+.hp-bar:last-child { border-bottom: none; }
+.hp-bar__top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.hp-bar__label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.hp-bar__n { font-size: 13px; font-weight: 800; font-family: var(--mono); color: var(--ink-1); }
+.hp-bar__track { height: 7px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.hp-bar__fill { height: 100%; border-radius: 99px; background: var(--accent); min-width: 4px; }
+.hp-bars--types .hp-bar:nth-child(2) .hp-bar__fill { background: #6b3fa0; }
+.hp-bars--types .hp-bar:nth-child(3) .hp-bar__fill { background: #c8860a; }
+.hp-empty { padding: 20px 0 8px; text-align: center; font-size: 13px; font-weight: 600; color: var(--ink-4); }
 
-/* ── Responsive ── */
+/* Follow-up rows and quick links */
+.hp-follow { list-style: none; margin: 0; padding: 0; }
+.hp-follow a, .hp-follow li > span {
+  display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #edf1f5;
+  color: var(--ink-2); text-decoration: none; font-size: 13.5px; font-weight: 600;
+}
+.hp-follow li:last-child a, .hp-follow li:last-child > span { border-bottom: none; }
+.hp-follow a:hover { color: var(--accent); }
+.hp-follow__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tone); flex-shrink: 0; }
+.hp-follow__label { flex: 1; }
+.hp-follow__n { font-size: 13px; font-weight: 800; font-family: var(--mono); color: var(--ink-1); }
+.hp-follow__icon { width: 30px; height: 30px; border-radius: 9px; background: var(--surface-1); color: var(--ink-3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hp-follow__icon svg { width: 15px; height: 15px; }
+.hp-follow a:hover .hp-follow__icon { background: var(--accent-lt); color: var(--accent); }
+.hp-follow__arr { color: var(--ink-4); transition: transform .15s; }
+.hp-follow a:hover .hp-follow__arr { transform: translateX(-3px); color: var(--accent); }
+
 @media (max-width: 900px) {
-  .hp-strip { grid-template-columns: repeat(4, 1fr); }
+  .hp-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 700px) {
-  .hp-strip { grid-template-columns: repeat(2, 1fr); }
-  .hp-grid  { grid-template-columns: 1fr; }
-  .hp-tbl   { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .hp-card-nav { display: none; }
+  .hp { padding: 16px 10px 40px; }
+  .hp-head__actions, .hp-head__actions .hp-btn { width: 100%; }
+  .hp-head__actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .hp-kpis, .hp-kpis--small { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hp-kpis--small .hp-kpi:last-child { grid-column: 1 / -1; }
+  .hp-kpi { padding: 12px; gap: 10px; }
+  .hp-kpi__icon { width: 34px; height: 34px; }
+  .hp-kpi__value { font-size: 20px; }
+  .hp-grid { grid-template-columns: 1fr; }
+  .hp-tbl thead { display: none; }
+  .hp-tbl, .hp-tbl tbody, .hp-tbl tr, .hp-tbl td { display: block; width: 100%; }
+  .hp-tbl tr { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .hp-tbl tbody tr:last-child { border-bottom: none; }
+  .hp-tbl td { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; border: none; }
+  .hp-tbl td::before { content: attr(data-label); font-family: 'IBM Plex Sans Arabic', 'Tahoma', sans-serif; font-size: 11px; font-weight: 700; color: var(--ink-4); }
+  .hp-tbl td.hp-td-company { display: block; padding-bottom: 6px; }
+  .hp-tbl td.hp-td-company::before, .hp-tbl td.hp-td-actions::before { content: none; }
+  .hp-actions { width: 100%; padding-top: 6px; }
+  .hp-actions .hp-btn { flex: 1; }
 }
 </style>
 {% endblock %}
@@ -188,181 +154,162 @@
 {% block content %}
 <div class="hp" lang="ar" dir="rtl">
 
-  <!-- Page header -->
   <div class="hp-head">
     <div>
-      <h1 class="hp-head__title">لوحة النظام</h1>
-      <p class="hp-head__sub">نظام إدارة التصاريح — الإدارة العامة للصحة البيئية</p>
+      <h1>لوحة التصاريح</h1>
+      <div class="hp-head__sub">نظام إدارة التصاريح — الإدارة العامة للصحة البيئية</div>
     </div>
-    <span class="hp-head__user">{{ request.user.get_full_name|default:request.user.username }}</span>
-  </div>
-
-  <!-- Stat strip -->
-  <p class="hp-sec">نظرة عامة</p>
-  <div class="hp-strip">
-    <div class="hp-cell hp-cell--navy">
-      <span class="hp-cell__n">{{ total_companies }}</span>
-      <span class="hp-cell__l">الشركات المسجلة</span>
-    </div>
-    <div class="hp-cell hp-cell--navy">
-      <span class="hp-cell__n">{{ total_engineers }}</span>
-      <span class="hp-cell__l">المهندسون</span>
-    </div>
-    <div class="hp-cell">
-      <span class="hp-cell__n">{{ total_permits }}</span>
-      <span class="hp-cell__l">إجمالي الطلبات</span>
-    </div>
-    <div class="hp-cell hp-cell--ac">
-      <span class="hp-cell__n">{{ issued_permits }}</span>
-      <span class="hp-cell__l">تصاريح صادرة</span>
-    </div>
-    <div class="hp-cell hp-cell--warn">
-      <span class="hp-cell__n">{{ pending_permits }}</span>
-      <span class="hp-cell__l">قيد الإجراء</span>
-    </div>
-    <div class="hp-cell">
-      <span class="hp-cell__n">{{ active_extension_companies }}</span>
-      <span class="hp-cell__l">شركات داخل مهلة</span>
-    </div>
-    <div class="hp-cell">
-      <span class="hp-cell__n">{{ engineers_on_leave }}</span>
-      <span class="hp-cell__l">مهندسون في إجازة</span>
+    <div class="hp-head__actions">
+      <a class="hp-btn hp-btn--outline" href="{% url 'clearance_list' %}">متابعة الطلبات</a>
+      {% if can_create_pirmet %}<a class="hp-btn hp-btn--primary" href="{% url 'permit_types' %}">+ طلب جديد</a>{% endif %}
     </div>
   </div>
 
-  <!-- Expiring soon -->
+  {# ── Main numbers ── #}
+  <div class="hp-kpis">
+    <a class="hp-kpi kpi-navy" href="{% url 'company_list' %}">
+      <span class="hp-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1M14 9h1M9 13h1M14 13h1M9 17h1M14 17h1"/></svg></span>
+      <div><div class="hp-kpi__value">{{ total_companies }}</div><div class="hp-kpi__label">الشركات المسجلة</div></div>
+    </a>
+    <a class="hp-kpi kpi-accent" href="{% url 'enginer_list' %}">
+      <span class="hp-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      <div><div class="hp-kpi__value">{{ total_engineers }}</div><div class="hp-kpi__label">المهندسون</div></div>
+    </a>
+    <a class="hp-kpi kpi-green" href="{% url 'permit_types' %}">
+      <span class="hp-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+      <div><div class="hp-kpi__value">{{ issued_permits }}</div><div class="hp-kpi__label">تصاريح صادرة</div></div>
+    </a>
+    <a class="hp-kpi kpi-amber" href="{% url 'clearance_list' %}">
+      <span class="hp-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      <div><div class="hp-kpi__value">{{ pending_permits }}</div><div class="hp-kpi__label">قيد الإجراء</div></div>
+    </a>
+  </div>
+  <div class="hp-kpis hp-kpis--small">
+    <div class="hp-kpi kpi-grey">
+      <span class="hp-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+      <div><div class="hp-kpi__value">{{ total_permits }}</div><div class="hp-kpi__label">إجمالي الطلبات</div></div>
+    </div>
+    <a class="hp-kpi kpi-violet" href="{% url 'extension_followup' %}">
+      <span class="hp-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      <div><div class="hp-kpi__value">{{ active_extension_companies }}</div><div class="hp-kpi__label">شركات داخل مهلة</div></div>
+    </a>
+    <div class="hp-kpi kpi-grey">
+      <span class="hp-kpi__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg></span>
+      <div><div class="hp-kpi__value">{{ engineers_on_leave }}</div><div class="hp-kpi__label">مهندسون في إجازة</div></div>
+    </div>
+  </div>
+
+  {# ── Permits about to expire ── #}
   {% if expiring_soon %}
-  <p class="hp-sec">تنبيهات</p>
-  <div class="hp-alert">
-    <div class="hp-alert__head">
-      <span class="hp-alert__dot"></span>
-      <span class="hp-alert__title">تصاريح توشك على الانتهاء — خلال ٧ أيام</span>
-      <span class="hp-alert__n">{{ expiring_soon|length }}</span>
+  <div class="hp-card">
+    <div class="hp-card__head hp-card__head--alert">
+      تصاريح توشك على الانتهاء
+      <span class="hp-count">{{ expiring_soon|length }}</span>
+      <span class="hp-card__sub">خلال 7 أيام</span>
     </div>
-    <table class="hp-tbl">
-      <thead>
-        <tr>
-          <th>الشركة</th><th>نوع التصريح</th><th>رقم التصريح</th>
-          <th>تاريخ الانتهاء</th><th>المتبقي</th><th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in expiring_soon %}
-        <tr>
-          <td><strong style="color:var(--ink);">{{ item.permit.company.name }}</strong></td>
-          <td>{{ item.label }}</td>
-          <td style="font-family:var(--mono);font-size:12px;color:var(--ink-4);">{{ item.permit.permit_no|default:"—" }}</td>
-          <td>{{ item.permit.dateOfExpiry|date:"d/m/Y" }}</td>
-          <td>
-            {% if item.days_left == 0 %}
-              <span class="pill pill-r">ينتهي اليوم</span>
-            {% elif item.days_left <= 2 %}
-              <span class="pill pill-r">{{ item.days_left }} يوم</span>
-            {% elif item.days_left <= 4 %}
-              <span class="pill pill-a">{{ item.days_left }} أيام</span>
-            {% else %}
-              <span class="pill pill-b">{{ item.days_left }} أيام</span>
-            {% endif %}
-          </td>
-          <td>
-            <a class="hp-btn" href="{% url 'company_detail' item.permit.company.id %}">الشركة</a>
-            {% if item.permit.permit_type == 'pest_control' %}
-              <a class="hp-btn hp-btn--ac" href="{% url 'pest_control_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
-            {% elif item.permit.permit_type == 'pesticide_transport' %}
-              <a class="hp-btn hp-btn--ac" href="{% url 'vehicle_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
-            {% elif item.permit.permit_type == 'waste_disposal' %}
-              <a class="hp-btn hp-btn--ac" href="{% url 'waste_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="hp-table-scroll">
+      <table class="hp-tbl">
+        <thead><tr><th>الشركة</th><th>نوع التصريح</th><th>تاريخ الانتهاء</th><th>المتبقي</th><th></th></tr></thead>
+        <tbody>
+          {% for item in expiring_soon %}
+          <tr>
+            <td class="hp-td-company">
+              <div class="hp-company">{{ item.permit.company.name }}</div>
+              {% if item.permit.permit_no %}<span class="hp-permit-no">#{{ item.permit.permit_no }}</span>{% endif %}
+            </td>
+            <td data-label="نوع التصريح">{{ item.label }}</td>
+            <td data-label="تاريخ الانتهاء" class="hp-date">{{ item.permit.dateOfExpiry|date:"d/m/Y" }}</td>
+            <td data-label="المتبقي">
+              {% if item.days_left == 0 %}<span class="pill pill-r">ينتهي اليوم</span>
+              {% elif item.days_left == 1 %}<span class="pill pill-r">يوم واحد</span>
+              {% elif item.days_left == 2 %}<span class="pill pill-r">يومان</span>
+              {% elif item.days_left <= 4 %}<span class="pill pill-a">{{ item.days_left }} أيام</span>
+              {% else %}<span class="pill pill-b">{{ item.days_left }} أيام</span>{% endif %}
+            </td>
+            <td class="hp-td-actions">
+              <div class="hp-actions">
+                <a class="hp-btn hp-btn--outline hp-btn--sm" href="{% url 'company_detail' item.permit.company.id %}">الشركة</a>
+                {% if item.permit.permit_type == 'pest_control' %}
+                  <a class="hp-btn hp-btn--soft hp-btn--sm" href="{% url 'pest_control_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
+                {% elif item.permit.permit_type == 'pesticide_transport' %}
+                  <a class="hp-btn hp-btn--soft hp-btn--sm" href="{% url 'vehicle_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
+                {% elif item.permit.permit_type == 'waste_disposal' %}
+                  <a class="hp-btn hp-btn--soft hp-btn--sm" href="{% url 'waste_permit' %}?company_id={{ item.permit.company.id }}">تجديد</a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
   {% endif %}
 
-  <!-- Two column -->
-  <p class="hp-sec">التفاصيل</p>
   <div class="hp-grid">
-
     <div class="hp-card">
-      <div class="hp-card__head">توزيع حسب الحالة</div>
+      <div class="hp-card__head">توزيع الطلبات حسب الحالة</div>
       <div class="hp-card__body">
-        <ul class="hp-rows">
+        <ul class="hp-bars">
           {% for item in status_breakdown %}
-          <li class="hp-row">
-            <span class="hp-row__lbl">{{ item.label }}</span>
-            <div class="hp-row__bar"><div class="hp-row__fill" style="width:{% widthratio item.total total_permits 100 %}%"></div></div>
-            <span class="hp-row__n">{{ item.total }}</span>
+          <li class="hp-bar">
+            <div class="hp-bar__top"><span class="hp-bar__label">{{ item.label }}</span><span class="hp-bar__n">{{ item.total }}</span></div>
+            <div class="hp-bar__track"><div class="hp-bar__fill" style="width:{% widthratio item.total total_permits 100 %}%"></div></div>
           </li>
           {% empty %}
-          <li class="hp-row"><span style="color:var(--ink-4);">لا توجد بيانات</span></li>
+          <li class="hp-empty">لا توجد بيانات</li>
           {% endfor %}
         </ul>
       </div>
     </div>
 
     <div class="hp-card">
-      <div class="hp-card__head">توزيع حسب نوع التصريح</div>
+      <div class="hp-card__head" style="--tone:#6b3fa0;">توزيع الطلبات حسب نوع التصريح</div>
       <div class="hp-card__body">
-        <ul class="hp-rows">
+        <ul class="hp-bars hp-bars--types">
           {% for item in permit_type_breakdown %}
-          <li class="hp-row">
-            <span class="hp-row__lbl">{{ item.label }}</span>
-            <div class="hp-row__bar"><div class="hp-row__fill" style="width:{% widthratio item.total total_permits 100 %}%"></div></div>
-            <span class="hp-row__n">{{ item.total }}</span>
+          <li class="hp-bar">
+            <div class="hp-bar__top"><span class="hp-bar__label">{{ item.label }}</span><span class="hp-bar__n">{{ item.total }}</span></div>
+            <div class="hp-bar__track"><div class="hp-bar__fill" style="width:{% widthratio item.total total_permits 100 %}%"></div></div>
           </li>
           {% empty %}
-          <li class="hp-row"><span style="color:var(--ink-4);">لا توجد بيانات</span></li>
+          <li class="hp-empty">لا توجد بيانات</li>
           {% endfor %}
         </ul>
       </div>
     </div>
 
     <div class="hp-card">
-      <div class="hp-card__head">طلبات تحتاج متابعة</div>
+      <div class="hp-card__head" style="--tone:#c8860a;">طلبات تحتاج متابعة</div>
       <div class="hp-card__body">
-        <ul class="hp-rows">
-          <li class="hp-row">
-            <span class="hp-row__lbl">مرفوضة أو مغلقة لاشتراطات</span>
-            <span class="hp-row__n">{{ needs_completion_permits }}</span>
-          </li>
-          <li class="hp-row">
-            <span class="hp-row__lbl">قيد الإجراء</span>
-            <span class="hp-row__n">{{ pending_permits }}</span>
-          </li>
-          <li class="hp-row">
-            <span class="hp-row__lbl">تصاريح صادرة</span>
-            <span class="hp-row__n">{{ issued_permits }}</span>
-          </li>
+        <ul class="hp-follow">
+          <li><a href="{% url 'clearance_list' %}"><span class="hp-follow__dot" style="--tone:#b03a1a;"></span><span class="hp-follow__label">مرفوضة أو مغلقة لاشتراطات</span><span class="hp-follow__n">{{ needs_completion_permits }}</span></a></li>
+          <li><a href="{% url 'clearance_list' %}"><span class="hp-follow__dot" style="--tone:#c8860a;"></span><span class="hp-follow__label">قيد الإجراء</span><span class="hp-follow__n">{{ pending_permits }}</span></a></li>
+          <li><a href="{% url 'permit_types' %}"><span class="hp-follow__dot" style="--tone:#1a7a3a;"></span><span class="hp-follow__label">تصاريح صادرة</span><span class="hp-follow__n">{{ issued_permits }}</span></a></li>
         </ul>
       </div>
     </div>
 
-    <div class="hp-card hp-card-nav">
-      <div class="hp-card__head">التنقل السريع</div>
+    <div class="hp-card">
+      <div class="hp-card__head" style="--tone:#304357;">التنقل السريع</div>
       <div class="hp-card__body">
-        <ul class="hp-nav-list">
-          <li class="hp-nav-item"><a href="{% url 'clearance_list' %}">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
-            <span class="hp-nav-item__lbl">متابعة الطلبات</span><span class="hp-nav-item__arr">←</span>
-          </a></li>
-          <li class="hp-nav-item"><a href="{% url 'permit_types' %}">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <span class="hp-nav-item__lbl">التصاريح</span><span class="hp-nav-item__arr">←</span>
-          </a></li>
-          <li class="hp-nav-item"><a href="{% url 'company_list' %}">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span class="hp-nav-item__lbl">الشركات</span><span class="hp-nav-item__arr">←</span>
-          </a></li>
-          <li class="hp-nav-item"><a href="{% url 'enginer_list' %}">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span class="hp-nav-item__lbl">المهندسون</span><span class="hp-nav-item__arr">←</span>
-          </a></li>
+        <ul class="hp-follow">
+          <li><a href="{% url 'clearance_list' %}">
+            <span class="hp-follow__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>
+            <span class="hp-follow__label">متابعة الطلبات</span><span class="hp-follow__arr">←</span></a></li>
+          <li><a href="{% url 'permit_types' %}">
+            <span class="hp-follow__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+            <span class="hp-follow__label">التصاريح</span><span class="hp-follow__arr">←</span></a></li>
+          <li><a href="{% url 'company_list' %}">
+            <span class="hp-follow__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/></svg></span>
+            <span class="hp-follow__label">الشركات</span><span class="hp-follow__arr">←</span></a></li>
+          <li><a href="{% url 'enginer_list' %}">
+            <span class="hp-follow__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            <span class="hp-follow__label">المهندسون</span><span class="hp-follow__arr">←</span></a></li>
         </ul>
       </div>
     </div>
-
   </div>
+
 </div>
 {% endblock %}

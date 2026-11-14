@@ -43,6 +43,9 @@ from .common import (
     _group_clearances_by_status, _validate_engineer_for_type,
     _redirect_if_fw_supervisor,
 )
+
+
+@login_required
 def home(request):
     redir = _redirect_if_fw_supervisor(request.user)
     if redir:
@@ -101,6 +104,7 @@ def home(request):
         'violation_payment_link_pending': 'بانتظار إرسال رابط دفع المخالفة',
         'violation_payment_pending': 'بانتظار دفع المخالفة',
         'issued': 'تم إصدار التصريح',
+        'inspection_completed': 'اكتمل التفتيش',
         'head_approved': 'تم الاعتماد النهائي',
         'closed_requirements_pending': 'مغلق - اشتراطات واجبة الاستيفاء',
         'cancelled_admin': 'مغلق',
@@ -158,6 +162,7 @@ def home(request):
             'status_breakdown': status_breakdown,
             'permit_type_breakdown': permit_type_breakdown,
             'expiring_soon': expiring_soon,
+            'can_create_pirmet': _can_data_entry(request.user),
         },
     )
 
