@@ -2,256 +2,327 @@
 {% block title %}التصاريح{% endblock %}
 {% block content %}
 <style>
-/* ── 60-30-10 palette
-   60% : #F1F4F7 / #fff  (background, cards)
-   30% : #304357 / #41576f / #97a6b5  (text, borders)
-   10% : #0e7490  (primary action only)
-──────────────────────────────────────────── */
-.pt-page { max-width: 1160px; margin: 0 auto; }
+/* Same look as متابعة الطلبات (clearance_list.html). */
+.pt-page, .pt-modal {
+  --ink-1:      #253a4f;
+  --ink-2:      #41576f;
+  --ink-3:      #6f8194;
+  --ink-4:      #97a6b5;
+  --surface-1:  #f4f6f9;
+  --surface-2:  #e9eef3;
+  --border:     #dfe5ec;
+  --accent:     #0e7490;
+  --accent-dk:  #0b5568;
+  --accent-lt:  #e6f2f4;
+  --mono:       'JetBrains Mono', monospace;
+  --shadow:     0 1px 2px rgba(16,40,64,.04), 0 2px 8px rgba(16,40,64,.05);
+}
+.pt-page { max-width: 1160px; margin: 0 auto; padding: 24px 16px 56px; direction: rtl; color: var(--ink-1); }
 .veh-badge:hover { filter: brightness(0.93); }
 
-/* ── Page header ── */
-.pt-header {
-  display: flex; align-items: flex-start;
-  justify-content: space-between; flex-wrap: wrap;
-  gap: 14px; margin-bottom: 28px;
-}
-.pt-header__title { font-size: 20px; font-weight: 700; color: #304357; margin: 0; }
-.pt-header__sub   { font-size: 13px; color: #6f8194; margin: 4px 0 0; }
-
+/* ── Header ── */
+.pt-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.pt-header__title { font-size: clamp(20px,2.4vw,26px); font-weight: 800; margin: 0; letter-spacing: -.01em; color: var(--ink-1); }
+.pt-header__sub { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
 .pt-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
-
 .pt-btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 9px 18px; border-radius: 8px;
-  font-size: 13px; font-weight: 600; text-decoration: none;
-  border: 1.5px solid #d7dfe8; background: #fff; color: #41576f;
-  transition: border-color .15s, background .15s;
-  white-space: nowrap; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; font-family: inherit;
+  text-decoration: none; white-space: nowrap; cursor: pointer;
+  border: 1.5px solid var(--border); background: #fff; color: var(--ink-2); transition: background .15s, border-color .15s;
 }
-.pt-btn:hover { background: #e6ecf2; border-color: #bec9d5; }
-.pt-btn--primary {
-  background: #0e7490; color: #fff; border-color: #0e7490;
-  box-shadow: 0 2px 6px rgba(14,116,144,.22);
-}
-.pt-btn--primary:hover { background: #0b5568; border-color: #0b5568; }
+.pt-btn:hover { background: var(--surface-1); }
+.pt-btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pt-btn--primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
 
-/* ── Section ── */
-.pt-section {
-  background: #fff; border: 1.5px solid #d7dfe8;
-  border-radius: 12px; padding: 24px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
-  margin-bottom: 20px;
-}
-.pt-section__label {
-  font-size: 11px; font-weight: 700; color: #97a6b5;
-  letter-spacing: .06em; text-transform: uppercase;
-  margin: 0 0 16px;
-}
+/* ── Card ── */
+.pt-section { background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden; }
+.pt-section__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 13px 16px; font-size: 14.5px; font-weight: 800; color: var(--ink-1); }
+.pt-section__head::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--tone, var(--accent)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone, #0e7490) 18%, transparent); }
+.pt-section__head--alert { background: #fffaf0; border-bottom: 1px solid #f5e2bd; --tone: #c8860a; }
+.pt-section__head--finished { --tone: #b03a1a; }
+.pt-section__body { padding: 4px 16px 16px; }
+.pt-count { font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--surface-2); border-radius: 20px; padding: 1px 9px; font-family: var(--mono); }
+.pt-section__head--alert .pt-count { color: #7a4500; background: #fff0d2; }
 
-/* ── Permit cards ── */
-.permit-grid {
-  display: grid; gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-}
+/* ── New request cards ── */
+.permit-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 .permit-card {
-  border: 1.5px solid #d7dfe8; border-radius: 10px;
-  background: #fff; padding: 20px;
-  transition: border-color .15s, box-shadow .15s;
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 8px; padding: 16px;
+  border: 1.5px solid var(--border); border-radius: 14px; background: #fff;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
 }
-.permit-card:hover { border-color: #bec9d5; box-shadow: 0 4px 16px rgba(0,0,0,.07); }
-.permit-card__title { font-size: 14px; font-weight: 700; color: #304357; margin: 0; line-height: 1.4; }
-.permit-card__desc  { font-size: 12.5px; color: #6f8194; line-height: 1.65; flex: 1; margin: 0; }
+.permit-card:hover { border-color: var(--card-fg); box-shadow: 0 6px 18px rgba(16,40,64,.08); transform: translateY(-1px); }
+.permit-card__icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--card-bg); color: var(--card-fg); margin-bottom: 2px; }
+.permit-card__icon svg { width: 21px; height: 21px; }
+.permit-card__title { font-size: 14px; font-weight: 800; color: var(--ink-1); margin: 0; line-height: 1.45; }
+.permit-card__desc { font-size: 12.5px; color: var(--ink-3); line-height: 1.65; flex: 1; margin: 0; }
+.permit-card .pt-btn { width: 100%; margin-top: 4px; background: var(--card-bg); border-color: transparent; color: var(--card-fg); }
+.permit-card:hover .pt-btn, .permit-card .pt-btn:hover { background: var(--card-fg); color: #fff; }
+.card-pest     { --card-bg: var(--accent-lt); --card-fg: var(--accent); }
+.card-vehicle  { --card-bg: #f0ebff; --card-fg: #6b3fa0; }
+.card-waste    { --card-bg: #fff4e0; --card-fg: #b26b00; }
+.card-engineer { --card-bg: #eaeef4; --card-fg: #304357; }
+.card-disposal { --card-bg: #e8f5ee; --card-fg: #1a7a3a; }
 
-/* ── Skeleton ── */
-.permit-types__skeleton { display: none; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); }
-.permit-skeleton-card   { border: 1.5px solid #d7dfe8; border-radius: 10px; background: #fff; padding: 20px; display: grid; gap: 10px; }
-.permit-skeleton-line   { height: 13px; border-radius: 6px; background: linear-gradient(100deg,#e6ecf2 30%,#F1F4F7 48%,#e6ecf2 66%); background-size: 220% 100%; animation: shimmer 1.2s linear infinite; }
-.permit-skeleton-line--title  { width: 80%; height: 18px; }
-.permit-skeleton-line--long   { width: 100%; }
-.permit-skeleton-line--mid    { width: 60%; }
-.permit-skeleton-line--button { width: 90px; height: 34px; margin-top: 4px; }
+/* ── Skeleton while a request page opens ── */
+.permit-types__skeleton { display: none; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); }
+.permit-skeleton-card { border: 1.5px solid var(--border); border-radius: 14px; background: #fff; padding: 16px; display: grid; gap: 10px; }
+.permit-skeleton-line { height: 13px; border-radius: 6px; background: linear-gradient(100deg,#e9eef3 30%,#f4f6f9 48%,#e9eef3 66%); background-size: 220% 100%; animation: shimmer 1.2s linear infinite; }
+.permit-skeleton-line--title { width: 80%; height: 18px; }
+.permit-skeleton-line--long { width: 100%; }
+.permit-skeleton-line--mid { width: 60%; }
+.permit-skeleton-line--button { width: 100%; height: 36px; margin-top: 4px; }
 @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
-.permit-types--loading .permit-grid            { display: none; }
+.permit-types--loading .permit-grid { display: none; }
 .permit-types--loading .permit-types__skeleton { display: grid; }
 
 /* ── Tables ── */
 .pt-table-wrap { overflow-x: auto; }
 .pt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.pt-table thead tr { border-bottom: 1.5px solid #d7dfe8; }
-.pt-table th {
-  padding: 9px 12px; text-align: right;
-  font-size: 11px; font-weight: 700; color: #97a6b5;
-  letter-spacing: .04em; text-transform: uppercase; white-space: nowrap;
-}
-.pt-table td { padding: 11px 12px; border-bottom: 1px solid #e6ecf2; color: #304357; vertical-align: middle; }
+.pt-table th { text-align: start; font-size: 11.5px; font-weight: 700; color: var(--ink-4); background: var(--surface-1); padding: 9px 16px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); white-space: nowrap; }
+.pt-table td { padding: 12px 16px; border-bottom: 1px solid #edf1f5; color: var(--ink-1); vertical-align: middle; }
 .pt-table tbody tr:last-child td { border-bottom: none; }
-.pt-table tbody tr:hover td { background: #F1F4F7; }
-.pt-table a { color: #0e7490; font-weight: 600; text-decoration: none; }
-.pt-table a:hover { text-decoration: underline; }
-
-/* ── Expiring badge ── */
-.days-badge {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 700; white-space: nowrap;
+.pt-table tbody tr[data-href] { cursor: pointer; }
+.pt-table tbody tr:hover td { background: #f8fafc; }
+.pt-company { font-size: 13.5px; font-weight: 700; color: var(--ink-1); line-height: 1.5; }
+.pt-company-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 2px; }
+.pt-license { font-size: 11.5px; color: var(--ink-3); }
+.pt-num { font-family: var(--mono); }
+.pt-permit-no { font-size: 11.5px; font-weight: 700; color: var(--accent); font-family: var(--mono); }
+.pt-type { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.pt-date { font-size: 12.5px; color: var(--ink-2); font-family: var(--mono); white-space: nowrap; }
+.pt-address { font-size: 12px; color: var(--ink-3); line-height: 1.5; max-width: 260px; }
+.pt-phone { font-size: 12px; color: var(--ink-2); font-family: var(--mono); text-decoration: none; white-space: nowrap; }
+.pt-phone:hover { color: var(--accent); }
+.pt-view {
+  display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px;
+  background: var(--accent-lt); color: var(--accent-dk); font-size: 12.5px; font-weight: 700;
+  text-decoration: none; white-space: nowrap; transition: background .15s, color .15s;
 }
-.days-urgent { background: #fee2e2; color: #991b1b; }
-.days-warn   { background: #fef3c7; color: #92400e; }
-.days-ok     { background: #f0fdf4; color: #166534; }
+.pt-view:hover, tr:hover .pt-view { background: var(--accent); color: #fff; }
+.pt-td-action { text-align: end; width: 1%; }
 
-/* ── Section title pill ── */
-.pt-pill {
-  display: inline-block; padding: 4px 12px;
-  background: #0e7490; color: #fff;
-  border-radius: 6px; font-size: 12px; font-weight: 700;
-  margin-bottom: 14px;
-}
-.pt-pill--warn { background: #92400e; }
+/* ── Remaining-days badge ── */
+.days-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.days-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.days-urgent { background: #fdecec; color: #8a1f1f; }
+.days-warn   { background: #fff4e0; color: #7a4500; }
+.days-ok     { background: var(--accent-lt); color: var(--accent-dk); }
 
 /* ── Search ── */
+.pt-search-box { position: relative; margin-inline-start: auto; width: min(340px, 100%); }
+.pt-search-box svg { position: absolute; inset-inline-start: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--ink-4); pointer-events: none; }
 .pt-search {
-  flex: 1; min-width: 200px; max-width: 340px;
-  padding: 7px 12px; border: 1.5px solid #d7dfe8;
-  border-radius: 7px; font-family: inherit; font-size: 13px;
-  direction: rtl; outline: none; transition: border-color .15s;
+  width: 100%; box-sizing: border-box; min-height: 38px; padding: 7px 12px; padding-inline-start: 34px;
+  border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface-1);
+  font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-1); outline: none; transition: border-color .15s, background .15s;
 }
-.pt-search:focus { border-color: #0e7490; }
+.pt-search:focus { border-color: var(--accent); background: #fff; }
+.pt-search-count { font-size: 12px; font-weight: 600; color: var(--ink-4); white-space: nowrap; }
+.pt-empty { padding: 32px 16px; text-align: center; color: var(--ink-3); font-size: 13.5px; font-weight: 600; }
+.pt-no-results { color: #b03a1a; font-size: 13px; font-weight: 600; padding: 14px 16px; margin: 0; }
+
+/* ── Company pickers and report dialog ── */
+.pt-modal {
+  position: fixed; inset: 0; z-index: 1000; padding: 16px;
+  background: rgba(15,30,45,.45); backdrop-filter: blur(2px);
+  align-items: center; justify-content: center; direction: rtl;
+}
+.pt-modal__dialog {
+  width: 100%; max-width: 540px; max-height: min(640px, calc(100vh - 32px)); display: flex; flex-direction: column;
+  background: #fff; border-radius: 16px; box-shadow: 0 20px 50px rgba(15,30,45,.25); overflow: hidden;
+  font-family: 'IBM Plex Sans Arabic', 'Tahoma', sans-serif; color: #253a4f;
+}
+.pt-modal__dialog--small { max-width: 420px; }
+.pt-modal__head { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid #dfe5ec; }
+.pt-modal__icon { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--card-bg); color: var(--card-fg); }
+.pt-modal__icon svg { width: 21px; height: 21px; }
+.pt-modal__titles { flex: 1; min-width: 0; }
+.pt-modal__title { font-size: 15.5px; font-weight: 800; line-height: 1.4; }
+.pt-modal__sub { font-size: 12px; color: #6f8194; margin-top: 2px; }
+.pt-modal__close {
+  width: 34px; height: 34px; border-radius: 10px; border: none; background: #f4f6f9; color: #6f8194;
+  font-size: 16px; line-height: 1; cursor: pointer; flex-shrink: 0; transition: background .15s, color .15s;
+}
+.pt-modal__close:hover { background: #e9eef3; color: #253a4f; }
+.pt-modal__search { padding: 14px 18px 8px; }
+.pt-modal__search-box { position: relative; }
+.pt-modal__search-box svg { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #97a6b5; pointer-events: none; }
+.pt-modal__search input {
+  width: 100%; box-sizing: border-box; min-height: 44px; padding: 10px 12px; padding-inline-start: 38px;
+  border: 1.5px solid #dfe5ec; border-radius: 10px; background: #f4f6f9;
+  font-family: inherit; font-size: 14px; color: #253a4f; outline: none; transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.pt-modal__search input:focus { border-color: var(--card-fg, #0e7490); background: #fff; box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-fg, #0e7490) 14%, transparent); }
+.pt-modal__count { font-size: 11.5px; font-weight: 700; color: #97a6b5; margin-top: 6px; }
+.pt-modal__results { flex: 1; overflow-y: auto; padding: 4px 18px 18px; display: flex; flex-direction: column; gap: 6px; }
+.pt-modal__empty { padding: 28px 18px; text-align: center; color: #97a6b5; font-size: 13.5px; font-weight: 600; }
+
+.pt-co-row {
+  display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 12px;
+  border: 1.5px solid #dfe5ec; background: #fff; color: #253a4f; text-decoration: none;
+  transition: border-color .12s, background .12s;
+}
+a.pt-co-row:hover, a.pt-co-row:focus-visible { border-color: var(--card-fg, #0e7490); background: color-mix(in srgb, var(--card-fg, #0e7490) 6%, #fff); outline: none; }
+.pt-co-row--expired { border-color: #f3c9c9; background: #fffafa; }
+a.pt-co-row--expired:hover { border-color: #b03a1a; background: #fdf1f1; }
+.pt-co-row__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.pt-co-row__name { font-size: 14px; font-weight: 700; line-height: 1.45; }
+.pt-co-row__meta { font-size: 11.5px; color: #6f8194; }
+.pt-co-row__meta b { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+.pt-co-row__chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 3px; }
+.pt-co-row__arrow { width: 16px; height: 16px; flex-shrink: 0; color: var(--card-fg, #0e7490); }
+.pt-co-row--expired .pt-co-row__arrow { color: #b03a1a; }
+.pt-chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; text-decoration: none; }
+.pt-chip::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.pt-chip--ok      { background: #e8f5ee; color: #1a5233; }
+.pt-chip--expired { background: #fdecec; color: #8a1f1f; }
+.pt-chip--new     { background: #f0ebff; color: #4c1d95; border: 1px dashed #b9a3e3; }
+.pt-chip--new::before { display: none; }
+a.pt-chip:hover { filter: brightness(.94); }
+
+.pt-modal__form { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 14px; }
+.pt-modal__divider { display: flex; align-items: center; gap: 8px; color: #97a6b5; font-size: 12px; font-weight: 600; }
+.pt-modal__divider::before, .pt-modal__divider::after { content: ''; flex: 1; height: 1px; background: #dfe5ec; }
+.pt-modal__dates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pt-modal__dates label { display: block; font-size: 12px; font-weight: 700; color: #41576f; margin-bottom: 4px; }
+.pt-modal__dates input { width: 100%; box-sizing: border-box; min-height: 42px; padding: 8px 10px; border: 1.5px solid #dfe5ec; border-radius: 10px; background: #f4f6f9; font-family: inherit; font-size: 13px; color: #253a4f; }
+.pt-modal__dates input:focus { outline: none; border-color: #0e7490; background: #fff; }
+.pt-modal__form .pt-btn { width: 100%; min-height: 44px; }
+
+@media (max-width: 640px) {
+  .pt-modal { padding: 0; align-items: flex-end; }
+  .pt-modal__dialog { max-width: none; max-height: 88vh; border-radius: 18px 18px 0 0; }
+  .pt-modal__search input { font-size: 16px; }
+}
 
 @media (max-width: 680px) {
-  .pt-header { flex-direction: column; }
-  .permit-grid { grid-template-columns: 1fr; }
+  .pt-page { padding: 16px 10px 40px; }
+  .pt-btn-group { width: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .pt-btn-group .pt-btn { padding: 9px 6px; font-size: 12px; }
+  .permit-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .permit-card { padding: 12px; }
+  .permit-card__desc { display: none; }
+  .pt-search-box { width: 100%; }
+  .pt-table thead { display: none; }
+  .pt-table, .pt-table tbody, .pt-table tr, .pt-table td { display: block; width: 100%; }
+  .pt-table tr { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .pt-table tbody tr:last-child { border-bottom: none; }
+  .pt-table td { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; border: none; }
+  .pt-table td::before { content: attr(data-label); flex-shrink: 0; font-family: 'IBM Plex Sans Arabic', 'Tahoma', sans-serif; font-size: 11px; font-weight: 700; color: var(--ink-4); }
+  .pt-table td.pt-td-company { display: block; padding-bottom: 6px; }
+  .pt-table td.pt-td-company::before, .pt-table td.pt-td-action::before { content: none; }
+  .pt-table tbody tr:hover td { background: transparent; }
+  .pt-address { max-width: none; text-align: end; }
+  .pt-view { width: 100%; justify-content: center; padding: 9px 12px; margin-top: 4px; }
 }
 </style>
 
 <div class="pt-page">
 
-  <!-- Header -->
   <div class="pt-header">
     <div>
       <h1 class="pt-header__title">التصاريح</h1>
-      <p class="pt-header__sub">إنشاء التصاريح ومتابعة حالتها</p>
+      <p class="pt-header__sub">إنشاء طلبات التصاريح ومتابعة التصاريح المنتهية</p>
     </div>
     <div class="pt-btn-group">
       <a href="{% url 'permits_report_excel' %}" class="pt-btn" download>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         تقرير الشركات
       </a>
       <a href="{% url 'inspector_report_excel' %}" class="pt-btn" download>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         تقرير المفتشين
       </a>
-      <button class="pt-btn" onclick="document.getElementById('monthly-report-modal').style.display='flex'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <button type="button" class="pt-btn" onclick="document.getElementById('monthly-report-modal').style.display='flex'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         التقرير الشهري
       </button>
     </div>
   </div>
 
-  <!-- Permit cards -->
-  
-
-    {% if can_create_pirmet %}
-  <div class="pt-section">  
-    <p class="pt-section__label">إنشاء طلب جديد</p>
-
-    <div class="permit-types__skeleton" aria-hidden="true">
-      {% for _ in "123" %}
-      <div class="permit-skeleton-card">
-        <div class="permit-skeleton-line permit-skeleton-line--title"></div>
-        <div class="permit-skeleton-line permit-skeleton-line--long"></div>
-        <div class="permit-skeleton-line permit-skeleton-line--mid"></div>
-        <div class="permit-skeleton-line permit-skeleton-line--button"></div>
+  {% if can_create_pirmet %}
+  <div class="pt-section">
+    <div class="pt-section__head">إنشاء طلب جديد</div>
+    <div class="pt-section__body">
+      <div class="permit-types__skeleton" aria-hidden="true">
+        {% for _ in "123" %}
+        <div class="permit-skeleton-card">
+          <div class="permit-skeleton-line permit-skeleton-line--title"></div>
+          <div class="permit-skeleton-line permit-skeleton-line--long"></div>
+          <div class="permit-skeleton-line permit-skeleton-line--mid"></div>
+          <div class="permit-skeleton-line permit-skeleton-line--button"></div>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-    <div class="permit-grid">
-      
-      <div class="permit-card">
-        <p class="permit-card__title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</p>
-        <p class="permit-card__desc">انشاء طلب لتجديد تصريح مزاولة النشاط لشركات مكافحة الحشرات و النظافه</p>
-        <button class="pt-btn pt-btn--primary" onclick="document.getElementById('pest-modal').style.display='flex';document.getElementById('pest-search').focus()">بدء الطلب</button>
+      <div class="permit-grid">
+        <div class="permit-card card-pest">
+          <span class="permit-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></span>
+          <p class="permit-card__title">تصريح مزاولة نشاط مكافحة آفات الصحة العامة</p>
+          <p class="permit-card__desc">إنشاء طلب لتجديد تصريح مزاولة النشاط لشركات مكافحة الحشرات والنظافة.</p>
+          <button type="button" class="pt-btn pt-btn--primary" onclick="document.getElementById('pest-modal').style.display='flex';document.getElementById('pest-search').focus()">بدء الطلب</button>
+        </div>
+        <div class="permit-card card-vehicle">
+          <span class="permit-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+          <p class="permit-card__title">تصريح المركبة للشركات</p>
+          <p class="permit-card__desc">إنشاء طلب تصريح مركبة ومتابعته.</p>
+          <button type="button" class="pt-btn pt-btn--primary" onclick="document.getElementById('vehicle-modal').style.display='flex';document.getElementById('vehicle-search').focus()">بدء الطلب</button>
+        </div>
+        <div class="permit-card card-waste">
+          <span class="permit-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></span>
+          <p class="permit-card__title">تصريح التخلص من النفايات</p>
+          <p class="permit-card__desc">إنشاء طلب إصدار تصريح التخلص من النفايات ومتابعته.</p>
+          <button type="button" class="pt-btn pt-btn--primary" onclick="document.getElementById('waste-modal').style.display='flex';document.getElementById('waste-search').focus()">بدء الطلب</button>
+        </div>
+        <div class="permit-card card-engineer">
+          <span class="permit-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></span>
+          <p class="permit-card__title">إضافة مهندس جديد</p>
+          <p class="permit-card__desc">طلب إضافة مهندس لشركة جديدة، أو إضافة مهندس ثانٍ لنفس الشركة.</p>
+          <a class="pt-btn pt-btn--primary" href="{% url 'engineer_addition_create' %}">بدء الطلب</a>
+        </div>
+        {% if active_disposal_permits %}
+        <div class="permit-card card-disposal">
+          <span class="permit-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 19H4.8a1.8 1.8 0 0 1-1.6-2.7L7.1 9.6"/><path d="M11 19h8.2a1.8 1.8 0 0 0 1.6-2.7l-1.2-2.1"/><path d="m14 16-3 3 3 3"/><path d="M8.3 13.6 7.1 9.6 3.1 10.8"/><path d="m9.3 5.6 1.6-2.7a1.8 1.8 0 0 1 3.1 0l3.9 6.7"/><path d="m13.4 8.8 4 1.2 1.2-4"/></svg></span>
+          <p class="permit-card__title">طلب تخلص من عبوات مبيدات فارغة</p>
+          <p class="permit-card__desc">إنشاء طلب تخلص من العبوات الفارغة.</p>
+          <button type="button" class="pt-btn pt-btn--primary" onclick="document.getElementById('disposal-modal').style.display='flex';document.getElementById('disposal-search').focus()">بدء الطلب</button>
+        </div>
+        {% endif %}
       </div>
-
-      <div class="permit-card">
-        <p class="permit-card__title">تصريح المركبة للشركات</p>
-        <p class="permit-card__desc">انشاء طلب تصريح مركبة ومتابعته</p>
-        <button class="pt-btn pt-btn--primary" onclick="document.getElementById('vehicle-modal').style.display='flex';document.getElementById('vehicle-search').focus()">بدء الطلب</button>
-      </div>
-
-      <div class="permit-card">
-        <p class="permit-card__title">تصريح التخلص من النفايات</p>
-        <p class="permit-card__desc">انشاء طلب اصدار تصريح التخلص من النفايات ومتابعته </p>
-        <button class="pt-btn pt-btn--primary" onclick="document.getElementById('waste-modal').style.display='flex';document.getElementById('waste-search').focus()">بدء الطلب</button>
-      </div>
-
-      <div class="permit-card">
-        <p class="permit-card__title">إضافة مهندس جديد</p>
-        <p class="permit-card__desc">طلب إضافة مهندس لشركة جديده او اضافت مهندس ثاني لنفس الشركة .</p>
-        <a class="pt-btn pt-btn--primary" href="{% url 'engineer_addition_create' %}">بدء الطلب</a>
-      </div>
-
-      {% if active_disposal_permits %}
-      <div class="permit-card">
-        <p class="permit-card__title">طلب تخلص من عبوات مبيدات فارغة</p>
-        <p class="permit-card__desc">إنشاء طلب تخلص من العبوات الفارغة.</p>
-        <button class="pt-btn pt-btn--primary" onclick="document.getElementById('disposal-modal').style.display='flex';document.getElementById('disposal-search').focus()">بدء الطلب</button>
-      </div>
-      {% endif %}
-
     </div>
   </div>
-    {% else %}
-    {% endif %}
-  
+  {% endif %}
 
-  <!-- Expiring permits -->
   {% if expiring_permits %}
   <div class="pt-section">
-    <p class="pt-pill pt-pill--warn">تصاريح توشك على الانتهاء — {{ expiring_permits|length }}</p>
+    <div class="pt-section__head pt-section__head--alert">تصاريح توشك على الانتهاء <span class="pt-count">{{ expiring_permits|length }}</span></div>
     <div class="pt-table-wrap">
       <table class="pt-table">
-        <thead>
-          <tr>
-            <th>الشركة</th>
-            <th>رقم الرخصة</th>
-            <th>نوع التصريح</th>
-            <th>رقم التصريح</th>
-            <th>تاريخ الانتهاء</th>
-            <th>المتبقي</th>
-            <th>العنوان</th>
-            <th>التواصل</th>
-            <th></th>
-          </tr>
-        </thead>
+        <thead><tr><th>الشركة</th><th>نوع التصريح</th><th>تاريخ الانتهاء</th><th>المتبقي</th><th>العنوان</th><th>التواصل</th><th></th></tr></thead>
         <tbody>
           {% for p in expiring_permits %}
-          <tr>
-            <td><strong>{{ p.company.name }}</strong></td>
-            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.company.number|default:"—" }}</td>
-            <td>{{ p.permit_label }}</td>
-            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.permit_no|default:"—" }}</td>
-            <td style="white-space:nowrap;">{{ p.dateOfExpiry|date:"d/m/Y" }}</td>
-            <td>
-              {% if p.days_left == 0 %}
-                <span class="days-badge days-urgent">ينتهي اليوم</span>
-              {% elif p.days_left <= 2 %}
-                <span class="days-badge days-urgent">{{ p.days_left }} يوم</span>
-              {% elif p.days_left <= 4 %}
-                <span class="days-badge days-warn">{{ p.days_left }} أيام</span>
-              {% else %}
-                <span class="days-badge days-ok">{{ p.days_left }} أيام</span>
-              {% endif %}
+          {% if p.permit_type == 'pest_control' %}{% url 'pest_control_permit_detail' p.id as permit_url %}{% elif p.permit_type == 'pesticide_transport' %}{% url 'vehicle_permit_detail' p.id as permit_url %}{% else %}{% url 'waste_permit_detail' p.id as permit_url %}{% endif %}
+          <tr data-href="{{ permit_url }}">
+            <td class="pt-td-company">
+              <div class="pt-company">{{ p.company.name }}</div>
+              <div class="pt-company-meta">
+                {% if p.permit_no %}<span class="pt-permit-no">#{{ p.permit_no }}</span>{% endif %}
+                {% if p.company.number %}<span class="pt-license">رخصة <span class="pt-num">{{ p.company.number }}</span></span>{% endif %}
+              </div>
             </td>
-            <td>{{ p.company.address|default:"—" }}</td>
-            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.contact_phone }}</td>
-            <td>
-              {% if p.permit_type == 'pest_control' %}<a href="{% url 'pest_control_permit_detail' p.id %}">عرض</a>
-              {% elif p.permit_type == 'pesticide_transport' %}<a href="{% url 'vehicle_permit_detail' p.id %}">عرض</a>
-              {% elif p.permit_type == 'waste_disposal' %}<a href="{% url 'waste_permit_detail' p.id %}">عرض</a>
-              {% endif %}
+            <td data-label="نوع التصريح"><span class="pt-type">{{ p.permit_label }}</span></td>
+            <td data-label="تاريخ الانتهاء" class="pt-date">{{ p.dateOfExpiry|date:"d/m/Y" }}</td>
+            <td data-label="المتبقي">
+              {% if p.days_left == 0 %}<span class="days-badge days-urgent">ينتهي اليوم</span>
+              {% elif p.days_left == 1 %}<span class="days-badge days-urgent">يوم واحد</span>
+              {% elif p.days_left == 2 %}<span class="days-badge days-urgent">يومان</span>
+              {% elif p.days_left <= 4 %}<span class="days-badge days-warn">{{ p.days_left }} أيام</span>
+              {% else %}<span class="days-badge days-ok">{{ p.days_left }} أيام</span>{% endif %}
             </td>
+            <td data-label="العنوان"><div class="pt-address">{{ p.company.address|default:"—" }}</div></td>
+            <td data-label="التواصل">{% if p.contact_phone %}<a class="pt-phone" href="tel:{{ p.contact_phone }}" dir="ltr">{{ p.contact_phone }}</a>{% else %}—{% endif %}</td>
+            <td class="pt-td-action"><a class="pt-view" href="{{ permit_url }}">عرض<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></a></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -260,15 +331,15 @@
   </div>
   {% endif %}
 
-  <!-- Finished permits -->
   <div class="pt-section">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-      <p class="pt-pill" style="margin:0;">آخر التصاريح المنتهية</p>
+    <div class="pt-section__head pt-section__head--finished">
+      آخر التصاريح المنتهية
+      {% if finished_permits %}<span class="pt-count">{{ finished_permits|length }}</span>{% endif %}
       {% if finished_permits %}
-      <div style="display:flex;align-items:center;gap:10px;">
-        <input id="finished-search" type="search" class="pt-search"
-               placeholder="بحث بالشركة أو الرخصة أو المنطقة…" autocomplete="off">
-        <span id="finished-search-count" style="font-size:12px;color:#97a6b5;white-space:nowrap;"></span>
+      <span id="finished-search-count" class="pt-search-count"></span>
+      <div class="pt-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="finished-search" type="search" class="pt-search" placeholder="ابحث بالشركة أو الرخصة أو المنطقة" aria-label="بحث في التصاريح المنتهية" autocomplete="off">
       </div>
       {% endif %}
     </div>
@@ -276,44 +347,34 @@
     {% if finished_permits %}
     <div class="pt-table-wrap">
       <table class="pt-table" id="finished-permits-table">
-        <thead>
-          <tr>
-            <th>الشركة</th>
-            <th>رقم الرخصة</th>
-            <th>نوع التصريح</th>
-            <th>رقم التصريح</th>
-            <th>تاريخ الانتهاء</th>
-            <th>العنوان</th>
-            <th>التواصل</th>
-            <th></th>
-          </tr>
-        </thead>
+        <thead><tr><th>الشركة</th><th>نوع التصريح</th><th>تاريخ الانتهاء</th><th>العنوان</th><th>التواصل</th><th></th></tr></thead>
         <tbody id="finished-permits-body">
           {% for p in finished_permits %}
-          <tr data-name="{{ p.company.name|default:'' }}"
+          {% if p.permit_type == 'pest_control' %}{% url 'pest_control_permit_detail' p.id as permit_url %}{% elif p.permit_type == 'pesticide_transport' %}{% url 'vehicle_permit_detail' p.id as permit_url %}{% else %}{% url 'waste_permit_detail' p.id as permit_url %}{% endif %}
+          <tr data-href="{{ permit_url }}"
+              data-name="{{ p.company.name|default:'' }}"
               data-number="{{ p.company.number|default:'' }}"
               data-address="{{ p.company.address|default:'' }}">
-            <td><strong>{{ p.company.name }}</strong></td>
-            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.company.number|default:"—" }}</td>
-            <td>{{ p.permit_label }}</td>
-            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.permit_no|default:"—" }}</td>
-            <td style="white-space:nowrap;color:#6f8194;">{{ p.dateOfExpiry|date:"d/m/Y"|default:"—" }}</td>
-            <td>{{ p.company.address|default:"—" }}</td>
-            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ p.contact_phone }}</td>
-            <td>
-              {% if p.permit_type == 'pest_control' %}<a href="{% url 'pest_control_permit_detail' p.id %}">عرض</a>
-              {% elif p.permit_type == 'pesticide_transport' %}<a href="{% url 'vehicle_permit_detail' p.id %}">عرض</a>
-              {% elif p.permit_type == 'waste_disposal' %}<a href="{% url 'waste_permit_detail' p.id %}">عرض</a>
-              {% endif %}
+            <td class="pt-td-company">
+              <div class="pt-company">{{ p.company.name }}</div>
+              <div class="pt-company-meta">
+                {% if p.permit_no %}<span class="pt-permit-no">#{{ p.permit_no }}</span>{% endif %}
+                {% if p.company.number %}<span class="pt-license">رخصة <span class="pt-num">{{ p.company.number }}</span></span>{% endif %}
+              </div>
             </td>
+            <td data-label="نوع التصريح"><span class="pt-type">{{ p.permit_label }}</span></td>
+            <td data-label="تاريخ الانتهاء" class="pt-date">{{ p.dateOfExpiry|date:"d/m/Y"|default:"—" }}</td>
+            <td data-label="العنوان"><div class="pt-address">{{ p.company.address|default:"—" }}</div></td>
+            <td data-label="التواصل">{% if p.contact_phone %}<a class="pt-phone" href="tel:{{ p.contact_phone }}" dir="ltr">{{ p.contact_phone }}</a>{% else %}—{% endif %}</td>
+            <td class="pt-td-action"><a class="pt-view" href="{{ permit_url }}">عرض<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></a></td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
-      <p id="finished-no-results" style="display:none;color:#dc2626;font-size:13px;padding:10px 0;">لا توجد نتائج مطابقة.</p>
+      <p id="finished-no-results" class="pt-no-results" style="display:none;">لا توجد نتائج مطابقة.</p>
     </div>
     {% else %}
-    <p style="color:#97a6b5;font-size:13px;">لا توجد تصاريح منتهية.</p>
+    <div class="pt-empty">لا توجد تصاريح منتهية.</div>
     {% endif %}
   </div>
 
@@ -334,6 +395,15 @@
   window.addEventListener("pageshow", clearLoading);
   window.addEventListener("focus", clearLoading);
 })();
+
+// A click anywhere on a permit row opens it (links keep their own action).
+document.querySelectorAll('.pt-table tr[data-href]').forEach(function (row) {
+  row.addEventListener('click', function (event) {
+    if (event.target.closest('a, button')) return;
+    if (window.getSelection && String(window.getSelection())) return;
+    window.location.href = row.getAttribute('data-href');
+  });
+});
 
 (function () {
   var inp = document.getElementById("finished-search");
@@ -365,106 +435,81 @@
 </script>
 
 {% if can_create_pirmet %}
-<!-- ── Pest-control permit company-select modal ── -->
-<div id="pest-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
-    <div style="background:#0b5568;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div style="color:#fff;font-size:15px;font-weight:700;">تصريح مزاولة نشاط — اختر الشركة</div>
-        <div style="color:#c7d3de;font-size:12px;margin-top:3px;">ابحث بالاسم أو رقم الشركة</div>
+<!-- ── Company pickers: choose the company, then the request form opens ── -->
+<div id="pest-modal" class="pt-modal card-pest" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="pest-modal-title">
+  <div class="pt-modal__dialog">
+    <div class="pt-modal__head">
+      <span class="pt-modal__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></span>
+      <div class="pt-modal__titles"><div class="pt-modal__title" id="pest-modal-title">تصريح مزاولة النشاط</div><div class="pt-modal__sub">اختر الشركة لبدء الطلب</div></div>
+      <button type="button" class="pt-modal__close" onclick="closePestModal()" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="pt-modal__search">
+      <div class="pt-modal__search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="pest-search" type="search" autocomplete="off" placeholder="ابحث باسم الشركة أو رقمها" aria-label="بحث عن شركة" oninput="filterPestCompanies(this.value)">
       </div>
-      <button onclick="closePestModal()" style="background:none;border:none;color:#b8c7d6;font-size:20px;cursor:pointer;line-height:1;">✕</button>
+      <div id="pest-count" class="pt-modal__count"></div>
     </div>
-    <div style="padding:18px 22px 8px;">
-      <input id="pest-search" type="text" autocomplete="off"
-             placeholder="اسم الشركة أو رقمها…"
-             style="width:100%;padding:10px 14px;border:1.5px solid #d7dfe8;border-radius:8px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
-             oninput="filterPestCompanies(this.value)">
-      <div id="pest-count" style="font-size:11px;color:#97a6b5;margin-top:6px;text-align:left;"></div>
-    </div>
-    <div id="pest-results" style="max-height:340px;overflow-y:auto;padding:0 22px 18px;display:flex;flex-direction:column;gap:6px;"></div>
-    <div id="pest-empty" style="display:none;padding:24px;text-align:center;color:#97a6b5;font-size:13px;">لا توجد شركات مطابقة للبحث</div>
+    <div id="pest-results" class="pt-modal__results"></div>
+    <div id="pest-empty" class="pt-modal__empty" style="display:none;">لا توجد شركات مطابقة للبحث</div>
   </div>
 </div>
 
-<!-- ── Vehicle permit company-select modal ── -->
-<div id="vehicle-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
-    <div style="background:#0b5568;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div style="color:#fff;font-size:15px;font-weight:700;">تصريح المركبة — اختر الشركة</div>
-        <div style="color:#c7d3de;font-size:12px;margin-top:3px;">ابحث بالاسم أو رقم الشركة</div>
+<div id="vehicle-modal" class="pt-modal card-vehicle" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="vehicle-modal-title">
+  <div class="pt-modal__dialog">
+    <div class="pt-modal__head">
+      <span class="pt-modal__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+      <div class="pt-modal__titles"><div class="pt-modal__title" id="vehicle-modal-title">تصريح المركبة</div><div class="pt-modal__sub">اختر المركبة لتجديدها، أو أضف مركبة جديدة للشركة</div></div>
+      <button type="button" class="pt-modal__close" onclick="closeVehicleModal()" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="pt-modal__search">
+      <div class="pt-modal__search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="vehicle-search" type="search" autocomplete="off" placeholder="ابحث باسم الشركة أو رقمها" aria-label="بحث عن شركة" oninput="filterVehicleCompanies(this.value)">
       </div>
-      <button onclick="closeVehicleModal()" style="background:none;border:none;color:#b8c7d6;font-size:20px;cursor:pointer;line-height:1;">✕</button>
+      <div id="vehicle-count" class="pt-modal__count"></div>
     </div>
-    <div style="padding:18px 22px 8px;">
-      <input id="vehicle-search" type="text" autocomplete="off"
-             placeholder="اسم الشركة أو رقمها…"
-             style="width:100%;padding:10px 14px;border:1.5px solid #d7dfe8;border-radius:8px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
-             oninput="filterVehicleCompanies(this.value)">
-      <div id="vehicle-count" style="font-size:11px;color:#97a6b5;margin-top:6px;text-align:left;"></div>
-    </div>
-    <div id="vehicle-results" style="max-height:340px;overflow-y:auto;padding:0 22px 18px;display:flex;flex-direction:column;gap:6px;"></div>
-    <div id="vehicle-empty" style="display:none;padding:24px;text-align:center;color:#97a6b5;font-size:13px;">لا توجد شركات مطابقة للبحث</div>
+    <div id="vehicle-results" class="pt-modal__results"></div>
+    <div id="vehicle-empty" class="pt-modal__empty" style="display:none;">لا توجد شركات مطابقة للبحث</div>
   </div>
 </div>
 
-<!-- ── Waste permit company-select modal ── -->
-<div id="waste-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
-    <div style="background:#0b5568;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div style="color:#fff;font-size:15px;font-weight:700;">تصريح التخلص من النفايات — اختر الشركة</div>
-        <div style="color:#c7d3de;font-size:12px;margin-top:3px;">ابحث بالاسم أو رقم الشركة</div>
+<div id="waste-modal" class="pt-modal card-waste" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="waste-modal-title">
+  <div class="pt-modal__dialog">
+    <div class="pt-modal__head">
+      <span class="pt-modal__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></span>
+      <div class="pt-modal__titles"><div class="pt-modal__title" id="waste-modal-title">تصريح التخلص من النفايات</div><div class="pt-modal__sub">اختر الشركة لبدء الطلب</div></div>
+      <button type="button" class="pt-modal__close" onclick="closeWasteModal()" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="pt-modal__search">
+      <div class="pt-modal__search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="waste-search" type="search" autocomplete="off" placeholder="ابحث باسم الشركة أو رقمها" aria-label="بحث عن شركة" oninput="filterWasteCompanies(this.value)">
       </div>
-      <button onclick="closeWasteModal()" style="background:none;border:none;color:#b8c7d6;font-size:20px;cursor:pointer;line-height:1;">✕</button>
+      <div id="waste-count" class="pt-modal__count"></div>
     </div>
-    <div style="padding:18px 22px 8px;">
-      <input id="waste-search" type="text" autocomplete="off"
-             placeholder="اسم الشركة أو رقمها…"
-             style="width:100%;padding:10px 14px;border:1.5px solid #d7dfe8;border-radius:8px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
-             oninput="filterWasteCompanies(this.value)">
-      <div id="waste-count" style="font-size:11px;color:#97a6b5;margin-top:6px;text-align:left;"></div>
-    </div>
-    <div id="waste-results" style="max-height:340px;overflow-y:auto;padding:0 22px 18px;display:flex;flex-direction:column;gap:6px;"></div>
-    <div id="waste-empty" style="display:none;padding:24px;text-align:center;color:#97a6b5;font-size:13px;">لا توجد شركات مطابقة للبحث</div>
+    <div id="waste-results" class="pt-modal__results"></div>
+    <div id="waste-empty" class="pt-modal__empty" style="display:none;">لا توجد شركات مطابقة للبحث</div>
   </div>
 </div>
 
-<!-- ── Empty-container disposal quick-create modal ── -->
-<div id="disposal-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
-
-    <!-- header -->
-    <div style="background:#0b5568;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div style="color:#fff;font-size:15px;font-weight:700;">طلب تخلص من عبوات مبيدات فارغة</div>
-        <div style="color:#c7d3de;font-size:12px;margin-top:3px;">ابحث عن الشركة بالاسم أو الرقم</div>
+<div id="disposal-modal" class="pt-modal card-disposal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="disposal-modal-title">
+  <div class="pt-modal__dialog">
+    <div class="pt-modal__head">
+      <span class="pt-modal__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 19H4.8a1.8 1.8 0 0 1-1.6-2.7L7.1 9.6"/><path d="M11 19h8.2a1.8 1.8 0 0 0 1.6-2.7l-1.2-2.1"/><path d="m14 16-3 3 3 3"/><path d="M8.3 13.6 7.1 9.6 3.1 10.8"/><path d="m9.3 5.6 1.6-2.7a1.8 1.8 0 0 1 3.1 0l3.9 6.7"/><path d="m13.4 8.8 4 1.2 1.2-4"/></svg></span>
+      <div class="pt-modal__titles"><div class="pt-modal__title" id="disposal-modal-title">طلب تخلص من عبوات مبيدات فارغة</div><div class="pt-modal__sub">شركات لديها تصريح تخلص ساري</div></div>
+      <button type="button" class="pt-modal__close" onclick="closeDisposalModal()" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="pt-modal__search">
+      <div class="pt-modal__search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="disposal-search" type="search" autocomplete="off" placeholder="ابحث باسم الشركة أو رقمها" aria-label="بحث عن شركة" oninput="filterDisposalCompanies(this.value)">
       </div>
-      <button onclick="closeDisposalModal()" style="background:none;border:none;color:#b8c7d6;font-size:20px;cursor:pointer;line-height:1;">✕</button>
+      <div id="disposal-count" class="pt-modal__count"></div>
     </div>
-
-    <!-- search -->
-    <div style="padding:18px 22px 8px;">
-      <input id="disposal-search" type="text" autocomplete="off"
-             placeholder="اسم الشركة أو رقمها…"
-             style="width:100%;padding:10px 14px;border:1.5px solid #d7dfe8;border-radius:8px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
-             oninput="filterDisposalCompanies(this.value)">
-      <div id="disposal-count" style="font-size:11px;color:#97a6b5;margin-top:6px;text-align:left;"></div>
-    </div>
-
-    <!-- results -->
-    <div id="disposal-results" style="max-height:320px;overflow-y:auto;padding:0 22px 18px;display:flex;flex-direction:column;gap:6px;">
-    </div>
-
-    <!-- empty state -->
-    <div id="disposal-empty" style="display:none;padding:24px;text-align:center;color:#97a6b5;font-size:13px;">
-      لا توجد شركات مطابقة للبحث
-    </div>
-    <div id="disposal-no-permits" style="display:{% if not active_disposal_permits %}block{% else %}none{% endif %};padding:24px;text-align:center;color:#97a6b5;font-size:13px;">
-      لا توجد شركات لديها تصريح تخلص ساري حالياً
-    </div>
-
+    <div id="disposal-results" class="pt-modal__results"></div>
+    <div id="disposal-empty" class="pt-modal__empty" style="display:none;">لا توجد شركات مطابقة للبحث</div>
+    <div id="disposal-no-permits" class="pt-modal__empty" style="display:{% if not active_disposal_permits %}block{% else %}none{% endif %};">لا توجد شركات لديها تصريح تخلص ساري حالياً</div>
   </div>
 </div>
 
@@ -474,6 +519,43 @@ var DISPOSAL_PERMITS = [
   {id: {{ p.id }}, name: "{{ p.company__name|escapejs }}", number: "{{ p.company__number|escapejs }}"},
   {% endfor %}
 ];
+
+// ── Company rows (built as DOM nodes: names are shown as text, never as HTML) ──
+var ARROW_SVG = '<svg class="pt-co-row__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>';
+
+function _el(tag, className, text) {
+  var node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function _companyRow(tag, href, name, number, extraMeta) {
+  var row = _el(tag, 'pt-co-row');
+  if (href) row.href = href;
+  var main = _el('div', 'pt-co-row__main');
+  main.appendChild(_el('div', 'pt-co-row__name', name));
+  var meta = _el('div', 'pt-co-row__meta', 'رقم الشركة: ');
+  meta.appendChild(_el('b', '', number || '—'));
+  if (extraMeta) meta.appendChild(document.createTextNode(' — ' + extraMeta));
+  main.appendChild(meta);
+  row.appendChild(main);
+  if (tag === 'a') row.insertAdjacentHTML('beforeend', ARROW_SVG);
+  return { row: row, main: main };
+}
+
+// Expiry dates arrive as YYYY-MM-DD; show them as DD/MM/YYYY like the rest of the system.
+function _date(iso) {
+  var parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return parts ? parts[3] + '/' + parts[2] + '/' + parts[1] : (iso || '');
+}
+
+function _chip(tag, kind, text, href, title) {
+  var chip = _el(tag, 'pt-chip pt-chip--' + kind, text);
+  if (href) chip.href = href;
+  if (title) chip.title = title;
+  return chip;
+}
 
 var NEW_DISPOSAL_URL_TPL = "{% url 'waste_disposal_request_new' permit_id=0 %}".replace('/0/', '/PERMIT_ID/');
 
@@ -490,18 +572,7 @@ function renderDisposalResults(items) {
   empty.style.display = 'none';
   count.textContent = items.length + ' شركة';
   items.forEach(function(p) {
-    var row = document.createElement('a');
-    row.href = NEW_DISPOSAL_URL_TPL.replace('PERMIT_ID', p.id);
-    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid #d7dfe8;border-radius:8px;text-decoration:none;color:#304357;transition:.12s;';
-    row.onmouseover = function(){this.style.background='#e6f2f4';this.style.borderColor='#0e7490';};
-    row.onmouseout  = function(){this.style.background='';this.style.borderColor='#d7dfe8';};
-    row.innerHTML =
-      '<div>' +
-        '<div style="font-size:14px;font-weight:600;">' + p.name + '</div>' +
-        '<div style="font-size:11px;color:#6f8194;margin-top:2px;">رقم الشركة: ' + p.number + '</div>' +
-      '</div>' +
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0e7490" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
-    box.appendChild(row);
+    box.appendChild(_companyRow('a', NEW_DISPOSAL_URL_TPL.replace('PERMIT_ID', p.id), p.name, p.number).row);
   });
 }
 
@@ -540,25 +611,14 @@ var ALL_COMPANIES = [
 function _makePermitRow(urlTpl, c, expiryField, expiredField) {
   var expired = c[expiredField];
   var expiry  = c[expiryField];
-  var border  = expired ? '#fca5a5' : '#d7dfe8';
-  var bgHover = expired ? '#fef2f2' : '#eaf0f6';
-  var bdHover = expired ? '#ef4444' : '#0e7490';
-  var row = document.createElement('a');
-  row.href = urlTpl.replace('COMPANY_ID', c.id);
-  row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid ' + border + ';border-radius:8px;text-decoration:none;color:#304357;transition:.12s;' + (expired ? 'background:#fff5f5;' : '');
-  row.onmouseover = function(){this.style.background=bgHover;this.style.borderColor=bdHover;};
-  row.onmouseout  = function(){this.style.background=expired?'#fff5f5':'';this.style.borderColor=border;};
-  var badge = expired
-    ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#fee2e2;color:#b91c1c;border-radius:10px;white-space:nowrap;">منتهي ' + expiry + '</span>'
-    : (expiry ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;background:#dcfce7;color:#166534;border-radius:10px;white-space:nowrap;">ساري حتى ' + expiry + '</span>' : '');
-  row.innerHTML =
-    '<div style="display:flex;flex-direction:column;gap:3px;">' +
-      '<div style="font-size:14px;font-weight:600;">' + c.name + '</div>' +
-      '<div style="font-size:11px;color:#6f8194;">رقم الشركة: ' + c.number + '</div>' +
-      (badge ? '<div style="margin-top:2px;">' + badge + '</div>' : '') +
-    '</div>' +
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (expired?'#ef4444':'#0e7490') + '" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
-  return row;
+  var built = _companyRow('a', urlTpl.replace('COMPANY_ID', c.id), c.name, c.number);
+  if (expired) built.row.classList.add('pt-co-row--expired');
+  if (expired || expiry) {
+    var chips = _el('div', 'pt-co-row__chips');
+    chips.appendChild(_chip('span', expired ? 'expired' : 'ok', (expired ? 'منتهي ' : 'ساري حتى ') + _date(expiry)));
+    built.main.appendChild(chips);
+  }
+  return built.row;
 }
 
 function _renderModalResults(resultsDivId, emptyDivId, countDivId, urlTpl, expiryField, expiredField, items) {
@@ -602,32 +662,18 @@ var VEHICLE_URL_TPL = "{% url 'vehicle_permit' %}?company_id=COMPANY_ID";
 
 function _makeVehicleRow(c) {
   var permits = c.vehicle_permits || [];
-  var anyExpired = permits.some(function(p){ return p.expired; });
-  var border = anyExpired ? '#fca5a5' : '#d7dfe8';
-  var row = document.createElement('div');
-  row.style.cssText = 'display:flex;flex-direction:column;gap:3px;padding:10px 14px;border:1.5px solid ' + border + ';border-radius:8px;color:#304357;' + (anyExpired ? 'background:#fff5f5;' : '');
-
-  // Each vehicle is its own link — clicking it carries that vehicle's own
-  // details into the renewal form instead of starting a blank request, so
-  // picking the wrong one out of several doesn't need to be guessed.
-  var badges = permits.map(function(p) {
-    var label = (p.expired ? 'منتهي ' : 'ساري حتى ') + p.expiry;
-    var bg = p.expired ? '#fee2e2' : '#dcfce7';
-    var fg = p.expired ? '#b91c1c' : '#166534';
+  var built = _companyRow('div', null, c.name, c.number, permits.length > 1 ? permits.length + ' مركبات' : '');
+  if (permits.some(function(p){ return p.expired; })) built.row.classList.add('pt-co-row--expired');
+  // Each vehicle is its own link: it carries that vehicle's details into the
+  // renewal form, so the right one is renewed out of several.
+  var chips = _el('div', 'pt-co-row__chips');
+  permits.forEach(function(p) {
     var href = VEHICLE_URL_TPL.replace('COMPANY_ID', c.id) + '&renew_permit_id=' + p.id;
-    return '<a class="veh-badge" href="' + href + '" title="تجديد هذه المركبة" ' +
-      'style="font-size:10px;font-weight:700;padding:2px 7px;background:' + bg + ';color:' + fg + ';border-radius:10px;white-space:nowrap;text-decoration:none;">' + label + '</a>';
-  }).join('');
-
-  var newVehicleHref = VEHICLE_URL_TPL.replace('COMPANY_ID', c.id);
-  var newVehicleBadge = '<a class="veh-badge" href="' + newVehicleHref + '" title="إضافة مركبة جديدة" ' +
-    'style="font-size:10px;font-weight:700;padding:2px 7px;background:#e6f2f4;color:#0e7490;border:1px dashed #7fb3c0;border-radius:10px;white-space:nowrap;text-decoration:none;">+ مركبة جديدة</a>';
-
-  row.innerHTML =
-    '<div style="font-size:14px;font-weight:600;">' + c.name + '</div>' +
-    '<div style="font-size:11px;color:#6f8194;">رقم الشركة: ' + c.number + (permits.length > 1 ? ' — ' + permits.length + ' مركبات' : '') + '</div>' +
-    '<div style="margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;">' + badges + newVehicleBadge + '</div>';
-  return row;
+    chips.appendChild(_chip('a', p.expired ? 'expired' : 'ok', (p.expired ? 'منتهي ' : 'ساري حتى ') + _date(p.expiry), href, 'تجديد هذه المركبة'));
+  });
+  chips.appendChild(_chip('a', 'new', '+ مركبة جديدة', VEHICLE_URL_TPL.replace('COMPANY_ID', c.id), 'إضافة مركبة جديدة'));
+  built.main.appendChild(chips);
+  return built.row;
 }
 
 function renderVehicleResults(items) {
@@ -670,6 +716,20 @@ function closeWasteModal() {
 document.getElementById('waste-modal').addEventListener('click', function(e){ if (e.target === this) closeWasteModal(); });
 renderWasteResults(ALL_COMPANIES);
 
+// Esc closes whichever dialog is open.
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  var closers = {
+    'pest-modal': closePestModal, 'vehicle-modal': closeVehicleModal, 'waste-modal': closeWasteModal,
+    'disposal-modal': closeDisposalModal,
+    'monthly-report-modal': function () { document.getElementById('monthly-report-modal').style.display = 'none'; },
+  };
+  Object.keys(closers).forEach(function (id) {
+    var modal = document.getElementById(id);
+    if (modal && modal.style.display !== 'none') closers[id]();
+  });
+});
+
 // ── Auto-open modal from ?open= param ──────────────────────────────────────
 (function () {
   var open = new URLSearchParams(window.location.search).get('open');
@@ -681,43 +741,21 @@ renderWasteResults(ALL_COMPANIES);
 {% endif %}
 
 <!-- Monthly Report Modal -->
-<div id="monthly-report-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:14px;padding:28px 28px 24px;max-width:420px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.18);direction:rtl;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <h3 style="font-size:17px;font-weight:700;color:#166534;margin:0;">التقرير الشهري للتصاريح</h3>
-      <button onclick="document.getElementById('monthly-report-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#6f8194;line-height:1;">✕</button>
+<div id="monthly-report-modal" class="pt-modal card-disposal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="monthly-report-title">
+  <div class="pt-modal__dialog pt-modal__dialog--small">
+    <div class="pt-modal__head">
+      <span class="pt-modal__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      <div class="pt-modal__titles"><div class="pt-modal__title" id="monthly-report-title">التقرير الشهري للتصاريح</div><div class="pt-modal__sub">ملف Excel للفترة المختارة</div></div>
+      <button type="button" class="pt-modal__close" onclick="document.getElementById('monthly-report-modal').style.display='none'" aria-label="إغلاق">✕</button>
     </div>
-
-    <form id="monthly-report-form" action="{% url 'permits_monthly_report_excel' %}" method="get" data-skip-loader="true">
-      <div style="display:flex;flex-direction:column;gap:14px;">
-
-        <button type="button" id="btn-current-month" onclick="setCurrentMonth()"
-          style="padding:10px 16px;background:#166534;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
-          الشهر الحالي
-        </button>
-
-        <div style="display:flex;align-items:center;gap:8px;color:#97a6b5;font-size:12px;font-weight:600;">
-          <div style="flex:1;height:1px;background:#d7dfe8;"></div>أو حدد تاريخاً<div style="flex:1;height:1px;background:#d7dfe8;"></div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <div>
-            <label style="font-size:12px;font-weight:700;color:#41576f;display:block;margin-bottom:4px;">من تاريخ</label>
-            <input type="date" name="date_from" id="rpt-from"
-              style="width:100%;padding:8px 10px;border:1.5px solid #d7dfe8;border-radius:8px;font-size:13px;font-family:inherit;">
-          </div>
-          <div>
-            <label style="font-size:12px;font-weight:700;color:#41576f;display:block;margin-bottom:4px;">إلى تاريخ</label>
-            <input type="date" name="date_to" id="rpt-to"
-              style="width:100%;padding:8px 10px;border:1.5px solid #d7dfe8;border-radius:8px;font-size:13px;font-family:inherit;">
-          </div>
-        </div>
-
-        <button type="submit"
-          style="padding:11px 16px;background:#0e7490;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;">
-          تحميل Excel
-        </button>
+    <form id="monthly-report-form" class="pt-modal__form" action="{% url 'permits_monthly_report_excel' %}" method="get" data-skip-loader="true">
+      <button type="button" id="btn-current-month" class="pt-btn" onclick="setCurrentMonth()">الشهر الحالي</button>
+      <div class="pt-modal__divider">أو حدد الفترة</div>
+      <div class="pt-modal__dates">
+        <div><label for="rpt-from">من تاريخ</label><input type="date" name="date_from" id="rpt-from"></div>
+        <div><label for="rpt-to">إلى تاريخ</label><input type="date" name="date_to" id="rpt-to"></div>
       </div>
+      <button type="submit" class="pt-btn pt-btn--primary">تحميل Excel</button>
     </form>
   </div>
 </div>
