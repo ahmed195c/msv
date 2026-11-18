@@ -1,6 +1,6 @@
 """Desktop build only: when an activity (pest_control) permit is issued, save
 a PDF of its print page — exactly what printing it would give — to
-MEDIA_ROOT/تصريح النشاط/التصاريح/<YYYY-MM>/<company name>.pdf.
+MEDIA_ROOT/تجديد تصريح النشاط/التصاريح/<YYYY-MM>/<company name>.pdf.
 
 The PDF is rendered by Microsoft Edge in headless mode (always present on
 Windows 10/11, and already what pywebview draws the app window with) against

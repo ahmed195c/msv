@@ -10,7 +10,7 @@ from django.db import IntegrityError, models
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 
-ACTIVITY_PERMIT_FOLDER = 'تصريح النشاط'
+ACTIVITY_PERMIT_FOLDER = 'تجديد تصريح النشاط'
 ACTIVITY_PERMIT_DOCS_FOLDER = 'أوراق الطلب'
 ACTIVITY_PERMIT_PDFS_FOLDER = 'التصاريح'
 PERMIT_RECEIPT_LABEL = 'إيصال دفع التصريح'
@@ -29,7 +29,7 @@ def company_folder_name(company):
 class ActivityPermitUploadPath:
     """upload_to for files attached to a permit. In the desktop build,
     activity (pest_control) permit files are filed for browsing in Explorer
-    as تصريح النشاط/أوراق الطلب/<YYYY-MM of the permit>/<company name>/<file>; every
+    as تجديد تصريح النشاط/أوراق الطلب/<YYYY-MM of the permit>/<company name>/<file>; every
     other permit type, and the server, keep the flat default_dir."""
 
     def __init__(self, default_dir, file_label=None):
