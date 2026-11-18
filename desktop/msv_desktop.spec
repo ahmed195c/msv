@@ -74,9 +74,30 @@ a = Analysis(
 # the bundled GLib and aborts the window when their schemas differ
 # ("Settings schema ... does not contain a key named 'antialiasing'").
 # Qt's own theme is used instead; this also keeps GTK out of the bundle.
+#
+# Also leave out the base system libraries every Linux desktop already has.
+# Copies taken from the (older) build machine clash with the PC's newer GPU
+# drivers: e.g. Intel's driver needs a newer libstdc++ than the bundled one,
+# EGL fails to start, and the window aborts a second after opening.
 if sys.platform.startswith('linux'):
     _GTK_PARTS = ('libqgtk3', 'libgtk-3', 'libgdk-3')
-    a.binaries = [b for b in a.binaries if not any(part in b[0] for part in _GTK_PARTS)]
+    _SYSTEM_LIBS = (
+        'libstdc++.so', 'libgcc_s.so', 'libgbm.so', 'libdrm.so', 'libEGL.so', 'libGL.so',
+        'libGLX.so', 'libGLdispatch.so', 'libOpenGL.so', 'libva.so', 'libva-',
+        'libglib-2.0.so', 'libgio-2.0.so', 'libgobject-2.0.so', 'libgmodule-2.0.so',
+        'libX11.so', 'libX11-xcb.so', 'libxcb-glx.so', 'libxcb-randr.so', 'libxcb-render.so',
+        'libxcb-shm.so', 'libxcb-sync.so', 'libxcb-xfixes.so', 'libxcb-xkb.so',
+        'libxkbcommon.so', 'libdbus-1.so', 'libfontconfig.so', 'libfreetype.so',
+        'libharfbuzz.so', 'libffi.so', 'libz.so', 'libwayland-',
+    )
+
+    def _keep(entry):
+        name = entry[0].rsplit('/', 1)[-1]
+        if any(part in entry[0] for part in _GTK_PARTS):
+            return False
+        return not name.startswith(_SYSTEM_LIBS)
+
+    a.binaries = [b for b in a.binaries if _keep(b)]
 
 pyz = PYZ(a.pure)
 
