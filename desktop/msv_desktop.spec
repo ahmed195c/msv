@@ -26,6 +26,8 @@ What *does* need PyInstaller's help:
     they're listed explicitly below rather than solved by the sys.path
     trick.
 """
+import sys
+
 from PyInstaller.utils.hooks import collect_all, collect_submodules
 
 hidden_imports = []
@@ -67,6 +69,15 @@ a = Analysis(
     excludes=[],
     noarchive=False,
 )
+
+# Linux: Qt's GTK3 theme plugin reads the desktop's GNOME settings through
+# the bundled GLib and aborts the window when their schemas differ
+# ("Settings schema ... does not contain a key named 'antialiasing'").
+# Qt's own theme is used instead; this also keeps GTK out of the bundle.
+if sys.platform.startswith('linux'):
+    _GTK_PARTS = ('libqgtk3', 'libgtk-3', 'libgdk-3')
+    a.binaries = [b for b in a.binaries if not any(part in b[0] for part in _GTK_PARTS)]
+
 pyz = PYZ(a.pure)
 
 # The normal double-click target: no console window.

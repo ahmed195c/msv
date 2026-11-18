@@ -18,6 +18,8 @@ import json
 import os
 import shutil
 import sys
+import stat
+import tarfile
 import tempfile
 import tkinter as tk
 import urllib.error
@@ -69,9 +71,15 @@ def _find_new_app_dir(src: Path, cleanup: list) -> Path:
         with zipfile.ZipFile(src) as zf:
             zf.extractall(tmp)
         src = tmp
+    elif src.is_file() and src.name.lower().endswith(('.tar.gz', '.tgz')):
+        tmp = Path(tempfile.mkdtemp(prefix='msv_update_'))
+        cleanup.append(tmp)
+        with tarfile.open(src) as tf:
+            tf.extractall(tmp, filter='data')
+        src = tmp
 
     def _looks_like_app_dir(p: Path) -> bool:
-        return (p / 'msv-desktop.exe').exists() or (p / '_internal').is_dir()
+        return (p / 'msv-desktop.exe').exists() or (p / 'msv-desktop').exists() or (p / '_internal').is_dir()
 
     if (src / 'app').is_dir():
         return src / 'app'
@@ -86,6 +94,16 @@ def _find_new_app_dir(src: Path, cleanup: list) -> Path:
         if _looks_like_app_dir(child):
             return child
     raise FileNotFoundError('ملف التحديث غير صالح: لم يُعثر بداخله على مجلد app.')
+
+
+def _make_launchers_executable(app_dir: Path) -> None:
+    """A .zip loses the Linux run permission; put it back on the launchers."""
+    if sys.platform == 'win32':
+        return
+    for name in ('msv-desktop', 'msv-desktop-debug'):
+        exe = app_dir / name
+        if exe.is_file():
+            exe.chmod(exe.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
 def main() -> None:
@@ -110,8 +128,8 @@ def main() -> None:
         return
 
     update_path_str = filedialog.askopenfilename(
-        title='اختر ملف التحديث (.zip)',
-        filetypes=[('MSV Update', '*.zip'), ('كل الملفات', '*.*')],
+        title='اختر ملف التحديث (.zip أو .tar.gz)',
+        filetypes=[('MSV Update', '*.zip *.tar.gz *.tgz'), ('كل الملفات', '*.*')],
     )
     if not update_path_str:
         update_path_str = filedialog.askdirectory(title='أو اختر مجلد التحديث إذا كان مفكوك الضغط مسبقًا')
@@ -140,6 +158,7 @@ def main() -> None:
         try:
             os.replace(app_dir, backup_dir)
             shutil.copytree(new_app_dir, app_dir)
+            _make_launchers_executable(app_dir)
         except Exception as e:
             if backup_dir.exists() and not app_dir.exists():
                 os.replace(backup_dir, app_dir)

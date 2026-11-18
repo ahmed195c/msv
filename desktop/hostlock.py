@@ -187,8 +187,14 @@ def elect(data_dir: Path, port: int, max_attempts: int = 8) -> 'HostClaim | Clie
 
     last_seen_heartbeat: Optional[float] = None
     last_seen_at = time.monotonic()
+    # A lock left by a crash or power cut is only judged dead after its
+    # heartbeat stays still for STALE_AFTER seconds, so keep trying at least
+    # that long; a fixed attempt count alone gave up after a few seconds.
+    deadline = last_seen_at + STALE_AFTER + 5.0
 
-    for attempt in range(max_attempts):
+    attempt = 0
+    while attempt < max_attempts or time.monotonic() < deadline:
+        attempt += 1
         try:
             fd = os.open(str(lock_path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
             os.close(fd)

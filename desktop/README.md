@@ -54,6 +54,27 @@ PC separately, and no need to pick one PC as "the main one" for updates.
   run in PowerShell:
   `Get-ChildItem -Recurse "<MSV-Desktop folder>" | Unblock-File`
 
+## Linux
+
+CI also builds `MSV-Desktop-linux.tar.gz` (same app, same `data/` layout;
+a `.tar.gz` because a zip drops the run permission). It runs on Ubuntu
+22.04 or newer and needs no packages installed: the window's web engine
+(Qt) ships inside `app/`.
+
+1. Extract it: `tar -xzf MSV-Desktop-linux.tar.gz`
+2. Once, from inside `MSV-Desktop/`: `./install-shortcut.sh` — adds
+   "نظام التصاريح والعقود" to the applications menu and the desktop.
+   Run it again if the folder is moved.
+3. To start from a terminal instead: `./app/msv-desktop`
+   (`./app/msv-desktop-debug` prints startup errors).
+4. Updating: close the app everywhere, then `./apply-update` and pick the
+   new `.tar.gz` (a `.zip` works too).
+
+If the native window can't start, the app opens in the default browser
+instead and keeps serving until it is stopped (Ctrl+C or log out).
+Windows and Linux PCs can share the same `data/` folder; whichever opens
+it first is the host.
+
 ## Operational rules
 
 - **Never open `data/db.sqlite3` directly from a client machine** — e.g.

@@ -1,4 +1,4 @@
-name: Build desktop app (Windows)
+name: Build desktop app (Windows + Linux)
 
 on:
   push:
@@ -98,3 +98,87 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: MSV-Desktop-windows.zip
+
+  build-linux:
+    # Oldest supported runner: the bundle then runs on any newer distro (glibc).
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Qt's X11 plugin needs these; installed here so PyInstaller bundles
+      # them and the target PC doesn't have to have them.
+      - name: Install Qt system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 \
+            libxcb-keysyms1 libxcb-image0 libxcb-render-util0 libxcb-xinerama0 libegl1 python3-tk
+
+      - name: Install desktop dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r desktop/requirements-desktop.txt
+
+      - name: Stage the Django project as plain source (not frozen by PyInstaller)
+        run: |
+          mkdir -p staging/django_src
+          cp -r msv/msv staging/django_src/msv
+          cp -r msv/hcsd staging/django_src/hcsd
+          find staging/django_src -name '__pycache__' -type d -exec rm -rf {} + || true
+
+      - name: Collect static files into the staged copy
+        env:
+          DJANGO_SETTINGS_MODULE: msv.settings
+          PYTHONPATH: staging/django_src
+        run: python -m django collectstatic --noinput
+
+      - name: Build with PyInstaller
+        working-directory: desktop
+        run: |
+          pyinstaller msv_desktop.spec --noconfirm --clean
+          pyinstaller apply_update.spec --noconfirm --clean
+
+      - name: Smoke-test the frozen app actually boots Django
+        run: |
+          cp -r staging/django_src desktop/dist/app/django_src
+          cd desktop/dist/app
+          # No display here: the marker is printed before any window opens.
+          timeout 40 ./msv-desktop-debug > boot.log 2>&1 || true
+          cat boot.log
+          if ! grep -q "MSV_DESKTOP_SERVER_READY" boot.log; then
+            echo "::error::Frozen app never reached a successful startup — see log above."
+            exit 1
+          fi
+          rm -rf ../data django_src boot.log
+
+      - name: Assemble the portable folder
+        run: |
+          mv staging/django_src desktop/dist/app/django_src
+          python -c "from PIL import Image; Image.open('desktop/app.ico').save('desktop/dist/app/msv-desktop.png')"
+          mkdir -p MSV-Desktop/app
+          cp -r desktop/dist/app/* MSV-Desktop/app/
+          cp desktop/dist/apply-update MSV-Desktop/apply-update
+          cp desktop/linux/install-shortcut.sh MSV-Desktop/install-shortcut.sh
+          cp desktop/README.md MSV-Desktop/README.md
+          chmod +x MSV-Desktop/apply-update MSV-Desktop/install-shortcut.sh MSV-Desktop/app/msv-desktop MSV-Desktop/app/msv-desktop-debug
+
+      # tar keeps the run permission on the launchers; a zip would drop it.
+      - name: Pack the build
+        run: tar -czf MSV-Desktop-linux.tar.gz MSV-Desktop
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MSV-Desktop-linux
+          path: MSV-Desktop-linux.tar.gz
+          retention-days: 30
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: MSV-Desktop-linux.tar.gz

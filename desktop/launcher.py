@@ -159,18 +159,45 @@ def run_as_host(django_src: Path, data_dir: Path, claim) -> None:
     # interactive desktop session on a CI runner).
     print('MSV_DESKTOP_SERVER_READY', flush=True)
 
-    webview.create_window(WINDOW_TITLE, f'http://127.0.0.1:{claim.port}/')
     try:
-        webview.start()
+        _open_window(f'http://127.0.0.1:{claim.port}/')
     finally:
         stop_event.set()
         claim.release()
 
 
 def run_as_client(client) -> None:
+    _open_window(client.url)
+
+
+def _open_window(url: str) -> None:
+    """Show the app in its own window until the user closes it.
+
+    On Linux the window needs a Qt/GTK web engine; if none can start (e.g.
+    missing system libraries), fall back to the default browser and keep
+    serving until the process is stopped (Ctrl+C, logout, or kill).
+    """
+    if sys.platform.startswith('linux'):
+        # The Linux build bundles Qt; skip pywebview's GTK probe.
+        os.environ.setdefault('PYWEBVIEW_GUI', 'qt')
     import webview
-    webview.create_window(WINDOW_TITLE, client.url)
-    webview.start()
+    try:
+        webview.create_window(WINDOW_TITLE, url)
+        webview.start()
+        return
+    except Exception as exc:  # noqa: BLE001
+        if sys.platform == 'win32':
+            raise
+        sys.stderr.write(f'Native window unavailable ({exc}); opening the browser instead.\n')
+
+    import signal
+    import webbrowser
+
+    stop = threading.Event()
+    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, lambda *_: stop.set())
+    webbrowser.open(url)
+    stop.wait()
 
 
 def main() -> None:
